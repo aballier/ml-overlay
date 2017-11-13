@@ -1,0 +1,26 @@
+commit 310259bb2494e8b54a3d8cf402f291a702e9d488
+Author: Gabriel Scherer <gabriel.scherer@gmail.com>
+Date:   Mon Apr 18 22:59:38 2016 -0400
+
+    safe-string: make Format safe
+
+diff --git a/src/batFormat.mlv b/src/batFormat.mlv
+index b1a9c244..43e88db7 100644
+--- a/src/batFormat.mlv
++++ b/src/batFormat.mlv
+@@ -25,13 +25,13 @@ include Format
+ 
+ (* internal functions *)
+ 
+-let output_of out = fun s i o -> ignore (really_output out s i o)
++let output_of out = fun s i o -> ignore (really_output_substring out s i o)
+ let flush_of out = BatInnerIO.get_flush out
+ let newline_of out = fun () -> BatInnerIO.write out '\n'
+ let spaces_of out =
+   (* Default function to output spaces.
+      Copied from base format.ml*)
+-  let blank_line = String.make 80 ' ' in
++  let blank_line = Bytes.make 80 ' ' in
+   let rec display_blanks n =
+     if n > 0 then
+       if n <= 80 then ignore (really_output out blank_line 0 n) else

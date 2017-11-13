@@ -1,0 +1,408 @@
+commit dd4dbb42cdbaebcd829d242b1cf5a15ba0105d95
+Author: Gabriel Scherer <gabriel.scherer@gmail.com>
+Date:   Tue Apr 19 20:19:30 2016 -0400
+
+    safe-string: adapt String.Cap
+
+diff --git a/src/batString.mliv b/src/batString.mliv
+index 393a7d3b..87898bd7 100644
+--- a/src/batString.mliv
++++ b/src/batString.mliv
+@@ -955,7 +955,15 @@ end (* String.Exceptionless *)
+     with the added twist that strings can be made read-only or write-only.
+     Read-only strings may then be safely shared and distributed.
+ 
+-    There is no loss of performance involved. *)
++    @since NEXT_RELEASE the interface and implementation of the Cap
++    module changed to accomodate the -safe-string transition. OCaml
++    now uses two distinct types for mutable and immutable string,
++    which is a good design but is not as expressive as the present Cap
++    interface, and actually makes implementing Cap harder than it
++    previously was. We are aware that current state is not optimal for
++    heavy Cap users; if you are one of them, please get in touch (on
++    the Batteries issue tracker for example) so that we can discuss
++    code refactoring and improvements for this sub-module.  *)
+ module Cap:
+ sig
+ 
+@@ -986,11 +994,66 @@ sig
+ 
+   (** {6 Constructors}*)
+ 
+-  external of_string : string -> _ t                = "%identity"
+-  (**Adopt a regular string.*)
++  external of_string : Bytes.t -> _ t = "%identity"
++    [@@ocaml.deprecated "Use Cap.of_bytes instead"]
++  (**Adopt a regular byte sequence.
++
++     One could give a perfectly safe semantics to
++     an [of_string : string -> _ t] function, but this
++     requires making a copy of the string. Previous
++     versions of this interface advertised the absence
++     of performance overhead, so it's better to warn
++     the user and let them decide (through the use of
++     either Bytes.of_string or Bytes.unsafe_of_string)
++     whether they can safely avoid a copy or need to
++     insert one.
++   *)
++
++  val of_bytes : Bytes.t -> _ t
++  (** Adopt a regular byte sequence.
++
++      Note that adopting a byte sequence, even at the restrictive
++      [`Read] type, does not make a copy. Having a [`Read] string
++      prevents you (and anyone you pass it to) from writing it, but
++      your parent may have knowledge of the string at a more permissive
++      type and perform writes on it.
++
++      If you want to use a [`Read] string and assume it will not get
++      written to, you should either properly "adopt" it by ensuring
++      unique ownership (this cannot be guaranteed by the type system),
++      or make a copy of it at adoption time: [Cap.of_bytes
++      (Bytes.copy buf)].
++
++      @since NEXT_RELEASE
++  *)
+ 
+-  external to_string : [`Read | `Write] t -> string = "%identity"
+-  (** Return a capability string as a regular string.*)
++  external to_string : [`Read | `Write] t -> Bytes.t = "%identity"
++    [@@ocaml.deprecated "Use Cap.to_bytes instead"]
++  (** Return a capability string as a regular byte sequence.
++
++      We cannot return a [string] here, and it would be incorrect to
++      do so even if we required [[< `Read] t] as input. Indeed, one
++      can start from a writeable byte sequence, and then use the
++      [read_only] function below to cast it into a [[`Read]
++      t]. Capabilities are used to enforce local protocol (only reads,
++      only writes, both reads and writes...), they don't guarantee
++      that other users of the same (shared) value all follow the same
++      protocol. To safely reason about mutability one needs stronger
++      ownership guarantees.
++
++      If you want to obtain an immutable [string] out of a capability
++      string, you should first convert it to a mutable byte sequence
++      and then copy it into an immutable string. If you have extra
++      knowledge about the ownership of the value, you may use unsafe
++      conversion functions to avoid the copy, see the documentation of
++      unsafe conversion functions.
++   *)
++
++  external to_bytes : [`Read | `Write] t -> Bytes.t = "%identity"
++  (** Return a capability string as a regular byte sequence.
++
++      @since NEXT_RELEASE
++  *)
+ 
+   external read_only : [> `Read] t -> [`Read] t     = "%identity"
+   (** Drop capabilities to read only.*)
+@@ -1080,7 +1143,7 @@ sig
+ 
+   val rchop : ?n:int -> [> `Read] t -> _ t
+ 
+-  val chop : ?l:int -> ?r:int -> [> `Read] t -> string
++  val chop : ?l:int -> ?r:int -> [> `Read] t -> _ t
+ 
+   val trim : [> `Read] t -> _ t
+ 
+@@ -1127,11 +1190,11 @@ sig
+   (** {6 Splitting around}*)
+   val split : [> `Read] t -> by:[> `Read] t -> _ t * _ t
+ 
+-  val rsplit : [> `Read] t -> by:string -> string * string
++  val rsplit : [> `Read] t -> by:[> `Read] t -> _ t * _ t
+ 
+   val nsplit : [> `Read] t -> by:[> `Read] t -> _ t list
+ 
+-  val splice: [ `Read | `Write] t  -> int -> int -> [> `Read] t -> string
++  val splice: [ `Read | `Write] t  -> int -> int -> [> `Read] t -> _ t
+ 
+   val join : [> `Read] t -> [> `Read] t list -> _ t
+ 
+@@ -1190,10 +1253,8 @@ sig
+ 
+     val rfind_from: [> `Read] t -> int -> [> `Read] t -> int option
+ 
+-    (* val split : string -> string -> (string * string) option TODO *)
+     val split : [> `Read] t -> by:[> `Read] t -> (_ t * _ t) option
+ 
+-    (*   val rsplit : string -> string -> (string * string) option TODO *)
+     val rsplit : [> `Read] t -> by:[> `Read] t -> (_ t * _ t) option
+ 
+   end (* String.Cap.Exceptionless *)
+diff --git a/src/batString.mlv b/src/batString.mlv
+index d092b575..9babb4ba 100644
+--- a/src/batString.mlv
++++ b/src/batString.mlv
+@@ -227,7 +227,8 @@ let exists str sub =
+   not (exists "ab" "c")
+ *)
+ 
+-let strip ?(chars = " \t\r\n") s =
++let strip_default = " \t\r\n"
++let strip ?(chars = strip_default) s =
+   let p = ref 0 in
+   let l = length s in
+   while !p < l && contains chars (unsafe_get s !p) do
+@@ -1090,88 +1091,99 @@ end (* String.Exceptionless *)
+ 
+ module Cap =
+ struct
+-  type 'a t = string
+-
+-  let make          = make
+-  let is_empty      = is_empty
+-  let init          = init
+-  let enum          = enum
+-  let of_enum       = of_enum
+-  let backwards     = backwards
+-  let of_backwards  = of_backwards
+-
+-  let of_int        = of_int
+-  let of_float      = of_float
+-  let of_char       = of_char
+-  let to_int        = to_int
+-  let to_float      = to_float
+-  let map           = map
+-  let mapi          = mapi
+-  let fold_left     = fold_left
+-  let fold_right    = fold_right
+-  let fold_lefti    = fold_lefti
+-  let fold_righti   = fold_righti
+-  let iter          = iter
+-  let index         = index
+-  let rindex        = rindex
+-  let index_from    = index_from
+-  let rindex_from   = rindex_from
+-  let contains      = contains
+-  let contains_from = contains_from
+-  let rcontains_from= rcontains_from
+-  let find          = find
+-  let find_from     = find_from
+-  let rfind         = rfind
+-  let rfind_from    = rfind_from
+-  let ends_with     = ends_with
+-  let starts_with   = starts_with
+-  let exists        = exists
+-  let lchop         = lchop
+-  let rchop         = rchop
+-  let chop          = chop
+-  let strip         = strip
+-  let uppercase     = uppercase
+-  let lowercase     = lowercase
+-  let capitalize    = capitalize
+-  let uncapitalize  = uncapitalize
+-  let copy          = copy
+-  let sub           = sub
+-  let fill          = fill
+-  let blit          = blit
+-  let concat        = concat
+-  let escaped       = escaped
+-  let replace_chars = replace_chars
+-  let replace       = replace
+-  let nreplace      = nreplace
+-  let split         = split
+-  let repeat        = repeat
+-  let rsplit        = rsplit
+-  let nsplit        = nsplit
+-  let join          = join
+-  let slice         = slice
+-  let explode       = explode
+-  let implode       = implode
+-  let compare       = compare
+-  let icompare      = icompare
+-  let splice        = splice
+-  let trim          = trim
+-  let quote         = quote
+-  let left          = left
+-  let right         = right
+-  let head          = head
+-  let tail          = tail
+-  let filter_map    = filter_map
+-  let filter        = filter
+-  let of_list       = of_list
+-  let to_list       = to_list
+-
+-  let quote         = quote
+-  let print         = print
+-  let println       = println
+-  let print_quoted  = print_quoted
+-
+-  external of_string : string -> _ t                = "%identity"
+-  external to_string : [`Read | `Write] t -> string = "%identity"
++  type 'a t = Bytes.t
++  let ubos = Bytes.unsafe_of_string
++  let usob = Bytes.unsafe_to_string
++
++  let make          = Bytes.make
++  let is_empty b    = is_empty (usob b)
++  let init n f      = ubos (init n f)
++  let enum b        = enum (usob b)
++  let of_enum e     = ubos (of_enum e)
++  let backwards b   = backwards (usob b)
++  let of_backwards e = ubos (of_backwards e)
++
++  let of_int n      = ubos (of_int n)
++  let of_float x    = ubos (of_float x)
++  let of_char c     = ubos (of_char c)
++  let to_int b      = to_int (usob b)
++  let to_float b    = to_float (usob b)
++  let map f b       = ubos (map f (usob b))
++  let mapi f b      = ubos (mapi f (usob b))
++  let fold_left f v b = fold_left f v (usob b)
++  let fold_right f b v = fold_right f (usob b) v
++  let fold_lefti f v b = fold_lefti f v (usob b)
++  let fold_righti f b v = fold_righti f (usob b) v
++  let iter f b      = iter f (usob b)
++  let index b c     = index (usob b) c
++  let rindex b c    = rindex (usob b) c
++  let index_from b i c = index_from (usob b) i c
++  let rindex_from b i c = rindex_from (usob b) i c
++  let contains b c  = contains (usob b) c
++  let contains_from b i c = contains_from (usob b) i c
++  let rcontains_from b i c = rcontains_from (usob b) i c
++  let find b1 b2    = find (usob b1) (usob b2)
++  let find_from b1 i b2 = find_from (usob b1) i (usob b2)
++  let rfind b1 b2   = rfind (usob b1) (usob b2)
++  let rfind_from b1 i b2 = rfind_from (usob b1) i (usob b2)
++  let ends_with b1 b2 = ends_with (usob b1) (usob b2)
++  let starts_with b1 b2   = starts_with (usob b1) (usob b2)
++  let exists b1 b2  = exists (usob b1) (usob b2)
++  let lchop ?n b    = ubos (lchop ?n (usob b))
++  let rchop ?n b    = ubos (rchop ?n (usob b))
++  let chop ?l ?r b  = ubos (chop ?l ?r (usob b))
++  let strip ?(chars = ubos strip_default) b =
++    ubos (strip ~chars:(usob chars) (usob b))
++  let uppercase b   = ubos (uppercase (usob b))
++  let lowercase b   = ubos (lowercase (usob b))
++  let capitalize b  = ubos (capitalize (usob b))
++  let uncapitalize b = ubos (uncapitalize (usob b))
++  let copy          = Bytes.copy
++  let sub           = Bytes.sub
++  let fill          = Bytes.fill
++  let blit          = Bytes.blit
++  let concat        = Bytes.concat
++  let escaped       = Bytes.escaped
++  let replace_chars f b = ubos (replace_chars (fun c -> usob (f c)) (usob b))
++  let replace ~str ~sub ~by =
++    let (b, s) = replace ~str:(usob str) ~sub:(usob sub) ~by:(usob by) in
++    (b, ubos s)
++  let nreplace ~str ~sub ~by =
++    ubos (nreplace ~str:(usob str) ~sub:(usob sub) ~by:(usob by))
++  let split b ~by   =
++    let (a, b) = split (usob b) ~by:(usob by) in
++    (ubos a, ubos b)
++  let repeat b i    = ubos (repeat (usob b) i)
++  let rsplit b ~by   =
++    let (a, b) = rsplit (usob b) ~by:(usob by) in
++    (ubos a, ubos b)
++  let nsplit b ~by  = List.map ubos (nsplit (usob b) ~by:(usob by))
++  let join          = Bytes.concat
++  let slice ?first ?last b = ubos (slice ?first ?last (usob b))
++  let explode b     = explode (usob b)
++  let implode cs    = ubos (implode cs)
++  let compare b1 b2 = compare (usob b1) (usob b2)
++  let icompare b1 b2 = icompare (usob b1) (usob b2)
++  let splice b1 i1 i2 b2 = ubos (splice (usob b1) i1 i2 (usob b2))
++  let trim b        = ubos (trim (usob b))
++  let quote b       = quote (usob b)
++  let left b i      = ubos (left (usob b) i)
++  let right b i     = ubos (right (usob b) i)
++  let head b i      = ubos (head (usob b) i)
++  let tail b i      = ubos (tail (usob b) i)
++  let filter_map f b = ubos (filter_map f (usob b))
++  let filter f b    = ubos (filter f (usob b))
++  let of_list li    = ubos (of_list li)
++  let to_list b     = to_list (usob b)
++
++  let print io b       = print io (usob b)
++  let println io b     = println io (usob b)
++  let print_quoted io b = print_quoted io (usob b)
++
++  external of_string : Bytes.t -> _ t  = "%identity"
++  external of_bytes : Bytes.t -> _ t  = "%identity"
++  external to_string : [`Read | `Write] t -> Bytes.t = "%identity"
++  external to_bytes : [`Read | `Write] t -> Bytes.t = "%identity"
+   external read_only : [> `Read] t -> [`Read] t     = "%identity"
+   external write_only: [> `Write] t -> [`Write] t   = "%identity"
+ 
+@@ -1188,18 +1200,24 @@ struct
+ 
+   module Exceptionless =
+   struct
+-    let find_from = Exceptionless.find_from
+-    let find = Exceptionless.find
+-    let rfind_from = Exceptionless.rfind_from
+-    let rfind = Exceptionless.rfind
+-    let to_int = Exceptionless.to_int
+-    let to_float = Exceptionless.to_float
+-    let index = Exceptionless.index
+-    let index_from = Exceptionless.index_from
+-    let rindex_from = Exceptionless.rindex_from
+-    let rindex = Exceptionless.rindex
+-    let split = Exceptionless.split
+-    let rsplit = Exceptionless.rsplit
++    let find_from b1 i b2 = Exceptionless.find_from (usob b1) i (usob b2)
++    let find b1 b2 = Exceptionless.find (usob b1) (usob b2)
++    let rfind_from b1 i b2 = Exceptionless.rfind_from (usob b1) i (usob b2)
++    let rfind b1 b2 = Exceptionless.rfind (usob b1) (usob b2)
++    let to_int b = Exceptionless.to_int (usob b)
++    let to_float b = Exceptionless.to_float (usob b)
++    let index b c = Exceptionless.index (usob b) c
++    let index_from b i c = Exceptionless.index_from (usob b) i c
++    let rindex_from b i c = Exceptionless.rindex_from (usob b) i c
++    let rindex b c = Exceptionless.rindex (usob b) c
++    let split b ~by =
++      match Exceptionless.split (usob b) ~by:(usob by) with
++      | None -> None
++      | Some (a, b) -> Some (ubos a, ubos b)
++    let rsplit b ~by =
++      match Exceptionless.rsplit (usob b) ~by:(usob by) with
++      | None -> None
++      | Some (a, b) -> Some (ubos a, ubos b)
+   end (* String.Cap.Exceptionless *)
+ 
+ end (* String.Cap *)
+diff --git a/src/batteriesExceptionless.ml b/src/batteriesExceptionless.ml
+index 29c545c4..18765ea7 100644
+--- a/src/batteriesExceptionless.ml
++++ b/src/batteriesExceptionless.ml
+@@ -71,13 +71,13 @@ end
+ module String = struct
+   include (BatString :
+              module type of BatString
+-           with module Cap := BatString.Cap
++           (* with module Cap := BatString.Cap *)
+           )
+   include BatString.Exceptionless
+-  module Cap = struct
+-    include BatString.Cap
+-    include BatString.Cap.Exceptionless
+-  end
++  (* module Cap = struct *)
++  (*   include BatString.Cap *)
++  (*   include BatString.Cap.Exceptionless *)
++  (* end *)
+ end
+ 
+ (* Extlib modules not replacing stdlib *)
+diff --git a/src/batteriesPrint.ml b/src/batteriesPrint.ml
+index 8cfd5306..35e4f98d 100644
+--- a/src/batteriesPrint.ml
++++ b/src/batteriesPrint.ml
+@@ -27,6 +27,7 @@ let print_rope fmt t =
+ let print_ustring fmt t =
+   Format.fprintf fmt "u%S" t
+ 
++(*
+ let string_of_cap t = BatString.Cap.to_string (BatString.Cap.copy t)
+ 
+ let print_string_cap_rw fmt t =
+@@ -34,6 +35,7 @@ let print_string_cap_rw fmt t =
+ 
+ let print_string_cap_ro fmt t =
+   Format.fprintf fmt "ro%S" (string_of_cap t)
++ *)
+ 
+ let string_dynarray = BatIO.to_f_printer (BatDynArray.print BatString.print)
+ let int_dynarray = BatIO.to_f_printer (BatDynArray.print BatInt.print)
