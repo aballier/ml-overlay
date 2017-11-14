@@ -15,31 +15,10 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="dev-ml/camomile:=
-	dev-ml/num:="
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit dev-ml/iTeML )"
 
 DOCS=( "ChangeLog" "FAQ" "README.folders" "README.md" )
 
 S="${WORKDIR}/${PN}-included-${PV}"
-
-PATCHES=(
-	"${FILESDIR}/lex.patch"
-	"${FILESDIR}/bigint.patch"
-	"${FILESDIR}/buffer.patch"
-	"${FILESDIR}/buffer2.patch"
-	"${FILESDIR}/digest.patch"
-	"${FILESDIR}/format.patch"
-	"${FILESDIR}/genlex.patch"
-	"${FILESDIR}/int32.patch"
-	"${FILESDIR}/marshal.patch"
-	"${FILESDIR}/pervasives.patch"
-	"${FILESDIR}/printf.patch"
-	"${FILESDIR}/string.patch"
-	"${FILESDIR}/stringcap.patch"
-	"${FILESDIR}/unix.patch"
-	"${FILESDIR}/base64.patch"
-	"${FILESDIR}/bitset.patch"
-	"${FILESDIR}/substring.patch"
-	"${FILESDIR}/text.patch"
-)
