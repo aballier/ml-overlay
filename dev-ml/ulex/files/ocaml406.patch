@@ -1,0 +1,19 @@
+Index: ulex-1.1/ulexing.mli
+===================================================================
+--- ulex-1.1.orig/ulexing.mli
++++ ulex-1.1/ulexing.mli
+@@ -142,12 +142,12 @@ val sub_lexeme: lexbuf -> int -> int ->
+   matched by the regular expression as an array of Unicode code point. *)
+ 
+ 
+-val latin1_lexeme: lexbuf -> string
++val latin1_lexeme: lexbuf -> bytes
+ (** As [Ulexing.lexeme] with a result encoded in Latin1.
+   This function throws an exception [InvalidCodepoint] if it is not possible
+   to encode the result in Latin1. *)
+ 
+-val latin1_sub_lexeme: lexbuf -> int -> int -> string
++val latin1_sub_lexeme: lexbuf -> int -> int -> bytes
+ (** As [Ulexing.sub_lexeme] with a result encoded in Latin1.
+   This function throws an exception [InvalidCodepoint] if it is not possible
+   to encode the result in Latin1. *)
