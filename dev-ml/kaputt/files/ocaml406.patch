@@ -1,0 +1,26 @@
+Index: kaputt-1.2/src/library/enumerator.ml
+===================================================================
+--- kaputt-1.2.orig/src/library/enumerator.ml
++++ kaputt-1.2/src/library/enumerator.ml
+@@ -139,7 +139,7 @@ let string ch len =
+       for i = 0 to pred len do
+         res.[i] <- match s.State.curr.(i) with Cons (hd, _) -> hd | _ -> assert false
+       done;
+-      res)
++      Bytes.to_string res)
+     Utils.string_of_string
+ 
+ let float x y steps =
+Index: kaputt-1.2/src/library/generator.ml
+===================================================================
+--- kaputt-1.2.orig/src/library/generator.ml
++++ kaputt-1.2/src/library/generator.ml
+@@ -175,7 +175,7 @@ let string (gen_l, _) (gen_c, _) =
+     for i = 0 to pred len do
+       res.[i] <- gen_c r
+     done;
+-    res),
++    Bytes.to_string res),
+   Utils.string_of_string
+ 
+ let strings sep (gen_l, _) (gen_s, _) =
