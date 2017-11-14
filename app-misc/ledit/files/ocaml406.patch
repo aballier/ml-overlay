@@ -1,0 +1,52 @@
+Index: ledit-2.03/ledit.ml
+===================================================================
+--- ledit-2.03.orig/ledit.ml
++++ ledit-2.03/ledit.ml
+@@ -153,12 +153,12 @@ module A :
+         ;
+         value input ic = get_char (fun () -> input_char ic);
+         value read =
+-          let buff = " " in
++          let buff = Bytes.of_string " " in
+           fun () ->
+             get_char
+               (fun () ->
+                  let len = Unix.read Unix.stdin buff 0 1 in
+-                 if len == 0 then raise End_of_file else buff.[0])
++                 if len == 0 then raise End_of_file else (Bytes.to_string buff).[0])
+         ;
+         value parse s = get_char (fun () -> Stream.next s);
+         value print c =
+@@ -463,7 +463,7 @@ value init_default_commands kb =
+ 
+ value rev_implode l =
+   let s = String.create (List.length l) in
+-  loop (String.length s - 1) l where rec loop i =
++  loop (Bytes.length s - 1) l where rec loop i =
+     fun
+     [ [c :: l] -> do { String.unsafe_set s i c; loop (i - 1) l }
+     | [] -> s ]
+@@ -500,8 +500,8 @@ type binding = [ B_string of string | B_
+ 
+ value parse_binding =
+   fparser
+-  [ [: `'"'; s = parse_string [] :] -> B_string s
+-  | [: c = parse_command [] :] -> B_comm c ]
++  [ [: `'"'; s = parse_string [] :] -> B_string (Bytes.to_string s)
++  | [: c = parse_command [] :] -> B_comm (Bytes.to_string c) ]
+ ;
+ 
+ value parse_line =
+@@ -567,10 +567,10 @@ value init_file_commands kb fname =
+                   [ Some (c, i) -> loop [c :: rev_cl] i
+                   | None -> rev_implode rev_cl ]
+               in
+-              insert_command key (Insert s) kb
++              insert_command (Bytes.to_string key) (Insert (Bytes.to_string s)) kb
+           | Some ((key, B_comm comm_name), _) ->
+               match command_of_name comm_name with
+-              [ Some comm -> insert_command key comm kb
++              [ Some comm -> insert_command (Bytes.to_string key) comm kb
+               | None -> kb ]
+           | None -> kb ]
+         in
