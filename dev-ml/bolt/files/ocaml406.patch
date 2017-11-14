@@ -1,0 +1,22 @@
+Index: bolt-1.4/src/support/daikon.ml
+===================================================================
+--- bolt-1.4.orig/src/support/daikon.ml
++++ bolt-1.4/src/support/daikon.ml
+@@ -92,7 +92,7 @@ let make_variable_builder f =
+         String.blit n 0 n' 0 3;
+         String.blit insert 0 n' 3 len_insert;
+         String.blit n 3 n' (3 + len_insert) (len_n - 3);
+-        n', v)
++        Bytes.to_string n', v)
+       vars
+ 
+ let tuple2 a_vb b_vb =
+@@ -137,7 +137,7 @@ let enter name l =
+ let exit name vars l =
+   List.iter
+     (fun (var_name, _) ->
+-      let var_name = String.copy var_name in
++      let var_name = Bytes.of_string var_name in
+       var_name.[0] <- '<')
+     vars;
+   (magic_kind, name ^ ":::EXIT1") :: vars @ (List.flatten l)
