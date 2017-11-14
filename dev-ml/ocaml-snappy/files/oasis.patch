@@ -1,0 +1,10 @@
+Index: ocaml-snappy-0.1.0/_oasis
+===================================================================
+--- ocaml-snappy-0.1.0.orig/_oasis
++++ ocaml-snappy-0.1.0/_oasis
+@@ -1,4 +1,4 @@
+-OASISFormat: 0.1
++OASISFormat: 0.3
+ Name:        snappy
+ Version:     0.1.0
+ Synopsis:    Bindings to snappy compression library
