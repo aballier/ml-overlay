@@ -8,8 +8,8 @@ OASIS_BUILD_DOCS=1
 inherit oasis eutils
 
 DESCRIPTION="Unsigned ints for OCaml"
-HOMEPAGE="https://forge.ocamlcore.org/projects/ocaml-uint/"
-SRC_URI="https://forge.ocamlcore.org/frs/download.php/1516/${P}.tar.gz"
+HOMEPAGE="https://github.com/andrenth/ocaml-uint"
+SRC_URI="https://github.com/andrenth/ocaml-uint/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="MIT"
 SLOT="0/${PV}"
@@ -18,7 +18,3 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-
-src_prepare() {
-	has_version '>=dev-lang/ocaml-4.06_beta' && epatch "${FILESDIR}/ocaml406.patch"
-}
