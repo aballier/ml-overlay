@@ -1,0 +1,191 @@
+commit 7dc299b9e30be310a70ed28169db7c96e7e9e828
+Author: Fabian <copy@copy.sh>
+Date:   Sun Nov 5 15:18:33 2017 +0100
+
+    4.06 support for ppx_deriving 4.2
+
+diff --git a/src_plugins/ppx_deriving_enum.cppo.ml b/src_plugins/ppx_deriving_enum.cppo.ml
+index 3c8bf84..aec3fbc 100644
+--- a/src_plugins/ppx_deriving_enum.cppo.ml
++++ b/src_plugins/ppx_deriving_enum.cppo.ml
+@@ -47,7 +47,10 @@ let mappings_of_type type_decl =
+             raise_errorf ~loc:ptyp_loc
+                          "%s cannot be derived for inherited variant cases" deriver
+           | Rtag (name, attrs, true, []) ->
+-            map acc mappings attrs { txt = name; loc = ptyp_loc }
++#if OCAML_VERSION < (4, 06, 0)
++            let name = mkloc name ptyp_loc in
++#endif
++            map acc mappings attrs name
+           | Rtag _ ->
+             raise_errorf ~loc:ptyp_loc
+                          "%s can be derived only for argumentless constructors" deriver)
+diff --git a/src_plugins/ppx_deriving_eq.cppo.ml b/src_plugins/ppx_deriving_eq.cppo.ml
+index 841ed8a..41e505e 100644
+--- a/src_plugins/ppx_deriving_eq.cppo.ml
++++ b/src_plugins/ppx_deriving_eq.cppo.ml
+@@ -121,11 +121,18 @@ and expr_of_typ quoter typ =
+       let cases =
+         (fields |> List.map (fun field ->
+           let pdup f = ptuple [f "lhs"; f "rhs"] in
++          let variant label popt =
++#if OCAML_VERSION < (4, 06, 0)
++            Pat.variant label popt
++#else
++            Pat.variant label.txt popt
++#endif
++          in
+           match field with
+           | Rtag (label, _, true (*empty*), []) ->
+-            Exp.case (pdup (fun _ -> Pat.variant label None)) [%expr true]
++            Exp.case (pdup (fun _ -> variant label None)) [%expr true]
+           | Rtag (label, _, false, [typ]) ->
+-            Exp.case (pdup (fun var -> Pat.variant label (Some (pvar var))))
++            Exp.case (pdup (fun var -> variant label (Some (pvar var))))
+                      (app (expr_of_typ typ) [evar "lhs"; evar "rhs"])
+           | Rinherit ({ ptyp_desc = Ptyp_constr (tname, _) } as typ) ->
+             Exp.case (pdup (fun var -> Pat.alias (Pat.type_ tname) (mknoloc var)))
+diff --git a/src_plugins/ppx_deriving_fold.cppo.ml b/src_plugins/ppx_deriving_fold.cppo.ml
+index 92710a5..0ec6754 100644
+--- a/src_plugins/ppx_deriving_fold.cppo.ml
++++ b/src_plugins/ppx_deriving_fold.cppo.ml
+@@ -63,11 +63,18 @@ let rec expr_of_typ typ =
+   | { ptyp_desc = Ptyp_variant (fields, _, _); ptyp_loc } ->
+     let cases =
+       fields |> List.map (fun field ->
++        let variant label popt =
++#if OCAML_VERSION < (4, 06, 0)
++          Pat.variant label popt
++#else
++          Pat.variant label.txt popt
++#endif
++        in
+         match field with
+         | Rtag (label, _, true (*empty*), []) ->
+-          Exp.case (Pat.variant label None) [%expr acc]
++          Exp.case (variant label None) [%expr acc]
+         | Rtag (label, _, false, [typ]) ->
+-          Exp.case (Pat.variant label (Some [%pat? x]))
++          Exp.case (variant label (Some [%pat? x]))
+                    [%expr [%e expr_of_typ typ] acc x]
+         | Rinherit ({ ptyp_desc = Ptyp_constr (tname, _) } as typ) ->
+           Exp.case [%pat? [%p Pat.type_ tname] as x]
+diff --git a/src_plugins/ppx_deriving_iter.cppo.ml b/src_plugins/ppx_deriving_iter.cppo.ml
+index 93b0552..0c53c53 100644
+--- a/src_plugins/ppx_deriving_iter.cppo.ml
++++ b/src_plugins/ppx_deriving_iter.cppo.ml
+@@ -60,11 +60,18 @@ let rec expr_of_typ typ =
+   | { ptyp_desc = Ptyp_variant (fields, _, _); ptyp_loc } ->
+     let cases =
+       fields |> List.map (fun field ->
++        let variant label popt =
++#if OCAML_VERSION < (4, 06, 0)
++          Pat.variant label popt
++#else
++          Pat.variant label.txt popt
++#endif
++        in
+         match field with
+         | Rtag (label, _, true (*empty*), []) ->
+-          Exp.case (Pat.variant label None) [%expr ()]
++          Exp.case (variant label None) [%expr ()]
+         | Rtag (label, _, false, [typ]) ->
+-          Exp.case (Pat.variant label (Some [%pat? x]))
++          Exp.case (variant label (Some [%pat? x]))
+                    [%expr [%e expr_of_typ typ] x]
+         | Rinherit ({ ptyp_desc = Ptyp_constr (tname, _) } as typ) ->
+           Exp.case [%pat? [%p Pat.type_ tname] as x]
+diff --git a/src_plugins/ppx_deriving_map.cppo.ml b/src_plugins/ppx_deriving_map.cppo.ml
+index c23388f..99e10d6 100644
+--- a/src_plugins/ppx_deriving_map.cppo.ml
++++ b/src_plugins/ppx_deriving_map.cppo.ml
+@@ -59,12 +59,26 @@ let rec expr_of_typ ?decl typ =
+   | { ptyp_desc = Ptyp_variant (fields, _, _); ptyp_loc } ->
+     let cases =
+       fields |> List.map (fun field ->
++        let pat_variant label popt =
++#if OCAML_VERSION < (4, 06, 0)
++          Pat.variant label popt
++#else
++          Pat.variant label.txt popt
++#endif
++        in
++        let exp_variant label popt =
++#if OCAML_VERSION < (4, 06, 0)
++          Exp.variant label popt
++#else
++          Exp.variant label.txt popt
++#endif
++        in
+         match field with
+         | Rtag (label, _, true (*empty*), []) ->
+-          Exp.case (Pat.variant label None) (Exp.variant label None)
++          Exp.case (pat_variant label None) (exp_variant label None)
+         | Rtag (label, _, false, [typ]) ->
+-          Exp.case (Pat.variant label (Some [%pat? x]))
+-                   (Exp.variant label (Some [%expr [%e expr_of_typ ?decl typ] x]))
++          Exp.case (pat_variant label (Some [%pat? x]))
++                   (exp_variant label (Some [%expr [%e expr_of_typ ?decl typ] x]))
+         | Rinherit ({ ptyp_desc = Ptyp_constr (tname, _) } as typ) -> begin
+           match decl with
+           | None -> 
+diff --git a/src_plugins/ppx_deriving_ord.cppo.ml b/src_plugins/ppx_deriving_ord.cppo.ml
+index 4dd3272..a534352 100644
+--- a/src_plugins/ppx_deriving_ord.cppo.ml
++++ b/src_plugins/ppx_deriving_ord.cppo.ml
+@@ -127,14 +127,21 @@ and expr_of_typ quoter typ =
+       [%expr fun [%p ptuple (pattn `lhs typs)] [%p ptuple (pattn `rhs typs)] ->
+         [%e exprn quoter typs |> reduce_compare]]
+     | { ptyp_desc = Ptyp_variant (fields, _, _); ptyp_loc } ->
++      let variant label popt =
++#if OCAML_VERSION < (4, 06, 0)
++        Pat.variant label popt
++#else
++        Pat.variant label.txt popt
++#endif
++      in
+       let cases =
+         fields |> List.map (fun field ->
+           let pdup f = ptuple [f "lhs"; f "rhs"] in
+           match field with
+           | Rtag (label, _, true (*empty*), []) ->
+-            Exp.case (pdup (fun _ -> Pat.variant label None)) [%expr 0]
++            Exp.case (pdup (fun _ -> variant label None)) [%expr 0]
+           | Rtag (label, _, false, [typ]) ->
+-            Exp.case (pdup (fun var -> Pat.variant label (Some (pvar var))))
++            Exp.case (pdup (fun var -> variant label (Some (pvar var))))
+                      (app (expr_of_typ typ) [evar "lhs"; evar "rhs"])
+           | Rinherit ({ ptyp_desc = Ptyp_constr (tname, _) } as typ) ->
+             Exp.case (pdup (fun var -> Pat.alias (Pat.type_ tname) (mknoloc var)))
+@@ -147,9 +154,9 @@ and expr_of_typ quoter typ =
+         fields |> List.mapi (fun i field ->
+           match field with
+           | Rtag (label, _, true (*empty*), []) ->
+-            Exp.case (Pat.variant label None) (int i)
++            Exp.case (variant label None) (int i)
+           | Rtag (label, _, false, [typ]) ->
+-            Exp.case (Pat.variant label (Some [%pat? _])) (int i)
++            Exp.case (variant label (Some [%pat? _])) (int i)
+           | Rinherit { ptyp_desc = Ptyp_constr (tname, []) } ->
+             Exp.case (Pat.type_ tname) (int i)
+           | _ -> assert false)
+diff --git a/src_plugins/ppx_deriving_show.cppo.ml b/src_plugins/ppx_deriving_show.cppo.ml
+index f326fff..7bfda05 100644
+--- a/src_plugins/ppx_deriving_show.cppo.ml
++++ b/src_plugins/ppx_deriving_show.cppo.ml
+@@ -166,9 +166,15 @@ let rec expr_of_typ quoter typ =
+         fields |> List.map (fun field ->
+           match field with
+           | Rtag (label, _, true (*empty*), []) ->
++#if OCAML_VERSION >= (4, 06, 0)
++            let label = label.txt in
++#endif
+             Exp.case (Pat.variant label None)
+                      [%expr Format.pp_print_string fmt [%e str ("`" ^ label)]]
+           | Rtag (label, _, false, [typ]) ->
++#if OCAML_VERSION >= (4, 06, 0)
++            let label = label.txt in
++#endif
+             Exp.case (Pat.variant label (Some [%pat? x]))
+                      [%expr Format.fprintf fmt [%e str ("`" ^ label ^ " (@[<hov>")];
+                             [%e expr_of_typ typ] x;
