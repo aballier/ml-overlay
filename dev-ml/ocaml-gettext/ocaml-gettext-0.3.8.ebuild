@@ -7,7 +7,7 @@ inherit findlib eutils autotools
 
 DESCRIPTION="Provides support for internationalization of OCaml program"
 HOMEPAGE="https://github.com/gildor478/ocaml-gettext"
-SRC_URI="https://github.com/gildor478/ocaml-gettext/archive/${PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://forge.ocamlcore.org/frs/download.php/1731/${P}.tar.gz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
@@ -25,7 +25,6 @@ DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit )"
 
 src_prepare() {
-	has_version '>=dev-lang/ocaml-4.06_beta' && epatch "${FILESDIR}/ocaml406.patch"
 	eautoreconf
 }
 
