@@ -1,0 +1,35 @@
+Index: ocaml-gettext-0.3.7/libgettext-ocaml/gettextMo.ml
+===================================================================
+--- ocaml-gettext-0.3.7.orig/libgettext-ocaml/gettextMo.ml
++++ ocaml-gettext-0.3.7/libgettext-ocaml/gettextMo.ml
+@@ -160,7 +160,7 @@ let input_mo_untranslated failsafe chn m
+     let str = 
+       try
+         seek_in chn offset_pair;
+-        input_int32_pair_string chn mo_header.endianess
++        Bytes.to_string (input_int32_pair_string chn mo_header.endianess)
+       with End_of_file ->
+         raise (MoInvalidStringOutOfBound(in_channel_length chn,offset_pair))
+     in
+@@ -178,7 +178,7 @@ let input_mo_translated failsafe chn mo_
+       let str = 
+         try
+           seek_in chn offset_pair;
+-          input_int32_pair_string chn mo_header.endianess
++          Bytes.to_string (input_int32_pair_string chn mo_header.endianess)
+         with End_of_file ->
+           raise (MoInvalidTranslationOutOfBound
+                    (in_channel_length chn,offset_pair))
+Index: ocaml-gettext-0.3.7/libgettext-ocaml/gettextMo_int32.ml
+===================================================================
+--- ocaml-gettext-0.3.7.orig/libgettext-ocaml/gettextMo_int32.ml
++++ ocaml-gettext-0.3.7/libgettext-ocaml/gettextMo_int32.ml
+@@ -104,7 +104,7 @@ let input_int32_pair_string chn endian =
+      (Int32.to_int length,Int32.to_int offset)
+    in
+    if 0 <= ioffset + ilength && ioffset + ilength < in_channel_length chn then
+-     let str = String.make ilength 'X'
++     let str = Bytes.make ilength 'X'
+      in
+      seek_in chn ioffset;
+      really_input chn str 0 ilength;
