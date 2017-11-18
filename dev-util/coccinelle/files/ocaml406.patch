@@ -1,0 +1,31 @@
+Index: coccinelle-1.0.6/commons/common.ml
+===================================================================
+--- coccinelle-1.0.6.orig/commons/common.ml
++++ coccinelle-1.0.6/commons/common.ml
+@@ -5308,7 +5308,7 @@ let parserCommon lexbuf parserer lexer =
+     let result = parserer lexer lexbuf in
+     result
+   with Parsing.Parse_error ->
+-    print_string "buf: "; print_string lexbuf.Lexing.lex_buffer;
++    print_string "buf: "; print_string (Bytes.to_string lexbuf.Lexing.lex_buffer);
+     print_string "\n";
+     print_string "current: "; print_int lexbuf.Lexing.lex_curr_pos;
+     print_string "\n";
+Index: coccinelle-1.0.6/parsing_c/unparse_c.ml
+===================================================================
+--- coccinelle-1.0.6.orig/parsing_c/unparse_c.ml
++++ coccinelle-1.0.6/parsing_c/unparse_c.ml
+@@ -2362,11 +2362,11 @@ let start_mark = function
+ *)
+ module String = struct
+   let init n f =
+-    let s = String.make n ' ' in
++    let s = Bytes.make n ' ' in
+     for i = 0 to n - 1 do
+       s.[i] <- f i
+     done;
+-    s
++    Bytes.to_string s
+ 
+   let map f s =
+     init (String.length s) (fun i -> f s.[i])
