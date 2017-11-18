@@ -1,3 +1,4 @@
 move dev-ml/ocaml-pcap dev-ml/pcap-format
 move dev-ml/ocaml-conduit dev-ml/conduit
 move dev-ml/ocaml-cstruct dev-ml/cstruct
+move dev-ml/ocaml-cohttp dev-ml/cohttp
