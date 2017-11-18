@@ -16,7 +16,8 @@ IUSE=""
 
 RDEPEND="
 	>=dev-ml/ocaml-base64-2.0.0:=
-	>=dev-ml/ocaml-cstruct-3.0.2:=[ppx]
+	dev-ml/cstruct:=
+	dev-ml/ppx_cstruct:=
 	dev-ml/ocaml-hashcons:=
 	>=dev-ml/ocaml-ipaddr-2.6.0:=
 	dev-ml/ocaml-re:=
