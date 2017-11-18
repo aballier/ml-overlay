@@ -1,0 +1,48 @@
+Index: ocaml-websocket-2.10/lwt/websocket_cohttp_lwt.ml
+===================================================================
+--- ocaml-websocket-2.10.orig/lwt/websocket_cohttp_lwt.ml
++++ ocaml-websocket-2.10/lwt/websocket_cohttp_lwt.ml
+@@ -18,7 +18,7 @@
+ include Websocket
+ 
+ module C = Cohttp
+-module Lwt_IO = Websocket.IO(Cohttp_lwt_unix_io)
++module Lwt_IO = Websocket.IO(Cohttp_lwt_unix__Io)
+ 
+ open Lwt.Infix
+ 
+@@ -74,4 +74,4 @@ let upgrade_connection request conn inco
+               ]
+           | _ -> Lwt.fail_with "expected TCP Websocket connection"
+   in
+-  Lwt.return (resp, Cohttp_lwt_body.of_stream body_stream, frames_out_fn)
++  Lwt.return (resp, Cohttp_lwt__Body.of_stream body_stream, frames_out_fn)
+Index: ocaml-websocket-2.10/lwt/websocket_cohttp_lwt.mli
+===================================================================
+--- ocaml-websocket-2.10.orig/lwt/websocket_cohttp_lwt.mli
++++ ocaml-websocket-2.10/lwt/websocket_cohttp_lwt.mli
+@@ -21,4 +21,4 @@ val upgrade_connection:
+   Cohttp.Request.t ->
+   Conduit_lwt_unix.flow ->
+   (Frame.t -> unit) ->
+-  (Cohttp.Response.t * Cohttp_lwt_body.t * (Frame.t option -> unit)) Lwt.t
++  (Cohttp.Response.t * Cohttp_lwt__Body.t * (Frame.t option -> unit)) Lwt.t
+Index: ocaml-websocket-2.10/lwt/websocket_lwt.ml
+===================================================================
+--- ocaml-websocket-2.10.orig/lwt/websocket_lwt.ml
++++ ocaml-websocket-2.10/lwt/websocket_lwt.ml
+@@ -20,11 +20,11 @@ include Websocket
+ open Astring
+ open Lwt.Infix
+ 
+-module Lwt_IO = IO(Cohttp_lwt_unix_io)
++module Lwt_IO = IO(Cohttp_lwt_unix__Io)
+ open Lwt_IO
+ 
+-module Request = Cohttp.Request.Make(Cohttp_lwt_unix_io)
+-module Response = Cohttp.Response.Make(Cohttp_lwt_unix_io)
++module Request = Cohttp.Request.Make(Cohttp_lwt_unix__Io)
++module Response = Cohttp.Response.Make(Cohttp_lwt_unix__Io)
+ 
+ let section = Lwt_log.Section.make "websocket_lwt"
+ exception HTTP_Error of string
