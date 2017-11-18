@@ -1,0 +1,16 @@
+Index: tyxml-4.1.0/ppx/ppx_reflect.ml
+===================================================================
+--- tyxml-4.1.0.orig/ppx/ppx_reflect.ml
++++ tyxml-4.1.0/ppx/ppx_reflect.ml
+@@ -401,9 +401,9 @@ let type_declaration mapper declaration
+             "Expected exactly one non-nullary constructor `C of string"
+       in
+ 
+-      let nullary = List.map fst nullary in
++      let nullary = List.map (fun x -> (fst x).txt) nullary in
+ 
+-      reflected_variants := (name, (unary, nullary))::!reflected_variants
++      reflected_variants := (name, (unary.txt, nullary))::!reflected_variants
+ 
+     | _ ->
+       Ppx_common.error declaration.ptype_loc
