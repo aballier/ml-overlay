@@ -3,7 +3,7 @@
 
 EAPI=5
 
-inherit jbuilder
+inherit jbuilder findlib
 
 DESCRIPTION="A compiler from OCaml bytecode to javascript"
 HOMEPAGE="http://ocsigen.org/js_of_ocaml/"
@@ -26,6 +26,7 @@ IUSE=""
 RDEPEND="
 	dev-ml/cmdliner:=
 	dev-ml/cppo:=
+	dev-ml/yojson:=
 
 	!<dev-ml/js_of_ocaml-3.0.1
 "
