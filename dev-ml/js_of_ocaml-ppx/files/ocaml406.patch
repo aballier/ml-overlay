@@ -1,0 +1,47 @@
+Index: js_of_ocaml-3.0.1/ppx/ppx_deriving_json/lib/ppx_deriving_json.cppo.ml
+===================================================================
+--- js_of_ocaml-3.0.1.orig/ppx/ppx_deriving_json/lib/ppx_deriving_json.cppo.ml
++++ js_of_ocaml-3.0.1/ppx/ppx_deriving_json/lib/ppx_deriving_json.cppo.ml
+@@ -113,12 +113,20 @@ and write_body_of_tuple_type l ~arg ~pol
+ and write_poly_case r ~arg ~poly =
+   match r with
+   | Parsetree.Rtag (label, _, _, l) ->
++#if OCAML_VERSION >= (4, 06, 0)
++    let i = Ppx_deriving.hash_variant label.txt
++#else
+     let i = Ppx_deriving.hash_variant label
++#endif
+     and n = List.length l in
+     let v = Ppx_deriving.fresh_var [] in
+     let lhs =
+       (if n = 0 then None else Some (Ast_convenience.pvar v)) |>
++#if OCAML_VERSION >= (4, 06, 0)
++      Ast_helper.Pat.variant label.txt
++#else
+       Ast_helper.Pat.variant label
++#endif
+     and rhs =
+       match l with
+       | [] ->
+@@ -222,7 +230,11 @@ let recognize_body_of_poly_variant l ~lo
+   let l =
+     let f = function
+       | Parsetree.Rtag (label, _, _, l) ->
++#if OCAML_VERSION >= (4, 06, 0)
++        let i = Ppx_deriving.hash_variant label.txt in
++#else
+         let i = Ppx_deriving.hash_variant label in
++#endif
+         recognize_case_of_constructor i l
+       | Rinherit {ptyp_desc = Ptyp_constr (lid, _); _} ->
+         let guard = [%expr [%e suffix_lid lid ~suffix:"recognize"] x] in
+@@ -247,6 +259,9 @@ let maybe_tuple_type = function
+ 
+ let rec read_poly_case ?decl y = function
+   | Parsetree.Rtag (label, _, _, l) ->
++#if OCAML_VERSION >= (4, 06, 0)
++    let label = label.txt in
++#endif
+     let i = Ppx_deriving.hash_variant label |> Ast_convenience.pint in
+     (match l with
+      | [] ->
