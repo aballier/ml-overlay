@@ -1,0 +1,40 @@
+Index: ocaml-expect-0.0.5/src/expect.ml
+===================================================================
+--- ocaml-expect-0.0.5.orig/src/expect.ml
++++ ocaml-expect-0.0.5/src/expect.ml
+@@ -130,7 +130,7 @@ let set_timeout t timeout =
+ let send t str =
+   let _i : int =
+     t.verbose (Printf.sprintf "Send: %S" str);
+-    write t.expect_stdin str 0 (String.length str)
++    write t.expect_stdin (Bytes.of_string str) 0 (String.length str)
+   in
+     ()
+ 
+@@ -143,7 +143,7 @@ type expect_event =
+ 
+ let expect t ?(fmatches=[]) actions action_default =
+   let buff =
+-    String.make 4096 'x'
++    Bytes.make 4096 'x'
+   in
+ 
+   (* Test if an event can be associated with a fmatch action or continue *)
+@@ -209,7 +209,7 @@ let expect t ?(fmatches=[]) actions acti
+   let expect_input_line cont =
+     let input_len =
+       try
+-        read t.expect_stdout buff 0 (String.length buff)
++        read t.expect_stdout buff 0 (Bytes.length buff)
+       with End_of_file
+         | Unix_error(EPIPE, "read", _)
+         | Sys_error("Broken pipe") ->
+@@ -221,7 +221,7 @@ let expect t ?(fmatches=[]) actions acti
+       t.verbose "Receive end of file.";
+       action_match Eof (fun () -> action_default)
+     end else begin
+-      let input_str = String.sub buff 0 input_len in
++      let input_str = Bytes.to_string (Bytes.sub buff 0 input_len) in
+       t.verbose (Printf.sprintf "Receive: %S" input_str);
+       let lines = BatString.nsplit (t.prev ^ input_str) "\n" in
+       let rec scan_lines =
