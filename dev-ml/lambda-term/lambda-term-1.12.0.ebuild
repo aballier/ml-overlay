@@ -3,7 +3,7 @@
 
 EAPI=6
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="A cross-platform library for manipulating the terminal"
 HOMEPAGE="https://github.com/diml/lambda-term"
@@ -21,10 +21,3 @@ DEPEND="
 	>=dev-ml/react-1.2:=
 "
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	dev-ml/jbuilder
-"
-
-src_compile() {
-	jbuilder build @install || die
-}
