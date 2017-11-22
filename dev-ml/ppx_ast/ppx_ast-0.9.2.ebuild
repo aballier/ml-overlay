@@ -3,7 +3,7 @@
 
 EAPI=6
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="AST used in Jane Street ppx rewriters"
 HOMEPAGE="https://github.com/janestreet/ppx_ast"
@@ -19,5 +19,3 @@ DEPEND="
 	dev-ml/ocaml-migrate-parsetree:=
 "
 RDEPEND="${DEPEND}"
-DEPEND="${RDEPEND}
-	dev-ml/jbuilder"
