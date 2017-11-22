@@ -3,7 +3,7 @@
 
 EAPI=5
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="Module which offers basic control of ANSI compliant terminals"
 HOMEPAGE="https://github.com/Chris00/ANSITerminal"
@@ -12,7 +12,5 @@ LICENSE="LGPL-3-with-linking-exception"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
 RDEPEND=""
-DEPEND="${DEPEND} dev-ml/jbuilder"
+DEPEND="${DEPEND}"
 IUSE=""
-
-DOCS=( "README.txt" "AUTHORS.txt" )
