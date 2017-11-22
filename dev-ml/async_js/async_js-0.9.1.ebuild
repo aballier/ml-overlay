@@ -3,6 +3,8 @@
 
 EAPI=6
 
+inherit jbuilder
+
 DESCRIPTION="Async support for JavaScript platforms"
 HOMEPAGE="https://github.com/janestreet/async_js"
 SRC_URI="https://github.com/janestreet/${PN}/archive/v${PV}.tar.gz -> ${P}.tar.gz"
@@ -13,7 +15,6 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="
-	dev-lang/ocaml:=
 	dev-ml/async_kernel:=
 	dev-ml/async_rpc_kernel:=
 	dev-ml/ppx_driver:=
@@ -22,15 +23,4 @@ RDEPEND="
 	dev-ml/js_of_ocaml-ppx:=
 	dev-ml/ocaml-migrate-parsetree:=
 "
-DEPEND="${RDEPEND}
-	dev-ml/opam
-	dev-ml/jbuilder
-"
-
-src_install() {
-	opam-installer -i \
-		--prefix="${ED}/usr" \
-		--libdir="${D}/$(ocamlc -where)" \
-		--docdir="${ED}/usr/share/doc/${PF}" \
-		${PN}.install || die
-}
+DEPEND="${RDEPEND}"
