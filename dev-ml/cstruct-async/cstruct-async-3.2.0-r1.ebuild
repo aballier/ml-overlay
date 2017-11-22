@@ -18,6 +18,7 @@ RDEPEND="dev-ml/cstruct:=
 	dev-ml/async_kernel:=
 	dev-ml/async_unix:=
 	dev-ml/core_kernel:=
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 	!dev-ml/ocaml-cstruct"
 DEPEND="
 	test? ( dev-ml/ounit )
