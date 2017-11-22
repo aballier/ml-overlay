@@ -3,7 +3,7 @@
 
 EAPI=6
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="Feature-full driver for OCaml AST transformers"
 HOMEPAGE="https://github.com/janestreet/ppx_driver"
@@ -21,4 +21,3 @@ DEPEND="
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/ocamlbuild:="
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND} dev-ml/jbuilder"
