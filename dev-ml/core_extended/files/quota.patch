@@ -1,0 +1,43 @@
+commit c120af5c3ba8d59ae922d6267a072daf865d9b1e
+Author: Marek Kubica <marek@xivilization.net>
+Date:   Sun Mar 19 11:54:51 2017 +0100
+
+    Handle _LINUX_QUOTA_VERSION not being defined
+    
+    GLIBC 2.25 decided to drop support for the older quota interface,
+    also deleting the version define, thus breaking the code on Linux
+    systems which have already switched to 2.25.
+    
+    Fixes #12, #13.
+
+diff --git a/src/extended_unix_stubs.c b/src/extended_unix_stubs.c
+index 7a51a55..030ef6d 100644
+--- a/src/extended_unix_stubs.c
++++ b/src/extended_unix_stubs.c
+@@ -101,7 +101,7 @@ CAMLprim value getloadavg_stub (value v_unit __unused)
+ #  define QUOTA_MODIFY_COMMAND Q_SETQUOTA
+ #  define QUOTA_SET_VALID_FIELDS(quota) ((void)quota)
+ 
+-#elif !(defined _LINUX_QUOTA_VERSION) /* Mac OS */
++#elif defined (__APPLE__) /* Mac OS */
+ 
+ #  define quota_control(device, cmd, id, parg)  \
+      quotactl((device), (cmd), (id), (parg))
+@@ -110,7 +110,7 @@ CAMLprim value getloadavg_stub (value v_unit __unused)
+ #  define QUOTA_MODIFY_COMMAND Q_SETQUOTA
+ #  define QUOTA_SET_VALID_FIELDS(quota) ((void)quota)
+ 
+-#elif _LINUX_QUOTA_VERSION < 2
++#elif defined (_LINUX_QUOTA_VERSION) && _LINUX_QUOTA_VERSION < 2
+ 
+ #  define quota_control(device, cmd, id, parg)  \
+      quotactl((cmd), (device), (id), (parg))
+@@ -119,7 +119,7 @@ CAMLprim value getloadavg_stub (value v_unit __unused)
+ #  define QUOTA_MODIFY_COMMAND Q_SETQLIM
+ #  define QUOTA_SET_VALID_FIELDS(quota) ((void)quota)
+ 
+-#else /* _LINUX_QUOTA_VERSION >= 2 */
++#else /* _LINUX_QUOTA_VERSION >= 2 or not defined, GLIBC 2.25+ */
+ 
+ #  define quota_control(device, cmd, id, parg)  \
+      quotactl((cmd), (device), (id), (parg))
