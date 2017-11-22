@@ -20,7 +20,7 @@ RDEPEND="
 	dev-ml/conduit-lwt:=
 	dev-ml/lwt:=
 
-	dev-ml/ocaml-uri:=
+	dev-ml/uri:=
 	dev-ml/ocaml-ipaddr:=
 	dev-ml/ocaml-ssl:=
 
