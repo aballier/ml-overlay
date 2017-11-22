@@ -19,6 +19,7 @@ IUSE="test"
 RDEPEND="
 	dev-ml/async:=
 	dev-ml/dns:=
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 "
 DEPEND="
 	test? (
