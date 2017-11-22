@@ -21,7 +21,7 @@ RDEPEND="
 	dev-ml/ocaml-hashcons:=
 	>=dev-ml/ocaml-ipaddr-2.6.0:=
 	dev-ml/ocaml-re:=
-	>=dev-ml/ocaml-uri-1.7.0:=
+	>=dev-ml/uri-1.7.0:=
 	dev-ml/result:=
 	!dev-ml/odns
 "
