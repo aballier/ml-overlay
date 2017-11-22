@@ -21,6 +21,7 @@ RDEPEND="
 	dev-ml/optcomp:=
 	dev-ml/findlib:=
 	dev-ml/camlp4:=
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 "
 DEPEND="${RDEPEND}
 	dev-ml/oasis"
