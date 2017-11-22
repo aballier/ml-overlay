@@ -3,7 +3,7 @@
 
 EAPI=6
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="Library for automated conversion of OCaml-values to and from S-expressions"
 HOMEPAGE="https://github.com/janestreet/sexplib"
@@ -15,8 +15,4 @@ KEYWORDS="~amd64 ~ppc"
 IUSE=""
 
 RDEPEND="|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )"
-DEPEND="${RDEPEND} dev-ml/jbuilder"
-
-src_test() {
-	jbuilder runtest || die
-}
+DEPEND="${RDEPEND}"
