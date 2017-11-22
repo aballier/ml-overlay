@@ -25,6 +25,7 @@ RDEPEND="
 	dev-ml/spawn:=
 	dev-ml/stdio:=
 	dev-ml/ocaml-migrate-parsetree:=
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 "
 DEPEND="${RDEPEND}"
 PATCHES=( "${FILESDIR}/glibc225.patch" )
