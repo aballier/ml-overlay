@@ -27,6 +27,7 @@ RDEPEND="
 	dev-ml/cmdliner:=
 	dev-ml/cppo:=
 	dev-ml/yojson:=
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 
 	!<dev-ml/js_of_ocaml-3.0.1
 "
