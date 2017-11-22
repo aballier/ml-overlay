@@ -20,6 +20,7 @@ RDEPEND="
 	dev-ml/ocaml-magic-mime:=
 	dev-ml/logs:=
 	dev-ml/fmt:=
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit )"
