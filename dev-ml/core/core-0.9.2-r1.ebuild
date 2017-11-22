@@ -3,7 +3,7 @@
 
 EAPI=6
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="Jane Street's alternative to the standard library"
 HOMEPAGE="https://github.com/janestreet/core"
@@ -26,5 +26,5 @@ RDEPEND="
 	dev-ml/stdio:=
 	dev-ml/ocaml-migrate-parsetree:=
 "
-DEPEND="${RDEPEND} dev-ml/jbuilder"
+DEPEND="${RDEPEND}"
 PATCHES=( "${FILESDIR}/glibc225.patch" )
