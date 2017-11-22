@@ -17,6 +17,7 @@ IUSE=""
 RDEPEND="
 	dev-ml/conduit:=
 	dev-ml/async:=
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 
 	!dev-ml/ocaml-conduit
 "
