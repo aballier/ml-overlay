@@ -3,7 +3,7 @@
 
 EAPI=5
 
-inherit findlib opam
+inherit jbuilder
 
 DESCRIPTION="A new toplevel for OCaml with completion and colorization"
 HOMEPAGE="https://github.com/diml/utop"
@@ -23,5 +23,3 @@ DEPEND="
 	>=dev-ml/findlib-1.7.2:=
 "
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	dev-ml/jbuilder"
