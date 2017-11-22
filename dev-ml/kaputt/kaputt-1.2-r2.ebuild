@@ -14,7 +14,8 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND=">=dev-lang/ocaml-3.11:=[ocamlopt]"
+RDEPEND=">=dev-lang/ocaml-3.11:=[ocamlopt]
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )"
 DEPEND="${RDEPEND}
 	dev-ml/ocamlbuild"
 
