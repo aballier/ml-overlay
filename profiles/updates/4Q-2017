@@ -3,3 +3,4 @@ move dev-ml/ocaml-conduit dev-ml/conduit
 move dev-ml/ocaml-cstruct dev-ml/cstruct
 move dev-ml/ocaml-cohttp dev-ml/cohttp
 move dev-ml/ocaml-websocket dev-ml/websocket
+move dev-ml/ocaml-uri dev-ml/uri
