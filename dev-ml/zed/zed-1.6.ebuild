@@ -3,7 +3,7 @@
 
 EAPI=5
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="Zed is an abstract engine for text edition"
 HOMEPAGE="https://github.com/diml/zed"
@@ -15,13 +15,6 @@ KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND="
-	dev-lang/ocaml:=
 	dev-ml/camomile:=
 	dev-ml/react:="
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	dev-ml/jbuilder"
-
-src_compile() {
-	jbuilder build --only-packages zed @install || die
-}
