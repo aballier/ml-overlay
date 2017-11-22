@@ -3,7 +3,7 @@
 
 EAPI=5
 
-inherit findlib opam
+inherit jbuilder
 
 DESCRIPTION="A pure OCaml implementation of the DNS protocol"
 HOMEPAGE="https://github.com/mirage/ocaml-dns https://mirage.io"
@@ -25,20 +25,9 @@ RDEPEND="
 	dev-ml/result:=
 	!dev-ml/odns
 "
-DEPEND="
-	dev-ml/jbuilder
-	${RDEPEND}
-"
+DEPEND="${RDEPEND}"
 
 # Do not work
 RESTRICT="test"
 
 S="${WORKDIR}/ocaml-${P}"
-
-src_compile() {
-	jbuilder build @install -p dns || die
-}
-
-src_test() {
-	jbuilder runtest -p dns || die
-}
