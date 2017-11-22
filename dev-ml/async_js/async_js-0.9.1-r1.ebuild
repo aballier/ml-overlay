@@ -22,5 +22,6 @@ RDEPEND="
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-ppx:=
 	dev-ml/ocaml-migrate-parsetree:=
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 "
 DEPEND="${RDEPEND}"
