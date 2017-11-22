@@ -27,6 +27,7 @@ RDEPEND="
 	dev-ml/ocaml-migrate-parsetree:=
 	<dev-ml/ppx_jane-100
 	<dev-ml/ppx_driver-100
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 	"
 DEPEND="${RDEPEND}"
 PATCHES=( "${FILESDIR}/quota.patch" )
