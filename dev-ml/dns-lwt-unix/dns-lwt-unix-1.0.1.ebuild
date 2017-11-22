@@ -3,7 +3,7 @@
 
 EAPI=5
 
-inherit findlib opam
+inherit jbuilder
 
 MY_P=ocaml-dns-${PV}
 
@@ -17,7 +17,6 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="
-	>=dev-lang/ocaml-4:=
 	dev-ml/dns-lwt:=
 	dev-ml/dns:=
 	dev-ml/cmdliner:=
@@ -25,7 +24,6 @@ RDEPEND="
 	dev-ml/ocaml-ipaddr:=
 "
 DEPEND="
-	dev-ml/jbuilder
 	test? (
 		dev-ml/ounit
 	)
@@ -35,11 +33,3 @@ DEPEND="
 RESTRICT="test"
 
 S="${WORKDIR}/${MY_P}"
-
-src_compile() {
-	jbuilder build @install -p ${PN} || die
-}
-
-src_test() {
-	jbuilder runtest -p ${PN} || die
-}
