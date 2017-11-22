@@ -25,7 +25,6 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/core dev-ml/ounit )
-	dev-ml/jbuilder
 "
 
 S="${WORKDIR}/${PN}-ocaml-${PV}"
