@@ -16,7 +16,7 @@ IUSE="test"
 
 RDEPEND="
 	dev-ml/ocaml-re:=
-	dev-ml/ocaml-uri:=
+	dev-ml/uri:=
 	dev-ml/fieldslib:=
 	dev-ml/sexplib:=
 	dev-ml/stringext:=
