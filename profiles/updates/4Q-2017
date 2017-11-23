@@ -5,3 +5,4 @@ move dev-ml/ocaml-cohttp dev-ml/cohttp
 move dev-ml/ocaml-websocket dev-ml/websocket
 move dev-ml/ocaml-uri dev-ml/uri
 move dev-ml/capnp-ocaml dev-ml/capnp
+move dev-ml/ocaml-sqlite3 dev-ml/sqlite3
