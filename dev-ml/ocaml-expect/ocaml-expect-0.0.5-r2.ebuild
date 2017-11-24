@@ -19,7 +19,7 @@ IUSE="test"
 
 RDEPEND="
 	dev-ml/batteries:=
-	dev-ml/pcre-ocaml:="
+	dev-ml/pcre:="
 DEPEND="${RDEPEND}
 	dev-ml/oasis
 	test? ( >=dev-ml/ounit-2.0.0 )"
