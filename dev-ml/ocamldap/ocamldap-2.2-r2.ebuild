@@ -13,7 +13,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="doc"
 
-RDEPEND="dev-ml/pcre-ocaml:=
+RDEPEND="dev-ml/pcre:=
 	dev-ml/ocaml-ssl:=
 	dev-ml/ocamlnet:="
 DEPEND="${RDEPEND}
