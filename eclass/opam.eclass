@@ -16,9 +16,14 @@ case ${EAPI:-0} in
     *) ;;
 esac
 
+# @ECLASS-VARIABLE: OPAM_INSTALLER_DEP
+# @DESCRIPTION:
+# Override dependency for OPAM_INSTALLER
+: ${OPAM_INSTALLER_DEP:=dev-ml/opam}
+
 RDEPEND=">=dev-lang/ocaml-4:="
 DEPEND="${RDEPEND}
-	dev-ml/opam"
+	${OPAM_INSTALLER_DEP}"
 
 # @ECLASS-VARIABLE: OPAM_INSTALLER
 # @DESCRIPTION:
