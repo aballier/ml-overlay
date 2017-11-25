@@ -4,7 +4,7 @@
 EAPI=6
 
 # We are opam
-OPAM_INSTALLER_DEP=""
+OPAM_INSTALLER_DEP=" "
 
 inherit opam
 
