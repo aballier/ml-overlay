@@ -20,6 +20,7 @@ IUSE=""
 DEPEND="
 	dev-ml/ocamlgraph:=
 	dev-ml/ocaml-re:=
+	dev-ml/opam-file-format:=
 "
 RDEPEND="${DEPEND}"
 
