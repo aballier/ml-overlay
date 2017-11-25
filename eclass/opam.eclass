@@ -20,6 +20,11 @@ RDEPEND=">=dev-lang/ocaml-4:="
 DEPEND="${RDEPEND}
 	dev-ml/opam"
 
+# @ECLASS-VARIABLE: OPAM_INSTALLER
+# @DESCRIPTION:
+# Eclass can use different opam-installer binary than the one provided in by system.
+: ${OPAM_INSTALLER:=opam-installer}
+
 # @FUNCTION: opam-install
 # @USAGE: <list of packages>
 # @DESCRIPTION:
@@ -28,7 +33,7 @@ DEPEND="${RDEPEND}
 opam-install() {
 	local pkg
 	for pkg ; do
-		opam-installer -i \
+		${OPAM_INSTALLER} -i \
 			--prefix="${ED}usr" \
 			--libdir="${D}$(ocamlc -where)" \
 			--docdir="${ED}usr/share/doc/${PF}" \
