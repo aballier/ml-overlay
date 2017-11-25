@@ -17,11 +17,12 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
+RDEPEND="
 	dev-ml/opam-core:=
 	dev-ml/opam-file-format:=
 "
-RDEPEND="${DEPEND}"
+DEPEND="${RDEPEND}
+	dev-ml/cudf"
 
 S="${WORKDIR}/opam-${PV/_beta/-beta}"
 OPAM_INSTALLER="${S}/opam-installer"
