@@ -22,13 +22,14 @@ RDEPEND="
 	dev-ml/ocaml-re:=
 	dev-ml/opam-file-format:=
 "
-DEPEND="${RDEPEND}
-	dev-ml/cudf"
+DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/opam-${PV/_beta/-beta}"
 OPAM_INSTALLER="${S}/opam-installer"
 
 src_compile() {
+	# https://github.com/janestreet/jbuilder/issues/257
+	touch src/tools/.merlin-exists
 	emake opam-installer
 	emake ${PN}.install
 }
