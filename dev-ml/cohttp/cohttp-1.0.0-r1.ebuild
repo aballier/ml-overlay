@@ -20,7 +20,7 @@ RDEPEND="
 	dev-ml/fieldslib:=
 	dev-ml/sexplib:=
 	dev-ml/stringext:=
-	dev-ml/ocaml-base64:=
+	dev-ml/base64:=
 
 	!dev-ml/ocaml-cohttp
 "
