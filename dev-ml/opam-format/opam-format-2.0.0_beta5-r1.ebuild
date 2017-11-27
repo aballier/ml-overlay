@@ -14,7 +14,7 @@ SRC_URI="https://github.com/ocaml/opam/archive/${PV/_beta/-beta}.tar.gz -> opam-
 
 LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
 RDEPEND="
