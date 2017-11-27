@@ -9,3 +9,4 @@ move dev-ml/ocaml-sqlite3 dev-ml/sqlite3
 move dev-ml/pcre-ocaml dev-ml/pcre
 move dev-ml/postgresql-ocaml dev-ml/postgresql
 move dev-ml/onanomsg dev-ml/nanomsg
+move dev-ml/ocaml-ipaddr dev-ml/ipaddr
