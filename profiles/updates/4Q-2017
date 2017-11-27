@@ -11,3 +11,4 @@ move dev-ml/postgresql-ocaml dev-ml/postgresql
 move dev-ml/onanomsg dev-ml/nanomsg
 move dev-ml/ocaml-ipaddr dev-ml/ipaddr
 move dev-ml/ocaml-base64 dev-ml/base64
+move dev-ml/bin-prot dev-ml/bin_prot
