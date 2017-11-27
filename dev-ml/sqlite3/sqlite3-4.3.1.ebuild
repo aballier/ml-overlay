@@ -14,7 +14,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~ppc ~x86-fbsd"
 IUSE=""
 
-RDEPEND=">=dev-db/sqlite-3.3.3"
+RDEPEND=">=dev-db/sqlite-3.3.3
+	!dev-ml/ocaml-sqlite3
+"
 DEPEND="${RDEPEND}
 	dev-ml/base
 	dev-ml/stdio
