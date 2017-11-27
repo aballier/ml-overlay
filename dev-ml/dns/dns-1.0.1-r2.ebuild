@@ -19,7 +19,7 @@ RDEPEND="
 	dev-ml/cstruct:=
 	dev-ml/ppx_cstruct:=
 	dev-ml/ocaml-hashcons:=
-	>=dev-ml/ocaml-ipaddr-2.6.0:=
+	>=dev-ml/ipaddr-2.6.0:=
 	dev-ml/ocaml-re:=
 	>=dev-ml/uri-1.7.0:=
 	dev-ml/result:=
