@@ -20,7 +20,7 @@ RDEPEND="
 	dev-ml/uri:=
 	dev-ml/result:=
 	dev-ml/logs:=
-	dev-ml/ocaml-ipaddr:=
+	dev-ml/ipaddr:=
 
 	!dev-ml/ocaml-conduit
 "
