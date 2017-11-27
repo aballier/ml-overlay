@@ -32,7 +32,7 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	>=dev-ml/tyxml-4:=
 	>=dev-ml/deriving-0.6:=
 	>=dev-ml/reactiveData-0.2.1:=
-	dev-ml/ocaml-ipaddr:=
+	dev-ml/ipaddr:=
 	dev-ml/react:=
 	dev-ml/ocaml-ssl:=
 	>=dev-ml/lwt-2.5.0:=
