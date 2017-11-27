@@ -16,3 +16,4 @@ move dev-ml/ocaml-dipatch dev-ml/dispatch
 move dev-ml/ocaml-redis dev-ml/redis
 move dev-ml/ocaml-redis-lwt dev-ml/redis-lwt
 move dev-ml/ocaml-redis-sync dev-ml/redis-sync
+move dev-ml/ocaml-magic-mime dev-ml/magic-mime
