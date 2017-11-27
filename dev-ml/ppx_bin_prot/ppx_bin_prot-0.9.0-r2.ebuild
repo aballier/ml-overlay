@@ -15,7 +15,7 @@ KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND="
-	dev-ml/bin-prot:=
+	dev-ml/bin_prot:=
 	dev-ml/ppx_core:=
 	dev-ml/ppx_driver:=
 	dev-ml/ppx_here:=
