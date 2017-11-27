@@ -1,0 +1,13 @@
+Index: angstrom-0.7.0/lwt/angstrom_lwt_unix.ml
+===================================================================
+--- angstrom-0.7.0.orig/lwt/angstrom_lwt_unix.ml
++++ angstrom-0.7.0/lwt/angstrom_lwt_unix.ml
+@@ -41,7 +41,7 @@ let parse ?(pushback=default_pushback) p
+   let bytes = Bytes.create size in
+   let rec loop = function
+     | Partial k ->
+-      Lwt_io.read_into in_chan (Bytes.unsafe_to_string bytes) 0 size
++      Lwt_io.read_into in_chan bytes 0 size
+       >|= begin function
+         | 0   -> k `Eof
+         | len ->

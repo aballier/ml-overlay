@@ -21,3 +21,8 @@ RDEPEND="
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/angstrom-${PV}"
+
+src_prepare() {
+	has_version '>=dev-lang/ocaml-4.06_beta' && eapply "${FILESDIR}/ocaml406.patch"
+	default
+}
