@@ -34,7 +34,7 @@ DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		>=dev-ml/pcre-6.2.5:=
 		>=dev-ml/tyxml-4:=[camlp4(+)]
 		>=dev-lang/ocaml-3.12:=[ocamlopt?]
-		dev-ml/ocaml-ipaddr:=
+		dev-ml/ipaddr:=
 		postgres? ( dev-ml/pgocaml:=[camlp4(+)] )
 		dbm? ( dev-ml/camldbm:= )
 		sqlite? ( dev-ml/sqlite3:= )"
