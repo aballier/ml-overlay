@@ -14,7 +14,7 @@ SRC_URI="https://github.com/ocaml/opam-file-format/archive/${MY_PV}.tar.gz -> ${
 
 LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE="+ocamlopt"
 
 DEPEND="dev-lang/ocaml:=[ocamlopt?]"
