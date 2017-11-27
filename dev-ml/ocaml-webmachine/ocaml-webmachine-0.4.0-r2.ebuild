@@ -20,7 +20,7 @@ IUSE=""
 DEPEND="
 	dev-ml/calendar:=
 	dev-ml/cohttp:=
-	dev-ml/ocaml-dispatch:=[ocamlopt(+)?]
+	dev-ml/dispatch:=[ocamlopt(+)?]
 	dev-ml/ocaml-re:=[ocamlopt?]
 	dev-ml/uri:=[ocamlopt(+)?]
 "
