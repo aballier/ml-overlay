@@ -29,6 +29,7 @@ RDEPEND="
 	dev-ml/ppx_sexp_conv:=
 	dev-ml/ppx_sexp_message:=
 	dev-ml/ppx_compare:=
+	dev-ml/ppx_enumerate:=
 	dev-ml/sexplib:=
 	dev-ml/stdio:=
 	dev-ml/typerep:=
