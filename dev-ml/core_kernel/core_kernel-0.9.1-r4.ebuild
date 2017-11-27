@@ -16,7 +16,7 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/base:=
-	dev-ml/bin-prot:=
+	dev-ml/bin_prot:=
 	dev-ml/configurator:=
 	dev-ml/fieldslib:=
 	dev-ml/jane-street-headers:=
