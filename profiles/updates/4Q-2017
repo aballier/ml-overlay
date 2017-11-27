@@ -15,3 +15,4 @@ move dev-ml/bin-prot dev-ml/bin_prot
 move dev-ml/ocaml-dipatch dev-ml/dispatch
 move dev-ml/ocaml-redis dev-ml/redis
 move dev-ml/ocaml-redis-lwt dev-ml/redis-lwt
+move dev-ml/ocaml-redis-sync dev-ml/redis-sync
