@@ -15,7 +15,7 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="
-	>=dev-ml/ocaml-base64-2.0.0:=
+	>=dev-ml/base64-2.0.0:=
 	dev-ml/cstruct:=
 	dev-ml/ppx_cstruct:=
 	dev-ml/ocaml-hashcons:=
