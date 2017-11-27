@@ -16,7 +16,7 @@ IUSE="examples"
 
 RDEPEND=">=dev-lang/ocaml-3.11:=[ocamlopt]
 	dev-ml/easy-format:=[ocamlopt]
-	>=dev-ml/biniou-1.2:=[ocamlopt]
+	>=dev-ml/biniou-1.2:=
 "
 DEPEND="${RDEPEND}
 	dev-ml/cppo
