@@ -15,7 +15,7 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="
-	dev-ml/bin-prot:=
+	dev-ml/bin_prot:=
 	dev-ml/core:=
 	dev-ml/core_kernel:=
 	dev-ml/fieldslib:=
