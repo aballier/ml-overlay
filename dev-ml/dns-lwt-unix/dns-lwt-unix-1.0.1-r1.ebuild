@@ -21,7 +21,7 @@ RDEPEND="
 	dev-ml/dns:=
 	dev-ml/cmdliner:=
 	dev-ml/mirage-profile:=
-	dev-ml/ocaml-ipaddr:=
+	dev-ml/ipaddr:=
 "
 DEPEND="
 	test? (
