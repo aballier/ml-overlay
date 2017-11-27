@@ -13,3 +13,4 @@ move dev-ml/ocaml-ipaddr dev-ml/ipaddr
 move dev-ml/ocaml-base64 dev-ml/base64
 move dev-ml/bin-prot dev-ml/bin_prot
 move dev-ml/ocaml-dipatch dev-ml/dispatch
+move dev-ml/ocaml-redis dev-ml/redis
