@@ -15,6 +15,7 @@ KEYWORDS="~amd64 ~ppc"
 IUSE=""
 
 DEPEND="
+	>=dev-lang/ocaml-4.06.0_beta:=
 	dev-ml/ocaml-compiler-libs:=
 	dev-ml/ocaml-migrate-parsetree:=
 "
