@@ -29,16 +29,6 @@ PDEPEND="emacs? ( app-emacs/ocaml-mode )
 	xemacs? ( app-xemacs/ocaml )"
 
 S="${WORKDIR}/${MY_P}"
-pkg_setup() {
-	# dev-lang/ocaml creates its own objects but calls gcc for linking, which will
-	# results in relocations if gcc wants to create a PIE executable
-	if gcc-specs-pie ; then
-		append-ldflags -nopie
-		ewarn "Ocaml generates its own native asm, you're using a PIE compiler"
-		ewarn "We have appended -nopie to ocaml build options"
-		ewarn "because linking an executable with pie while the objects are not pic will not work"
-	fi
-}
 
 src_prepare() {
 	EPATCH_SUFFIX="patch" epatch "${FILESDIR}/${PV}"
