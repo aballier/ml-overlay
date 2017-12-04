@@ -1,3 +1,0 @@
-
-# Breaks js_of_ocaml-ppx
->=dev-ml/ppx_deriving-4.2.1
