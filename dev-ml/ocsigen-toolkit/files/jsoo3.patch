@@ -1,0 +1,22 @@
+commit 4c88813bbc3ae17468ef9775daab98384c35f9bc
+Author: Vasilis Papavasileiou <git@vasilis.airpost.net>
+Date:   Fri Mar 31 17:52:09 2017 +0200
+
+    Compile against modular JSOO
+
+diff --git a/Makefile.options b/Makefile.options
+index 851d6d4..aa4406b 100644
+--- a/Makefile.options
++++ b/Makefile.options
+@@ -40,9 +40,9 @@ TEMPLATE_DIR := template.distillery
+ TEMPLATE_NAME := none.pgocaml
+ 
+ # OCamlfind packages for the server
+-SERVER_PACKAGES := calendar lwt.ppx js_of_ocaml.deriving.ppx
++SERVER_PACKAGES := calendar lwt.ppx js_of_ocaml-ppx.deriving
+ # OCamlfind packages for the client
+-CLIENT_PACKAGES := calendar js_of_ocaml.ppx lwt.ppx js_of_ocaml.deriving.ppx
++CLIENT_PACKAGES := calendar js_of_ocaml js_of_ocaml-ppx lwt.ppx js_of_ocaml-ppx.deriving
+ 
+ # Debug package (yes/no): Debugging info in compilation
+ DEBUG := yes
