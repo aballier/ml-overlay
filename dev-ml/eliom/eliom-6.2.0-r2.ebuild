@@ -44,7 +44,8 @@ DEPEND="${RDEPEND}
 	dev-ml/ocamlbuild"
 
 src_prepare() {
-	epatch "${FILESDIR}/lwt3.patch"
+	epatch "${FILESDIR}/lwt3.patch" \
+		"${FILESDIR}/jsoo3.patch"
 }
 
 src_compile() {

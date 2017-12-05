@@ -1,0 +1,119 @@
+commit 811c1b5a0d65e300f141935d76a3b1831c968d44
+Author: Vasilis Papavasileiou <git@vasilis.airpost.net>
+Date:   Fri Mar 31 16:42:20 2017 +0200
+
+    Compile against modular JSOO
+
+Index: eliom-6.2.0/pkg/META
+===================================================================
+--- eliom-6.2.0.orig/pkg/META
++++ eliom-6.2.0/pkg/META
+@@ -46,8 +46,9 @@ package "client" (
+               ppx_deriving.runtime,
+               js_of_ocaml,
+               js_of_ocaml.deriving,
+-              js_of_ocaml.tyxml,
+-              js_of_ocaml.log,
++              js_of_ocaml-tyxml,
++              js_of_ocaml-lwt,
++              js_of_ocaml-lwt.logger,
+               js_of_ocaml.weak,
+               lwt_react,
+               react,
+@@ -98,8 +99,8 @@ package "syntax" (
+     description = "Syntax extension: predefined commonly use syntaxes"
+     version = "[distributed with Eliom]"
+ 
+-    requires(syntax, preprocessor) = "js_of_ocaml.syntax,js_of_ocaml.deriving.syntax,lwt.syntax,tyxml.syntax"
+-    requires(syntax, toploop) = "js_of_ocaml.syntax,js_of_ocaml.deriving.syntax,lwt.syntax,tyxml.syntax"
++    requires(syntax, preprocessor) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt.syntax,tyxml.syntax"
++    requires(syntax, toploop) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt.syntax,tyxml.syntax"
+     archive(syntax, preprocessor) = "-ignore dummy"
+   )
+ 
+Index: eliom-6.2.0/pkg/distillery/basic.ppx/Makefile.options
+===================================================================
+--- eliom-6.2.0.orig/pkg/distillery/basic.ppx/Makefile.options
++++ eliom-6.2.0/pkg/distillery/basic.ppx/Makefile.options
+@@ -11,9 +11,9 @@ SERVER_FILES := $(wildcard *.eliomi *.el
+ CLIENT_FILES := $(wildcard *.eliomi *.eliom)
+ 
+ # OCamlfind packages for the server
+-SERVER_PACKAGES := lwt.ppx js_of_ocaml.deriving.ppx
++SERVER_PACKAGES := lwt.ppx js_of_ocaml-ppx.deriving
+ # OCamlfind packages for the client
+-CLIENT_PACKAGES := lwt.ppx js_of_ocaml.ppx js_of_ocaml.deriving.ppx
++CLIENT_PACKAGES := lwt.ppx js_of_ocaml-ppx js_of_ocaml-ppx.deriving
+ 
+ # Directory with files to be statically served
+ LOCAL_STATIC = static
+Index: eliom-6.2.0/src/_tags
+===================================================================
+--- eliom-6.2.0.orig/src/_tags
++++ eliom-6.2.0/src/_tags
+@@ -2,32 +2,32 @@
+ true:keep_locs
+ 
+ <lib/type_dir/*.ml{,i}>:eliom_ppx,thread
+-<lib/type_dir/*.ml>:package(js_of_ocaml.deriving.ppx,lwt.ppx)
++<lib/type_dir/*.ml>:package(js_of_ocaml-ppx.deriving,lwt.ppx)
+ <lib/type_dir/*.ml>:package(js_of_ocaml.ppx)
+ 
+ <lib/server/*.ml{,i}>:eliom_ppx
+-<lib/server/*.ml>:package(js_of_ocaml.deriving.ppx,lwt.ppx)
++<lib/server/*.ml>:package(js_of_ocaml-ppx.deriving,lwt.ppx)
+ <lib/server/*.ml>:package(js_of_ocaml.ppx)
+ 
+ <lib/server/*.ml{,i}>:thread
+ <lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml.functor)
+ <lib/server/*.ml{,i}>:package(lwt_react,react,js_of_ocaml)
+ 
+-<lib/server/*.ml{,i}>:package(js_of_ocaml.deriving.ppx)
++<lib/server/*.ml{,i}>:package(js_of_ocaml-ppx.deriving)
+ 
+ <lib/*.eliom{,i}>:eliom_ppx
+ 
+ <lib/*.ml{,i}>:eliom_ppx
+-<lib/client/*.ml>:package(js_of_ocaml.deriving.ppx,lwt.ppx,js_of_ocaml.log)
++<lib/client/*.ml>:package(js_of_ocaml-ppx.deriving,lwt.ppx,js_of_ocaml-lwt.logger)
+ <lib/client/*.ml>:package(js_of_ocaml.ppx)
+ 
+ <lib/client/*.ml{,i}>: eliom_ppx
+ <lib/client/*.ml{,i}>:package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base)
+ <lib/client/*.ml{,i}>:package(deriving.runtime,js_of_ocaml.deriving)
+-<lib/client/*.ml{,i}>:package(lwt_react,tyxml.functor,js_of_ocaml.tyxml)
++<lib/client/*.ml{,i}>:package(lwt_react,tyxml.functor,js_of_ocaml.tyxml,js_of_ocaml-lwt,js_of_ocaml-lwt.logger)
+ <lib/client/*.ml{,i}>:package(react,js_of_ocaml,reactiveData)
+ 
+-<lib/client/*.ml{,i}>:package(js_of_ocaml.deriving.ppx)
++<lib/client/*.ml{,i}>:package(js_of_ocaml-ppx.deriving)
+ 
+ <lib/server/monitor/*.ml>:package(lwt.ppx)
+ <lib/server/monitor/*.ml{,i}>:thread
+Index: eliom-6.2.0/src/lib/eliom_request.client.ml
+===================================================================
+--- eliom-6.2.0.orig/src/lib/eliom_request.client.ml
++++ eliom-6.2.0/src/lib/eliom_request.client.ml
+@@ -24,6 +24,8 @@ exception Failed_request of int
+ exception Program_terminated
+ exception Non_xml_content
+ 
++module XmlHttpRequest = Js_of_ocaml_lwt.XmlHttpRequest
++
+ let section = Lwt_log.Section.make "eliom:request"
+ (* == ... *)
+ 
+Index: eliom-6.2.0/src/tools/utils.ml
+===================================================================
+--- eliom-6.2.0.orig/src/tools/utils.ml
++++ eliom-6.2.0/src/tools/utils.ml
+@@ -298,8 +298,7 @@ let get_client_lib ?kind:k () =
+ let get_client_js () =
+   [
+     "+eliom.client/eliom_client.js" ;
+-    "+js_of_ocaml/weak.js";
+-    "+js_of_ocaml/classlist.js" (* ie9 support *)
++    "+js_of_ocaml-compiler/weak.js"
+   ]
+ 
+ (* Should be calld only with -dump... *)
