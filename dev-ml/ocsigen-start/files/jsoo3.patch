@@ -1,0 +1,70 @@
+commit 3621650018c805f6f71b4804ab89c4d2b2fdc2a7
+Author: Vasilis Papavasileiou <git@vasilis.airpost.net>
+Date:   Mon Apr 3 14:43:10 2017 +0200
+
+    Compile against modular JSOO
+
+diff --git a/Makefile.options b/Makefile.options
+index bfe7cd6..2f2017d 100644
+--- a/Makefile.options
++++ b/Makefile.options
+@@ -54,13 +54,13 @@ SASS_TEMPORARY_PROJECT_NAME := os_temporary_project_name
+ ##----------------------------------------------------------------------
+ 
+ # OCamlfind packages for the server
+-SERVER_PACKAGES    := lwt.ppx js_of_ocaml.deriving.ppx calendar safepass \
++SERVER_PACKAGES    := lwt.ppx js_of_ocaml-ppx.deriving calendar safepass \
+                       ocsigen-toolkit.server yojson
+ 
+ SERVER_DB_PACKAGES := pgocaml pgocaml.syntax macaque.syntax calendar safepass
+ 
+ # OCamlfind packages for the client
+-CLIENT_PACKAGES    := lwt.ppx js_of_ocaml.deriving.ppx js_of_ocaml.ppx \
++CLIENT_PACKAGES    := lwt.ppx js_of_ocaml-ppx.deriving js_of_ocaml-ppx \
+                       calendar ocsigen-toolkit.client
+ 
+ # Debug package (yes/no): Debugging info in compilation
+diff --git a/template.distillery/Makefile.options b/template.distillery/Makefile.options
+index 586dbcc..5910b29 100644
+--- a/template.distillery/Makefile.options
++++ b/template.distillery/Makefile.options
+@@ -24,14 +24,14 @@ CLIENT_FILES          := $(wildcard *.eliomi *.eliom) \
+ SERVER_ELIOM_PACKAGES := ocsigen-start.server
+ 
+ # OCamlfind packages for the server
+-SERVER_PACKAGES       := lwt.ppx js_of_ocaml.deriving.ppx ppx_deriving.std
++SERVER_PACKAGES       := lwt.ppx js_of_ocaml-ppx.deriving ppx_deriving.std
+ 
+ # OCamlfind packages for database access
+ SERVER_DB_PACKAGES    := pgocaml.syntax
+ 
+ # OCamlfind packages for the client
+-CLIENT_PACKAGES       := lwt.ppx js_of_ocaml.ppx js_of_ocaml.deriving.ppx \
+-                         ppx_deriving.std ocsigen-start.client
++CLIENT_PACKAGES       := lwt.ppx js_of_ocaml-ppx js_of_ocaml-ppx.deriving \
++                         ppx_deriving.std ocsigen-start.client base
+ 
+ # Automatically install packages via NPM
+ USE_NPM               := yes
+diff --git a/template.distillery/Makefile.os b/template.distillery/Makefile.os
+index d1d4a11..abfbd57 100644
+--- a/template.distillery/Makefile.os
++++ b/template.distillery/Makefile.os
+@@ -15,7 +15,7 @@
+ ## Required binaries
+ ELIOMC            := eliomc -w +A-4-7-9-37-38-39-41-42-44-45-48
+ ELIOMOPT          := eliomopt
+-JS_OF_ELIOM       := js_of_eliom -w +A-4-7-9-37-38-39-41-42-44-45-48
++JS_OF_ELIOM       := js_of_eliom -w +A-4-7-9-37-38-39-41-42-44-45-48 -jsopt +base/runtime.js
+ JS_OF_OCAML       := js_of_ocaml
+ ELIOMDEP          := eliomdep
+ OCSIGENSERVER     := ocsigenserver
+@@ -290,7 +290,7 @@ ${ELIOM_CLIENT_DIR}/%.cmi: %.eliomi
+ 	${JS_OF_ELIOM} -ppx -ppx ${I18N_PPX_REWRITER} -c ${CLIENT_INC} $(GENERATE_DEBUG) $<
+ 
+ ${ELIOM_CLIENT_DIR}/%.js: ${ELIOM_CLIENT_DIR}/%.cmo
+-	${JS_OF_OCAML} $(DEBUG_JS) $<
++	${JS_OF_OCAML} $(DEBUG_JS) +base/runtime.js $<
+ 
+ ##----------------------------------------------------------------------
+ 
