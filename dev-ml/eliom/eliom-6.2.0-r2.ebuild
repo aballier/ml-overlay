@@ -45,7 +45,9 @@ DEPEND="${RDEPEND}
 
 src_prepare() {
 	epatch "${FILESDIR}/lwt3.patch" \
-		"${FILESDIR}/jsoo3.patch"
+		"${FILESDIR}/jsoo3.patch" \
+		"${FILESDIR}/keycode.patch" \
+		"${FILESDIR}/xmlhttpreq.patch"
 }
 
 src_compile() {
