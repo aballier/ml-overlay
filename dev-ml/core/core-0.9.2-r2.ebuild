@@ -21,6 +21,7 @@ RDEPEND="
 	dev-ml/ppx_assert:=
 	dev-ml/ppx_driver:=
 	dev-ml/ppx_jane:=
+		dev-ml/ppx_expect:=
 	dev-ml/sexplib:=
 	dev-ml/spawn:=
 	dev-ml/stdio:=
