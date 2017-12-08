@@ -19,7 +19,7 @@ RDEPEND="
 		dev-ml/opam-file-format:=
 	dev-ml/opam-solver:=
 	dev-ml/cmdliner:=
-	!dev-ml/opam
+	!<dev-ml/opam-2.0.0_beta
 "
 DEPEND="${RDEPEND}"
 
