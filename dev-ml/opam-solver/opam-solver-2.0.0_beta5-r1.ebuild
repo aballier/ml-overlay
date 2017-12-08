@@ -20,7 +20,6 @@ RDEPEND="
 	dev-ml/mccs:=
 	dev-ml/dose3:=
 	dev-ml/cudf:=
-	!dev-ml/opam
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/opam-client )"
