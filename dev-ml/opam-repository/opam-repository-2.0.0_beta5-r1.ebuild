@@ -14,7 +14,11 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="dev-ml/opam-format:="
+RDEPEND="
+	dev-ml/opam-format:=
+	dev-ml/opam-file-format:=
+"
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/opam-${PV/_beta/-beta}"
+RESTRICT="test"
