@@ -20,7 +20,7 @@ IUSE=""
 DEPEND="
 	dev-ml/opam-format:=
 	dev-ml/cmdliner:=
-	!dev-ml/opam
+	!<dev-ml/opam-2.0.0_beta
 "
 RDEPEND="${DEPEND}"
 
