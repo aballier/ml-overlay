@@ -17,7 +17,7 @@ IUSE="test"
 RDEPEND="
 	dev-ml/opam-format:=
 		dev-ml/opam-file-format:=
-	dev-ml/mccs:=
+	>=dev-ml/mccs-1.1.4:=
 	dev-ml/dose3:=
 	dev-ml/cudf:=
 "
