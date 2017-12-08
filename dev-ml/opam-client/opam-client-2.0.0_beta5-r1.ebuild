@@ -16,6 +16,7 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/opam-state:=
+		dev-ml/opam-file-format:=
 	dev-ml/opam-solver:=
 	dev-ml/cmdliner:=
 	!dev-ml/opam
