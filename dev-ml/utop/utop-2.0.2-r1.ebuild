@@ -14,12 +14,13 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
+RDEPEND="
 	>=dev-ml/lwt-2.4.0:=
 	dev-ml/lwt_react:=
 	>=dev-ml/lambda-term-1.2:=
 	>=dev-ml/zed-1.2:=
-	>=dev-ml/cppo-1.0.1:=
 	>=dev-ml/findlib-1.7.2:=
 "
-RDEPEND="${DEPEND}"
+DEPEND="${RDEPEND}
+	>=dev-ml/cppo-1.0.1
+"
