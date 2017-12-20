@@ -16,7 +16,7 @@ IUSE=""
 
 DEPEND="
 	dev-ml/base:=
-	dev-ml/ppx_compare:=
+	>=dev-ml/ppx_compare-0.10.0:=
 	dev-ml/ppx_core:=
 	dev-ml/ppx_driver:=
 	dev-ml/ppx_metaquot:=
