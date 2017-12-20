@@ -16,6 +16,7 @@ IUSE=""
 
 DEPEND="
 	dev-ml/ppx_core:=
+		dev-ml/stdio:=
 	dev-ml/ppx_driver:=
 	dev-ml/ppx_optcomp:=
 	dev-ml/ocaml-migrate-parsetree:=
