@@ -20,5 +20,6 @@ DEPEND="
 	dev-ml/ppx_metaquot:=
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/octavius:=
+	dev-ml/stdio:=
 	"
 RDEPEND="${DEPEND}"
