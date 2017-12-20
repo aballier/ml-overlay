@@ -1,9 +1,9 @@
 # Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="5"
+EAPI="6"
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="An equivalent of the C preprocessor for OCaml programs"
 HOMEPAGE="http://mjambon.com/cppo.html https://github.com/mjambon/cppo/"
@@ -15,9 +15,5 @@ KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 
 IUSE=""
 
-RDEPEND="dev-ml/ocamlbuild:="
+RDEPEND=""
 DEPEND="${RDEPEND}"
-
-src_install() {
-	opam-install "${PN}" "${PN}_ocamlbuild"
-}
