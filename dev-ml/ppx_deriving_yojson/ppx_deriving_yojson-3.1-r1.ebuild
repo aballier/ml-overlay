@@ -19,12 +19,13 @@ DEPEND="
 	dev-ml/yojson:=
 	dev-ml/result:=
 	>=dev-ml/ppx_deriving-4:=
-	dev-ml/cppo:=
+	dev-ml/cppo_ocamlbuild:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	dev-ml/findlib
 	dev-ml/ocamlbuild
+	dev-ml/cppo
 	test? ( dev-ml/ounit dev-ml/ppx_import )"
 
 src_compile() {
