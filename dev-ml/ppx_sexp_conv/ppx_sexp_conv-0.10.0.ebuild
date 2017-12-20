@@ -15,12 +15,12 @@ KEYWORDS="~amd64 ~ppc"
 IUSE=""
 
 DEPEND="
-	dev-ml/ppx_core:=
-	dev-ml/ppx_driver:=
-	dev-ml/ppx_type_conv:=
-	dev-ml/ppx_metaquot:=
+	>=dev-ml/ppx_core-0.10.0:=
+	>=dev-ml/ppx_driver-0.10.0:=
+	>=dev-ml/ppx_type_conv-0.10.0:=
+	>=dev-ml/ppx_metaquot-0.10.0:=
 	dev-ml/ppx_optcomp:=
-	dev-ml/sexplib:=
+	>=dev-ml/sexplib-0.10.0:=
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/ppx_traverse_builtins:=
 	"
