@@ -15,9 +15,9 @@ KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND="
-	dev-ml/ppx_core:=
-	dev-ml/ppx_driver:=
-	dev-ml/ppx_metaquot:=
+	>=dev-ml/ppx_core-0.10.0:=
+	>=dev-ml/ppx_driver-0.10.0:=
+	>=dev-ml/ppx_metaquot-0.10.0:=
 	dev-ml/ocaml-migrate-parsetree:=
 "
 RDEPEND="${DEPEND}"
