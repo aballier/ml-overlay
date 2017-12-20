@@ -16,7 +16,7 @@ IUSE=""
 
 RDEPEND="
 	dev-lang/ocaml:=
-	dev-ml/sexplib:=
+	>=dev-ml/sexplib-0.10.0:=
 	<dev-ml/sexplib-100
 "
 DEPEND="${RDEPEND}"
