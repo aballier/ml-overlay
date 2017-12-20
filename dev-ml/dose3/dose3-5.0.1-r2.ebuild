@@ -20,7 +20,6 @@ RDEPEND="
 	dev-ml/cudf:=
 	>=dev-ml/extlib-1.7.0:=
 	dev-ml/ocaml-re:=
-	dev-ml/cppo:=
 	parmap? ( dev-ml/parmap:= )
 	zip? ( dev-ml/camlzip:= )
 	bzip2? ( dev-ml/camlbz2:= )
@@ -32,6 +31,7 @@ RDEPEND="
 DEPEND="${RDEPEND}
 	dev-ml/findlib
 	dev-ml/ocamlbuild
+	dev-ml/cppo
 	test? ( dev-python/pyyaml[libyaml] )
 "
 # missing test data
