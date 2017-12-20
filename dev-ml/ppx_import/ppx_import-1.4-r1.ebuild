@@ -17,13 +17,14 @@ IUSE="+ocamlopt test"
 DEPEND="
 	dev-lang/ocaml:=[ocamlopt?]
 	dev-ml/ppx_tools:=
-	dev-ml/cppo:=
+	dev-ml/cppo_ocamlbuild:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( dev-ml/ounit dev-ml/ppx_deriving )
 	dev-ml/ocamlbuild
 	dev-ml/findlib
+	dev-ml/cppo
 "
 
 src_compile() {
