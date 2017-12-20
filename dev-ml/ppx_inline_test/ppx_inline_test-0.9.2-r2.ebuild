@@ -16,6 +16,7 @@ IUSE=""
 
 DEPEND="
 	dev-ml/base:=
+	dev-ml/stdio:=
 	dev-ml/ppx_core:=
 	dev-ml/ppx_driver:=
 	dev-ml/ppx_metaquot:=
