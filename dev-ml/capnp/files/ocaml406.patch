@@ -1,0 +1,13 @@
+Index: capnp-ocaml-3.1.0/src/unix/iO.ml
+===================================================================
+--- capnp-ocaml-3.1.0.orig/src/unix/iO.ml
++++ capnp-ocaml-3.1.0/src/unix/iO.ml
+@@ -188,7 +188,7 @@ let create_write_context_for_fd ?(restar
+ 
+ let create_write_context_for_channel ~compression chan =
+   let chan_write chan' ~buf ~pos ~len =
+-    let () = Core_kernel.Out_channel.output chan' ~buf ~pos ~len in
++    let () = Core_kernel.Out_channel.output chan' ~buf:(Bytes.unsafe_of_string buf) ~pos ~len in
+     len
+   in
+   WriteContext.create ~write:chan_write ~compression chan

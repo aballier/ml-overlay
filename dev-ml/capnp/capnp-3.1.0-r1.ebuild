@@ -29,4 +29,4 @@ DEPEND="${RDEPEND}
 "
 
 S="${WORKDIR}/${PN}-ocaml-${PV}"
-PATCHES=( "${FILESDIR}/base010.patch" )
+PATCHES=( "${FILESDIR}/base010.patch" "${FILESDIR}/ocaml406.patch" )
