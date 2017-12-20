@@ -14,5 +14,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~ppc"
 IUSE=""
 
-RDEPEND="dev-ml/base:= dev-ml/sexplib:="
+RDEPEND="
+	>=dev-ml/base-0.10.0:=
+	>=dev-ml/sexplib-0.10.0:="
 DEPEND="${RDEPEND}"
