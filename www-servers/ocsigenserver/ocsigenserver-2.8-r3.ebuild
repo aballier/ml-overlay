@@ -46,7 +46,7 @@ pkg_setup() {
 }
 
 src_prepare() {
-	epatch "${FILESDIR}/lwt3.patch"
+	epatch "${FILESDIR}/lwt3.patch" "${FILESDIR}/thread.patch"
 }
 
 src_configure() {
