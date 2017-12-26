@@ -34,7 +34,8 @@ S="${WORKDIR}/onanomsg-${PV}"
 src_prepare() {
 	epatch "${FILESDIR}/bigstring.patch" \
 		"${FILESDIR}/tests.patch" \
-		"${FILESDIR}/testrun.patch"
+		"${FILESDIR}/testrun.patch" \
+		"${FILESDIR}/thread.patch"
 	default
 }
 

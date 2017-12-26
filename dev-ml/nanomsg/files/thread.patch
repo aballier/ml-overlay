@@ -1,0 +1,13 @@
+Index: onanomsg-1.0/_tags
+===================================================================
+--- onanomsg-1.0.orig/_tags
++++ onanomsg-1.0/_tags
+@@ -11,7 +11,7 @@ true: debug, bin_annot, safe_string
+ 		package(containers)
+ 
+ 
+-<lib/nanomsg_lwt.*>: package(lwt.unix), package(lwt.ppx)
++<lib/nanomsg_lwt.*>: thread, package(lwt.unix), package(lwt.ppx)
+ 
+ <lib_test/*>: package(bigstring), \
+ 	      package(ctypes.foreign), \
