@@ -73,7 +73,6 @@ src_configure() {
 }
 
 src_compile() {
-	emake -j1 depend
 	if use ocamlopt; then
 		emake
 	else
