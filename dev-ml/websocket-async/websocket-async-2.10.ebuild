@@ -23,5 +23,6 @@ DEPEND="
 	!dev-ml/ocaml-websocket
 "
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/async.patch" )
 
 S="${WORKDIR}/ocaml-websocket-${PV}"
