@@ -56,7 +56,7 @@ src_configure() {
 }
 
 src_compile() {
-	emake -j1
+	emake -j1 VERBOSE="-classic-display"
 }
 
 src_install() {
