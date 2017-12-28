@@ -19,7 +19,7 @@ DESCRIPTION="Ocaml-powered webserver and framework for dynamic web programming"
 HOMEPAGE="http://www.ocsigen.org"
 
 LICENSE="LGPL-2.1-with-linking-exception"
-SLOT="0/${PV}"
+SLOT="0/${PV}-oc406"
 IUSE="debug doc dbm +ocamlopt +sqlite zlib postgres"
 REQUIRED_USE="|| ( sqlite dbm postgres )"
 RESTRICT="strip installsources"
