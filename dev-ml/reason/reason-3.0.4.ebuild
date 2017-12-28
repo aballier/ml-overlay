@@ -25,3 +25,4 @@ RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	dev-ml/findlib
 "
+PATCHES=( "${FILESDIR}/nostrict.patch" )
