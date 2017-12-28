@@ -33,6 +33,8 @@ RDEPEND="dev-lang/ocaml:=
 	dev-ml/OCaml-ImageMagick:=
 	dev-ml/js_of_ocaml-ppx:=
 	dev-ml/js_of_ocaml-camlp4:=
+
+	www-servers/ocsigenserver:=
 "
 DEPEND="${RDEPEND}"
 

@@ -33,9 +33,11 @@ RDEPEND="dev-lang/ocaml:=
 	dev-ml/OCaml-ImageMagick:=
 	dev-ml/js_of_ocaml-ppx:=
 	dev-ml/js_of_ocaml-camlp4:=
+
+	www-servers/ocsigenserver:=
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/jsoo3.patch" )
+PATCHES=( "${FILESDIR}/jsoo3.patch" "${FILESDIR}/oc406.patch" )
 
 src_install() {
 	findlib_src_preinst
