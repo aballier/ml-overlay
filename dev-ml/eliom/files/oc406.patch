@@ -1,0 +1,88 @@
+Index: eliom-6.2.0/src/lib/eliom_parameter.server.ml
+===================================================================
+--- eliom-6.2.0.orig/src/lib/eliom_parameter.server.ml
++++ eliom-6.2.0/src/lib/eliom_parameter.server.ml
+@@ -23,7 +23,7 @@ include Eliom_parameter_base
+ 
+ type raw_post_data =
+   ((string * string) * (string * string) list) option *
+-  string Ocsigen_stream.t option
++  bytes Ocsigen_stream.t option
+ 
+ open Ocsigen_extensions
+ 
+Index: eliom-6.2.0/src/lib/eliom_parameter.server.mli
+===================================================================
+--- eliom-6.2.0.orig/src/lib/eliom_parameter.server.mli
++++ eliom-6.2.0/src/lib/eliom_parameter.server.mli
+@@ -20,7 +20,7 @@
+ include Eliom_parameter_sigs.S
+   with type raw_post_data =
+     ((string * string) * (string * string) list) option *
+-    string Ocsigen_stream.t option
++    bytes Ocsigen_stream.t option
+ 
+ (** [user_type ~of_string ~to_string s] construct a parameter, labeled
+     [s], such that the server will have to use [of_string] and
+Index: eliom-6.2.0/src/lib/eliom_registration.server.ml
+===================================================================
+--- eliom-6.2.0.orig/src/lib/eliom_registration.server.ml
++++ eliom-6.2.0/src/lib/eliom_registration.server.ml
+@@ -117,8 +117,8 @@ module Make_typed_xml_registration
+       Format.asprintf "%a"
+         (Format.pp_print_list ~pp_sep:(fun _ () -> ()) out)
+         l
+-      |> Ocsigen_stream.StringStream.put
+-      |> Ocsigen_stream.StringStream.make
++      |> Ocsigen_stream.BytesStream.put
++      |> Ocsigen_stream.BytesStream.make
+ 
+     let result_of_content c =
+       let default_result = Ocsigen_http_frame.Result.default () in
+@@ -736,7 +736,7 @@ end
+ 
+ module Streamlist_reg_base = struct
+ 
+-  type page = (((unit -> (string Ocsigen_stream.t) Lwt.t) list) * string)
++  type page = (((unit -> (bytes Ocsigen_stream.t) Lwt.t) list) * string)
+   type options = unit
+   type result = unknown_content kind
+ 
+Index: eliom-6.2.0/src/lib/eliom_registration.server.mli
+===================================================================
+--- eliom-6.2.0.orig/src/lib/eliom_registration.server.mli
++++ eliom-6.2.0/src/lib/eliom_registration.server.mli
+@@ -402,7 +402,7 @@ module String : Eliom_registration_sigs.
+     following streams are not created. *)
+ module Streamlist : Eliom_registration_sigs.S_with_create
+   with type page =
+-         (unit -> string Ocsigen_stream.t Lwt.t) list * string
++         (unit -> bytes Ocsigen_stream.t Lwt.t) list * string
+    and type options = unit
+    and type return = Eliom_service.non_ocaml
+    and type result = unknown_content kind
+Index: eliom-6.2.0/src/lib/eliom_request_info.server.ml
+===================================================================
+--- eliom-6.2.0.orig/src/lib/eliom_request_info.server.ml
++++ eliom-6.2.0/src/lib/eliom_request_info.server.ml
+@@ -361,7 +361,7 @@ let set_site_handler sitedata handler =
+ 
+ type raw_post_data =
+   ((string * string) * (string * string) list) option *
+-  string Ocsigen_stream.t option
++  bytes Ocsigen_stream.t option
+ 
+ let raw_post_data sp =
+   let ri = get_ri_sp sp in
+Index: eliom-6.2.0/src/lib/eliom_request_info.server.mli
+===================================================================
+--- eliom-6.2.0.orig/src/lib/eliom_request_info.server.mli
++++ eliom-6.2.0/src/lib/eliom_request_info.server.mli
+@@ -389,6 +389,6 @@ val get_request_id_sp : Eliom_common.ser
+ 
+ type raw_post_data =
+   ((string * string) * (string * string) list) option *
+-  string Ocsigen_stream.t option
++  bytes Ocsigen_stream.t option
+ 
+ val raw_post_data : Eliom_common.server_params -> raw_post_data Lwt.t

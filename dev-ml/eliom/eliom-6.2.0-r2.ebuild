@@ -47,7 +47,8 @@ src_prepare() {
 	epatch "${FILESDIR}/lwt3.patch" \
 		"${FILESDIR}/jsoo3.patch" \
 		"${FILESDIR}/keycode.patch" \
-		"${FILESDIR}/xmlhttpreq.patch"
+		"${FILESDIR}/xmlhttpreq.patch" \
+		"${FILESDIR}/oc406.patch"
 }
 
 src_compile() {
