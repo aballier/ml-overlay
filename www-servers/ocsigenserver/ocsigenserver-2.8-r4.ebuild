@@ -46,7 +46,10 @@ pkg_setup() {
 }
 
 src_prepare() {
-	epatch "${FILESDIR}/lwt3.patch" "${FILESDIR}/thread.patch"
+	epatch "${FILESDIR}/lwt3.patch"    \
+		   "${FILESDIR}/oc406.patch"   \
+		   "${FILESDIR}/oc406-2.patch" \
+		   "${FILESDIR}/oc406-3.patch"
 }
 
 src_configure() {
@@ -70,6 +73,7 @@ src_configure() {
 }
 
 src_compile() {
+	emake -j1 depend
 	if use ocamlopt; then
 		emake
 	else

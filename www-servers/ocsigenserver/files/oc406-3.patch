@@ -1,0 +1,83 @@
+Index: ocsigenserver-2.8/src/baselib/ocsigen_lib.ml
+===================================================================
+--- ocsigenserver-2.8.orig/src/baselib/ocsigen_lib.ml
++++ ocsigenserver-2.8/src/baselib/ocsigen_lib.ml
+@@ -144,7 +144,7 @@ module Url = struct
+       let s = Bytes.create 2 in
+       Bytes.set s 0 hex_digits.( (k lsr 4) land 15 );
+       Bytes.set s 1 hex_digits.( k land 15 );
+-      s
++      Bytes.to_string s
+ 
+     let url_encoding_re =
+       Netstring_pcre.regexp "[^A-Za-z0-9~_.!*\\-]"
+Index: ocsigenserver-2.8/src/baselib/ocsigen_stream.ml
+===================================================================
+--- ocsigenserver-2.8.orig/src/baselib/ocsigen_stream.ml
++++ ocsigenserver-2.8/src/baselib/ocsigen_stream.ml
+@@ -273,7 +273,7 @@ module BytesStream = struct
+   let empty : m = lazy (fun c -> Lazy.force c)
+   let concat (m: m) (f: m) : m =
+     lazy (fun c -> Lazy.force m (lazy (Lazy.force f c)))
+-  let put (s : bytes) : m = lazy (fun c -> Lwt.return (Cont (s, c)))
++  let put (s : string) : m = lazy (fun c -> Lwt.return (Cont (Bytes.of_string s, c)))
+ 
+   let make_stream (m: m) : bytes stream =
+     lazy (Lazy.force m (lazy (Lwt.return (Finished None))))
+Index: ocsigenserver-2.8/src/baselib/ocsigen_stream.mli
+===================================================================
+--- ocsigenserver-2.8.orig/src/baselib/ocsigen_stream.mli
++++ ocsigenserver-2.8/src/baselib/ocsigen_stream.mli
+@@ -135,7 +135,7 @@ module BytesStream : sig
+   val empty: m
+ 
+   (** Create a stream with one element *)
+-  val put: bytes -> m
++  val put: string -> m
+ 
+   (** Concatenate two stream *)
+   val concat: m -> m -> m
+Index: ocsigenserver-2.8/src/extensions/deflatemod.ml
+===================================================================
+--- ocsigenserver-2.8.orig/src/extensions/deflatemod.ml
++++ ocsigenserver-2.8/src/extensions/deflatemod.ml
+@@ -73,7 +73,7 @@ let () =
+ type output_buffer =
+   {
+     stream: Zlib.stream;
+-    buf: string;
++    buf: bytes;
+     mutable pos: int;
+     mutable avail: int;
+     mutable size : int32;
+@@ -93,7 +93,7 @@ let write_int32 oz n =
+ (* puts in oz the content of buf, from pos to pos + len ;
+  * f is the continuation of the current stream *)
+ let rec output oz f buf pos len  =
+-  assert (pos >= 0 && len >= 0 && pos + len <= String.length buf);
++  assert (pos >= 0 && len >= 0 && pos + len <= Bytes.length buf);
+   if oz.avail = 0 then begin
+     let cont () = output oz f buf pos len in
+     Lwt_log.ign_info ~section "Flushing because output buffer is full";
+@@ -168,7 +168,7 @@ and next_cont oz stream =
+     finish ()
+   | Ocsigen_stream.Finished (Some s) -> next_cont oz s
+   | Ocsigen_stream.Cont(s,f) ->
+-    output oz f s 0 (String.length s)
++    output oz f s 0 (Bytes.length s)
+ 
+ (* deflate param : true = deflate ; false = gzip (no header in this case) *)
+ let compress deflate stream =
+Index: ocsigenserver-2.8/src/http/ocsigen_senders.ml
+===================================================================
+--- ocsigenserver-2.8.orig/src/http/ocsigen_senders.ml
++++ ocsigenserver-2.8/src/http/ocsigen_senders.ml
+@@ -35,7 +35,7 @@ module Make_XML_Content(Xml : Xml_sigs.I
+ = struct
+ 
+   module Htmlprinter =
+-    Xml_print.Make_typed(Xml)(Typed_xml)(Ocsigen_stream.StringStream)
++    Xml_print.Make_typed(Xml)(Typed_xml)(Ocsigen_stream.BytesStream)
+ 
+   type t = Typed_xml.doc
+   type options = Http_headers.accept Lazy.t

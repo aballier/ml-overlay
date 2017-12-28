@@ -1,0 +1,760 @@
+commit a849706bb46c32a43f922cc4a2c7f2801b47243b
+Author: Guillaume Huysmans <ghuysmans99@gmail.com>
+Date:   Wed Dec 20 15:43:42 2017 +0100
+
+    OCaml 4.06 compatibility fix
+    
+    -safe-string
+    -no-keep-locs
+
+diff --git a/src/baselib/Makefile b/src/baselib/Makefile
+index 30335b67..6d9cc7f1 100644
+--- a/src/baselib/Makefile
++++ b/src/baselib/Makefile
+@@ -12,8 +12,8 @@ PACKAGE  := \
+ 	ipaddr
+ 
+ LIBS     := ${addprefix -package ,${PACKAGE}}
+-OCAMLC   := $(OCAMLFIND) ocamlc ${BYTEDBG} ${THREAD}
+-OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG} ${THREAD}
++OCAMLC   := $(OCAMLFIND) ocamlc -no-keep-locs ${BYTEDBG} ${THREAD}
++OCAMLOPT := $(OCAMLFIND) ocamlopt -no-keep-locs ${OPTDBG} ${THREAD}
+ OCAMLDOC := $(OCAMLFIND) ocamldoc
+ OCAMLDEP := $(OCAMLFIND) ocamldep
+ 
+diff --git a/src/baselib/ocsigen_stream.ml b/src/baselib/ocsigen_stream.ml
+index b8dd6dcf..1fc6a253 100644
+--- a/src/baselib/ocsigen_stream.ml
++++ b/src/baselib/ocsigen_stream.ml
+@@ -103,18 +103,18 @@ exception Stream_too_small
+ exception Stream_error of string
+ exception String_too_large
+ 
+-let string_of_stream m s =
++let bytes_of_stream m s =
+   let buff = Buffer.create (m/4) in
+   let rec aux i s =
+     next s >>= function
+     | Finished _ -> Lwt.return buff
+     | Cont (s, f) ->
+-      let i = i + String.length s in
++      let i = i + Bytes.length s in
+       if i > m
+       then Lwt.fail String_too_large
+-      else (Buffer.add_string buff s; aux i f)
++      else (Buffer.add_bytes buff s; aux i f)
+   in
+-  aux 0 s >|= Buffer.contents
++  aux 0 s >|= Buffer.to_bytes
+ 
+ (*
+ (*XXX Quadratic!!! *)
+@@ -136,7 +136,7 @@ let string_of_streams =
+ let enlarge_stream = function
+   | Finished a -> Lwt.fail Stream_too_small
+   | Cont (s, f) ->
+-    let long = String.length s in
++    let long = Bytes.length s in
+     let max = Ocsigen_config.get_netbuffersize () in
+     if long >= max
+     then Lwt.fail Input_is_too_large
+@@ -145,26 +145,26 @@ let enlarge_stream = function
+       match e with
+       | Finished _ -> Lwt.fail Stream_too_small
+       | Cont (r, ff) ->
+-        let long2 = String.length r in
++        let long2 = Bytes.length r in
+         let long3=long+long2 in
+-        let new_s = s^r in
++        let new_s = Bytes.cat s r in
+         if long3 <= max
+         then Lwt.return (Cont (new_s, ff))
+         else let long4 = long3 - max in
+-          cont (String.sub new_s 0 max)
++          cont (Bytes.sub new_s 0 max)
+             (fun () ->
+-               Lwt.return (Cont (String.sub new_s max long4, ff)))
++               Lwt.return (Cont (Bytes.sub new_s max long4, ff)))
+ 
+ let rec stream_want s len =
+   (* returns a stream with at least len bytes read if possible *)
+   match s with
+   | Finished _ -> Lwt.return s
+   | Cont (stri, f)  ->
+-    if String.length stri >= len then
++    if Bytes.length stri >= len then
+       Lwt.return s
+     else
+       Lwt.catch
+-        (fun () -> enlarge_stream s >>= fun r -> Lwt.return (`OK r))
++        (fun () -> enlarge_stream (s: bytes step) >>= fun r -> Lwt.return (`OK r))
+         (function
+           | Stream_too_small -> Lwt.return `Too_small
+           | e -> Lwt.fail e)
+@@ -180,13 +180,13 @@ let current_buffer = function
+ let rec skip s k = match s with
+   | Finished _ -> raise Stream_too_small
+   | Cont (s, f) ->
+-    let len = String.length s in
++    let len = Bytes.length s in
+     let len64 = Int64.of_int len in
+     if Int64.compare k len64 <= 0
+-    then 
++    then
+       let k = Int64.to_int k in
+-      Lwt.return (Cont (String.sub s k (len - k), f))
+-    else (enlarge_stream (Cont ("", f)) >>=
++      Lwt.return (Cont (Bytes.sub s k (len - k), f))
++    else (enlarge_stream (Cont (Bytes.empty, f)) >>=
+           (fun s -> skip s (Int64.sub k len64)))
+ 
+ let substream delim s =
+@@ -198,25 +198,26 @@ let substream delim s =
+       function
+       | Finished _ -> Lwt.fail Stream_too_small
+       | Cont (s, f) as stre ->
+-        let len = String.length s in
++        let len = Bytes.length s in
+         if len < ldelim
+         then enlarge_stream stre >>= aux
+         else try
+-            let p,_ = Netstring_pcre.search_forward rdelim s 0 in
+-            cont (String.sub s 0 p)
++            let p,_ = Netstring_pcre.search_forward rdelim
++                (Bytes.unsafe_to_string s) 0 in
++            cont (Bytes.sub s 0 p)
+               (fun () ->
+                  empty
+-                   (Some (fun () -> Lwt.return (Cont (String.sub s p (len - p),
++                   (Some (fun () -> Lwt.return (Cont (Bytes.sub s p (len - p),
+                                                       f)))))
+           with Not_found ->
+             let pos = (len + 1 - ldelim) in
+-            cont (String.sub s 0 pos)
++            cont (Bytes.sub s 0 pos)
+               (fun () -> 
+                  next f >>= function
+                  | Finished _ -> Lwt.fail Stream_too_small
+                  | Cont (s', f') ->
+                    aux
+-                     (Cont (String.sub s pos (len - pos) ^ s',
++                     (Cont (Bytes.(cat (sub s pos (len - pos)) s'),
+                             f'))
+               )
+     in aux s
+@@ -240,7 +241,7 @@ let of_file filename =
+   in make ~finalize:(fun _ -> Lwt_unix.close fd) aux
+ 
+ let of_string s =
+-  make (fun () -> cont s (fun () -> empty None))
++  make (fun () -> cont (Bytes.of_string s) (fun () -> empty None))
+ 
+ (** Convert a {!Lwt_stream.t} to an {!Ocsigen_stream.t}. *)
+ let of_lwt_stream stream =
+diff --git a/src/baselib/ocsigen_stream.mli b/src/baselib/ocsigen_stream.mli
+index b0d114d9..0a3cbe55 100644
+--- a/src/baselib/ocsigen_stream.mli
++++ b/src/baselib/ocsigen_stream.mli
+@@ -85,34 +85,34 @@ exception String_too_large
+ 
+ (** Creates a string from a stream. The first argument is the upper limit of the
+     string length *)
+-val string_of_stream : int -> string stream -> string Lwt.t
++val bytes_of_stream : int -> bytes stream -> bytes Lwt.t
+ 
+ (** Read more data in the buffer *)
+-val enlarge_stream : string step -> string step Lwt.t
++val enlarge_stream : bytes step -> bytes step Lwt.t
+ 
+ (** [stream_want s len] Returns a stream with at least len
+     bytes in the buffer if possible *)
+-val stream_want : string step -> int -> string step Lwt.t
++val stream_want : bytes step -> int -> bytes step Lwt.t
+ 
+ (** Returns the value of the current buffer *)
+-val current_buffer : string step -> string
++val current_buffer : bytes step -> bytes
+ 
+ (** Skips data. Raises [Stream_too_small (Some size)] 
+     if the stream is too small, where [size] is the size of the stream. *)
+-val skip : string step -> int64 -> string step Lwt.t
++val skip : bytes step -> int64 -> bytes step Lwt.t
+ 
+ (** Cut the stream at the position given by a string delimiter *)
+-val substream : string -> string step -> string step Lwt.t
++val substream : string -> bytes step -> bytes step Lwt.t
+ 
+ 
+ 
+ (** returns a stream reading from a file.
+     Do not forget to finalize the stream to close the file.
+ *)
+-val of_file : string -> string t
++val of_file : string -> bytes t
+ 
+ (** returns a stream containing a string. *)
+-val of_string : string -> string t
++val of_string : string -> bytes t
+ 
+ (** Convert a {!Lwt_stream.t} to an {!Ocsigen_stream.t}. *)
+ val of_lwt_stream : 'a Lwt_stream.t -> 'a t
+diff --git a/src/extensions/ocsigen_comet.ml b/src/extensions/ocsigen_comet.ml
+index b12f7823..0fd94aa2 100644
+--- a/src/extensions/ocsigen_comet.ml
++++ b/src/extensions/ocsigen_comet.ml
+@@ -218,7 +218,7 @@ sig
+   val encode_downgoing :
+     Channels.chan_id list
+     -> (Channels.t * string * Ocsigen_stream.outcome Lwt.u option) list option
+-    -> string Ocsigen_stream.t
++    -> bytes Ocsigen_stream.t
+   (* Encode outgoing messages : the first argument is the list of channels
+    * that have already been collected.
+    * The results is the stream to send to the client*)
+@@ -267,8 +267,9 @@ end = struct
+            Lwt.return []
+          | Some body ->
+            Lwt.return (Ocsigen_stream.get body) >>=
+-           Ocsigen_stream.string_of_stream
++           Ocsigen_stream.bytes_of_stream
+              (Ocsigen_config.get_maxrequestbodysizeinmemory ()) >|=
++           Bytes.unsafe_to_string >|=
+            Url.fixup_url_string >|=
+            Netencoding.Url.dest_url_encoded_parameters
+       )
+diff --git a/src/http/multipart.ml b/src/http/multipart.ml
+index 37735f10..fb043d78 100644
+--- a/src/http/multipart.ml
++++ b/src/http/multipart.ml
+@@ -74,7 +74,7 @@ let read_header ?downcase ?unfold ?strip s =
+   let rec find_end_of_header s =
+     catch
+       (fun () ->
+-         let b = Ocsigen_stream.current_buffer s in
++         let b = Ocsigen_stream.current_buffer s |> Bytes.unsafe_to_string in
+          (* Maybe the header is empty. In this case, there is an empty line
+           * right at the beginning
+          *)
+@@ -95,7 +95,7 @@ let read_header ?downcase ?unfold ?strip s =
+         | e -> fail e)
+   in
+   find_end_of_header s >>= (fun (s, end_pos) ->
+-      let b = Ocsigen_stream.current_buffer s in
++      let b = Ocsigen_stream.current_buffer s |> Bytes.unsafe_to_string in
+       let header, _ =
+         scan_header ?downcase ?unfold ?strip b ~start_pos:0 ~end_pos
+       in
+@@ -109,9 +109,10 @@ let lf_re = S.regexp "[\n]";;
+ 
+ let read_multipart_body decode_part boundary s =
+ 
+-  let rec search_window s re start =
++  let rec search_window (s: bytes Ocsigen_stream.step) re start =
+     try
+-      return (s, snd (S.search_forward re (Ocsigen_stream.current_buffer s) start))
++      let str = Ocsigen_stream.current_buffer s |> Bytes.unsafe_to_string in
++      return (s, snd (S.search_forward re str start))
+     with
+       Not_found ->
+       Ocsigen_stream.enlarge_stream s >>=
+@@ -146,9 +147,10 @@ let read_multipart_body decode_part boundary s =
+     Ocsigen_stream.stream_want s (ldel + 2) >>= (function
+         | Finished _ as str2 -> return (str2, false, false)
+         | Cont (ss, f) as str2 ->
+-          let long = String.length ss in
+-          let isdelim = (long >= ldel) && (String.sub ss 0 ldel = del) in
+-          let islast = isdelim && (String.sub ss ldel 2 = "--") in
++          let long = Bytes.length ss in
++          let isdelim = (long >= ldel) && (Bytes.sub ss 0 ldel =
++                                           Bytes.of_string del) in
++          let islast = isdelim && (Bytes.sub ss ldel 2 = Bytes.of_string "--") in
+           return (str2, isdelim, islast))
+   in
+ 
+@@ -169,10 +171,10 @@ let read_multipart_body decode_part boundary s =
+     let last_part = match s with
+       | Finished _ -> false
+       | Cont (ss, f) ->
+-        let long = String.length ss in
++        let long = Bytes.length ss in
+         (long >= (l_delimiter+2)) &&
+-        (ss.[l_delimiter] = '-') &&
+-        (ss.[l_delimiter+1] = '-')
++        (Bytes.get ss (l_delimiter) = '-') &&
++        (Bytes.get ss (l_delimiter+1) = '-')
+     in
+     if last_part then
+       return [ y ]
+@@ -192,7 +194,7 @@ let read_multipart_body decode_part boundary s =
+   if b then begin
+     (* Move to the beginning of the next line: *)
+     search_end_of_line s 0 >>= (fun (s, k_eol) ->
+-        let uses_crlf = (Ocsigen_stream.current_buffer s).[k_eol-2] = '\r' in
++        let uses_crlf = Bytes.get (Ocsigen_stream.current_buffer s) (k_eol-2) = '\r' in
+         Ocsigen_stream.skip s (Int64.of_int k_eol) >>= fun s ->
+         (* Begin with first part: *)
+         parse_parts s uses_crlf)
+@@ -205,7 +207,7 @@ let read_multipart_body decode_part boundary s =
+          (* Printf.printf "k_eob=%d\n" k_eob; *)
+          (* Move to the beginning of the next line: *)
+          search_end_of_line s k_eob >>= fun (s, k_eol) ->
+-         let uses_crlf = (Ocsigen_stream.current_buffer s).[k_eol-2] = '\r' in
++         let uses_crlf = Bytes.get (Ocsigen_stream.current_buffer s) (k_eol-2) = '\r' in
+          (* Printf.printf "k_eol=%d\n" k_eol; *)
+          Ocsigen_stream.skip s (Int64.of_int k_eol) >>= fun s ->
+          (* Begin with first part: *)
+@@ -221,7 +223,7 @@ let read_multipart_body decode_part boundary s =
+ let empty_stream =
+   Ocsigen_stream.get (Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None))
+ 
+-let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop ~maxsize=
++let scan_multipart_body_from_stream (s: bytes Ocsigen_stream.stream) ~boundary ~create ~add ~stop ~maxsize=
+   let decode_part stream =
+     read_header stream >>= (fun (s, header) ->
+         let p = create header in
+@@ -229,7 +231,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop ~maxsize=
+           | Finished None -> return (size, empty_stream)
+           | Finished (Some ss) -> return (size, ss)
+           | Cont (stri, f) ->
+-            let long = String.length stri in
++            let long = Bytes.length stri in
+             let size2 = Int64.add size (Int64.of_int long) in
+             if
+               (match maxsize with
+@@ -239,7 +241,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop ~maxsize=
+             then
+               fail Ocsigen_Request_too_long
+             else
+-            if stri = ""
++            if stri = Bytes.empty
+             then Ocsigen_stream.next f >>= while_stream size
+             else ((* catch
+                      (fun () ->
+@@ -266,5 +268,3 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop ~maxsize=
+     (function
+       | Stream_too_small -> fail Ocsigen_Bad_Request
+       | e -> fail e)
+-;;
+-
+diff --git a/src/http/multipart.mli b/src/http/multipart.mli
+index b35219d1..4dd6acf5 100644
+--- a/src/http/multipart.mli
++++ b/src/http/multipart.mli
+@@ -1,8 +1,8 @@
+ 
+ val scan_multipart_body_from_stream:
+-  string Ocsigen_stream.stream ->
++  bytes Ocsigen_stream.stream ->
+   boundary:string ->
+   create:((string * string) list -> 'a) ->
+-  add:('a -> string -> unit Lwt.t) ->
++  add:('a -> bytes -> unit Lwt.t) ->
+   stop:(int64 -> 'a -> 'b Lwt.t) ->
+   maxsize:Int64.t option -> unit Lwt.t
+diff --git a/src/http/ocsigen_http_com.ml b/src/http/ocsigen_http_com.ml
+index d64e760e..b06c0305 100644
+--- a/src/http/ocsigen_http_com.ml
++++ b/src/http/ocsigen_http_com.ml
+@@ -102,7 +102,7 @@ type connection =
+     timeout : Lwt_timeout.t;
+     r_mode : mode;
+     closed : unit Lwt.t * unit Lwt.u;
+-    mutable buf : string;
++    mutable buf : bytes;
+     mutable read_pos : int;
+     mutable write_pos : int;
+     mutable read_mutex : Lwt_mutex.t;
+@@ -170,7 +170,7 @@ let block_next_request conn = Lwt_mutex.lock conn.extension_mutex
+ let buf_used buffer = buffer.write_pos - buffer.read_pos
+ let buf_size buffer = Bytes.length buffer.buf
+ 
+-let buf_get_string buffer len =
++let buf_get_bytes buffer len =
+   let pos = buffer.read_pos in
+   assert (pos + len <= buffer.write_pos);
+   buffer.read_pos <- buffer.read_pos + len;
+@@ -230,13 +230,13 @@ let rec extract_aux receiver pos bound cont =
+     match bound with
+       Exact l when pos' >= l ->
+       let len = Int64.to_int (Int64.sub l pos) in
+-      let s = buf_get_string receiver len in
+-      Ocsigen_stream.cont s cont
++      let buf = buf_get_bytes receiver len in
++      Ocsigen_stream.cont buf cont
+     | Bounded (Some l) when pos' > l ->
+       Lwt.fail (request_too_large l)
+     | _ ->
+-      let s = buf_get_string receiver avail in
+-      Ocsigen_stream.cont s (fun () -> extract_aux receiver pos' bound cont)
++      let buf = buf_get_bytes receiver avail in
++      Ocsigen_stream.cont buf (fun () -> extract_aux receiver pos' bound cont)
+ 
+ (** Stream from the receiver channel. *)
+ let extract receiver bound =
+@@ -264,13 +264,13 @@ let rec wait_pattern find_pattern receiver cur_pos =
+ let rec find_header buf pos rem =
+   if rem < 2 then
+     Retry (pos - 3)
+-  else if buf.[pos + 1] <> '\n' then
++  else if Bytes.get buf (pos + 1) <> '\n' then
+     find_header buf (pos + 1) (rem - 1)
+-  else if buf.[pos] = '\n' then
++  else if Bytes.get buf pos = '\n' then
+     Found (pos + 2)
+   else if
+-    rem >= 4 && buf.[pos] = '\r' &&
+-    buf.[pos + 2] = '\r' && buf.[pos + 3] = '\n'
++    rem >= 4 && Bytes.get buf pos = '\r' &&
++    Bytes.get buf (pos + 2) = '\r' && Bytes.get buf (pos + 3) = '\n'
+   then
+     Found (pos + 4)
+   else
+@@ -297,7 +297,7 @@ let wait_http_header receiver =
+ (** Find an end of line crlf or lf in the buffer *)
+ let rec find_line buf pos rem =
+   if rem < 1 then Retry pos else
+-  if buf.[pos] = '\n' then Found (pos + 1) else
++  if Bytes.get buf pos = '\n' then Found (pos + 1) else
+     find_line buf (pos + 1) (rem - 1)
+ 
+ (** Wait until a full line is received.
+@@ -325,7 +325,7 @@ let extract_chunked receiver =
+          fill receiver 2 >>= fun () ->
+          let pos = receiver.read_pos in
+          if
+-           receiver.buf.[pos] = '\r' && receiver.buf.[pos + 1] = '\n'
++           Bytes.get receiver.buf pos = '\r' && Bytes.get receiver.buf (pos + 1) = '\n'
+          then begin
+            receiver.read_pos <- pos + 2;
+            Lwt.return ()
+@@ -338,7 +338,7 @@ let extract_chunked receiver =
+   let rec aux () =
+     Lwt.try_bind (fun () -> wait_line receiver)
+       (fun len ->
+-         let chunksize = buf_get_string receiver len in
++         let chunksize = buf_get_bytes receiver len |> Bytes.unsafe_to_string in
+          (*XXX Should check that we really have chunked data *)
+          let chunksize = Scanf.sscanf chunksize "%x" (fun x -> x) in
+          if chunksize = 0 then begin
+@@ -393,7 +393,7 @@ let get_http_frame ?(head = false) receiver =
+ 
+   Lwt_mutex.lock receiver.read_mutex >>= fun () ->
+   wait_http_header receiver >>= fun len ->
+-  let string_header = buf_get_string receiver len in
++  let string_header = buf_get_bytes receiver len |> Bytes.unsafe_to_string in
+   parse_http_header receiver.r_mode string_header >>= fun header ->
+   (* RFC2616, sect 4.4
+      1.  Any response message  which "MUST  NOT" include  a message-body
+@@ -489,10 +489,10 @@ let get_http_frame ?(head = false) receiver =
+         end
+       end
+   end >>= fun b ->
+-  let la =
++  let (la: bytes Ocsigen_stream.t option) =
+     (match b with
+      | None -> Lwt_mutex.unlock receiver.read_mutex; None
+-     | Some s ->
++     | Some (s: bytes Ocsigen_stream.t) ->
+        Ocsigen_stream.add_finalizer s (fun _ -> Ocsigen_stream.consume s);
+        Some s
+     )
+@@ -586,14 +586,16 @@ let (<<?) h (n, v) =
+   | Some v -> Http_headers.replace n v h
+ 
+ let gmtdate d =
+-  let x = Netdate.mk_mail_date ~zone:0 d in try
++  let x = Netdate.mk_mail_date ~zone:0 d |> Bytes.of_string in try
+     (*XXX !!!*)
+     let ind_plus =  Bytes.index x '+' in
+     Bytes.set x ind_plus 'G';
+     Bytes.set x (ind_plus + 1) 'M';
+     Bytes.set x (ind_plus + 2) 'T';
+-    String.sub x 0 (ind_plus + 3)
+-  with Invalid_argument _ | Not_found -> Lwt_log.ign_debug ~section "no +"; x
++    Bytes.sub x 0 (ind_plus + 3) |> Bytes.to_string
++  with Invalid_argument _ | Not_found ->
++    Lwt_log.ign_debug ~section "no +";
++    Bytes.to_string x
+ 
+ type sender_type = {
+   (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
+@@ -666,7 +668,7 @@ let write_stream_chunked out_ch stream =
+          Lwt.return ()) >>= fun () ->
+       Lwt_io.write out_ch "0\r\n\r\n"
+     | Ocsigen_stream.Cont (s, next) ->
+-      let l = String.length s in
++      let l = Bytes.length s in
+       if l = 0 then
+         aux next len
+       else
+@@ -691,23 +693,23 @@ let write_stream_chunked out_ch stream =
+           Lwt_io.write_from_exactly out_ch s 0 available >>= fun () ->
+           Lwt_io.write out_ch "\r\n" >>= fun () ->
+           let newlen = l - available in
+-          String.blit s available buffer 0 newlen;
++          Bytes.blit s available buffer 0 newlen;
+           aux next newlen
+         end
+         else begin
+-          String.blit s 0 buffer len l;
++          Bytes.blit s 0 buffer len l;
+           aux next (len + l)
+         end
+   in
+   aux stream 0
+ 
+-let rec write_stream_raw out_ch stream =
++let rec write_stream_raw out_ch (stream: bytes Ocsigen_stream.stream) =
+   Ocsigen_stream.next stream >>= fun e ->
+   match e with
+   | Ocsigen_stream.Finished _ ->
+     Lwt.return ()
+   | Ocsigen_stream.Cont (s, next) ->
+-    Lwt_io.write out_ch s >>= fun () ->
++    Lwt_io.write_from out_ch s 0 (Bytes.length s) >>= fun _ ->
+     write_stream_raw out_ch next
+ 
+ (*XXX We should check the length of the stream:
+@@ -715,7 +717,7 @@ let rec write_stream_raw out_ch stream =
+   - abort the connection before the right length is emitted so that
+     the client can know something wrong happened
+ *)
+-let write_stream ?(chunked=false) out_ch stream =
++let write_stream ?(chunked=false) out_ch (stream: bytes Ocsigen_stream.t) =
+   let stream = Ocsigen_stream.get stream in
+   if chunked then
+     write_stream_chunked out_ch stream
+@@ -878,7 +880,7 @@ let send
+          (if empty_content || head then begin
+            Lwt.return ()
+          end else begin
+-            Lwt_log.ign_info ~section "writing body";
++           Lwt_log.ign_info ~section "writing body";
+            write_stream ~chunked out_ch (fst (Result.stream res))
+          end) >>= fun () ->
+          Lwt_io.flush out_ch (* Vincent: I add this otherwise HEAD answers
+diff --git a/src/http/ocsigen_http_com.mli b/src/http/ocsigen_http_com.mli
+index 4d29f2f1..df071401 100644
+--- a/src/http/ocsigen_http_com.mli
++++ b/src/http/ocsigen_http_com.mli
+@@ -69,7 +69,7 @@ val wait_all_senders : connection -> unit Lwt.t
+    interrupted stream exception.
+ *)
+ val write_stream :
+-  ?chunked:bool -> Lwt_chan.out_channel -> string Ocsigen_stream.t -> unit Lwt.t
++  ?chunked:bool -> Lwt_chan.out_channel -> bytes Ocsigen_stream.t -> unit Lwt.t
+ 
+ (****)
+ 
+diff --git a/src/http/ocsigen_http_frame.ml b/src/http/ocsigen_http_frame.ml
+index 4cffd767..163c999e 100644
+--- a/src/http/ocsigen_http_frame.ml
++++ b/src/http/ocsigen_http_frame.ml
+@@ -82,10 +82,10 @@ module Result = struct
+        lastmodified: float option; (** Default: [None] *)
+        etag: string option;
+        code: int; (** HTTP code, if not 200 *)
+-       stream: string Ocsigen_stream.t *
+-         (string Ocsigen_stream.t ->
++       stream: bytes Ocsigen_stream.t *
++         (bytes Ocsigen_stream.t ->
+             int64 ->
+-              string Ocsigen_stream.step Lwt.t) option
++              bytes Ocsigen_stream.step Lwt.t) option
+        ; (** Default: empty stream.
+              The second field is (optionaly)
+              the function used to skip a part of the
+@@ -342,7 +342,7 @@ end
+ (** HTTP messages *)
+ type t =
+   { frame_header : Http_header.http_header;
+-    frame_content : string Ocsigen_stream.t option;
++    frame_content : bytes Ocsigen_stream.t option;
+     frame_abort : unit -> unit Lwt.t
+     (*VVV abort looks like a hack.
+       It has been added for the reverse proxy, to enable closing the connection
+diff --git a/src/http/ocsigen_http_frame.mli b/src/http/ocsigen_http_frame.mli
+index 2c7cbad6..5c9056d8 100644
+--- a/src/http/ocsigen_http_frame.mli
++++ b/src/http/ocsigen_http_frame.mli
+@@ -55,8 +55,8 @@ module Result : sig
+   (** accessor for content of result *)
+   val stream :
+     result ->
+-    string Ocsigen_stream.t *
+-    (string Ocsigen_stream.t -> int64 -> string Ocsigen_stream.step Lwt.t)
++    bytes Ocsigen_stream.t *
++    (bytes Ocsigen_stream.t -> int64 -> bytes Ocsigen_stream.step Lwt.t)
+       option
+ 
+   (** accessor for Content-Length value of header of result *)
+@@ -85,9 +85,9 @@ module Result : sig
+     ?lastmodified:float option ->
+     ?etag:string option ->
+     ?code:int ->
+-    ?stream:string Ocsigen_stream.t *
+-    (string Ocsigen_stream.t ->
+-     int64 -> string Ocsigen_stream.step Lwt.t)
++    ?stream:bytes Ocsigen_stream.t *
++    (bytes Ocsigen_stream.t ->
++     int64 -> bytes Ocsigen_stream.step Lwt.t)
+       option ->
+     ?content_length:int64 option ->
+     ?content_type:string option ->
+@@ -148,6 +148,6 @@ end
+ *)
+ type t =
+   { frame_header : Http_header.http_header;
+-    frame_content : string Ocsigen_stream.t option;
++    frame_content : bytes Ocsigen_stream.t option;
+     frame_abort : unit -> unit Lwt.t
+   }
+diff --git a/src/http/ocsigen_senders.ml b/src/http/ocsigen_senders.ml
+index 03ddb433..6fa28b7b 100644
+--- a/src/http/ocsigen_senders.ml
++++ b/src/http/ocsigen_senders.ml
+@@ -115,7 +115,7 @@ struct
+          ~stream:
+            (Ocsigen_stream.make
+               (fun () ->
+-                 Ocsigen_stream.cont c (fun () -> Ocsigen_stream.empty None)),
++                 Ocsigen_stream.cont (Bytes.of_string c) (fun () -> Ocsigen_stream.empty None)),
+             None) ())
+ end
+ 
+@@ -123,7 +123,7 @@ end
+ module Stream_content =
+ (* Used to send data from a stream *)
+ struct
+-  type t = string Ocsigen_stream.t
++  type t = bytes Ocsigen_stream.t
+ 
+   type options = unit
+ 
+@@ -143,7 +143,7 @@ end
+ module Streamlist_content =
+ (* Used to send data from streams *)
+ struct
+-  type t = (unit -> string Ocsigen_stream.t Lwt.t) list
++  type t = (unit -> bytes Ocsigen_stream.t Lwt.t) list
+            * string (* content-type *)
+ 
+   type options = unit
+@@ -238,7 +238,7 @@ struct
+       else begin
+         if read = buffer_size
+         then Ocsigen_stream.cont buf read_aux
+-        else Ocsigen_stream.cont (String.sub buf 0 read) read_aux
++        else Ocsigen_stream.cont (Bytes.sub buf 0 read) read_aux
+       end
+     in read_aux
+ 
+diff --git a/src/http/ocsigen_senders.mli b/src/http/ocsigen_senders.mli
+index 54364b0b..ce33ff5d 100644
+--- a/src/http/ocsigen_senders.mli
++++ b/src/http/ocsigen_senders.mli
+@@ -38,12 +38,12 @@ module Text_content :
+   Ocsigen_http_frame.HTTP_CONTENT with type t = string * string
+ 
+ module Stream_content :
+-  Ocsigen_http_frame.HTTP_CONTENT with type t = string Ocsigen_stream.t
++  Ocsigen_http_frame.HTTP_CONTENT with type t = bytes Ocsigen_stream.t
+ 
+ (** streams and content-type *)
+ module Streamlist_content :
+   Ocsigen_http_frame.HTTP_CONTENT
+-  with type t = (unit -> string Ocsigen_stream.t Lwt.t) list
++  with type t = (unit -> bytes Ocsigen_stream.t Lwt.t) list
+                 * string
+ 
+ module Empty_content :
+diff --git a/src/server/ocsigen_http_client.mli b/src/server/ocsigen_http_client.mli
+index 34b873f6..09dddad4 100644
+--- a/src/server/ocsigen_http_client.mli
++++ b/src/server/ocsigen_http_client.mli
+@@ -113,7 +113,7 @@ val raw_request :
+   ?headers: Http_headers.t ->
+   ?https: bool ->
+   ?port:int ->
+-  content: string Ocsigen_stream.t option ->
++  content: bytes Ocsigen_stream.t option ->
+   ?content_length: int64 ->
+   http_method: Ocsigen_http_frame.Http_header.http_method ->
+   host:string ->
+@@ -168,7 +168,7 @@ val basic_raw_request :
+   ?headers: Http_headers.t ->
+   ?https: bool ->
+   ?port:int ->
+-  content: string Ocsigen_stream.t option ->
++  content: bytes Ocsigen_stream.t option ->
+   ?content_length: int64 ->
+   http_method: Ocsigen_http_frame.Http_header.http_method ->
+   host:string ->
+diff --git a/src/server/ocsigen_range.ml b/src/server/ocsigen_range.ml
+index 5ebe6a6b..e62fd247 100644
+--- a/src/server/ocsigen_range.ml
++++ b/src/server/ocsigen_range.ml
+@@ -48,7 +48,7 @@ let select_range length beg endopt skipfun stream =
+          Lwt.fail Ocsigen_stream.Stream_too_small
+        | Ocsigen_stream.Cont (c, f) -> Lwt.return (c, f))
+       >>= fun (buf, nextstream) ->
+-      let buflen = String.length buf in
++      let buflen = Bytes.length buf in
+       let buflen64 = Int64.of_int buflen in
+       if (Int64.compare buflen64 num) <= 0
+       then
+@@ -56,7 +56,7 @@ let select_range length beg endopt skipfun stream =
+             Ocsigen_stream.next nextstream >>= fun next ->
+             aux next (Int64.sub num buflen64) ())
+       else
+-        Ocsigen_stream.cont (String.sub buf 0 (Int64.to_int num))
++        Ocsigen_stream.cont (Bytes.sub buf 0 (Int64.to_int num))
+           (fun () -> Ocsigen_stream.empty None)
+   in
+   Lwt.catch
+diff --git a/src/server/ocsigen_server.ml b/src/server/ocsigen_server.ml
+index e2950c6a..308d1588 100644
+--- a/src/server/ocsigen_server.ml
++++ b/src/server/ocsigen_server.ml
+@@ -119,10 +119,10 @@ and find_post_params_form_urlencoded body_gen _ =
+        let body = Ocsigen_stream.get body_gen in
+        (* BY, adapted from a previous comment. Should this stream be
+           consumed in case of error? *)
+-       Ocsigen_stream.string_of_stream
++       Ocsigen_stream.bytes_of_stream
+          (Ocsigen_config.get_maxrequestbodysizeinmemory ())
+          body >>= fun r ->
+-       let r = Url.fixup_url_string r in
++       let r = Url.fixup_url_string (Bytes.unsafe_to_string r) in
+        Lwt.return ((Netencoding.Url.dest_url_encoded_parameters r), [])
+     )
+     (function
+@@ -164,14 +164,14 @@ and find_post_params_multipart_form_data body_gen ctparams filenames
+   let rec add where s =
+     match where with
+     | No_File (p_name, to_buf) ->
+-      Buffer.add_string to_buf s;
++      Buffer.add_bytes to_buf s;
+       return ()
+     | A_File (_,_,_,wh,_) ->
+-      let len = String.length s in
++      let len = Bytes.length s in
+       let r = Unix.write wh s 0 len in
+       if r < len then
+         (*XXXX Inefficient if s is long *)
+-        add where (String.sub s r (len - r))
++        add where (Bytes.sub s r (len - r))
+       else
+         Lwt_unix.yield ()
+   in
+@@ -1416,8 +1416,8 @@ let start_server () =
+       match Ocsigen_config.get_pidfile () with
+         None -> ()
+       | Some p ->
+-        let spid = (string_of_int pid)^"\n" in
+-        let len = String.length spid in
++        let spid = string_of_int pid ^ "\n" |> Bytes.of_string in
++        let len = Bytes.length spid in
+         let f =
+           Unix.openfile
+             p
