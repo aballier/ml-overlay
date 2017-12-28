@@ -21,6 +21,7 @@ RDEPEND="
 	dev-ml/ocamlgraph:=
 	dev-ml/ocaml-re:=
 	dev-ml/opam-file-format:=
+	dev-ml/cmdliner:=
 "
 DEPEND="${RDEPEND}"
 
