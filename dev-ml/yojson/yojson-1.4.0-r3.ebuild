@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -15,7 +15,7 @@ KEYWORDS="~amd64"
 IUSE="examples"
 
 RDEPEND=">=dev-lang/ocaml-3.11:=[ocamlopt]
-	dev-ml/easy-format:=[ocamlopt]
+	dev-ml/easy-format:=
 	>=dev-ml/biniou-1.2:=
 "
 DEPEND="${RDEPEND}
