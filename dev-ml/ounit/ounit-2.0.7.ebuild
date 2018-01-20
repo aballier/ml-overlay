@@ -13,7 +13,7 @@ SRC_URI="https://github.com/gildor478/ounit/archive/${PV}.tar.gz -> ${P}.tar.gz"
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
-DEPEND=""
+DEPEND="dev-ml/findlib:="
 RDEPEND="${DEPEND}"
 IUSE=""
 
