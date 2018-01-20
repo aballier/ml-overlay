@@ -19,6 +19,7 @@ DEPEND="
 	dev-ml/ocaml-ipaddr:=
 	dev-ml/lwt_ssl:=
 	dev-ml/cohttp-lwt-unix:=
+	dev-ml/uri:=
 
 	!dev-ml/ocaml-websocket
 "
