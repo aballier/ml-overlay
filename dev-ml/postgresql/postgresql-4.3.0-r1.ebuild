@@ -12,6 +12,7 @@ IUSE=""
 
 RDEPEND="
 	dev-db/postgresql:=[server]
+	dev-ml/stdio:=
 "
 DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.5"
