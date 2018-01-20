@@ -19,6 +19,7 @@ DEPEND="
 	dev-ml/async_ssl:=
 	dev-ml/cohttp-async:=
 	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/uri:=
 
 	!dev-ml/ocaml-websocket
 "
