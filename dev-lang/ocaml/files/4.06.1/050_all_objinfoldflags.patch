@@ -1,0 +1,13 @@
+Index: ocaml-4.06.0-beta1/tools/Makefile
+===================================================================
+--- ocaml-4.06.0-beta1.orig/tools/Makefile
++++ ocaml-4.06.0-beta1/tools/Makefile
+@@ -314,7 +314,7 @@ DEF_SYMBOL_PREFIX = '-Dsymbol_prefix=""'
+ endif
+ 
+ objinfo_helper$(EXE): objinfo_helper.c ../byterun/caml/s.h
+-	$(CC) $(CFLAGS) $(CPPFLAGS) -I../byterun $(OUTPUTEXE)$@ \
++	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -I../byterun $(OUTPUTEXE)$@ \
+           $(DEF_SYMBOL_PREFIX) $(LIBBFD_INCLUDE) $< $(LIBBFD_LINK)
+ 
+ OBJINFO=../compilerlibs/ocamlcommon.cma \

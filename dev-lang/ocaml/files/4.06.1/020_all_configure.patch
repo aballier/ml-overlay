@@ -1,0 +1,24 @@
+Index: ocaml-4.06.0-beta1/configure
+===================================================================
+--- ocaml-4.06.0-beta1.orig/configure
++++ ocaml-4.06.0-beta1/configure
+@@ -577,6 +577,10 @@ case "$cc,$target" in
+     echo "#endif" >> m.h;;
+ esac
+ 
++# Append user flags
++common_cflags="$common_cflags ${CFLAGS}"
++ldflags="$ldflags ${LDFLAGS}"
++
+ # Configure compiler options to use in further tests.
+ 
+ export cclibs ldflags
+@@ -868,7 +872,7 @@ if $with_sharedlibs; then
+     *-*-linux*|*-*-freebsd[3-9]*|*-*-freebsd[1-9][0-9]*\
+     |*-*-openbsd*|*-*-netbsd*|*-*-dragonfly*|*-*-gnu*|*-*-haiku*)
+       sharedcccompopts="-fPIC"
+-      mksharedlib="$cc -shared"
++      mksharedlib="$cc ${LDFLAGS} -shared"
+       ldflags="$ldflags -Wl,-E"
+       rpath="-Wl,-rpath,"
+       mksharedlibrpath="-Wl,-rpath,"
