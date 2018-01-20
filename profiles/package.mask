@@ -1,0 +1,2 @@
+# RC
+>=dev-lang/ocaml-4.06.1_rc1
