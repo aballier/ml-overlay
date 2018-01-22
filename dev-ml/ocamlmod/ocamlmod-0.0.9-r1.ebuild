@@ -13,7 +13,7 @@ SRC_URI="http://forge.ocamlcore.org/frs/download.php/1702/ocamlmod-0.0.9.tar.gz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm"
 IUSE=""
 
 RDEPEND=""
