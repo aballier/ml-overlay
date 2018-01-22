@@ -15,6 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 DEPEND="dev-ml/findlib:="
 RDEPEND="${DEPEND}"
+DEPEND="${DEPEND} dev-ml/oasis"
 IUSE=""
 
 DOCS=( "doc/manual.txt" "changelog" )
