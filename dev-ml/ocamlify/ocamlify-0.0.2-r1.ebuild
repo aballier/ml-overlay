@@ -11,7 +11,7 @@ SRC_URI="http://forge.ocamlcore.org/frs/download.php/1209/${P}.tar.gz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0"
-KEYWORDS="~amd64 ~arm"
+KEYWORDS="~amd64 ~arm ~arm64"
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
