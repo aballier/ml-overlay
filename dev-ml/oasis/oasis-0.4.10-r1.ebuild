@@ -15,7 +15,7 @@ SRC_URI="http://forge.ocamlcore.org/frs/download.php/1694/${MY_P}.tar.gz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~arm"
+KEYWORDS="~amd64 ~arm ~arm64"
 IUSE=""
 
 RDEPEND=">=dev-ml/ocaml-data-notation-0.0.11:=
