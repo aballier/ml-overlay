@@ -11,7 +11,7 @@ SRC_URI="https://github.com/yoriyuki/Camomile/archive/rel-${PV}.tar.gz -> ${P}.t
 
 LICENSE="LGPL-2"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~arm ~ppc ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
 RDEPEND=""
