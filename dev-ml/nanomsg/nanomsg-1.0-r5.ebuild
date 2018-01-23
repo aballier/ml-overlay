@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -21,7 +21,7 @@ RDEPEND="
 	dev-ml/ipaddr:=[ocamlopt?]
 		dev-ml/sexplib:=
 	dev-ml/ppx_deriving:=[ocamlopt?]
-	dev-ml/ocaml-containers:=[ocamlopt?]
+	dev-ml/containers:=[ocamlopt(+)?]
 	dev-ml/ocaml-bigstring:=
 	lwt? ( dev-ml/lwt:=[ocamlopt(+)?] )
 	!dev-ml/onanomsg
