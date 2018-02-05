@@ -1,12 +1,9 @@
 # Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
-OASIS_BUILD_TESTS=1
-OASIS_BUILD_DOCS=1
-
-inherit oasis
+inherit jbuilder
 
 DESCRIPTION="QuickCheck inspired property-based testing for OCaml"
 HOMEPAGE="https://github.com/c-cube/qcheck/"
@@ -19,5 +16,4 @@ IUSE=""
 
 RDEPEND="dev-ml/ounit:=
 	!<dev-ml/iTeML-2.5"
-DEPEND="${RDEPEND}
-	dev-ml/ocamlbuild"
+DEPEND="${RDEPEND}"
