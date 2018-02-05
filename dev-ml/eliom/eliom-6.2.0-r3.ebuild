@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -47,8 +47,7 @@ src_prepare() {
 	epatch "${FILESDIR}/lwt3.patch" \
 		"${FILESDIR}/jsoo3.patch" \
 		"${FILESDIR}/keycode.patch" \
-		"${FILESDIR}/xmlhttpreq.patch" \
-		"${FILESDIR}/oc406.patch"
+		"${FILESDIR}/xmlhttpreq.patch"
 }
 
 src_compile() {
