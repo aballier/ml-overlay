@@ -29,6 +29,6 @@ DEPEND="${RDEPEND}
 	dev-ml/findlib"
 
 src_compile() {
-	ocaml bin/set-etc bin/odoc_etc.ml "${EPREFIX}/usr/etc" || die
+	ocaml bin/set-etc bin/odoc_etc.ml "${EPREFIX}/usr/etc/odoc" || die
 	jbuilder_src_compile
 }
