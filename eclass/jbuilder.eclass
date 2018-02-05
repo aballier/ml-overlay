@@ -16,18 +16,18 @@ case ${EAPI:-0} in
     *) ;;
 esac
 
-inherit opam
+inherit opam multiprocessing
 
 RDEPEND="dev-lang/ocaml:="
 DEPEND="${RDEPEND}
 	dev-ml/jbuilder"
 
 jbuilder_src_compile() {
-	jbuilder build -p "${PN}" @install || die
+	jbuilder build -p "${PN}" -j $(makeopts_jobs) @install || die
 }
 
 jbuilder_src_test() {
-	jbuilder runtest -p "${PN}" || die
+	jbuilder runtest -p "${PN}" -j $(makeopts_jobs) || die
 }
 
 EXPORT_FUNCTIONS src_compile src_test
