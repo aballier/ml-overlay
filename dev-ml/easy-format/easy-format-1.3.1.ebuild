@@ -11,7 +11,7 @@ SRC_URI="https://github.com/mjambon/easy-format/archive/v${PV}.tar.gz -> ${P}.ta
 
 SLOT="0/${PV}"
 LICENSE="BSD"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 
 IUSE="examples"
 
