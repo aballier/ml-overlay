@@ -38,7 +38,7 @@ OPAMROOT="${D}"
 
 src_compile() {
 	ocaml bootstrap.ml || die
-  	./boot.exe -j $(makeopts_jobs) || die
+	./boot.exe -j $(makeopts_jobs) || die
 }
 
 src_test() {
