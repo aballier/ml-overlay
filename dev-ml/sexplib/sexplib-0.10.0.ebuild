@@ -11,7 +11,7 @@ SRC_URI="https://github.com/janestreet/sexplib/archive/v${PV}.tar.gz -> ${P}.tar
 
 LICENSE="Apache-2.0"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~arm ~arm64 ~ppc"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
 RDEPEND="|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )"
