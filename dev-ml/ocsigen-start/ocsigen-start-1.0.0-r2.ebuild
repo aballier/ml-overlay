@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -37,7 +37,7 @@ RDEPEND="dev-lang/ocaml:=
 	www-servers/ocsigenserver:=
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/jsoo3.patch" "${FILESDIR}/oc406.patch" )
+PATCHES=( "${FILESDIR}/jsoo3.patch" )
 
 src_install() {
 	findlib_src_preinst
