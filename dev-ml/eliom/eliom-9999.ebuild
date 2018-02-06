@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -27,6 +27,7 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	dev-ml/js_of_ocaml-lwt:=
 	dev-ml/js_of_ocaml-ppx:=
 	dev-ml/js_of_ocaml-tyxml:=
+	dev-ml/result:=
 
 	>=www-servers/ocsigenserver-2.8:=
 	>=dev-ml/tyxml-4:=
