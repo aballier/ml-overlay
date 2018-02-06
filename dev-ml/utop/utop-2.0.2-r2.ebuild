@@ -16,6 +16,7 @@ IUSE=""
 
 RDEPEND="
 	>=dev-ml/lwt-2.4.0:=
+		dev-ml/result:=
 	dev-ml/lwt_react:=
 	>=dev-ml/lambda-term-1.2:=
 	>=dev-ml/zed-1.2:=
