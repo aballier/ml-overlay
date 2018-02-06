@@ -22,6 +22,7 @@ DEPEND="
 	dev-ml/ppx_optcomp:=
 	>=dev-ml/sexplib-0.10.0:=
 	dev-ml/ocaml-migrate-parsetree:=
+		dev-ml/result:=
 	dev-ml/ppx_traverse_builtins:=
 	"
 RDEPEND="${DEPEND}"
