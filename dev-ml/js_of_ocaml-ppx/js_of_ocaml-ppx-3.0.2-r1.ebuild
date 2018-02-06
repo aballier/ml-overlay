@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -25,6 +25,7 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/ocaml-migrate-parsetree:=
+		dev-ml/result:=
 	dev-ml/ppx_tools_versioned:=
 	dev-ml/js_of_ocaml:=
 	>=dev-ml/ppx_deriving-4.2.1:=
