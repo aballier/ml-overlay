@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -18,6 +18,7 @@ RDEPEND="
 	dev-ml/rresult:=
 	dev-ml/astring:=
 	dev-ml/fpath:=
+		dev-ml/result:=
 	dev-ml/fmt:=
 	dev-ml/logs:=
 "
