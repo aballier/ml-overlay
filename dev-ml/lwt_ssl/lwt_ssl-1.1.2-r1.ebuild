@@ -13,6 +13,7 @@ IUSE=""
 
 RDEPEND="
 	>=dev-ml/lwt-3.1:=
+	dev-ml/result:=
 	>=dev-ml/ocaml-ssl-0.4.0:=
 "
 DEPEND="${RDEPEND}"
