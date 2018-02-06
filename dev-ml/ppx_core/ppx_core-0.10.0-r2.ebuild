@@ -20,5 +20,6 @@ DEPEND="
 	>=dev-ml/ppx_ast-0.10.0:=
 	>=dev-ml/ppx_traverse_builtins-0.9:=
 	>=dev-ml/stdio-0.9.1:=
+	dev-ml/result:=
 "
 RDEPEND="${DEPEND}"
