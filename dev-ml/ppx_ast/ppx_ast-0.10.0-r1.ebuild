@@ -17,5 +17,6 @@ IUSE=""
 DEPEND="
 	dev-ml/ocaml-compiler-libs:=
 	dev-ml/ocaml-migrate-parsetree:=
+	dev-ml/result:=
 "
 RDEPEND="${DEPEND}"
