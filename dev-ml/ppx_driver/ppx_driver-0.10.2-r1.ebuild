@@ -19,5 +19,6 @@ DEPEND="
 	  dev-ml/stdio:=
 	>=dev-ml/ppx_optcomp-0.10.0:=
 	dev-ml/ocaml-migrate-parsetree:=
+		dev-ml/result:=
 	dev-ml/ocamlbuild:="
 RDEPEND="${DEPEND}"
