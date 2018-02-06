@@ -17,6 +17,7 @@ IUSE=""
 
 DEPEND="
 	>=dev-ml/lwt-${LWT_VER}:=
+		dev-ml/result:=
 	>=dev-ml/react-1.2:=
 "
 
