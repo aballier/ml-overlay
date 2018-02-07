@@ -13,6 +13,7 @@ IUSE=""
 
 DEPEND="
 	dev-ml/lwt:=
+		dev-ml/result:=
 "
 
 SLOT="0/${PV}"
