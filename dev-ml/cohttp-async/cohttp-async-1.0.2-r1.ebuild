@@ -19,6 +19,7 @@ RDEPEND="
 	dev-ml/conduit-async:=
 	dev-ml/magic-mime:=
 	dev-ml/logs:=
+		dev-ml/result:=
 	dev-ml/fmt:=
 	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 "
