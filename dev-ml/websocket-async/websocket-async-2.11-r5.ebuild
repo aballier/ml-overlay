@@ -21,6 +21,7 @@ DEPEND="
 	dev-ml/async_extra:=
 	dev-ml/cohttp-async:=
 		dev-ml/sexplib:=
+	dev-ml/conduit-async:=
 	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
 	dev-ml/uri:=
 
