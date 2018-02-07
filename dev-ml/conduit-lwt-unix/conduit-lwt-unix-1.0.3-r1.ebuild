@@ -19,6 +19,7 @@ RDEPEND="
 		dev-ml/logs:=
 	dev-ml/conduit-lwt:=
 	dev-ml/lwt:=
+		dev-ml/result:=
 
 	dev-ml/uri:=
 	dev-ml/ipaddr:=
