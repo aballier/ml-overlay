@@ -18,6 +18,7 @@ DEPEND="
 	dev-ml/websocket:=
 	dev-ml/async_ssl:=
 	dev-ml/async_unix:=
+	dev-ml/async_extra:=
 	dev-ml/cohttp-async:=
 		dev-ml/sexplib:=
 	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
