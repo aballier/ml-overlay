@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -47,17 +47,17 @@ src_prepare() {
 }
 
 src_compile() {
-	emake -j1 all
-	emake c-lib
+	emake OCAMLBUILD="ocamlbuild -classic-display" -j1 all
+	emake OCAMLBUILD="ocamlbuild -classic-display" c-lib
 	if use ocamlopt ; then
-		emake -j1 opt
-		emake c-lib-opt
+		emake OCAMLBUILD="ocamlbuild -classic-display" -j1 opt
+		emake OCAMLBUILD="ocamlbuild -classic-display" c-lib-opt
 	fi
 }
 
 src_test() {
-	emake test
-	emake c-lib-test
+	emake OCAMLBUILD="ocamlbuild -classic-display" test
+	emake OCAMLBUILD="ocamlbuild -classic-display" c-lib-test
 }
 
 src_install() {
