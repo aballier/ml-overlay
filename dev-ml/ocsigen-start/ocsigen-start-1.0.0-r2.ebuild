@@ -37,7 +37,7 @@ RDEPEND="dev-lang/ocaml:=
 	www-servers/ocsigenserver:=
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/jsoo3.patch" )
+PATCHES=( "${FILESDIR}/jsoo3.patch" "${FILESDIR}/eliom63.patch" )
 
 src_install() {
 	findlib_src_preinst
