@@ -1,2 +1,3 @@
 move dev-ml/ocaml-sha dev-ml/sha
 move dev-ml/ocaml-containers dev-ml/containers
+move dev-ml/ocaml-webmachine dev-ml/webmachine
