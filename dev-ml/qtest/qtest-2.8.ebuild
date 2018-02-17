@@ -6,8 +6,8 @@ EAPI=5
 inherit findlib
 
 DESCRIPTION="Inline (Unit) Tests for OCaml"
-HOMEPAGE="https://github.com/vincent-hugot/iTeML"
-SRC_URI="https://github.com/vincent-hugot/iTeML/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+HOMEPAGE="https://github.com/vincent-hugot/qtest"
+SRC_URI="https://github.com/vincent-hugot/qtest/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="GPL-3"
 SLOT="0/${PV}"
@@ -17,6 +17,7 @@ IUSE=""
 RDEPEND="dev-ml/ounit:=
 	dev-lang/ocaml:=[ocamlopt]
 	>=dev-ml/qcheck-0.5:=
+	!dev-ml/iTeML
 "
 DEPEND="${RDEPEND}
 	dev-ml/ocamlbuild

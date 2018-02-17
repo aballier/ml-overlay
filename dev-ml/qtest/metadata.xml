@@ -6,6 +6,6 @@
     <name>Gentoo ML Project</name>
   </maintainer>
   <upstream>
-    <remote-id type="github">vincent-hugot/iTeML</remote-id>
+    <remote-id type="github">vincent-hugot/qtest</remote-id>
   </upstream>
 </pkgmetadata>
