@@ -21,6 +21,6 @@ RDEPEND="
 	!dev-ml/ocaml-containers
 "
 DEPEND="${RDEPEND} dev-ml/cppo
-	test? ( dev-ml/iTeML dev-ml/ounit dev-ml/gen )"
+	test? ( dev-ml/qtest dev-ml/ounit dev-ml/gen )"
 
 S="${WORKDIR}/ocaml-${PN}-${PV/_/-}"
