@@ -16,4 +16,4 @@ IUSE="test"
 
 RDEPEND="dev-ml/result:="
 DEPEND="${RDEPEND}
-	test? ( dev-ml/iTeML )"
+	test? ( dev-ml/qtest )"
