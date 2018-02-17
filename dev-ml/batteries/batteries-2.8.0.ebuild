@@ -17,7 +17,7 @@ IUSE="test"
 RDEPEND="dev-ml/camomile:=
 	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )"
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit dev-ml/iTeML )"
+	test? ( dev-ml/ounit dev-ml/qtest )"
 
 DOCS=( "ChangeLog" "FAQ" "README.folders" "README.md" )
 
