@@ -33,8 +33,6 @@ RDEPEND="dev-lang/ocaml:=[ocamlopt?]
 	dev-ml/lwt:="
 DEPEND="${RDEPEND}"
 
-PATCHES=( "${FILESDIR}/jsoo3.patch" )
-
 src_compile() {
 	emake \
 		DEBUG="$(usex debug yes no)" \
