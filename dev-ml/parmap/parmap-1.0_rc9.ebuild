@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -21,10 +21,6 @@ DEPEND="${RDEPEND}
 	dev-ml/ocamlbuild
 	dev-ml/ocaml-autoconf"
 S="${WORKDIR}/${PN}-${MY_PV/+/-}"
-
-src_prepare() {
-	has_version '>=dev-lang/ocaml-4.06_beta' && epatch "${FILESDIR}/ocaml406.patch"
-}
 
 src_test() {
 	mkdir "${WORKDIR}/tmpinstall" || die
