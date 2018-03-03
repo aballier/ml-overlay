@@ -19,7 +19,7 @@ RDEPEND="
 	>=dev-lang/ocaml-3.12:=[ocamlopt?]
 	dev-ml/cudf:=
 	>=dev-ml/extlib-1.7.0:=
-	dev-ml/ocaml-re:=
+	dev-ml/re:=
 	parmap? ( dev-ml/parmap:= )
 	zip? ( dev-ml/camlzip:= )
 	bzip2? ( dev-ml/camlbz2:= )
