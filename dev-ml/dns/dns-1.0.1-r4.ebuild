@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -20,7 +20,7 @@ RDEPEND="
 	dev-ml/ppx_cstruct:=
 	dev-ml/ocaml-hashcons:=
 	>=dev-ml/ipaddr-2.6.0:=
-	dev-ml/ocaml-re:=
+	dev-ml/re:=
 	>=dev-ml/uri-1.7.0:=
 	dev-ml/result:=
 	!dev-ml/odns
