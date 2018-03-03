@@ -20,7 +20,7 @@ IUSE="+ppx +camlp4"
 DEPEND="
 	>=dev-ml/uutf-1.0:=
 	dev-ml/uchar:=
-	dev-ml/ocaml-re:=
+	dev-ml/re:=
 	ppx? ( dev-ml/ppx_tools_versioned:= dev-ml/markup:= )
 	camlp4? ( dev-ml/camlp4:= )"
 RDEPEND="${DEPEND}"
