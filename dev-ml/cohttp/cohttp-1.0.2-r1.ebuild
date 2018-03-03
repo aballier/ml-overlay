@@ -15,7 +15,7 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="
-	dev-ml/ocaml-re:=
+	dev-ml/re:=
 	dev-ml/uri:=
 	dev-ml/fieldslib:=
 	dev-ml/sexplib:=
