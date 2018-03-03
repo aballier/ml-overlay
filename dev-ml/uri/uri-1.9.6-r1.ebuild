@@ -15,7 +15,7 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="
-	dev-ml/ocaml-re:=
+	dev-ml/re:=
 	dev-ml/sexplib:=
 	dev-ml/ppx_sexp_conv:=
 	dev-ml/ppx_core:=
