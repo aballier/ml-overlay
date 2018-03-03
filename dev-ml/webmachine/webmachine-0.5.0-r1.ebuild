@@ -18,7 +18,7 @@ DEPEND="
 	dev-ml/calendar:=
 	dev-ml/cohttp:=
 	dev-ml/dispatch:=
-	dev-ml/ocaml-re:=
+	dev-ml/re:=
 	!dev-ml/ocaml-webmachine
 "
 RDEPEND="${DEPEND}"
