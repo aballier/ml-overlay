@@ -17,7 +17,7 @@ IUSE=""
 RDEPEND="
 	dev-ml/opam-client:=
 	dev-ml/opam-file-format:=
-	dev-ml/ocaml-re:=
+	dev-ml/re:=
 "
 DEPEND="${RDEPEND}"
 
