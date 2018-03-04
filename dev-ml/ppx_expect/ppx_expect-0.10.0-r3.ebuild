@@ -30,6 +30,6 @@ DEPEND="
 	dev-ml/ppx_variants_conv:=
 	dev-ml/stdio:=
 	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ocaml-re:=
+	dev-ml/re:=
 "
 RDEPEND="${DEPEND}"
