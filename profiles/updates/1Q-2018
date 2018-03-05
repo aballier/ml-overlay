@@ -3,3 +3,4 @@ move dev-ml/ocaml-containers dev-ml/containers
 move dev-ml/ocaml-webmachine dev-ml/webmachine
 move dev-ml/iTeML dev-ml/qtest
 move dev-ml/ocaml-re dev-ml/re
+move dev-ml/ocaml-stdint dev-ml/stdint
