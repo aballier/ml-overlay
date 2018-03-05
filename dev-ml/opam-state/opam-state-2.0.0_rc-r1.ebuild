@@ -16,6 +16,7 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/opam-repository:=
+		dev-ml/re:=
 	dev-ml/opam-file-format:=
 "
 DEPEND="${RDEPEND}"
