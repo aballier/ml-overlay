@@ -1,7 +1,7 @@
 # Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=5
 
 inherit findlib
 
@@ -23,15 +23,14 @@ else
 fi
 
 RDEPEND="dev-lang/ocaml:=
-	>=dev-ml/eliom-6.3:=
-		www-servers/ocsigenserver:=
-	dev-ml/js_of_ocaml-camlp4:=
-	dev-ml/macaque:=
-	dev-ml/ocsigen-i18n:=
-	dev-ml/ocsigen-toolkit:=
 	dev-ml/pgocaml:=
+	dev-ml/macaque:=
 	dev-ml/ocaml-safepass:=
+	>=dev-ml/eliom-6.2:=
+	dev-ml/ocsigen-toolkit:=
+	dev-ml/ppx_deriving:=
 	dev-ml/yojson:=
+	dev-ml/OCaml-ImageMagick:=
 "
 DEPEND="${RDEPEND}"
 
