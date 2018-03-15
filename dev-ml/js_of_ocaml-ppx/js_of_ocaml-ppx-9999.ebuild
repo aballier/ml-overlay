@@ -28,8 +28,6 @@ RDEPEND="
 		dev-ml/result:=
 	dev-ml/ppx_tools_versioned:=
 	dev-ml/js_of_ocaml:=
-	>=dev-ml/ppx_deriving-4.2.1:=
-	dev-ml/ppx_tools:=
 
 	!<dev-ml/js_of_ocaml-3.0.1
 "
