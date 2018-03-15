@@ -1,7 +1,7 @@
 # Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
 inherit opam multiprocessing
 
@@ -35,6 +35,10 @@ OPAMSWITCH="system"
 
 S="${WORKDIR}/${PN}-${PV/_/+}"
 OPAMROOT="${D}"
+
+src_configure() {
+	ocaml configure.ml --libdir $(get_libdir) || die
+}
 
 src_compile() {
 	ocaml bootstrap.ml || die
