@@ -20,7 +20,6 @@ IUSE="test"
 DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
-	dev-ml/findlib
 	test? (
 		dev-ml/menhir
 		dev-ml/reason
@@ -37,7 +36,7 @@ S="${WORKDIR}/${PN}-${PV/_/+}"
 OPAMROOT="${D}"
 
 src_configure() {
-	ocaml configure.ml --libdir $(get_libdir) || die
+	ocaml configure.ml --libdir "${EPREFIX}/usr/$(get_libdir)/ocaml" || die
 }
 
 src_compile() {
