@@ -26,6 +26,7 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-lwt:=
 	dev-ml/js_of_ocaml-ppx:=
+	dev-ml/js_of_ocaml-ppx_deriving_json:=
 	dev-ml/js_of_ocaml-tyxml:=
 	dev-ml/result:=
 
