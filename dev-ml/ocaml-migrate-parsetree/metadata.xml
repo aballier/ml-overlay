@@ -6,6 +6,6 @@
 		<name>Gentoo ML Project</name>
 	</maintainer>
 	<upstream>
-		<remote-id type="github">let-def/ocaml-migrate-parsetree</remote-id>
+		<remote-id type="github">ocaml-ppx/ocaml-migrate-parsetree</remote-id>
 	</upstream>
 </pkgmetadata>
