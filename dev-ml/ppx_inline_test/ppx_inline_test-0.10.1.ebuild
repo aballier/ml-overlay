@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -18,7 +18,7 @@ DEPEND="
 	dev-ml/base:=
 	dev-ml/stdio:=
 	dev-ml/ppx_core:=
-	dev-ml/ppx_driver:=
+	>=dev-ml/ppx_driver-0.10.3:=
 	dev-ml/ppx_metaquot:=
 	dev-ml/ppx_traverse_builtins:=
 	dev-ml/ocaml-migrate-parsetree:=
