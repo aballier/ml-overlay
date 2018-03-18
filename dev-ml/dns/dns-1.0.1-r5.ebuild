@@ -22,6 +22,7 @@ RDEPEND="
 	>=dev-ml/ipaddr-2.6.0:=
 	dev-ml/re:=
 	>=dev-ml/uri-1.7.0:=
+	dev-ml/core:=
 	dev-ml/result:=
 	!dev-ml/odns
 "
