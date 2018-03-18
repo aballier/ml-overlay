@@ -15,10 +15,6 @@ KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
 DEPEND="
-	>=dev-ml/ppx_core-0.10.0:=
-	  dev-ml/stdio:=
-	>=dev-ml/ppx_optcomp-0.10.0:=
-	dev-ml/ocaml-migrate-parsetree:=
-		dev-ml/result:=
-	dev-ml/ocamlbuild:="
+	dev-ml/ppxlib:=
+"
 RDEPEND="${DEPEND}"
