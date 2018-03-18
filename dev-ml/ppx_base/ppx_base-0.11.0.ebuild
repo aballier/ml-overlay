@@ -16,12 +16,11 @@ IUSE=""
 
 DEPEND="
 	dev-ml/ppx_compare:=
-	dev-ml/ppx_driver:=
 	dev-ml/ppx_enumerate:=
 	dev-ml/ppx_hash:=
 	dev-ml/ppx_js_style:=
 	dev-ml/ppx_sexp_conv:=
-	dev-ml/ppx_type_conv:=
 	dev-ml/ocaml-migrate-parsetree:=
-	"
+	dev-ml/ppxlib:=
+"
 RDEPEND="${DEPEND}"
