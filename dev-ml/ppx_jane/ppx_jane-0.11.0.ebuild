@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -20,20 +20,20 @@ DEPEND="
 	dev-ml/ppx_bench:=
 	dev-ml/ppx_bin_prot:=
 	dev-ml/ppx_custom_printf:=
-	dev-ml/ppx_driver:=
 	dev-ml/ppx_expect:=
 	dev-ml/ppx_fail:=
 	dev-ml/ppx_fields_conv:=
 	dev-ml/ppx_here:=
 	dev-ml/ppx_inline_test:=
 	dev-ml/ppx_let:=
+	dev-ml/ppx_optcomp:=
 	dev-ml/ppx_optional:=
 	dev-ml/ppx_pipebang:=
 	dev-ml/ppx_sexp_message:=
 	dev-ml/ppx_sexp_value:=
 	dev-ml/ppx_typerep_conv:=
-	dev-ml/ppx_type_conv:=
 	dev-ml/ppx_variants_conv:=
 	dev-ml/ocaml-migrate-parsetree:=
+	dev-ml/ppxlib:=
 "
 RDEPEND="${DEPEND}"
