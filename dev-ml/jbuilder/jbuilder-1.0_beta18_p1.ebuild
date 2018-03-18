@@ -6,7 +6,9 @@ EAPI=6
 inherit opam multiprocessing
 
 MY_PV="${PV/_/+}"
+MY_PV="${MY_PV/_p/.}"
 MY_P="${PN}-${PV/_/.}"
+MY_P="${MY_P/_p/.}"
 
 DESCRIPTION="A composable build system for OCaml"
 HOMEPAGE="https://github.com/janestreet/jbuilder"
@@ -32,12 +34,12 @@ DEPEND="${DEPEND}
 "
 OPAMSWITCH="system"
 
-S="${WORKDIR}/${PN}-${PV/_/+}"
+S="${WORKDIR}/${PN}-${MY_PV}"
 OPAMROOT="${D}"
 
-src_configure() {
-	ocaml configure.ml --libdir "${EPREFIX}/usr/$(get_libdir)/ocaml" || die
-}
+#src_configure() {
+#	ocaml configure.ml --libdir "${EPREFIX}/usr/$(get_libdir)/ocaml" || die
+#}
 
 src_compile() {
 	ocaml bootstrap.ml || die
