@@ -14,5 +14,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
-DEPEND=""
+DEPEND="dev-ml/ppxlib:="
 RDEPEND="${DEPEND}"
