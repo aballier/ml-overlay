@@ -19,7 +19,6 @@ RDEPEND="
 	dev-ml/configurator:=
 	dev-ml/core_kernel:=
 	dev-ml/ppx_assert:=
-	dev-ml/ppx_driver:=
 	dev-ml/ppx_jane:=
 		dev-ml/ppx_expect:=
 			dev-ml/re:=
@@ -27,7 +26,7 @@ RDEPEND="
 	dev-ml/spawn:=
 	dev-ml/stdio:=
 	dev-ml/ocaml-migrate-parsetree:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/ppxlib:=
 "
 DEPEND="${RDEPEND}"
 PATCHES=( "${FILESDIR}/glibc225.patch" )
