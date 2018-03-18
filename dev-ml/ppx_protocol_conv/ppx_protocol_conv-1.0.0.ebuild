@@ -24,3 +24,4 @@ DEPEND="
 	dev-ml/ppx_metaquot:=
 "
 RDEPEND="${DEPEND}"
+PATCHES=( "${FILESDIR}/base011.patch" )
