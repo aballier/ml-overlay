@@ -16,10 +16,9 @@ IUSE=""
 
 DEPEND="
 	dev-ml/core_kernel:=
-	dev-ml/ppx_driver:=
 	dev-ml/ppx_jane:=
 		dev-ml/ppx_expect:=
 	dev-ml/ocaml-migrate-parsetree:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/ppxlib:=
 "
 RDEPEND="${DEPEND}"
