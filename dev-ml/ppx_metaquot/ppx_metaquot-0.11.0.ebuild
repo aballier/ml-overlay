@@ -14,12 +14,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc"
 IUSE=""
 
-DEPEND="
-	dev-ml/ppx_core:=
-	dev-ml/ppx_driver:=
-	dev-ml/ppx_traverse_builtins:=
-	dev-ml/ocaml-migrate-parsetree:=
-		dev-ml/result:=
-	<dev-ml/ppx_core-100
-	"
+DEPEND="dev-ml/ppxlib:="
 RDEPEND="${DEPEND}"
