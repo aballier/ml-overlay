@@ -14,5 +14,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
-RDEPEND="|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )"
+RDEPEND="
+	dev-ml/parsexp:=
+	dev-ml/sexplib0:=
+	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+"
 DEPEND="${RDEPEND}"
