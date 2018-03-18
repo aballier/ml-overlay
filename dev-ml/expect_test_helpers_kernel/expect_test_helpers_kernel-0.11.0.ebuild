@@ -16,10 +16,10 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/core_kernel:=
-	dev-ml/ppx_driver:=
 	dev-ml/ppx_jane:=
 	dev-ml/sexp_pretty:=
 	dev-ml/ocaml-migrate-parsetree:=
+	dev-ml/ppxlib:=
 	dev-ml/re:=
 "
 DEPEND="${RDEPEND}"
