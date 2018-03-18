@@ -16,9 +16,6 @@ IUSE=""
 
 DEPEND="
 	dev-ml/base:=
-	dev-ml/ppx_base:=
-	dev-ml/ppx_driver:=
 	dev-ml/stdio:=
-	dev-ml/ocaml-migrate-parsetree:=
 	"
 RDEPEND="${DEPEND}"
