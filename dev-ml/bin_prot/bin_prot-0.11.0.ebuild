@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -15,18 +15,14 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="
-	dev-lang/ocaml:=
 	dev-ml/base:=
 	dev-ml/ppx_compare:=
 	dev-ml/ppx_custom_printf:=
-	dev-ml/ppx_core:=
-	dev-ml/ppx_driver:=
 	dev-ml/ppx_fields_conv:=
 	dev-ml/ppx_sexp_conv:=
-	dev-ml/ppx_type_conv:=
 	dev-ml/ppx_variants_conv:=
-	dev-ml/sexplib:=
 	dev-ml/ocaml-migrate-parsetree:=
+	dev-ml/ppxlib:=
 
 	!dev-ml/bin-prot
 "
