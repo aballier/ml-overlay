@@ -29,3 +29,4 @@ DEPEND="${RDEPEND}
 "
 
 S="${WORKDIR}/${PN}-ocaml-${PV}"
+PATCHES=( "${FILESDIR}/core011.patch" )
