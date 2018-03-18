@@ -14,9 +14,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/ocaml-compiler-libs:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/result:=
-"
+DEPEND="dev-ml/ppxlib:="
 RDEPEND="${DEPEND}"
