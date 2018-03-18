@@ -6,7 +6,6 @@
     <name>Gentoo ML Project</name>
   </maintainer>
   <upstream>
-    <remote-id type="bitbucket">yminsky/ocaml-core</remote-id>
-    <remote-id type="github">janestreet/sexplib</remote-id>
+    <remote-id type="github">janestreet/sexplib0</remote-id>
   </upstream>
 </pkgmetadata>
