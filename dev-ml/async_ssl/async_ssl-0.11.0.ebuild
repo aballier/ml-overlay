@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -19,12 +19,11 @@ RDEPEND="
 	dev-ml/base:=
 	dev-ml/configurator:=
 	dev-ml/core:=
-	dev-ml/ppx_driver:=
 	dev-ml/ppx_jane:=
 	dev-ml/stdio:=
 	dev-ml/ocaml-ctypes:=
 	dev-libs/openssl:0=
 	dev-ml/ocaml-migrate-parsetree:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/ppxlib:=
 "
 DEPEND="${RDEPEND}"
