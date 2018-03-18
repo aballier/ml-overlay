@@ -19,10 +19,9 @@ RDEPEND="
 	dev-ml/async_rpc_kernel:=
 	dev-ml/async_unix:=
 	dev-ml/core:=
-	dev-ml/ppx_driver:=
 	dev-ml/ppx_jane:=
 		dev-ml/ppx_inline_test:=
 	dev-ml/ocaml-migrate-parsetree:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/ppxlib:=
 "
 DEPEND="${RDEPEND}"
