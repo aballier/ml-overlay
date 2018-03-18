@@ -21,7 +21,7 @@ RDEPEND="
 	dev-ml/res:=
 	dev-ml/ocaml-uint:=
 	dev-libs/capnproto:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/num:=
 	!dev-ml/capnp-ocaml
 "
 DEPEND="${RDEPEND}
