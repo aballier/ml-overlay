@@ -15,8 +15,6 @@ KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
 RDEPEND="
-	dev-lang/ocaml:=
-	>=dev-ml/sexplib-0.10.0:=
-	<dev-ml/sexplib-100
+	dev-ml/sexplib0:=
 "
 DEPEND="${RDEPEND}"
