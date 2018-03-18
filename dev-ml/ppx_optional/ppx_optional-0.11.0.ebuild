@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -15,9 +15,8 @@ KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND="
-	>=dev-ml/ppx_core-0.10.0:=
-	>=dev-ml/ppx_driver-0.10.0:=
-	>=dev-ml/ppx_metaquot-0.10.0:=
+	dev-ml/base:=
 	dev-ml/ocaml-migrate-parsetree:=
+	dev-ml/ppxlib:=
 "
 RDEPEND="${DEPEND}"
