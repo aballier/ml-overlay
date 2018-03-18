@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -18,9 +18,9 @@ RDEPEND="
 	dev-ml/async:=
 	dev-ml/core:=
 	dev-ml/expect_test_helpers_kernel:=
-	dev-ml/ppx_driver:=
 	dev-ml/ppx_jane:=
 	dev-ml/sexp_pretty:=
 	dev-ml/ocaml-migrate-parsetree:=
+	dev-ml/ppxlib:=
 "
 DEPEND="${RDEPEND}"
