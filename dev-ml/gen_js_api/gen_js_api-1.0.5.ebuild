@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -14,13 +14,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND=">=dev-lang/ocaml-4.05:="
+DEPEND=">=dev-lang/ocaml-4.05:=
+	dev-ml/js_of_ocaml:="
 RDEPEND="${DEPEND}"
-
-src_prepare() {
-	has_version '>=dev-lang/ocaml-4.06.0_beta' && eapply "${FILESDIR}/ocaml406.patch"
-	default
-}
 
 src_install () {
 	findlib_src_install
