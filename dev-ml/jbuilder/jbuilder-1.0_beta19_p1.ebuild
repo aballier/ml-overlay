@@ -37,9 +37,9 @@ OPAMSWITCH="system"
 S="${WORKDIR}/${PN}-${MY_PV}"
 OPAMROOT="${D}"
 
-#src_configure() {
-#	ocaml configure.ml --libdir "${EPREFIX}/usr/$(get_libdir)/ocaml" || die
-#}
+src_configure() {
+	ocaml configure.ml --libdir "${EPREFIX}/usr/$(get_libdir)/ocaml" || die
+}
 
 src_compile() {
 	ocaml bootstrap.ml || die
