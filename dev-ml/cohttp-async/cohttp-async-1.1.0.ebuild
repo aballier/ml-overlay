@@ -15,15 +15,19 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="
+	dev-ml/async_kernel:=
+	dev-ml/async_unix:=
+	dev-ml/async_extra:=
+	dev-ml/base:=
 	dev-ml/cohttp:=
-	dev-ml/sexplib:=
 	dev-ml/conduit-async:=
-	dev-ml/conduit:=
-	dev-ml/async:=
-	dev-ml/async_ssl:=
+	dev-ml/magic-mime:=
+	dev-ml/logs:=
+	dev-ml/fmt:=
+	dev-ml/sexplib:=
 "
 DEPEND="${RDEPEND}
 	dev-ml/ppx_sexp_conv
-	test? ( dev-ml/ounit )"
+	test? ( dev-ml/ounit dev-ml/core )"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
