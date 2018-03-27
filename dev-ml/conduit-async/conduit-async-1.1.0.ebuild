@@ -18,7 +18,8 @@ RDEPEND="
 	dev-ml/conduit:=
 	dev-ml/async:=
 	dev-ml/async_ssl:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/num:=
+	dev-ml/sexplib:=
 
 	!dev-ml/ocaml-conduit
 "
