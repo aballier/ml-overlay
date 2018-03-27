@@ -23,6 +23,7 @@ RDEPEND="
 	dev-ml/cohttp:=
 	dev-ml/cohttp-lwt:=
 	dev-ml/lwt:=
+	dev-ml/sexplib:=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit )"
