@@ -17,7 +17,8 @@ IUSE=""
 RDEPEND="
 	dev-ml/cohttp:=
 	dev-ml/lwt:=
+	dev-ml/sexplib:=
 "
-DEPEND="${RDEPEND}"
+DEPEND="${RDEPEND} dev-ml/ppx_sexp_conv"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
