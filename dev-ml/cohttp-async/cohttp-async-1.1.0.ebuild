@@ -16,14 +16,14 @@ IUSE="test"
 
 RDEPEND="
 	dev-ml/cohttp:=
+	dev-ml/sexplib:=
 	dev-ml/conduit-async:=
-	dev-ml/magic-mime:=
-	dev-ml/logs:=
-		dev-ml/result:=
-	dev-ml/fmt:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/conduit:=
+	dev-ml/async:=
+	dev-ml/async_ssl:=
 "
 DEPEND="${RDEPEND}
+	dev-ml/ppx_sexp_conv
 	test? ( dev-ml/ounit )"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
