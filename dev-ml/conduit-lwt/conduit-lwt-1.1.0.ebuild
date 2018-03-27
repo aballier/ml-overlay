@@ -18,6 +18,7 @@ RDEPEND="
 	dev-ml/conduit:=
 	dev-ml/lwt:=
 		dev-ml/result:=
+	dev-ml/sexplib:=
 
 	!dev-ml/ocaml-conduit
 "
