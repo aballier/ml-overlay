@@ -18,9 +18,17 @@ IUSE="test"
 
 RDEPEND="
 	dev-ml/result:=
+	dev-ml/uchar:=
 	!dev-ml/ocaml-containers
 "
-DEPEND="${RDEPEND} dev-ml/cppo
-	test? ( dev-ml/qtest dev-ml/ounit dev-ml/gen )"
-
+DEPEND="${RDEPEND}
+	test? (
+		dev-ml/qtest
+		dev-ml/qcheck
+		dev-ml/ounit
+		dev-ml/sequence
+		dev-ml/gen
+		dev-ml/uutf
+		dev-ml/odoc
+	)"
 S="${WORKDIR}/ocaml-${PN}-${PV/_/-}"
