@@ -6,6 +6,6 @@
 		<name>Gentoo ML Project</name>
 	</maintainer>
 	<upstream>
-		<remote-id type="github">mjambon/atdgen</remote-id>
+		<remote-id type="github">mjambon/atd</remote-id>
 	</upstream>
 </pkgmetadata>
