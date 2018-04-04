@@ -12,16 +12,10 @@ SRC_URI="https://github.com/mjambon/atd/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="+ocamlopt test"
+IUSE=""
 
 DEPEND="
 	dev-ml/easy-format:=
-	dev-ml/menhir:=[ocamlopt?]
+	dev-ml/menhir:=
 "
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? (
-		dev-ml/biniou
-		dev-ml/yojson
-	)
-"
