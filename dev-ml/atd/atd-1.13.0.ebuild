@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Syntax for cross-language type definitions"
 HOMEPAGE="https://github.com/mjambon/atd"
-SRC_URI="https://github.com/mjambon/atd/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/mjambon/atd/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="BSD"
 SLOT="0/${PV}"
