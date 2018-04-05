@@ -8,10 +8,9 @@ OASIS_BUILD_DOCS=1
 
 inherit oasis
 
-MY_P=${P/_/\~}
 DESCRIPTION="Tool to integrate a configure, build and install system in OCaml project"
-HOMEPAGE="http://oasis.forge.ocamlcore.org/index.php"
-SRC_URI="http://forge.ocamlcore.org/frs/download.php/1694/${MY_P}.tar.gz"
+HOMEPAGE="https://github.com/ocaml/oasis http://oasis.forge.ocamlcore.org/index.php"
+SRC_URI="https://github.com/ocaml/oasis/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
@@ -36,5 +35,4 @@ DEPEND="${RDEPEND}
 	)"
 
 STRIP_MASK="*/bin/*"
-S="${WORKDIR}/${MY_P}"
 DOCS=( "README.md" "TODO.txt" "AUTHORS.md" "CHANGES.txt" )
