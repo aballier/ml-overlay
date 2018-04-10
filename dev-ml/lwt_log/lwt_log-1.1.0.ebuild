@@ -6,7 +6,7 @@ EAPI=6
 inherit jbuilder
 
 DESCRIPTION="Cooperative light-weight thread library for OCaml"
-SRC_URI="https://github.com/ocsigen/lwt/archive/${PV}.tar.gz -> lwt-${PV}.tar.gz"
+SRC_URI="https://github.com/aantron/lwt_log/archive/${PV}.tar.gz -> ${P}.tar.gz"
 HOMEPAGE="http://ocsigen.org/lwt"
 
 IUSE=""
@@ -19,5 +19,3 @@ DEPEND="
 SLOT="0/${PV}"
 LICENSE="LGPL-2.1-with-linking-exception"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86 ~x86-fbsd"
-
-S="${WORKDIR}/lwt-${PV}"
