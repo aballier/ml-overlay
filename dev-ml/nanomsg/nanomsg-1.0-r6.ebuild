@@ -10,7 +10,7 @@ HOMEPAGE="https://github.com/rgrinberg/onanomsg"
 SRC_URI="https://github.com/rgrinberg/onanomsg/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="WTFPL-2"
-SLOT="0/${PV}-bigstring"
+SLOT="0/${PV}-bigstring-lwt4"
 KEYWORDS="~amd64"
 IUSE="+lwt +ocamlopt test"
 
@@ -35,7 +35,8 @@ src_prepare() {
 	epatch "${FILESDIR}/bigstring.patch" \
 		"${FILESDIR}/tests.patch" \
 		"${FILESDIR}/testrun.patch" \
-		"${FILESDIR}/thread.patch"
+		"${FILESDIR}/thread.patch" \
+		"${FILESDIR}/lwt4.patch"
 	default
 }
 
