@@ -18,7 +18,9 @@ DEPEND="
 	dev-ml/lwt_react:=
 		dev-ml/result:=
 	>=dev-ml/lwt-2.4.0:=
+	dev-ml/lwt_log:=
 	>=dev-ml/zed-1.2:=
 	>=dev-ml/react-1.2:=
 "
 RDEPEND="${DEPEND}"
+PATCHES=( "${FILESDIR}/lwt4.patch" )
