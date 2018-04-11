@@ -32,6 +32,9 @@ RDEPEND="dev-lang/ocaml:=
 	dev-ml/pgocaml:=
 	dev-ml/ocaml-safepass:=
 	dev-ml/yojson:=
+	dev-ml/lwt:=
+	dev-ml/lwt_ppx:=
+	dev-ml/lwt_camlp4:=
 "
 DEPEND="${RDEPEND}"
 

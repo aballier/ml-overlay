@@ -34,6 +34,7 @@ RDEPEND="dev-lang/ocaml:=
 	dev-ml/yojson:=
 	dev-ml/lwt:=
 	dev-ml/lwt_ppx:=
+	dev-ml/lwt_camlp4:=
 "
 DEPEND="${RDEPEND}"
 PATCHES=( "${FILESDIR}/lwt4.patch" )
