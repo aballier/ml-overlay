@@ -32,8 +32,11 @@ RDEPEND="dev-lang/ocaml:=
 	dev-ml/pgocaml:=
 	dev-ml/ocaml-safepass:=
 	dev-ml/yojson:=
+	dev-ml/lwt:=
+	dev-ml/lwt_ppx:=
 "
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/lwt4.patch" )
 
 src_install() {
 	findlib_src_preinst
