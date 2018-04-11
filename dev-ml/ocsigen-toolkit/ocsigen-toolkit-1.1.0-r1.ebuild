@@ -30,8 +30,11 @@ RDEPEND="dev-lang/ocaml:=[ocamlopt?]
 		dev-ml/tyxml:=
 	dev-ml/ppx_deriving:=
 	dev-ml/calendar:=
-	dev-ml/lwt:="
+	dev-ml/lwt:=
+	dev-ml/lwt_ppx:="
 DEPEND="${RDEPEND}"
+
+PATCHES=( "${FILESDIR}/lwt4.patch" )
 
 src_compile() {
 	emake \
