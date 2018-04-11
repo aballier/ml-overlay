@@ -23,7 +23,7 @@ RDEPEND="
 	dev-ml/ppx_deriving:=[ocamlopt?]
 	dev-ml/containers:=[ocamlopt(+)?]
 	dev-ml/ocaml-bigstring:=
-	lwt? ( dev-ml/lwt:=[ocamlopt(+)?] )
+	lwt? ( dev-ml/lwt:=[ocamlopt(+)?] dev-ml/lwt_ppx:= )
 	!dev-ml/onanomsg
 "
 DEPEND="${RDEPEND}
