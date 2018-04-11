@@ -1,0 +1,65 @@
+Index: eliom-6.3.0/pkg/distillery/basic.ppx/Makefile.options
+===================================================================
+--- eliom-6.3.0.orig/pkg/distillery/basic.ppx/Makefile.options
++++ eliom-6.3.0/pkg/distillery/basic.ppx/Makefile.options
+@@ -11,9 +11,9 @@ SERVER_FILES := $(wildcard *.eliomi *.el
+ CLIENT_FILES := $(wildcard *.eliomi *.eliom)
+ 
+ # OCamlfind packages for the server
+-SERVER_PACKAGES := lwt.ppx js_of_ocaml-ppx.deriving
++SERVER_PACKAGES := lwt_ppx js_of_ocaml-ppx.deriving
+ # OCamlfind packages for the client
+-CLIENT_PACKAGES := lwt.ppx js_of_ocaml-ppx js_of_ocaml-ppx.deriving
++CLIENT_PACKAGES := lwt_ppx js_of_ocaml-ppx js_of_ocaml-ppx.deriving
+ 
+ # Directory with files to be statically served
+ LOCAL_STATIC = static
+Index: eliom-6.3.0/src/_tags
+===================================================================
+--- eliom-6.3.0.orig/src/_tags
++++ eliom-6.3.0/src/_tags
+@@ -2,11 +2,11 @@
+ true:keep_locs
+ 
+ <lib/type_dir/*.ml{,i}>:eliom_ppx,thread
+-<lib/type_dir/*.ml>:package(js_of_ocaml-ppx.deriving,lwt.ppx)
++<lib/type_dir/*.ml>:package(js_of_ocaml-ppx.deriving,lwt_ppx)
+ <lib/type_dir/*.ml>:package(js_of_ocaml.ppx)
+ 
+ <lib/server/*.ml{,i}>:eliom_ppx
+-<lib/server/*.ml>:package(js_of_ocaml-ppx.deriving,lwt.ppx)
++<lib/server/*.ml>:package(js_of_ocaml-ppx.deriving,lwt_ppx)
+ <lib/server/*.ml>:package(js_of_ocaml.ppx)
+ 
+ <lib/server/*.ml{,i}>:thread
+@@ -18,7 +18,7 @@ true:keep_locs
+ <lib/*.eliom{,i}>:eliom_ppx
+ 
+ <lib/*.ml{,i}>:eliom_ppx
+-<lib/client/*.ml>:package(js_of_ocaml-ppx.deriving,lwt.ppx,js_of_ocaml-lwt.logger)
++<lib/client/*.ml>:package(js_of_ocaml-ppx.deriving,lwt_ppx,js_of_ocaml-lwt.logger)
+ <lib/client/*.ml>:package(js_of_ocaml.ppx)
+ 
+ <lib/client/*.ml{,i}>: eliom_ppx
+@@ -29,7 +29,7 @@ true:keep_locs
+ 
+ <lib/client/*.ml{,i}>:package(js_of_ocaml-ppx.deriving)
+ 
+-<lib/server/monitor/*.ml>:package(lwt.ppx)
++<lib/server/monitor/*.ml>:package(lwt_ppx)
+ <lib/server/monitor/*.ml{,i}>:thread
+ <lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml)
+ <lib/server/monitor/*.ml{,i}>:I(src/lib/server)
+Index: eliom-6.3.0/src/lib/eliom_client.client.ml
+===================================================================
+--- eliom-6.3.0.orig/src/lib/eliom_client.client.ml
++++ eliom-6.3.0/src/lib/eliom_client.client.ml
+@@ -1305,7 +1305,7 @@ let () =
+                     uri [(Eliom_request.nl_template_string, t)]
+                     Eliom_request.string_result
+                 in
+-                set_template_content ~replace:true ~uri content >>
++                set_template_content ~replace:true ~uri content >>= fun () ->
+                 (scroll_to_fragment ~offset:state.position fragment;
+                  Lwt.return_unit)
+               | _ ->

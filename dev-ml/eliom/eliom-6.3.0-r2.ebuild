@@ -1,7 +1,7 @@
 # Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
 inherit eutils multilib findlib opam
 
@@ -39,11 +39,14 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	dev-ml/ocaml-ssl:=
 	>=dev-ml/lwt-2.5.0:=
 	dev-ml/lwt_react:=
+	dev-ml/lwt_ppx:=
 	dev-ml/camlp4:=
 	ppx? ( >=dev-ml/ppx_tools-0.99.3:= )"
 DEPEND="${RDEPEND}
 	dev-ml/js_of_ocaml-ocamlbuild
 	dev-ml/ocamlbuild"
+
+PATCHES=( "${FILESDIR}/lwt4.patch" )
 
 src_compile() {
 	if use ocamlopt ; then
