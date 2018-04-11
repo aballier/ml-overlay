@@ -46,7 +46,7 @@ DEPEND="${RDEPEND}
 	dev-ml/js_of_ocaml-ocamlbuild
 	dev-ml/ocamlbuild"
 
-PATCHES=( "${FILESDIR}/lwt4.patch" )
+PATCHES=( "${FILESDIR}/lwt4.patch" "${FILESDIR}/lwtcp4.patch" )
 
 src_compile() {
 	if use ocamlopt ; then
