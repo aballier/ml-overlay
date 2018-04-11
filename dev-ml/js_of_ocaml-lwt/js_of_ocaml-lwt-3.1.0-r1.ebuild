@@ -1,7 +1,7 @@
 # Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
 inherit jbuilder findlib
 
@@ -25,6 +25,7 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/lwt:=
+	dev-ml/lwt_log:=
 	dev-ml/result:=
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-ppx:=
@@ -33,3 +34,4 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}"
 RESTRICT="test"
+PATCHES=( "${FILESDIR}/lwt4.patch" )
