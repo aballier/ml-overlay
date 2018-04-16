@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -6,6 +6,7 @@ EAPI=6
 inherit findlib
 
 MY_PV="${PV/_beta/-beta}"
+MY_PV="${MY_PV/_rc/-rc}"
 S="${WORKDIR}/${PN}-${MY_PV}"
 
 DESCRIPTION="Parser and printer for the opam file syntax"
