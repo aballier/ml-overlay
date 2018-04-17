@@ -19,7 +19,9 @@ RDEPEND="${DEPEND}"
 S="${WORKDIR}/dbm-${P}"
 
 src_install() {
-	dodir "$(ocamlc -where)/stublibs" # required and makefile does not create it
-	emake LIBDIR="${D}/$(ocamlc -where)" install
+	dodir "$(ocamlc -where)/stublibs" "$(ocamlc -where)/dbm" # required and makefile does not create it
+	emake LIBDIR="${D}/$(ocamlc -where)/dbm" STUBLIBDIR="${D}/$(ocamlc -where)/stublibs" install
+	insinto "$(ocamlc -where)/dbm"
+	doins META
 	dodoc README.md Changelog
 }
