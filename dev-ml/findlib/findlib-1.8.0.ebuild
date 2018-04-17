@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -21,9 +21,7 @@ RDEPEND="${DEPEND}"
 
 src_prepare() {
 	epatch \
-		"${FILESDIR}/externalmeta6.patch" \
-		"${FILESDIR}/threads.patch" \
-		"${FILESDIR}/check-num-in-sitelib.patch"
+		"${FILESDIR}/em.patch"
 	export ocamlfind_destdir="${EPREFIX}/usr/$(get_libdir)/ocaml"
 	export stublibs="${ocamlfind_destdir}/stublibs"
 }
