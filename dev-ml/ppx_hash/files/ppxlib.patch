@@ -1,0 +1,24 @@
+commit c7656a73fb71f228c108527e818be10f820fa9c1
+Author: Thomas Refis <thomas.refis@gmail.com>
+Date:   Thu Apr 19 10:04:27 2018 +0100
+
+    v0.11.117.03+59
+
+diff --git a/expander/ppx_hash_expander.ml b/expander/ppx_hash_expander.ml
+index bd93a73..54ff8a6 100644
+--- a/expander/ppx_hash_expander.ml
++++ b/expander/ppx_hash_expander.ml
+@@ -207,11 +207,11 @@ and hash_fold_of_tuple ~loc tys value =
+ 
+ and hash_variant ~loc row_fields value =
+   let map = function
+-    | Rtag (cnstr, _attrs, true, _) | Rtag (cnstr, _attrs, _, []) ->
++    | Rtag ({ txt = cnstr; _ }, _attrs, true, _) | Rtag ({ txt = cnstr; _ }, _attrs, _, []) ->
+       Hsv_expr.case ~guard:None
+         ~lhs:(ppat_variant ~loc cnstr None)
+         ~rhs:(hash_fold_int ~loc (Ocaml_common.Btype.hash_variant cnstr))
+-    | Rtag (cnstr, _attrs, false, tp :: _) ->
++    | Rtag ({ txt = cnstr; _ }, _attrs, false, tp :: _) ->
+       let v = "_v" in
+       let body =
+         Hsv_expr.compose ~loc
