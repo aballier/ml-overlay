@@ -1,0 +1,25 @@
+commit 34d3d0c788067f000e491e1680351d4977240727
+Author: Thomas Refis <thomas.refis@gmail.com>
+Date:   Thu Apr 19 10:04:27 2018 +0100
+
+    v0.11.117.03+59
+
+diff --git a/src/ppx_variants_conv.ml b/src/ppx_variants_conv.ml
+index 62094ae..a920ff0 100644
+--- a/src/ppx_variants_conv.ml
++++ b/src/ppx_variants_conv.ml
+@@ -67,12 +67,12 @@ end
+ module Inspect = struct
+   let row_field loc rf : Variant_constructor.t =
+     match rf with
+-    | Rtag (name, _, true, _) | Rtag (name, _, _, []) ->
++    | Rtag ({ txt = name; _ }, _, true, _) | Rtag ({ txt = name; _ }, _, _, []) ->
+       { name
+       ; loc
+       ; kind = `Polymorphic None
+       }
+-    | Rtag (name, _, false, tp :: _) ->
++    | Rtag ({ txt = name; _}, _, false, tp :: _) ->
+       { name
+       ; loc
+       ; kind = `Polymorphic (Some tp)
