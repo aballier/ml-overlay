@@ -1,0 +1,22 @@
+commit 2383c5ede6cc052bade082018912d124eb8f46d8
+Author: Thomas Refis <thomas.refis@gmail.com>
+Date:   Thu Apr 19 10:04:27 2018 +0100
+
+    v0.11.117.03+59
+
+diff --git a/src/ppx_enumerate.ml b/src/ppx_enumerate.ml
+index d36f260..b667b36 100644
+--- a/src/ppx_enumerate.ml
++++ b/src/ppx_enumerate.ml
+@@ -205,9 +205,9 @@ let rec enum ~main_type ty =
+ 
+ and variant_case loc row_field ~main_type =
+   match row_field with
+-  | Rtag (cnstr, _attrs, true, _) | Rtag (cnstr, _attrs, _, []) ->
++  | Rtag ({ txt = cnstr; _ }, _attrs, true, _) | Rtag ({ txt = cnstr; _ }, _attrs, _, []) ->
+     [%expr [ [%e pexp_variant ~loc cnstr None] ] ]
+-  | Rtag (cnstr, _attrs, false, tp :: _) ->
++  | Rtag ({ txt = cnstr; _ }, _attrs, false, tp :: _) ->
+     list_map loc (enum tp ~main_type:tp) ~f:(fun e ->
+       pexp_variant ~loc cnstr (Some e))
+   | Rinherit ty ->
