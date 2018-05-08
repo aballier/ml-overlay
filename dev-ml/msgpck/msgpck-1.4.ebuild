@@ -12,8 +12,10 @@ SRC_URI="https://github.com/vbmithr/ocaml-msgpck/archive/${PV}.tar.gz -> ocaml-$
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE=""
+IUSE="test"
 
-DEPEND=""
+DEPEND="dev-ml/ocplib-endian:="
 RDEPEND="${DEPEND}"
+DEPEND="${DEPEND}
+	test? ( dev-ml/alcotest )"
 S="${WORKDIR}/ocaml-${P}"
