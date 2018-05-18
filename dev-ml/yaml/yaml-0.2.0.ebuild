@@ -5,11 +5,9 @@ EAPI=6
 
 inherit jbuilder
 
-UPSTREAM_COMMIT="4538bf643bf23d47b4e29ded305a28e3c28bf3eb"
 DESCRIPTION="OCaml interface to the YAML 1.1 spec"
 HOMEPAGE="https://github.com/avsm/ocaml-yaml"
-#SRC_URI="https://github.com/avsm/ocaml-yaml/releases/download/v${PV}/${P}.tbz"
-SRC_URI="https://github.com/avsm/ocaml-yaml/archive/${UPSTREAM_COMMIT}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/avsm/ocaml-yaml/releases/download/v${PV}/${P}.tbz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
@@ -32,4 +30,3 @@ DEPEND="${DEPEND}
 		dev-ml/bos
 	)
 "
-S="${WORKDIR}/ocaml-yaml-${UPSTREAM_COMMIT}"
