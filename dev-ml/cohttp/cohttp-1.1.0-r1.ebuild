@@ -21,12 +21,12 @@ RDEPEND="
 	dev-ml/sexplib:=
 	dev-ml/stringext:=
 	dev-ml/base64:=
+	dev-ml/ppx_sexp_conv:=
 
 	!dev-ml/ocaml-cohttp
 "
 DEPEND="${RDEPEND}
 	dev-ml/ppx_fields_conv
-	dev-ml/ppx_sexp_conv
 	dev-ml/jsonm
 	test? (
 		dev-ml/alcotest
