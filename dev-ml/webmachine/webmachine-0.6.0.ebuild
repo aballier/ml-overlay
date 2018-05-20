@@ -15,7 +15,7 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 DEPEND="
-	dev-ml/calendar:=
+	dev-ml/ptime:=
 	dev-ml/cohttp:=
 	dev-ml/dispatch:=
 	dev-ml/re:=
