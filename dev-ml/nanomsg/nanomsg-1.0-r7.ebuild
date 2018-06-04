@@ -22,7 +22,7 @@ RDEPEND="
 		dev-ml/sexplib:=
 	dev-ml/ppx_deriving:=[ocamlopt?]
 	dev-ml/containers:=[ocamlopt(+)?]
-	dev-ml/ocaml-bigstring:=
+	dev-ml/bigstring:=
 	lwt? ( dev-ml/lwt:=[ocamlopt(+)?] dev-ml/lwt_ppx:= )
 	!dev-ml/onanomsg
 "
