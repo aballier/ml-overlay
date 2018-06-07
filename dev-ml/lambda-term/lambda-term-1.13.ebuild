@@ -23,4 +23,3 @@ DEPEND="
 	>=dev-ml/react-1.2:=
 "
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/lwt4.patch" )
