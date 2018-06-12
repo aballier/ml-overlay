@@ -15,10 +15,9 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="
-	dev-lang/ocaml:=
 	dev-ml/angstrom:=
 	dev-ml/async:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/num:=
 "
 DEPEND="${RDEPEND}"
 
