@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<repositories version="1.0">
+	<repo priority="50" quality="experimental" status="unofficial">
+		<name>larry</name>
+		<description>ML overlay</description>
+		<homepage>https://github.com/aballier/ml-overlay</homepage>
+		<owner>
+			<email>aballier@gentoo.org</email>
+		</owner>
+		<source type="git">https://github.com/aballier/ml-overlay.git</source>
+	</repo>
+</repositories>
