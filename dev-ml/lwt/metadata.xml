@@ -6,7 +6,6 @@
 		<name>Gentoo ML Project</name>
 	</maintainer>
 	<use>
-		<flag name="camlp4">Enable camlp4 syntax extension</flag>
 		<flag name="libev">Enable the <pkg>dev-libs/libev</pkg>-based backend.</flag>
 	</use>
 	<upstream>
