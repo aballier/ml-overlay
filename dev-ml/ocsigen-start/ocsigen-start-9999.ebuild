@@ -30,7 +30,7 @@ RDEPEND="dev-lang/ocaml:=
 	dev-ml/ocsigen-i18n:=
 	dev-ml/ocsigen-toolkit:=
 	dev-ml/pgocaml:=
-	dev-ml/ocaml-safepass:=
+	dev-ml/safepass:=
 	dev-ml/yojson:=
 	dev-ml/lwt:=
 	dev-ml/lwt_ppx:=
