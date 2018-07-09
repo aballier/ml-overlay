@@ -3,7 +3,7 @@
 
 EAPI=6
 
-inherit findlib
+inherit jbuilder
 
 MY_PV=${PV/_/}
 MY_P=${PN}-${MY_PV}
@@ -18,14 +18,7 @@ KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
 DEPEND="
-	dev-lang/ocaml:=
-	dev-ml/result:=
 	dev-ml/ocaml-migrate-parsetree:=
 "
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/${MY_P}"
-
-src_install() {
-	findlib_src_install
-	dodoc README.md
-}
