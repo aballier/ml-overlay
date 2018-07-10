@@ -34,4 +34,3 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}"
 RESTRICT="test"
-PATCHES=( "${FILESDIR}/lwt4.patch" )
