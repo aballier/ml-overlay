@@ -20,7 +20,7 @@ inherit opam multiprocessing
 
 RDEPEND="dev-lang/ocaml:="
 DEPEND="${RDEPEND}
-	dev-ml/jbuilder"
+	dev-ml/dune"
 
 jbuilder_src_compile() {
 	jbuilder build -p "${PN}" -j $(makeopts_jobs) @install || die
