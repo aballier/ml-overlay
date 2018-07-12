@@ -15,11 +15,10 @@ LICENSE="QPL-1.0 LGPL-2"
 # so here we go with the subslot.
 SLOT="0/${PV}"
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~ppc-macos ~x86-macos ~sparc-solaris ~x86-solaris"
-IUSE="emacs flambda latex ncurses +ocamlopt spacetime X xemacs"
+IUSE="emacs flambda latex +ocamlopt spacetime X xemacs"
 
 RDEPEND="
 	sys-libs/binutils-libs:=
-	ncurses? ( sys-libs/ncurses:0= )
 	spacetime? ( sys-libs/libunwind:= )
 	X? ( x11-libs/libX11 )"
 DEPEND="${RDEPEND}
@@ -50,7 +49,6 @@ src_configure() {
 	# It doesn't compile on alpha without this LDFLAGS
 	use alpha && append-ldflags "-Wl,--no-relax"
 
-	use ncurses || myconf="${myconf} -no-curses"
 	use X || myconf="${myconf} -no-graph"
 	use flambda && myconf="${myconf} -flambda"
 	use spacetime && myconf="${myconf} -spacetime"
