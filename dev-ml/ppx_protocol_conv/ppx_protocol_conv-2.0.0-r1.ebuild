@@ -18,6 +18,7 @@ DEPEND="
 	dev-ml/base:=
 	dev-ml/ppx_type_conv:=
 	dev-ml/ppx_driver:=
+		dev-ml/ppxlib:=
 	dev-ml/ppx_core:=
 "
 RDEPEND="${DEPEND}"
