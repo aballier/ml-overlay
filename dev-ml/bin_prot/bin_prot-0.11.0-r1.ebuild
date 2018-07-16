@@ -23,6 +23,7 @@ RDEPEND="
 	dev-ml/ppx_variants_conv:=
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/ppxlib:=
+		dev-ml/base:=
 
 	!dev-ml/bin-prot
 "
