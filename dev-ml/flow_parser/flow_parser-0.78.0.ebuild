@@ -18,7 +18,7 @@ DEPEND="
 	dev-lang/ocaml:=
 	dev-ml/sedlex:=
 	dev-ml/wtf8:=
-	dev-ml/dtoa:=
+	dev-ml/ppx_gen_rec:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
