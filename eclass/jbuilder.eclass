@@ -19,8 +19,10 @@ esac
 inherit opam multiprocessing
 
 RDEPEND="dev-lang/ocaml:="
-DEPEND="${RDEPEND}
-	dev-ml/dune"
+case ${EAPI:-0} in
+	0|1|2|3|4|5|6) DEPEND="${RDEPEND} dev-ml/dune";;
+	*) BDEPEND="dev-ml/dune dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
+esac
 
 jbuilder_src_compile() {
 	jbuilder build -p "${PN}" -j $(makeopts_jobs) @install || die
