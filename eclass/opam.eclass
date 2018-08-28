@@ -22,8 +22,10 @@ esac
 : ${OPAM_INSTALLER_DEP:="dev-ml/opam-installer"}
 
 RDEPEND=">=dev-lang/ocaml-4:="
-DEPEND="${RDEPEND}
-	${OPAM_INSTALLER_DEP}"
+case ${EAPI:-0} in
+	0|1|2|3|4|5|6) DEPEND="${RDEPEND} ${OPAM_INSTALLER_DEP}";;
+	*) BDEPEND="${OPAM_INSTALLER_DEP}"; DEPEND="${RDEPEND}" ;;
+esac
 
 # @ECLASS-VARIABLE: OPAM_INSTALLER
 # @DESCRIPTION:
