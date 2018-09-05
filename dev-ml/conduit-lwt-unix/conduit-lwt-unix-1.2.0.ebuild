@@ -24,11 +24,10 @@ RDEPEND="
 	dev-ml/uri:=
 	dev-ml/ipaddr:=
 	dev-ml/ocaml-ssl:=
+	dev-ml/ppx_sexp_conv:=
 
 	!dev-ml/ocaml-conduit
 "
-DEPEND="${RDEPEND}
-	dev-ml/ppx_sexp_conv
-"
+DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-conduit-${PV}"
