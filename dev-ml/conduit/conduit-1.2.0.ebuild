@@ -15,6 +15,7 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="
+	dev-ml/ppx_sexp_conv:=
 	dev-ml/sexplib:=
 	dev-ml/astring:=
 	dev-ml/uri:=
@@ -24,8 +25,6 @@ RDEPEND="
 
 	!dev-ml/ocaml-conduit
 "
-DEPEND="${RDEPEND}
-	dev-ml/ppx_sexp_conv
-"
+DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-conduit-${PV}"
