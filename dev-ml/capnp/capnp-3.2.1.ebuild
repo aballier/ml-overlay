@@ -1,7 +1,7 @@
 # Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 inherit jbuilder
 
@@ -27,6 +27,6 @@ RDEPEND="
 DEPEND="${RDEPEND}
 	test? ( dev-ml/core dev-ml/ounit )
 "
+BDEPEND=""
 
 S="${WORKDIR}/${PN}-ocaml-${PV}"
-PATCHES=( "${FILESDIR}/core011.patch" )
