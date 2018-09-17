@@ -41,10 +41,10 @@ opam-install() {
 	local pkg
 	for pkg ; do
 		${OPAM_INSTALLER} -i \
-			--prefix="${ED}usr" \
-			--libdir="${D}$(ocamlc -where)" \
-			--docdir="${ED}usr/share/doc/${PF}" \
-			--mandir="${ED}usr/share/man" \
+			--prefix="${ED}/usr" \
+			--libdir="${D}/$(ocamlc -where)" \
+			--docdir="${ED}/usr/share/doc/${PF}" \
+			--mandir="${ED}/usr/share/man" \
 			"${pkg}.install" || die
 	done
 }
