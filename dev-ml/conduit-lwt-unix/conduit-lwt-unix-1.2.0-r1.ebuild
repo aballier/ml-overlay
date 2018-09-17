@@ -23,7 +23,7 @@ RDEPEND="
 
 	dev-ml/uri:=
 	dev-ml/ipaddr:=
-	dev-ml/ocaml-ssl:=
+	dev-ml/ssl:=
 	dev-ml/ppx_sexp_conv:=
 
 	!dev-ml/ocaml-conduit
