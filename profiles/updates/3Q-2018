@@ -1,2 +1,3 @@
 move dev-ml/ocaml-safepass dev-ml/safepass
 move dev-ml/jbuilder dev-ml/dune
+move dev-ml/ocaml-ssl dev-ml/ssl
