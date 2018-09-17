@@ -36,7 +36,7 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	>=dev-ml/reactiveData-0.2.1:=
 	dev-ml/ipaddr:=
 	dev-ml/react:=
-	dev-ml/ocaml-ssl:=
+	dev-ml/ssl:=
 	>=dev-ml/lwt-2.5.0:=
 	dev-ml/lwt_react:=
 	dev-ml/camlp4:=
