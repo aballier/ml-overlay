@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -14,7 +14,7 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="dev-ml/pcre:=
-	dev-ml/ocaml-ssl:=
+	dev-ml/ssl:=
 	dev-ml/ocamlnet:="
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocam${P}"
