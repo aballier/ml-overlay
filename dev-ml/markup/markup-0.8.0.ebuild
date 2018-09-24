@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -15,7 +15,6 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 DEPEND="
-	dev-ml/lwt:=
 	>=dev-ml/uutf-1.0:=
 	dev-ml/uchar:=
 "
@@ -24,7 +23,3 @@ DEPEND="${DEPEND}
 	test? ( dev-ml/ounit )
 "
 S="${WORKDIR}/${PN}.ml-${PV}"
-
-src_configure() {
-	ocaml src/configure.ml || die
-}
