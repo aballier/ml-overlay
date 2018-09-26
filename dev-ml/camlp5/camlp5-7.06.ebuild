@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="5"
@@ -39,6 +39,7 @@ src_prepare() {
 	for i in ${PATCHLIST} ; do
 		epatch "${DISTDIR}/${i}"
 	done
+	camlp5_hack_ocaml_support 4.07.0 4.07.1
 }
 
 src_configure() {
