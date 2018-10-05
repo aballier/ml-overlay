@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -16,11 +16,11 @@ IUSE=""
 
 DEPEND="
 	dev-ml/websocket:=
-	dev-ml/ocaml-ipaddr:=
+	dev-ml/ipaddr:=
+	dev-ml/lwt_log:=
 	dev-ml/lwt_ssl:=
 	dev-ml/cohttp-lwt-unix:=
 		dev-ml/cohttp:=
-	dev-ml/uri:=
 
 	!dev-ml/ocaml-websocket
 "
