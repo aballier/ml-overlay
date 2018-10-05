@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -15,7 +15,7 @@ KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND="
-	dev-ml/ocaml-base64:=
+	dev-ml/base64:=
 	dev-ml/cohttp:=
 	dev-ml/ocplib-endian:=
 	dev-ml/astring:=
