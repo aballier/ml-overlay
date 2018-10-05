@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -22,12 +22,10 @@ DEPEND="
 	dev-ml/cohttp-async:=
 		dev-ml/sexplib:=
 	dev-ml/conduit-async:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
-	dev-ml/uri:=
+	dev-ml/num:=
 
 	!dev-ml/ocaml-websocket
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/async.patch" )
 
 S="${WORKDIR}/ocaml-websocket-${PV}"
