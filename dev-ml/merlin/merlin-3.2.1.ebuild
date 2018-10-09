@@ -1,9 +1,9 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-inherit findlib vim-plugin
+inherit jbuilder vim-plugin
 
 DESCRIPTION="Context sensitive completion for OCaml in Vim and Emacs"
 HOMEPAGE="https://github.com/ocaml/merlin"
@@ -15,21 +15,9 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 DEPEND="
-	dev-lang/ocaml:=
 	dev-ml/yojson:=
 "
 RDEPEND="${DEPEND}
 	|| ( app-editors/vim[python] app-editors/gvim[python] )"
 DEPEND="${DEPEND}
-	test? ( dev-util/cram )"
-
-src_configure() {
-	./configure \
-		--prefix "${EPREFIX}/usr" \
-		--vimdir "${EPREFIX}//usr/share/vim/vimfiles" \
-		|| die
-}
-
-src_install() {
-	default
-}
+	test? ( dev-ml/craml )"
