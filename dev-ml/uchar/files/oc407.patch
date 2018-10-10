@@ -1,0 +1,21 @@
+Index: uchar-0.0.2/pkg/topkg.ml
+===================================================================
+--- uchar-0.0.2.orig/pkg/topkg.ml
++++ uchar-0.0.2/pkg/topkg.ml
+@@ -5,6 +5,7 @@
+   ---------------------------------------------------------------------------*)
+ 
+ (* Public api *)
++#load "stdlib.cma";;
+ 
+ (** Build environment access *)
+ module type Env = sig
+@@ -219,7 +220,7 @@ end = struct
+         end
+     | [] -> acc
+     in
+-    match List.tl (Array.to_list Sys.argv) with
++    match List.tl (List.tl (Array.to_list Sys.argv)) with
+     | "explain" :: args -> `Explain, parse_env [] args
+     | ("help" | "-h" | "--help" | "-help") :: args -> `Help, parse_env [] args
+     | args -> `Build, parse_env [] args
