@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -15,9 +15,9 @@ KEYWORDS="~amd64 ~arm ~arm64"
 IUSE="test"
 
 RDEPEND="dev-ml/camomile:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )"
+	dev-ml/num:="
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit dev-ml/qtest )"
+	test? ( dev-ml/qcheck dev-ml/qtest )"
 
 DOCS=( "ChangeLog" "FAQ" "README.folders" "README.md" )
 
