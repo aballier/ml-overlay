@@ -39,14 +39,13 @@ src_prepare() {
 	for i in ${PATCHLIST} ; do
 		epatch "${DISTDIR}/${i}"
 	done
-	camlp5_hack_ocaml_support 4.07.0 4.07.1
 }
 
 src_configure() {
 	./configure \
 		--strict \
 		-prefix /usr \
-	    -bindir /usr/bin \
+		-bindir /usr/bin \
 		-libdir /usr/$(get_libdir)/ocaml \
 		-mandir /usr/share/man || die "configure failed"
 }
