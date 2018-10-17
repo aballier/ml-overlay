@@ -1,7 +1,7 @@
 # Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit jbuilder
 
@@ -16,7 +16,7 @@ IUSE="test"
 
 RDEPEND="
 	dev-ml/re:=
-	dev-ml/uri:=
+	>=dev-ml/uri-2:=
 	dev-ml/fieldslib:=
 	dev-ml/sexplib:=
 	dev-ml/stringext:=
@@ -35,3 +35,4 @@ DEPEND="${RDEPEND}
 "
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
+PATCHES=( "${FILESDIR}/uri2.patch" )

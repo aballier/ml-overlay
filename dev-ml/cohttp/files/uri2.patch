@@ -1,0 +1,38 @@
+Index: ocaml-cohttp-1.1.1/cohttp/src/dune
+===================================================================
+--- ocaml-cohttp-1.1.1.orig/cohttp/src/dune
++++ ocaml-cohttp-1.1.1/cohttp/src/dune
+@@ -10,7 +10,7 @@
+  (public_name cohttp)
+  (synopsis "Co-operative Client/Server HTTP library.")
+  (preprocess (pps ppx_fields_conv ppx_sexp_conv))
+- (libraries re stringext uri fieldslib sexplib bytes base64))
++ (libraries re stringext uri uri.sexp fieldslib sexplib bytes base64))
+ 
+ (ocamllex  accept_lexer)
+ (ocamlyacc accept_parser)
+Index: ocaml-cohttp-1.1.1/cohttp/src/link.ml
+===================================================================
+--- ocaml-cohttp-1.1.1.orig/cohttp/src/link.ml
++++ ocaml-cohttp-1.1.1/cohttp/src/link.ml
+@@ -19,7 +19,7 @@ open Sexplib.Std
+ (* From <https://tools.ietf.org/html/rfc5988> *)
+ module Rel = struct
+   type t =
+-    | Extension of Uri.t
++    | Extension of Uri_sexp.t
+     | Alternate
+     | Appendix
+     | Bookmark
+@@ -159,9 +159,9 @@ module Arc = struct
+ end
+ 
+ type t = {
+-  context : Uri.t;
++  context : Uri_sexp.t;
+   arc : Arc.t;
+-  target : Uri.t;
++  target : Uri_sexp.t;
+ }
+ [@@deriving sexp]
+ 
