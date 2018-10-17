@@ -16,7 +16,7 @@ IUSE="test"
 
 RDEPEND="
 	>=dev-ml/re-1.7.2:=
-	dev-ml/sexplib:=
+	dev-ml/sexplib0:=
 	dev-ml/ppx_sexp_conv:=
 	dev-ml/ppx_core:=
 	dev-ml/ppx_type_conv:=
