@@ -1,7 +1,7 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 inherit jbuilder
 
@@ -22,6 +22,7 @@ RDEPEND="
 	dev-ml/js_of_ocaml-ppx:=
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/ppxlib:=
-	dev-ml/uri:=
+	>=dev-ml/uri-2:=
 "
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/uri2.patch" )
