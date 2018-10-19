@@ -25,9 +25,11 @@ RDEPEND="
 	dev-ml/logs:=
 	dev-ml/fmt:=
 	dev-ml/sexplib:=
+	>=dev-ml/uri-2:=
 "
 DEPEND="${RDEPEND}
 	dev-ml/ppx_sexp_conv
 	test? ( dev-ml/ounit dev-ml/core )"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
+PATCHES=( "${FILESDIR}/uri2.patch" )
