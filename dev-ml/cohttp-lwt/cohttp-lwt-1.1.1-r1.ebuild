@@ -16,6 +16,7 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/cohttp:=
+		dev-ml/uri:=
 	dev-ml/lwt:=
 	dev-ml/sexplib:=
 "
