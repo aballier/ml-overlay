@@ -35,4 +35,3 @@ DEPEND="${RDEPEND}
 "
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
-PATCHES=( "${FILESDIR}/uri2.patch" )
