@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -28,8 +28,6 @@ S="${WORKDIR}/opam-${PV/_/-}"
 OPAM_INSTALLER="${S}/opam-installer"
 
 src_compile() {
-	# https://github.com/janestreet/jbuilder/issues/257
-	touch src/tools/.merlin-exists
 	emake opam-installer
 	emake ${PN}.install
 }
