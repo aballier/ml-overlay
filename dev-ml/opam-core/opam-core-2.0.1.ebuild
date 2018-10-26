@@ -29,8 +29,6 @@ S="${WORKDIR}/opam-${PV/_/-}"
 OPAM_INSTALLER="${S}/opam-installer"
 
 src_compile() {
-	# https://github.com/janestreet/jbuilder/issues/257
-	touch src/tools/.merlin-exists
 	emake opam-installer
 	emake ${PN}.install
 }
