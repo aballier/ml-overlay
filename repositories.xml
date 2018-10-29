@@ -2,12 +2,12 @@
 <!DOCTYPE repositories SYSTEM "/dtd/repositories.dtd">
 <repositories xmlns="" version="1.0">
   <repo priority="50" quality="experimental" status="unofficial">
-    <name><![CDATA[ml-overlay]]></name>
-    <description lang="en"><![CDATA[Unofficial portage overlay for Gentoo Linux providing ebuilds for the ML.]]></description>
+    <name>ml-overlay</name>
+    <description lang="en">Unofficial portage overlay for Gentoo Linux providing ebuilds for the ML.</description>
     <homepage>https://github.com/aballier/ml-overlay</homepage>
     <owner type="person">
-      <email>N/A</email>
-      <name><![CDATA[aballier]]></name>
+      <email>aballier@gentoo.org</email>
+      <name>aballier></name>
     </owner>
     <source type="git">https://github.com/aballier/ml-overlay.git</source>
     <feed>https://github.com/aballier/ml-overlay/commits/master.atom</feed>
