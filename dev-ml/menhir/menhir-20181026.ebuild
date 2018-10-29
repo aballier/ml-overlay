@@ -7,7 +7,7 @@ inherit findlib eutils
 
 DESCRIPTION="LR(1) parser generator for the OCaml language"
 HOMEPAGE="http://gallium.inria.fr/~fpottier/menhir/"
-SRC_URI="http://gallium.inria.fr/~fpottier/menhir/${P}.tar.gz"
+SRC_URI="https://gitlab.inria.fr/fpottier/menhir/-/archive/${PV}/${P}.tar.bz2"
 
 LICENSE="GPL-2 LGPL-2-with-linking-exception"
 SLOT="0/${PV}"
