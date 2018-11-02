@@ -10,7 +10,7 @@ inherit opam
 
 DESCRIPTION="Core installer for opam packages"
 HOMEPAGE="https://opam.ocaml.org/ https://github.com/ocaml/opam"
-SRC_URI="https://github.com/ocaml/opam/archive/${PV/_/-}.tar.gz -> opam-${PV}.tar.gz"
+SRC_URI="https://github.com/ocaml/opam/releases/download/${PV}/opam-full-${PV}.tar.gz"
 
 LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
@@ -18,16 +18,14 @@ KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
 DEPEND="
-	dev-ml/opam-format:=
-	dev-ml/cmdliner:=
 	!<dev-ml/opam-2.0.0_beta
 "
 RDEPEND="${DEPEND}"
 
-S="${WORKDIR}/opam-${PV/_/-}"
+S="${WORKDIR}/opam-full-${PV/_/-}"
 OPAM_INSTALLER="${S}/opam-installer"
 
 src_compile() {
-	emake opam-installer
-	emake ${PN}.install
+	emake lib-ext
+	emake -j1
 }
