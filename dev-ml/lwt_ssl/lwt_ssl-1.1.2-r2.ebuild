@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -20,4 +20,4 @@ DEPEND="${RDEPEND}"
 
 SLOT="0/${PV}"
 LICENSE="LGPL-2.1-with-linking-exception"
-KEYWORDS="~amd64 ~arm ~ppc ~x86-fbsd"
+KEYWORDS="~amd64 ~arm ~x86-fbsd"
