@@ -11,7 +11,7 @@ SRC_URI="http://erratique.ch/software/rresult/releases/${P}.tbz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 RDEPEND="dev-ml/result:="
