@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="5"
@@ -12,7 +12,7 @@ HOMEPAGE="http://projects.camlcity.org/projects/pxp.html"
 SRC_URI="http://download.camlcity.org/download/${MY_P}.tar.gz"
 
 LICENSE="MIT"
-KEYWORDS="~amd64 ~ppc"
+KEYWORDS="~amd64"
 
 SLOT="0/${PV}"
 DEPEND=">=dev-ml/pcre-4.31:=
