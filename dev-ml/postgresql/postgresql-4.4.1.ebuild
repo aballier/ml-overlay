@@ -19,4 +19,4 @@ DEPEND="${RDEPEND}
 
 SLOT="0/${PV}"
 LICENSE="LGPL-2"
-KEYWORDS="~amd64 ~ppc ~x86"
+KEYWORDS="~amd64 ~x86"
