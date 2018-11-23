@@ -1,9 +1,9 @@
 # Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="5"
+EAPI="7"
 
-inherit flag-o-matic eutils multilib versionator toolchain-funcs
+inherit flag-o-matic eutils multilib toolchain-funcs
 
 MY_P="${P/_/-}"
 DESCRIPTION="Type-inferring functional programming language descended from the ML family"
@@ -30,7 +30,8 @@ PDEPEND="emacs? ( app-emacs/ocaml-mode )
 S="${WORKDIR}/${MY_P}"
 
 src_prepare() {
-	EPATCH_SUFFIX="patch" epatch "${FILESDIR}/${PV%_*}"
+	eapply "${FILESDIR}/${PV%_*}"/*.patch
+	default
 }
 
 src_configure() {
@@ -70,13 +71,10 @@ src_configure() {
 }
 
 src_compile() {
-	emake world
-
-	# Native code generation can be disabled now
 	if use ocamlopt ; then
-		# bug #279968
-		emake opt
-		emake -j1 opt.opt
+		emake world.opt
+	else
+		emake world
 	fi
 }
 
