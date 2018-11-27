@@ -72,9 +72,9 @@ src_configure() {
 
 src_compile() {
 	if use ocamlopt ; then
-		emake world.opt
+		env -u P emake world.opt
 	else
-		emake world
+		env -u P emake world
 	fi
 }
 
