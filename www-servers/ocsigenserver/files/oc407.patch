@@ -1,0 +1,26 @@
+commit e316444b0f68e2f864490cb701539f46a8c39ee6
+Author: Vasilis Papavasileiou <vasilisp@users.noreply.github.com>
+Date:   Tue Aug 7 12:13:21 2018 +0200
+
+    Add Ocsigen_getcommandline mli's to produce compatible cmi's (#152)
+    
+    This fixes compilation with OCaml 4.07 .
+
+diff --git a/src/baselib/commandline/ocsigen_getcommandline.mli b/src/baselib/commandline/ocsigen_getcommandline.mli
+new file mode 100644
+index 00000000..d853ae3e
+--- /dev/null
++++ b/src/baselib/commandline/ocsigen_getcommandline.mli
+@@ -0,0 +1,3 @@
++(** Contains the command line that will be parsed by the server
++    when Ocsigen_commandline is linked *)
++val commandline : string array
+diff --git a/src/baselib/nocommandline/ocsigen_getcommandline.mli b/src/baselib/nocommandline/ocsigen_getcommandline.mli
+new file mode 100644
+index 00000000..d853ae3e
+--- /dev/null
++++ b/src/baselib/nocommandline/ocsigen_getcommandline.mli
+@@ -0,0 +1,3 @@
++(** Contains the command line that will be parsed by the server
++    when Ocsigen_commandline is linked *)
++val commandline : string array

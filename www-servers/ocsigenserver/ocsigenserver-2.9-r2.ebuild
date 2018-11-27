@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -42,7 +42,7 @@ DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		sqlite? ( dev-ml/sqlite3:= )"
 RDEPEND="${DEPEND}"
 
-PATCHES=( "${FILESDIR}/lwt4.patch" )
+PATCHES=( "${FILESDIR}/lwt4.patch" "${FILESDIR}/oc407.patch" "${FILESDIR}/tyxml.patch" )
 
 pkg_setup() {
 	enewgroup ocsigenserver
