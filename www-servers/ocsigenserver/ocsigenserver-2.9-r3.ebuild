@@ -34,7 +34,8 @@ DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		dev-ml/cryptokit:=
 		>=dev-ml/ocamlnet-3.6:=[pcre]
 		>=dev-ml/pcre-6.2.5:=
-		>=dev-ml/tyxml-4:=[camlp4(+)]
+		>=dev-ml/tyxml-4:=
+		dev-ml/xml-light:=
 		>=dev-lang/ocaml-3.12:=[ocamlopt?]
 		dev-ml/ipaddr:=
 		postgres? ( dev-ml/pgocaml:=[camlp4(+)] )
