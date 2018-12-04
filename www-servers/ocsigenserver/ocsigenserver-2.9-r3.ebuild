@@ -43,11 +43,16 @@ DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		sqlite? ( dev-ml/sqlite3:= )"
 RDEPEND="${DEPEND}"
 
-PATCHES=( "${FILESDIR}/lwt4.patch" "${FILESDIR}/oc407.patch" "${FILESDIR}/tyxml.patch" )
+PATCHES=( "${FILESDIR}/lwt4.patch" "${FILESDIR}/oc407.patch" )
 
 pkg_setup() {
 	enewgroup ocsigenserver
 	enewuser ocsigenserver -1 -1 /var/www ocsigenserver
+}
+
+src_prepare() {
+	has_version '>=dev-ml/tyxml-4.3' && epatch "${FILESDIR}/tyxml.patch"
+	default
 }
 
 src_configure() {
