@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -46,7 +46,7 @@ DEPEND="${RDEPEND}
 	dev-ml/js_of_ocaml-ocamlbuild
 	dev-ml/ocamlbuild"
 
-PATCHES=( "${FILESDIR}/lwt4.patch" "${FILESDIR}/lwtcp4.patch" )
+PATCHES=( "${FILESDIR}/lwt4.patch" "${FILESDIR}/lwtcp4.patch" "${FILESDIR}/jsoo33.patch" )
 
 src_compile() {
 	if use ocamlopt ; then

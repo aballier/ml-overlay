@@ -1,0 +1,15 @@
+Index: eliom-6.3.0/pkg/META
+===================================================================
+--- eliom-6.3.0.orig/pkg/META
++++ eliom-6.3.0/pkg/META
+@@ -98,8 +98,8 @@ package "syntax" (
+     description = "Syntax extension: predefined commonly use syntaxes"
+     version = "[distributed with Eliom]"
+ 
+-    requires(syntax, preprocessor) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt_camlp4,tyxml.syntax"
+-    requires(syntax, toploop) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt_camlp4,tyxml.syntax"
++    requires(syntax, preprocessor) = "js_of_ocaml-camlp4.deriving,lwt_camlp4,tyxml.syntax"
++    requires(syntax, toploop) = "js_of_ocaml-camlp4.deriving,lwt_camlp4,tyxml.syntax"
+     archive(syntax, preprocessor) = "-ignore dummy"
+   )
+ 
