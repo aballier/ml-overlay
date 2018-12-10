@@ -1,0 +1,23 @@
+Index: ocaml-graphql-server-0.8.0/graphql.opam
+===================================================================
+--- ocaml-graphql-server-0.8.0.orig/graphql.opam
++++ ocaml-graphql-server-0.8.0/graphql.opam
+@@ -17,7 +17,6 @@ depends: [
+   "graphql_parser"
+   "yojson"
+   "rresult"
+-  "seq"
+   "alcotest" {with-test}
+ ]
+ 
+Index: ocaml-graphql-server-0.8.0/graphql/src/dune
+===================================================================
+--- ocaml-graphql-server-0.8.0.orig/graphql/src/dune
++++ ocaml-graphql-server-0.8.0/graphql/src/dune
+@@ -2,5 +2,5 @@
+  (name graphql)
+  (public_name graphql)
+  (wrapped false)
+- (libraries graphql_parser yojson rresult seq)
++ (libraries graphql_parser yojson rresult)
+  (flags (:standard -w -30)))
