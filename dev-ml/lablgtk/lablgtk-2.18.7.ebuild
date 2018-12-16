@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -9,7 +9,7 @@ IUSE="debug examples glade gnomecanvas sourceview +ocamlopt opengl spell svg"
 
 DESCRIPTION="Objective CAML interface for Gtk+2"
 HOMEPAGE="http://lablgtk.forge.ocamlcore.org/"
-SRC_URI="https://forge.ocamlcore.org/frs/download.php/1726/${P}.tar.gz"
+SRC_URI="https://forge.ocamlcore.org/frs/download.php/1773/${P}.tar.gz"
 LICENSE="LGPL-2.1-with-linking-exception examples? ( lablgtk-examples )"
 
 RDEPEND=">=x11-libs/gtk+-2.10:2
