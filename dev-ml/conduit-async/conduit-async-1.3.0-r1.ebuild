@@ -19,6 +19,7 @@ RDEPEND="
 	dev-ml/ppx_sexp_conv:=
 	dev-ml/sexplib:=
 	dev-ml/conduit:=
+	dev-ml/ipaddr:=
 	dev-ml/async:=
 	dev-ml/async_ssl:=
 	dev-ml/num:=
