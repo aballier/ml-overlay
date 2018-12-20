@@ -43,16 +43,9 @@ DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		sqlite? ( dev-ml/sqlite3:= )"
 RDEPEND="${DEPEND}"
 
-PATCHES=( "${FILESDIR}/lwt4.patch" "${FILESDIR}/oc407.patch" )
-
 pkg_setup() {
 	enewgroup ocsigenserver
 	enewuser ocsigenserver -1 -1 /var/www ocsigenserver
-}
-
-src_prepare() {
-	has_version '>=dev-ml/tyxml-4.3' && epatch "${FILESDIR}/tyxml.patch"
-	default
 }
 
 src_configure() {
@@ -68,7 +61,6 @@ src_configure() {
 		$(use_with sqlite) \
 		$(use_with dbm) \
 		$(use_with postgres pgsql) \
-		--with-preempt \
 		--ocsigen-group ocsigenserver \
 		--ocsigen-user ocsigenserver  \
 		--name ocsigenserver \

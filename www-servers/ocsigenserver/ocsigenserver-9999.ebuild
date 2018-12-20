@@ -1,7 +1,7 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
 inherit eutils multilib findlib user
 
@@ -19,7 +19,7 @@ DESCRIPTION="Ocaml-powered webserver and framework for dynamic web programming"
 HOMEPAGE="http://www.ocsigen.org"
 
 LICENSE="LGPL-2.1-with-linking-exception"
-SLOT="0/${PV}"
+SLOT="0/${PV}-lwt4"
 IUSE="debug doc dbm +ocamlopt +sqlite zlib postgres"
 REQUIRED_USE="|| ( sqlite dbm postgres )"
 RESTRICT="strip installsources"
@@ -28,12 +28,14 @@ DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		dev-ml/lwt_react:=
 		dev-ml/lwt_ssl:=
 			dev-ml/result:=
+		dev-ml/lwt_log:=
 		>=dev-ml/react-0.9.3:=
 		zlib? ( >=dev-ml/camlzip-1.03-r1:= )
 		dev-ml/cryptokit:=
 		>=dev-ml/ocamlnet-3.6:=[pcre]
 		>=dev-ml/pcre-6.2.5:=
-		>=dev-ml/tyxml-4:=[camlp4(+)]
+		>=dev-ml/tyxml-4:=
+		dev-ml/xml-light:=
 		>=dev-lang/ocaml-3.12:=[ocamlopt?]
 		dev-ml/ipaddr:=
 		postgres? ( dev-ml/pgocaml:=[camlp4(+)] )
@@ -59,7 +61,6 @@ src_configure() {
 		$(use_with sqlite) \
 		$(use_with dbm) \
 		$(use_with postgres pgsql) \
-		--with-preempt \
 		--ocsigen-group ocsigenserver \
 		--ocsigen-user ocsigenserver  \
 		--name ocsigenserver \
