@@ -26,7 +26,7 @@ fi
 RDEPEND="dev-lang/ocaml:=[ocamlopt?]
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-ppx:=
-	>=dev-ml/eliom-5.1:=
+	>=dev-ml/eliom-5.1:=[ppx]
 		dev-ml/tyxml:=
 	dev-ml/ppx_deriving:=
 	dev-ml/calendar:=
