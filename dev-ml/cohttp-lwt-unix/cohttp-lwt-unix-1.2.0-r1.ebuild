@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -25,6 +25,7 @@ RDEPEND="
 	dev-ml/lwt:=
 	dev-ml/lwt_log:=
 	dev-ml/sexplib:=
+	dev-libs/openssl:0=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit )"
