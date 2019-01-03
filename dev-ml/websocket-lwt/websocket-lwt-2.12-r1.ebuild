@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -19,6 +19,7 @@ DEPEND="
 	dev-ml/ipaddr:=
 	dev-ml/lwt_log:=
 	dev-ml/lwt_ssl:=
+		dev-libs/openssl:0=
 	dev-ml/cohttp-lwt-unix:=
 		dev-ml/cohttp:=
 
