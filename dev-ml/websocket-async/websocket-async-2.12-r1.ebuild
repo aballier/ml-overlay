@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -17,6 +17,7 @@ IUSE=""
 DEPEND="
 	dev-ml/websocket:=
 	dev-ml/async_ssl:=
+		dev-libs/openssl:0=
 	dev-ml/async_unix:=
 	dev-ml/async_extra:=
 	dev-ml/cohttp-async:=
