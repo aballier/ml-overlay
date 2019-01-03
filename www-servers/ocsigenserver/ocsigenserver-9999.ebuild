@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -28,6 +28,7 @@ DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		dev-ml/lwt_react:=
 		dev-ml/lwt_ssl:=
 			dev-ml/result:=
+			dev-libs/openssl:0=
 		dev-ml/lwt_log:=
 		>=dev-ml/react-0.9.3:=
 		zlib? ( >=dev-ml/camlzip-1.03-r1:= )
