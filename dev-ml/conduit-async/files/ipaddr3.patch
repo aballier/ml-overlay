@@ -1,0 +1,45 @@
+Index: ocaml-conduit-1.3.0/async/dune
+===================================================================
+--- ocaml-conduit-1.3.0.orig/async/dune
++++ ocaml-conduit-1.3.0/async/dune
+@@ -4,7 +4,7 @@
+  (modules     conduit_async private_ssl v1 v2 s)
+  (preprocess  (pps ppx_sexp_conv))
+  (libraries
+-   conduit async
++   conduit async ipaddr ipaddr.sexp
+ 
+     (select private_ssl.ml from
+      (async_ssl  -> private_ssl_real.ml)
+Index: ocaml-conduit-1.3.0/async/v1.ml
+===================================================================
+--- ocaml-conduit-1.3.0.orig/async/v1.ml
++++ ocaml-conduit-1.3.0/async/v1.ml
+@@ -20,9 +20,9 @@ module Conduit_async = struct
+   type 'a io = 'a Deferred.t
+ 
+   type addr = [
+-    | `OpenSSL of string * Ipaddr.t * int
+-    | `OpenSSL_with_config of string * Ipaddr.t * int * Ssl.config
+-    | `TCP of Ipaddr.t * int
++    | `OpenSSL of string * Ipaddr_sexp.t * int
++    | `OpenSSL_with_config of string * Ipaddr_sexp.t * int * Ssl.config
++    | `TCP of Ipaddr_sexp.t * int
+     | `Unix_domain_socket of string
+   ] [@@deriving sexp]
+ 
+Index: ocaml-conduit-1.3.0/async/v2.ml
+===================================================================
+--- ocaml-conduit-1.3.0.orig/async/v2.ml
++++ ocaml-conduit-1.3.0/async/v2.ml
+@@ -3,8 +3,8 @@ open Async
+ open Private_ssl.V2
+ 
+ type addr = [
+-  | `OpenSSL of Ipaddr.t * int * Ssl.Config.t
+-  | `TCP of Ipaddr.t * int
++  | `OpenSSL of Ipaddr_sexp.t * int * Ssl.Config.t
++  | `TCP of Ipaddr_sexp.t * int
+   | `Unix_domain_socket of string
+ ] [@@deriving sexp_of]
+ 
