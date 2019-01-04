@@ -1,7 +1,7 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 inherit jbuilder
 
@@ -14,16 +14,13 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="+ocamlopt test"
 
-RDEPEND="dev-ml/sexplib:=
-	dev-ml/ppx_sexp_conv:=
-	dev-ml/ppx_core:=
-	dev-ml/ppx_type_conv:=
-	dev-lang/ocaml:=[ocamlopt?]
+RDEPEND="dev-ml/sexplib0:=
+	dev-ml/macaddr:=
 	!dev-ml/ocaml-ipaddr
 "
 DEPEND="${RDEPEND}
 	dev-ml/findlib
-	test? ( dev-ml/ounit )
+	test? ( dev-ml/ounit dev-ml/ppx_sexp_conv )
 "
 
 S="${WORKDIR}/ocaml-${P}"
