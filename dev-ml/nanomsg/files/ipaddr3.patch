@@ -1,0 +1,29 @@
+Index: onanomsg-1.0/lib/nanomsg.ml
+===================================================================
+--- onanomsg-1.0.orig/lib/nanomsg.ml
++++ onanomsg-1.0/lib/nanomsg.ml
+@@ -21,12 +21,10 @@ type proto =
+ module Addr = struct
+   module V4 = struct
+     include Ipaddr.V4
+-    let pp = pp_hum
+   end
+ 
+   module V6 = struct
+     include Ipaddr.V6
+-    let pp = pp_hum
+   end
+ 
+   type bind = [
+Index: onanomsg-1.0/lib/nanomsg_utils.ml
+===================================================================
+--- onanomsg-1.0.orig/lib/nanomsg_utils.ml
++++ onanomsg-1.0/lib/nanomsg_utils.ml
+@@ -12,7 +12,6 @@ end
+ 
+ module Ipaddr = struct
+   include Ipaddr
+-  let pp = pp_hum
+ end
+ 
+ module Symbol = struct

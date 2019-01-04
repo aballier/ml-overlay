@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -10,7 +10,7 @@ HOMEPAGE="https://github.com/rgrinberg/onanomsg"
 SRC_URI="https://github.com/rgrinberg/onanomsg/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="WTFPL-2"
-SLOT="0/${PV}-bigstring-lwt4"
+SLOT="0/${PV}-bigstring-lwt4-ipaddr3"
 KEYWORDS="~amd64"
 IUSE="+lwt +ocamlopt test"
 
@@ -36,7 +36,8 @@ src_prepare() {
 		"${FILESDIR}/tests.patch" \
 		"${FILESDIR}/testrun.patch" \
 		"${FILESDIR}/thread.patch" \
-		"${FILESDIR}/lwt4.patch"
+		"${FILESDIR}/lwt4.patch" \
+		"${FILESDIR}/ipaddr3.patch"
 	default
 }
 
