@@ -1,0 +1,90 @@
+Index: ocaml-conduit-1.3.0/lwt-unix/conduit_lwt_unix.ml
+===================================================================
+--- ocaml-conduit-1.3.0.orig/lwt-unix/conduit_lwt_unix.ml
++++ ocaml-conduit-1.3.0/lwt-unix/conduit_lwt_unix.ml
+@@ -57,7 +57,7 @@ type oc = Lwt_io.output_channel
+ 
+ type client_tls_config =
+   [ `Hostname of string ] *
+-  [ `IP of Ipaddr.t ] *
++  [ `IP of Ipaddr_sexp.t ] *
+   [ `Port of int ]
+ [@@deriving sexp]
+ 
+@@ -65,7 +65,7 @@ type client = [
+   | `TLS of client_tls_config
+   | `TLS_native of client_tls_config
+   | `OpenSSL of client_tls_config
+-  | `TCP of [ `IP of Ipaddr.t ] * [`Port of int ]
++  | `TCP of [ `IP of Ipaddr_sexp.t ] * [`Port of int ]
+   | `Unix_domain_socket of [ `File of string ]
+   | `Vchan_direct of [ `Domid of int ] * [ `Port of string ]
+   | `Vchan_domain_socket of [ `Domain_name of string ] * [ `Port of string ]
+@@ -121,7 +121,7 @@ let sexp_of_ctx ctx =
+ 
+ type tcp_flow = {
+   fd: Lwt_unix.file_descr sexp_opaque;
+-  ip: Ipaddr.t;
++  ip: Ipaddr_sexp.t;
+   port: int;
+ } [@@deriving sexp]
+ 
+Index: ocaml-conduit-1.3.0/lwt-unix/conduit_lwt_unix.mli
+===================================================================
+--- ocaml-conduit-1.3.0.orig/lwt-unix/conduit_lwt_unix.mli
++++ ocaml-conduit-1.3.0/lwt-unix/conduit_lwt_unix.mli
+@@ -26,7 +26,7 @@ open Sexplib.Conv
+ (** Configuration fragment for a TLS client connecting to a remote endpoint *)
+ type client_tls_config =
+   [ `Hostname of string ] *
+-  [ `IP of Ipaddr.t ] *
++  [ `IP of Ipaddr_sexp.t ] *
+   [ `Port of int ]
+ [@@deriving sexp]
+ 
+@@ -53,7 +53,7 @@ type client = [
+   (** Force use of native OCaml TLS stack to connect.*)
+   | `OpenSSL of client_tls_config
+   (** Force use of Lwt OpenSSL bindings to connect. *)
+-  | `TCP of [ `IP of Ipaddr.t ] * [`Port of int ]
++  | `TCP of [ `IP of Ipaddr_sexp.t ] * [`Port of int ]
+   (** Use TCP to connect to the given [ip], [port] tuple. *)
+   | `Unix_domain_socket of [ `File of string ]
+   (** Use UNIX domain sockets to connect to a socket on the [path]. *)
+@@ -102,7 +102,7 @@ type oc = Lwt_io.output_channel
+ (** [tcp_flow] contains the state of a single TCP connection. *)
+ type tcp_flow = private {
+   fd: Lwt_unix.file_descr sexp_opaque;
+-  ip: Ipaddr.t;
++  ip: Ipaddr_sexp.t;
+   port: int;
+ } [@@deriving sexp_of]
+ 
+Index: ocaml-conduit-1.3.0/lwt-unix/dune
+===================================================================
+--- ocaml-conduit-1.3.0.orig/lwt-unix/dune
++++ ocaml-conduit-1.3.0/lwt-unix/dune
+@@ -27,7 +27,7 @@ let v ~launchd ~ssl ~tls () =
+   (wrapped     false)
+   (modules     resolver_lwt_unix conduit_lwt_unix conduit_lwt_server
+                conduit_lwt_tls conduit_lwt_unix_ssl conduit_lwt_launchd)
+-  (libraries   conduit-lwt lwt.unix uri.services ipaddr.unix logs %s%s%s))
++  (libraries   conduit-lwt lwt.unix uri.services ipaddr.unix ipaddr.sexp logs %s%s%s))
+ |} launchd ssl tls ssl tls launchd_d ssl_d tls_d
+ 
+ let main () =
+Index: ocaml-conduit-1.3.0/lwt-unix/resolver_lwt_unix.ml
+===================================================================
+--- ocaml-conduit-1.3.0.orig/lwt-unix/resolver_lwt_unix.ml
++++ ocaml-conduit-1.3.0/lwt-unix/resolver_lwt_unix.ml
+@@ -62,8 +62,8 @@ let get_host uri =
+   | None -> "localhost"
+   | Some host ->
+       match Ipaddr.of_string host with
+-      | Some ip -> Ipaddr.to_string ip
+-      | None -> host
++      | Ok ip -> Ipaddr.to_string ip
++      | Error msg -> host
+ 
+ let get_port service uri =
+   match Uri.port uri with
