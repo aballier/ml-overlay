@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -26,8 +26,9 @@ fi
 RDEPEND="dev-lang/ocaml:=[ocamlopt?]
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-ppx:=
-	>=dev-ml/eliom-5.1:=[ppx]
+	>=dev-ml/eliom-5.1:=
 		dev-ml/tyxml:=
+		dev-ml/ipaddr:=
 	dev-ml/ppx_deriving:=
 	dev-ml/calendar:=
 	dev-ml/lwt:="
