@@ -29,4 +29,3 @@ RDEPEND="
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-conduit-${PV}"
-PATCHES=( "${FILESDIR}/ipaddr3.patch" )
