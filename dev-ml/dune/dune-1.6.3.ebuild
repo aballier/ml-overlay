@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -39,8 +39,4 @@ src_configure() {
 src_compile() {
 	ocaml bootstrap.ml || die
 	./boot.exe -j $(makeopts_jobs) || die
-}
-
-src_test() {
-	./_build/default/bin/main_dune.exe runtest -p ${PN} -j $(makeopts_jobs) || die
 }
