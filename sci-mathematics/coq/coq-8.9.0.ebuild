@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="5"
@@ -42,7 +42,6 @@ src_configure() {
 		-bindir /usr/bin
 		-libdir /usr/$(get_libdir)/coq
 		-mandir /usr/share/man
-		-emacslib /usr/share/emacs/site-lisp
 		-coqdocdir /usr/$(get_libdir)/coq/coqdoc
 		-docdir /usr/share/doc/${PF}
 		-configdir /etc/xdg/${PN}
@@ -78,7 +77,7 @@ src_test() {
 
 src_install() {
 	emake STRIP="true" COQINSTALLPREFIX="${D}" install VERBOSE=1
-	dodoc README.md CREDITS CHANGES
+	dodoc README.md CREDITS CHANGES.md
 
 	use gtk && make_desktop_entry "coqide" "Coq IDE" "${EPREFIX}/usr/share/coq/coq.png"
 }
