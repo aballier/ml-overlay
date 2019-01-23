@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit jbuilder
 
@@ -33,3 +33,4 @@ DEPEND="${RDEPEND}"
 RESTRICT="test"
 
 S="${WORKDIR}/ocaml-${P}"
+PATCHES=( "${FILESDIR}/b643.patch" )
