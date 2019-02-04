@@ -33,4 +33,3 @@ DEPEND="${RDEPEND}"
 RESTRICT="test"
 
 S="${WORKDIR}/ocaml-${P}"
-PATCHES=( "${FILESDIR}/b643.patch" )
