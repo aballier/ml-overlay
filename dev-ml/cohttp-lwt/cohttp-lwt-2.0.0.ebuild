@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -18,8 +18,10 @@ RDEPEND="
 	dev-ml/cohttp:=
 		dev-ml/uri:=
 	dev-ml/lwt:=
-	dev-ml/sexplib:=
+	dev-ml/sexplib0:=
+	dev-ml/ppx_sexp_conv:=
+	dev-ml/logs:=
 "
-DEPEND="${RDEPEND} dev-ml/ppx_sexp_conv"
+DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
