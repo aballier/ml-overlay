@@ -23,8 +23,6 @@ RDEPEND="
 	dev-ml/cohttp:=
 	dev-ml/cohttp-lwt:=
 	dev-ml/lwt:=
-	dev-ml/lwt_log:=
-	dev-ml/sexplib:=
 	dev-libs/openssl:0=
 "
 DEPEND="${RDEPEND}
