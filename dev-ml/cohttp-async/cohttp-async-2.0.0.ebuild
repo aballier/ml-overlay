@@ -24,12 +24,11 @@ RDEPEND="
 	dev-ml/magic-mime:=
 	dev-ml/logs:=
 	dev-ml/fmt:=
-	dev-ml/sexplib:=
+	dev-ml/sexplib0:=
 	>=dev-ml/uri-2:=
 	dev-libs/openssl:0=
 "
 DEPEND="${RDEPEND}
-	dev-ml/ppx_sexp_conv
 	test? ( dev-ml/ounit dev-ml/core )"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
