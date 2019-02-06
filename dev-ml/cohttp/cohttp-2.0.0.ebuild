@@ -18,15 +18,15 @@ RDEPEND="
 	dev-ml/re:=
 	>=dev-ml/uri-2:=
 	dev-ml/fieldslib:=
-	dev-ml/sexplib:=
+	dev-ml/sexplib0:=
+	dev-ml/ppx_fields_conv:=
+	dev-ml/ppx_sexp_conv:=
 	dev-ml/stringext:=
 	dev-ml/base64:=
-	dev-ml/ppx_sexp_conv:=
 
 	!dev-ml/ocaml-cohttp
 "
 DEPEND="${RDEPEND}
-	dev-ml/ppx_fields_conv
 	dev-ml/jsonm
 	test? (
 		dev-ml/alcotest
@@ -35,4 +35,3 @@ DEPEND="${RDEPEND}
 "
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
-PATCHES=( "${FILESDIR}/b643.patch" )
