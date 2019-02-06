@@ -1,20 +1,20 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
 PYTHON_COMPAT=( python2_7 )
 
-inherit multilib eutils python-single-r1 bash-completion-r1 elisp-common
+inherit multilib eutils python-single-r1 bash-completion-r1 elisp-common autotools
 
 MY_P="${P/_/-}"
 DESCRIPTION="Program matching and transformation engine"
 HOMEPAGE="http://coccinelle.lip6.fr/"
-SRC_URI="http://coccinelle.lip6.fr/distrib/${MY_P}.tgz"
+SRC_URI="http://coccinelle.lip6.fr/distrib/${MY_P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64"
-IUSE="doc emacs ocaml +ocamlopt pcre python test vim-syntax"
+IUSE="doc emacs ocaml +ocamlopt pcre test vim-syntax"
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 # ocaml enables ocaml scripting (uses findlib)
@@ -26,7 +26,7 @@ CDEPEND=">=dev-lang/ocaml-3.12:=[ocamlopt?]
 	emacs? ( virtual/emacs )
 	ocaml? ( dev-ml/findlib:= )
 	pcre? ( dev-ml/pcre:=[ocamlopt(+)?] )
-	python? ( ${PYTHON_DEPS} )"
+	${PYTHON_DEPS}"
 
 RDEPEND="${CDEPEND}
 	vim-syntax? ( || ( app-editors/vim app-editors/gvim ) )"
@@ -47,23 +47,27 @@ S=${WORKDIR}/${MY_P}
 SITEFILE=50coccinelle-gentoo.el
 
 pkg_setup() {
-	use python && python-single-r1_pkg_setup
+	python-single-r1_pkg_setup
 }
 
 src_prepare() {
-	has_version '>=dev-lang/ocaml-4.06.0_beta' && epatch "${FILESDIR}/ocaml406.patch"
+	epatch "${FILESDIR}/pcre.patch"
 	default
 
-	if use python ; then
-		# fix python install location
-		sed -e "s:\$(LIBDIR)/python:$(python_get_sitedir):" \
-			-i Makefile || die
-	fi
+	eautoreconf
+
+	# fix python install location
+	sed -e "s:\$(LIBDIR)/python:$(python_get_sitedir):" \
+		-i Makefile || die
+
+	export VERBOSE=yes
+
+	cp "${FILESDIR}/SCORE_expected.sexp" tests/ || die
 }
 
 src_configure() {
 	econf \
-		$(use_enable python) \
+		--enable-python \
 		$(use_enable ocaml) \
 		$(use_enable pcre) \
 		$(use_enable pcre pcre-syntax) \
@@ -71,8 +75,6 @@ src_configure() {
 }
 
 src_compile() {
-	emake depend
-
 	if use ocamlopt ; then
 		emake all.opt
 	else
@@ -86,11 +88,6 @@ src_compile() {
 	if use emacs ; then
 		elisp-compile editors/emacs/cocci.el || die
 	fi
-}
-
-src_test() {
-	emake check
-	use python && emake pycocci-check
 }
 
 src_install() {
@@ -111,7 +108,7 @@ src_install() {
 		doins -r editors/vim/*
 	fi
 
-	use python && python_optimize
+	python_optimize
 
 	export STRIP_MASK='*/coccinelle/spatch'
 }
