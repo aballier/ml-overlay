@@ -25,11 +25,11 @@ case ${EAPI:-0} in
 esac
 
 jbuilder_src_compile() {
-	jbuilder build -p "${PN}" -j $(makeopts_jobs) @install || die
+	dune build -p "${PN}" -j $(makeopts_jobs) @install || die
 }
 
 jbuilder_src_test() {
-	jbuilder runtest -p "${PN}" -j $(makeopts_jobs) || die
+	dune runtest -p "${PN}" -j $(makeopts_jobs) || die
 }
 
 EXPORT_FUNCTIONS src_compile src_test
