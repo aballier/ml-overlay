@@ -16,8 +16,6 @@ IUSE="test"
 RDEPEND="
 	dev-ml/graphql:=
 	dev-ml/lwt:=
-	dev-ml/cohttp-lwt-unix:=
-	dev-ml/crunch:=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )"
