@@ -17,7 +17,6 @@ RDEPEND="
 	dev-ml/graphql_parser:=
 	dev-ml/yojson:=
 	dev-ml/rresult:=
-	dev-ml/sexplib:=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )"
