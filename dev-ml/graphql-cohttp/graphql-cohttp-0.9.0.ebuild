@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -17,6 +17,10 @@ RDEPEND="
 	dev-ml/graphql:=
 	dev-ml/cohttp:=
 	dev-ml/crunch:=
+	dev-ml/astring:=
+	dev-ml/base64:=
+	dev-ml/ocplib-endian:=
+	dev-ml/digestif:=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest dev-ml/async_unix )"
