@@ -14,9 +14,10 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="
-	dev-ml/angstrom:=
-	dev-ml/sexplib:=
-	dev-ml/ppx_sexp_conv:="
+	dev-ml/result:=
+	dev-ml/fmt:=
+"
 DEPEND="${RDEPEND}
+	dev-ml/menhir
 	test? ( dev-ml/alcotest )"
 S="${WORKDIR}/ocaml-graphql-server-${PV}"
