@@ -1,13 +1,14 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
 
 inherit jbuilder
 
+MY_P="${PN}-v${PV}"
 DESCRIPTION="OCaml interface to the YAML 1.1 spec"
 HOMEPAGE="https://github.com/avsm/ocaml-yaml"
-SRC_URI="https://github.com/avsm/ocaml-yaml/releases/download/v${PV}/${P}.tbz"
+SRC_URI="https://github.com/avsm/ocaml-yaml/releases/download/v${PV}/${MY_P}.tbz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
@@ -16,17 +17,19 @@ IUSE="test"
 
 DEPEND="
 	dev-ml/ocaml-ctypes:=
+	dev-ml/ppx_sexp_conv:=
+	dev-ml/sexplib:=
 	dev-ml/rresult:=
 	dev-ml/fmt:=
 	dev-ml/logs:=
-	dev-ml/sexplib:=
+	dev-ml/bos:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
-	dev-ml/ppx_sexp_conv
 	test? (
 		dev-ml/alcotest
 		dev-ml/ezjsonm
-		dev-ml/bos
 	)
 "
+RESTRICT="test"
+S="${WORKDIR}/${MY_P}"
