@@ -1,9 +1,9 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="OCaml duration representation"
 HOMEPAGE="https://github.com/hannesm/duration"
@@ -17,15 +17,4 @@ IUSE="test"
 DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
-	dev-ml/findlib
-	dev-ml/ocamlbuild
-	dev-ml/topkg
 	test? ( dev-ml/alcotest )"
-
-src_compile() {
-	ocaml pkg/pkg.ml build --tests $(usex test true false) || die
-}
-
-src_test() {
-	ocaml pkg/pkg.ml test || die
-}
