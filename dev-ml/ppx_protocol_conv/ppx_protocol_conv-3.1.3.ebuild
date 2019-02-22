@@ -1,7 +1,7 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 inherit jbuilder
 
@@ -16,19 +16,13 @@ IUSE="test"
 
 DEPEND="
 	dev-ml/base:=
-	dev-ml/ppx_type_conv:=
-	dev-ml/ppx_driver:=
-		dev-ml/ppxlib:=
-	dev-ml/ppx_core:=
+	dev-ml/ppxlib:=
+	dev-ml/ppx_sexp_conv:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
-	dev-ml/ppx_metaquot
 	test? (
-		dev-ml/yojson
-		dev-ml/xml-light
-		dev-ml/msgpck
-		dev-ml/yaml
+		dev-ml/sexplib
+		dev-ml/ounit
 	)
 "
-RESTRICT="test"
