@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -15,6 +15,7 @@ KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND="
+	dev-ml/base_quickcheck:=
 	dev-ml/ppx_assert:=
 	dev-ml/ppx_base:=
 	dev-ml/ppx_bench:=
@@ -26,14 +27,15 @@ DEPEND="
 	dev-ml/ppx_here:=
 	dev-ml/ppx_inline_test:=
 	dev-ml/ppx_let:=
+	dev-ml/ppx_module_timer:=
 	dev-ml/ppx_optcomp:=
 	dev-ml/ppx_optional:=
 	dev-ml/ppx_pipebang:=
 	dev-ml/ppx_sexp_message:=
 	dev-ml/ppx_sexp_value:=
+	dev-ml/ppx_stable:=
 	dev-ml/ppx_typerep_conv:=
 	dev-ml/ppx_variants_conv:=
-	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/ppxlib:=
 "
 RDEPEND="${DEPEND}"
