@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -17,6 +17,6 @@ IUSE=""
 RDEPEND="
 	dev-ml/parsexp:=
 	dev-ml/sexplib0:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/num:=
 "
 DEPEND="${RDEPEND}"
