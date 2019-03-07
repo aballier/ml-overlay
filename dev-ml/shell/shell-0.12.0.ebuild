@@ -22,5 +22,7 @@ DEPEND="
 	dev-ml/re2:=
 	dev-ml/textutils:=
 	dev-ml/spawn:=
+
+	!dev-ml/ocamlnet
 "
 RDEPEND="${DEPEND}"
