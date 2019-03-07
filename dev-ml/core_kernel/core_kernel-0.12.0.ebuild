@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -16,8 +16,9 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/base:=
+	dev-ml/base_bigstring:=
+	dev-ml/base_quickcheck:=
 	dev-ml/bin_prot:=
-	dev-ml/configurator:=
 	dev-ml/fieldslib:=
 	dev-ml/jane-street-headers:=
 	dev-ml/ppx_assert:=
@@ -32,9 +33,8 @@ RDEPEND="
 	dev-ml/sexplib:=
 	dev-ml/splittable_random:=
 	dev-ml/stdio:=
+	dev-ml/time_now:=
 	dev-ml/typerep:=
 	dev-ml/variantslib:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppxlib:=
 "
 DEPEND="${RDEPEND}"
