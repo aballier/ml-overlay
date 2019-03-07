@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -18,11 +18,10 @@ RDEPEND="
 	dev-ml/async_kernel:=
 	dev-ml/async_rpc_kernel:=
 	dev-ml/ppx_jane:=
+		dev-ml/ppxlib:=
+		dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-ppx:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppxlib:=
 	>=dev-ml/uri-2:=
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/uri2.patch" )
