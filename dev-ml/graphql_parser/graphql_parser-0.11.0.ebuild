@@ -14,7 +14,7 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="
-	dev-ml/result:=
+	dev-ml/re:=
 	dev-ml/fmt:=
 "
 DEPEND="${RDEPEND}
