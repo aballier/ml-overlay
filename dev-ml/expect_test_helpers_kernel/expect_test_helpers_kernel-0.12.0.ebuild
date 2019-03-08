@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -15,11 +15,13 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="
+	dev-ml/base:=
+	dev-ml/base_quickcheck:=
 	dev-ml/core_kernel:=
 	dev-ml/ppx_jane:=
+		dev-ml/ocaml-migrate-parsetree:=
+		dev-ml/ppxlib:=
 	dev-ml/sexp_pretty:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppxlib:=
 	dev-ml/re:=
 "
 DEPEND="${RDEPEND}"
