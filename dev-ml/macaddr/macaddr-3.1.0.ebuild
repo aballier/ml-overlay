@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="OCaml library for manipulation of MAC address representations"
 HOMEPAGE="https://github.com/mirage/ocaml-ipaddr"
-SRC_URI="https://github.com/mirage/ocaml-ipaddr/archive/${PV}.tar.gz -> ocaml-ipaddr-${PV}.tar.gz"
+SRC_URI="https://github.com/mirage/ocaml-ipaddr/archive/v${PV}.tar.gz -> ocaml-ipaddr-${PV}.tar.gz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
