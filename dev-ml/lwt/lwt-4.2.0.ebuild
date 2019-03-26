@@ -27,3 +27,4 @@ DEPEND="${DEPEND}
 SLOT="0/${PV}"
 LICENSE="LGPL-2.1-with-linking-exception"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86 ~x86-fbsd"
+PATCHES=( "${FILESDIR}/noseq.patch" )

@@ -1,0 +1,11 @@
+Index: lwt-4.2.0/src/core/dune
+===================================================================
+--- lwt-4.2.0.orig/src/core/dune
++++ lwt-4.2.0/src/core/dune
+@@ -3,5 +3,5 @@
+  (public_name lwt)
+  (synopsis "Monadic promises and concurrent I/O")
+  (wrapped false)
+- (libraries bytes result seq)
++ (libraries bytes result)
+  (flags (:standard -w +A-29)))
