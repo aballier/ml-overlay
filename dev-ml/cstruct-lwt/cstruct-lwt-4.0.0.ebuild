@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit findlib jbuilder
 
@@ -12,11 +12,12 @@ SRC_URI="https://github.com/mirage/ocaml-cstruct/archive/v${PV}.tar.gz -> ocaml-
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE=""
+IUSE="test"
 
 RDEPEND="dev-ml/cstruct:=
 	dev-ml/lwt:=
 	!dev-ml/ocaml-cstruct"
-DEPEND="${RDEPEND}"
+DEPEND="${RDEPEND}
+	test? ( dev-ml/alcotest )"
 
 S="${WORKDIR}/ocaml-cstruct-${PV}"
