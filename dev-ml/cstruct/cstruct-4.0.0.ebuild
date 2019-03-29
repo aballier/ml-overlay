@@ -14,8 +14,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="dev-ml/sexplib:=
-	!dev-ml/ocaml-cstruct"
+RDEPEND="!dev-ml/ocaml-cstruct"
 DEPEND="
 	test? ( dev-ml/alcotest )
 	${RDEPEND}
