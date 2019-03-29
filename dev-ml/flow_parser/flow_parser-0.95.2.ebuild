@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -19,7 +19,7 @@ DEPEND="
 	dev-ml/sedlex:=
 	dev-ml/wtf8:=
 	dev-ml/ppx_gen_rec:=
-	dev-ml/dtoa:=
+	dev-ml/ppx_deriving:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
