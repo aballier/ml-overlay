@@ -8,4 +8,7 @@
 	<use>
 		<flag name="camlp4">Enable PG'Ocaml syntax extension.</flag>
 	</use>
+	<upstream>
+		<remote-id type="github">darioteixeira/pgocaml</remote-id>
+	</upstream>
 </pkgmetadata>
