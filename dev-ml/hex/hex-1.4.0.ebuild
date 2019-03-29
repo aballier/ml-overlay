@@ -15,6 +15,8 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="dev-ml/cstruct:="
+DEPEND="dev-ml/cstruct:=
+	dev-ml/bigarray-compat:=
+"
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/${MY_P}"
