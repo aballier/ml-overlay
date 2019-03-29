@@ -18,7 +18,6 @@ RDEPEND="dev-ml/cstruct:=
 	dev-ml/async_kernel:=
 	dev-ml/async_unix:=
 	dev-ml/core_kernel:=
-	dev-ml/num:=
 	!dev-ml/ocaml-cstruct"
 DEPEND="${RDEPEND}"
 
