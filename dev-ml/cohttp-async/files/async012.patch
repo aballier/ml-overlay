@@ -1,0 +1,20 @@
+commit 1b585adc54a0ee2b04097f04bc92ec270a1b4871
+Author: Fabian <copy@copy.sh>
+Date:   Wed Mar 27 12:59:15 2019 -0500
+
+    Fix for async=v0.12.0
+
+diff --git a/cohttp-async/bin/cohttp_server_async.ml b/cohttp-async/bin/cohttp_server_async.ml
+index 93e3938..b544a0b 100644
+--- a/cohttp-async/bin/cohttp_server_async.ml
++++ b/cohttp-async/bin/cohttp_server_async.ml
+@@ -134,7 +134,7 @@ let () =
+       +> anon (maybe_with_default "." ("docroot" %: string))
+       +> flag "-p" (optional_with_default 8080 int) ~doc:"port TCP port to listen on"
+       +> flag "-i" (optional_with_default "index.html" string) ~doc:"file Name of index file in directory"
+-      +> flag "-cert-file" (optional file) ~doc:"File of cert for https"
+-      +> flag "-key-file" (optional file) ~doc:"File of private key for https"
++      +> flag "-cert-file" (optional string) ~doc:"File of cert for https"
++      +> flag "-key-file" (optional string) ~doc:"File of private key for https"
+       +> flag "-v" no_arg ~doc:" Verbose logging output to console"
+     ) start_server
