@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit findlib jbuilder
 
@@ -16,6 +16,7 @@ IUSE="test"
 
 RDEPEND="dev-ml/cstruct:=
 	dev-ml/ppx_tools_versioned:=
+	dev-ml/sexplib:=
 	dev-ml/ocaml-migrate-parsetree:=
 		dev-ml/result:=
 "
@@ -25,6 +26,7 @@ DEPEND="
 		dev-ml/ppx_driver
 		dev-ml/ppx_sexp_conv
 		dev-ml/cstruct-unix
+		dev-ml/cstruct-sexp
 	)
 	${RDEPEND}
 "
