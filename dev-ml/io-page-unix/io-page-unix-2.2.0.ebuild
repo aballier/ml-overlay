@@ -18,6 +18,7 @@ IUSE="test"
 RDEPEND="
 	dev-ml/cstruct:=
 	dev-ml/io-page:=
+	dev-ml/bigarray-compat:=
 "
 DEPEND="
 	${RDEPEND}
