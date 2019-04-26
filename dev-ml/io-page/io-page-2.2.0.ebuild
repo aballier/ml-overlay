@@ -15,7 +15,10 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="dev-ml/cstruct:="
+RDEPEND="
+	dev-ml/cstruct:=
+	dev-ml/bigarray-compat:=
+"
 DEPEND="
 	${RDEPEND}
 "
