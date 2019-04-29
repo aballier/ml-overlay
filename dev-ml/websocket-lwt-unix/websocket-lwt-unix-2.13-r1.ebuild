@@ -14,7 +14,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
+RDEPEND="
 	dev-ml/websocket:=
 	dev-ml/ipaddr:=
 	dev-ml/lwt_log:=
