@@ -14,7 +14,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
+RDEPEND="
 	dev-ml/websocket:=
 	dev-ml/async_ssl:=
 		dev-libs/openssl:0=
