@@ -18,3 +18,4 @@ RDEPEND="!dev-ml/ocaml-re"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit )"
 S="${WORKDIR}/ocaml-${P}"
+PATCHES=( "${FILESDIR}/seq.patch" )

@@ -1,0 +1,10 @@
+Index: ocaml-re-1.9.0/lib/dune
+===================================================================
+--- ocaml-re-1.9.0.orig/lib/dune
++++ ocaml-re-1.9.0/lib/dune
+@@ -1,5 +1,4 @@
+ (library
+  (name re)
+  (synopsis "Pure OCaml regular expression library")
+- (libraries seq)
+  (public_name re))
