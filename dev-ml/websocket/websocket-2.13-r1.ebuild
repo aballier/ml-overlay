@@ -14,7 +14,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
+RDEPEND="
 	dev-ml/base64:=
 	dev-ml/cohttp:=
 	dev-ml/ocplib-endian:=
