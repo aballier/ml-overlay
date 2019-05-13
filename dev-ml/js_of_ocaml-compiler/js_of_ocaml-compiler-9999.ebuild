@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -21,16 +21,17 @@ fi
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
-IUSE=""
+IUSE="test"
 
 RDEPEND="
 	dev-ml/cmdliner:=
 	dev-ml/yojson:=
 	dev-ml/num:=
+	dev-ml/cppo:=
 
 	!<dev-ml/js_of_ocaml-3.0.1
 "
 DEPEND="${RDEPEND}
-	dev-ml/cppo:=
 "
+# test? ( dev-ml/ppx_expect )
 RESTRICT="test"
