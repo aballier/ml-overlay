@@ -17,12 +17,12 @@ IUSE="test"
 DEPEND="
 	dev-ml/base:=
 	dev-ml/ppxlib:=
-	dev-ml/ppx_sexp_conv:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? (
+		dev-ml/ppx_sexp_conv
 		dev-ml/sexplib
-		dev-ml/ounit
+		dev-ml/alcotest
 	)
 "
