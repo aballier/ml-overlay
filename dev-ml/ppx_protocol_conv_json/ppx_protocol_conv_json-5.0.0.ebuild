@@ -19,12 +19,14 @@ DEPEND="
 	dev-ml/ppx_protocol_conv:=
 		dev-ml/base:=
 	dev-ml/yojson:=
+	dev-ml/ppx_expect:=
+	dev-ml/ppx_inline_test:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? (
 		dev-ml/ppx_sexp_conv
 		dev-ml/sexplib
-		dev-ml/ounit
+		dev-ml/alcotest
 	)"
 S="${WORKDIR}/${MY_P}"
