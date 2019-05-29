@@ -17,5 +17,6 @@ IUSE=""
 DEPEND="
 	dev-ml/ppx_inline_test:=
 	dev-ml/ppxlib:=
+		dev-ml/stdio:=
 "
 RDEPEND="${DEPEND}"
