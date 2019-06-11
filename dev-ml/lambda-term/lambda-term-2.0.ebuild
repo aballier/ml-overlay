@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -19,7 +19,8 @@ DEPEND="
 		dev-ml/result:=
 	>=dev-ml/lwt-2.4.0:=
 	dev-ml/lwt_log:=
-	>=dev-ml/zed-1.2:=
+	>=dev-ml/zed-2:=
+	dev-ml/camomile:=
 	>=dev-ml/react-1.2:=
 "
 RDEPEND="${DEPEND}"
