@@ -6,6 +6,6 @@
 		<name>Gentoo ML Project</name>
 	</maintainer>
 	<upstream>
-		<remote-id type="github">c-cube/sequence</remote-id>
+		<remote-id type="github">c-cube/iter</remote-id>
 	</upstream>
 </pkgmetadata>
