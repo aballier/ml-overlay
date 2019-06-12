@@ -26,9 +26,10 @@ DEPEND="${RDEPEND}
 		dev-ml/qtest
 		dev-ml/qcheck
 		dev-ml/ounit
-		dev-ml/sequence
+		dev-ml/iter
 		dev-ml/gen
 		dev-ml/uutf
 		dev-ml/odoc
 	)"
 S="${WORKDIR}/ocaml-${PN}-${PV/_/-}"
+PATCHES=( "${FILESDIR}/iter.patch" )
