@@ -1,1 +1,2 @@
 move dev-ml/websocket-lwt dev-ml/websocket-lwt-unix
+move dev-ml/sequence dev-ml/iter
