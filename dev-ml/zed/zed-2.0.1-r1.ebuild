@@ -17,5 +17,6 @@ IUSE=""
 DEPEND="
 	dev-ml/camomile:=
 	dev-ml/charInfo_width:=
+		dev-ml/result:=
 	dev-ml/react:="
 RDEPEND="${DEPEND}"
