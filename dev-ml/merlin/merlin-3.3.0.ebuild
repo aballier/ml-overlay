@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -20,4 +20,4 @@ DEPEND="
 RDEPEND="${DEPEND}
 	|| ( app-editors/vim[python] app-editors/gvim[python] )"
 DEPEND="${DEPEND}
-	test? ( dev-ml/craml )"
+	test? ( dev-ml/mdx )"
