@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -21,7 +21,7 @@ RDEPEND="
 	dev-ml/optcomp:=
 	dev-ml/findlib:=
 	dev-ml/camlp4:=
-	|| ( dev-ml/num:= <dev-lang/ocaml-4.06_alpha )
+	dev-ml/num:=
 "
 DEPEND="${RDEPEND}
 	dev-ml/oasis"
