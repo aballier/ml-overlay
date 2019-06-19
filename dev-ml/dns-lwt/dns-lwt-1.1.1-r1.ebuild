@@ -18,6 +18,7 @@ IUSE="test"
 
 RDEPEND="
 	dev-ml/lwt:=
+		dev-ml/result:=
 	dev-ml/dns:=
 		dev-ml/ipaddr:=
 	dev-ml/mirage-profile:=
