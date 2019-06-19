@@ -20,7 +20,7 @@ RDEPEND="
 	dev-ml/ocaml-ctypes:=
 	dev-ml/ipaddr:=[ocamlopt?]
 		dev-ml/sexplib:=
-	dev-ml/ppx_deriving:=[ocamlopt?]
+	dev-ml/ppx_deriving:=
 	dev-ml/containers:=[ocamlopt(+)?]
 	dev-ml/bigstring:=
 	lwt? ( dev-ml/lwt:=[ocamlopt(+)?] dev-ml/lwt_ppx:= )
