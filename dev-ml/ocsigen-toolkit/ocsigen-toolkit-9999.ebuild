@@ -30,6 +30,7 @@ RDEPEND="dev-lang/ocaml:=[ocamlopt?]
 		dev-ml/tyxml:=
 		dev-ml/ipaddr:=
 	dev-ml/ppx_deriving:=
+		dev-ml/result:=
 	dev-ml/calendar:=
 	dev-ml/lwt:="
 DEPEND="${RDEPEND}"
