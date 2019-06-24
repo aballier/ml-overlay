@@ -17,6 +17,9 @@ IUSE=""
 DEPEND="
 	dev-ml/logs:=
 	dev-ml/async_kernel:=
+		dev-ml/core_kernel:=
+			dev-ml/typerep:=
+				dev-ml/base:=
 "
 DEPEND="${RDEPEND}"
 
