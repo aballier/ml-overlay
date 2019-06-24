@@ -32,4 +32,3 @@ DEPEND="${RDEPEND}
 		dev-ml/odoc
 	)"
 S="${WORKDIR}/ocaml-${PN}-${PV/_/-}"
-PATCHES=( "${FILESDIR}/iter.patch" )
