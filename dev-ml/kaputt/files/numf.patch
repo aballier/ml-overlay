@@ -1,0 +1,26 @@
+Index: kaputt-1.2/Makefile
+===================================================================
+--- kaputt-1.2.orig/Makefile
++++ kaputt-1.2/Makefile
+@@ -32,7 +32,7 @@ PATH_INSTALL=$(PATH_OCAML_PREFIX)/lib/oc
+ 
+ PROJECT_NAME=kaputt
+ OCAMLBUILD=$(PATH_OCAML_PREFIX)/bin/ocamlbuild
+-OCAMLBUILD_FLAGS=-classic-display -no-links
++OCAMLBUILD_FLAGS=-classic-display -no-links -use-ocamlfind
+ MODULES_ODOCL=$(PROJECT_NAME).odocl
+ MODULES_MLPACK=$(PROJECT_NAME).mlpack
+ 
+Index: kaputt-1.2/_tags
+===================================================================
+--- kaputt-1.2.orig/_tags
++++ kaputt-1.2/_tags
+@@ -21,7 +21,7 @@ true: -traverse
+ <src/**>: include
+ 
+ # Options
+-<src/**> and not "src/extensions/kaputtBigarray.ml" and not "src/extensions/kaputtNums.ml": for-pack(Kaputt)
++<src/**> and not "src/extensions/kaputtBigarray.ml" and not "src/extensions/kaputtNums.ml": for-pack(Kaputt), package(num)
+ <src/**/*.ml{,i}>: warnings
+ 
+ # Generation of version file
