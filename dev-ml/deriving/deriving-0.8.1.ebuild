@@ -18,7 +18,6 @@ IUSE=""
 
 RDEPEND="
 	>=dev-ml/type-conv-108:=
-	dev-ml/optcomp:=
 	dev-ml/findlib:=
 	dev-ml/camlp4:=
 	dev-ml/num:=
@@ -29,10 +28,6 @@ DEPEND="${RDEPEND}
 DOCS=( CHANGES README.md )
 oasis_configure_opts="--enable-tc"
 OASIS_SETUP_COMMAND="./setup.exe"
-
-src_prepare() {
-	has_version '>=dev-lang/ocaml-4.06_beta' && epatch "${FILESDIR}/ocaml406.patch"
-}
 
 src_configure() {
 	emake setup.exe
