@@ -21,6 +21,10 @@ RDEPEND="
 		dev-ml/ppx_expect:=
 			dev-ml/re:=
 	dev-ml/sexplib:=
+		dev-ml/parsexp:=
+			dev-ml/base:=
+		dev-ml/sexplib0:=
+		dev-ml/num:=
 	dev-ml/spawn:=
 "
 DEPEND="${RDEPEND}"
