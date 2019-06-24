@@ -16,6 +16,7 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/parsexp:=
+		dev-ml/base:=
 	dev-ml/sexplib0:=
 	dev-ml/num:=
 "
