@@ -14,10 +14,25 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
+RDEPEND="
 	dev-ml/logs:=
 	dev-ml/fmt:=
 	dev-ml/async:=
+		dev-ml/async_extra:=
+		dev-ml/async_kernel:=
+		dev-ml/async_rpc_kernel:=
+		dev-ml/async_unix:=
+		dev-ml/core:=
+			dev-ml/sexplib:=
+				dev-ml/parsexp:=
+					dev-ml/base:=
+				dev-ml/sexplib0:=
+				dev-ml/num:=
+		dev-ml/core_kernel:=
+		dev-ml/ppx_jane:=
+			dev-ml/ocaml-migrate-parsetree:=
+			dev-ml/ppxlib:=
+		dev-ml/textutils:=
 "
 DEPEND="${RDEPEND}"
 
