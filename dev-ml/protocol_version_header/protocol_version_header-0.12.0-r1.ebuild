@@ -16,6 +16,8 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/core_kernel:=
+		dev-ml/typerep:=
+			dev-ml/base:=
 	dev-ml/ppx_jane:=
 		dev-ml/ppx_expect:=
 		dev-ml/ocaml-migrate-parsetree:=
