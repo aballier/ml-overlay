@@ -20,6 +20,8 @@ DEPEND="
 		dev-ml/core_kernel:=
 			dev-ml/typerep:=
 				dev-ml/base:=
+		dev-ml/ppx_jane:=
+			dev-ml/ppx_expect:=
 "
 DEPEND="${RDEPEND}"
 
