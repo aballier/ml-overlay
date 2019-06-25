@@ -17,8 +17,12 @@ IUSE=""
 RDEPEND="
 	dev-ml/async_kernel:=
 	dev-ml/core_kernel:=
-	dev-ml/ppx_jane:=
-		dev-ml/ppx_expect:=
+		dev-ml/typerep:=
+			dev-ml/base:=
 	dev-ml/protocol_version_header:=
+	dev-ml/ppx_jane:=
+		dev-ml/ppx_inline_test:=
+		dev-ml/ocaml-migrate-parsetree:=
+		dev-ml/ppxlib:=
 "
 DEPEND="${RDEPEND}"
