@@ -21,6 +21,16 @@ RDEPEND="
 	dev-ml/conduit:=
 	dev-ml/ipaddr:=
 	dev-ml/async:=
+		dev-ml/core:=
+			dev-ml/sexplib:=
+				dev-ml/parsexp:=
+					dev-ml/base:=
+				dev-ml/sexplib0:=
+				dev-ml/num:=
+		dev-ml/core_kernel:=
+		dev-ml/ppx_jane:=
+			dev-ml/ppx_inline_test:=
+			dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/async_ssl:=
 	dev-ml/num:=
 
