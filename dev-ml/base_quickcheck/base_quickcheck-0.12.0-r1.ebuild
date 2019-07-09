@@ -22,5 +22,6 @@ DEPEND="
 	dev-ml/ppx_sexp_message:=
 	dev-ml/splittable_random:=
 	dev-ml/ppxlib:=
+		dev-ml/ocaml-migrate-parsetree:=
 "
 RDEPEND="${DEPEND}"
