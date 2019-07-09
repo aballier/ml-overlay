@@ -1,0 +1,21 @@
+commit 85da77a2992bfa8b57a878aef9008807b89e18ab
+Author: Jérôme.Vouillon <jvouillon@besport.com>
+Date:   Fri Jul 5 11:14:43 2019 +0200
+
+    Adapt to ssl package API change
+
+diff --git a/src/server/ocsigen_server.ml b/src/server/ocsigen_server.ml
+index 305bbc08..c590dcd2 100644
+--- a/src/server/ocsigen_server.ml
++++ b/src/server/ocsigen_server.ml
+@@ -1025,8 +1025,8 @@ let errmsg = function
+   | (Unix.Unix_error _) as e ->
+     (("Fatal - "^(Printexc.to_string e)),
+      9)
+-  | Ssl.Private_key_error ->
+-    (("Fatal - bad password"),
++  | Ssl.Private_key_error msg ->
++    (("Fatal - bad password: " ^ msg),
+      10)
+   | Ocsigen_config.Config_file_error msg
+   | Ocsigen_extensions.Error_in_config_file msg ->

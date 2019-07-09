@@ -26,6 +26,7 @@ RESTRICT="strip installsources"
 
 DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		dev-ml/lwt_react:=
+		>=dev-ml/ssl-0.5.8:=
 		dev-ml/lwt_ssl:=
 			dev-ml/result:=
 			dev-libs/openssl:0=
@@ -43,6 +44,7 @@ DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		dbm? ( dev-ml/camldbm:= )
 		sqlite? ( dev-ml/sqlite3:= )"
 RDEPEND="${DEPEND}"
+PATCHES=( "${FILESDIR}/ssl.patch" )
 
 pkg_setup() {
 	enewgroup ocsigenserver
