@@ -44,7 +44,6 @@ DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
 		dbm? ( dev-ml/camldbm:= )
 		sqlite? ( dev-ml/sqlite3:= )"
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/ssl.patch" )
 
 pkg_setup() {
 	enewgroup ocsigenserver
