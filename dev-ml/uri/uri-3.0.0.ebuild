@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit jbuilder
 
@@ -15,16 +15,11 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="
-	>=dev-ml/re-1.7.2:=
-	dev-ml/sexplib0:=
-	dev-ml/ppx_sexp_conv:=
-	dev-ml/ppx_core:=
-	dev-ml/ppx_type_conv:=
+	>=dev-ml/re-1.9.0:=
 	dev-ml/stringext:=
-	dev-ml/type-conv:=
 "
 DEPEND="${RDEPEND}
-	test? ( >=dev-ml/ounit-1.0.2 )
+	test? ( >=dev-ml/ounit-1.0.2 dev-ml/ppx_sexp_conv )
 "
 
 S="${WORKDIR}/ocaml-${P}"
