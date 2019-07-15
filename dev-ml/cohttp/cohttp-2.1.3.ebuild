@@ -17,6 +17,7 @@ IUSE="test"
 RDEPEND="
 	dev-ml/re:=
 	>=dev-ml/uri-2:=
+	dev-ml/uri-sexp:=
 	dev-ml/fieldslib:=
 	dev-ml/sexplib0:=
 	dev-ml/ppx_fields_conv:=
