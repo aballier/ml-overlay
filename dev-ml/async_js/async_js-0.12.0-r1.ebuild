@@ -23,5 +23,7 @@ RDEPEND="
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-ppx:=
 	>=dev-ml/uri-2:=
+	dev-ml/uri-sexp:=
 "
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/uri.patch" )
