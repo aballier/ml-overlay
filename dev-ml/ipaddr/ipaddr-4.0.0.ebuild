@@ -16,6 +16,7 @@ IUSE="+ocamlopt test"
 
 RDEPEND="dev-ml/sexplib0:=
 	dev-ml/macaddr:=
+	dev-ml/domain-name:=
 	!dev-ml/ocaml-ipaddr
 "
 DEPEND="${RDEPEND}
