@@ -1,22 +1,22 @@
-Index: fmt-0.8.7/_tags
+Index: fmt-0.8.6/_tags
 ===================================================================
---- fmt-0.8.7.orig/_tags
-+++ fmt-0.8.7/_tags
+--- fmt-0.8.6.orig/_tags
++++ fmt-0.8.6/_tags
 @@ -1,4 +1,4 @@
 -true : bin_annot, safe_string, package(seq), package(stdlib-shims)
-+true : bin_annot, safe_string, package(stdlib-shims)
- <_b0> : -traverse
++true : bin_annot, safe_string
+ 
  <src> : include
  <src/fmt_tty*> : package(unix)
-Index: fmt-0.8.7/pkg/META
+Index: fmt-0.8.6/pkg/META
 ===================================================================
---- fmt-0.8.7.orig/pkg/META
-+++ fmt-0.8.7/pkg/META
+--- fmt-0.8.6.orig/pkg/META
++++ fmt-0.8.6/pkg/META
 @@ -1,6 +1,6 @@
  description = "OCaml Format pretty-printer combinators"
- version = "0.8.7"
+ version = "0.8.6"
 -requires = "seq stdlib-shims"
-+requires = "stdlib-shims"
++requires = ""
  archive(byte) = "fmt.cma"
  archive(native) = "fmt.cmxa"
  plugin(byte) = "fmt.cma"

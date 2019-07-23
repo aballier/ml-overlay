@@ -17,12 +17,12 @@ IUSE="test"
 RDEPEND="dev-ml/result:=
 	>=dev-lang/ocaml-4.07:=[ocamlopt]
 	dev-ml/uchar:=[ocamlopt]
-	dev-ml/stdlib-shims:=
 	dev-ml/cmdliner:=[ocamlopt]"
 DEPEND="${RDEPEND}
 	>=dev-ml/topkg-0.9
 	dev-ml/ocamlbuild
 	dev-ml/findlib"
+
 PATCHES=( "${FILESDIR}/noseq.patch" )
 
 src_compile() {
