@@ -23,6 +23,7 @@ RDEPEND="
 
 	dev-ml/uri:=
 	dev-ml/ipaddr:=
+	dev-ml/ipaddr-sexp:=
 	dev-ml/ssl:=
 	dev-ml/ppx_sexp_conv:=
 
