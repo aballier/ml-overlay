@@ -15,9 +15,7 @@ KEYWORDS="~amd64"
 IUSE="test"
 RESTRICT="test"
 
-RDEPEND="dev-ml/sexplib0:=
-	!dev-ml/ocaml-ipaddr
-"
+RDEPEND="!dev-ml/ocaml-ipaddr"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit dev-ml/ppx_sexp_conv )
 "
