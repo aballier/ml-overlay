@@ -13,7 +13,6 @@ LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
-RESTRICT="test"
 
 RDEPEND="!dev-ml/ocaml-ipaddr"
 DEPEND="${RDEPEND}
