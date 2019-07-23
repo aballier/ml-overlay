@@ -24,6 +24,7 @@ RDEPEND="
 	dev-ml/result:=
 	dev-ml/logs:=
 	dev-ml/ipaddr:=
+	dev-ml/ipaddr-sexp:=
 
 	!dev-ml/ocaml-conduit
 "
