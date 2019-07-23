@@ -36,6 +36,7 @@ RDEPEND="dev-lang/ocaml:=
 	dev-ml/lwt_ppx:=
 	dev-ml/lwt_camlp4:=
 	dev-ml/resource-pooling:=
+	dev-ml/cohttp-lwt-unix:=
 "
 DEPEND="${RDEPEND}"
 
