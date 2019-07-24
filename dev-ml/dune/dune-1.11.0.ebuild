@@ -7,7 +7,7 @@ inherit opam multiprocessing
 
 DESCRIPTION="A composable build system for OCaml"
 HOMEPAGE="https://github.com/ocaml/dune"
-SRC_URI="https://github.com/ocaml/dune/releases/download/${PV}/${P}.tbz"
+SRC_URI="https://github.com/ocaml/dune/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="Apache-2.0"
 SLOT="0/${PV}"
