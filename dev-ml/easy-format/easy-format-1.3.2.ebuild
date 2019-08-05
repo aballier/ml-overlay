@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -7,7 +7,7 @@ inherit opam jbuilder
 
 DESCRIPTION="Pretty-printing library for OCaml"
 HOMEPAGE="https://github.com/mjambon/easy-format"
-SRC_URI="https://github.com/mjambon/easy-format/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/ocaml-community/easy-format/releases/download/${PV}/${P}.tbz"
 
 SLOT="0/${PV}"
 LICENSE="BSD"
