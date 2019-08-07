@@ -1,0 +1,10 @@
+Index: reason-3.0.4/src/reason-merlin/jbuild
+===================================================================
+--- reason-3.0.4.orig/src/reason-merlin/jbuild
++++ reason-3.0.4/src/reason-merlin/jbuild
+@@ -4,4 +4,4 @@
+  ((names (ocamlmerlin_reason))
+   (public_names (ocamlmerlin-reason))
+   (package reason)
+-  (libraries (compiler-libs.common merlin_extend reason))))
++  (libraries (compiler-libs.common merlin-extend reason))))
