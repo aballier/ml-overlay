@@ -24,6 +24,9 @@ case ${EAPI:-0} in
 	*) BDEPEND="dev-ml/dune dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
 esac
 
+# This disables Werror-like behavior
+DUNE_PROFILE="release"
+
 jbuilder_src_compile() {
 	dune build -p "${PN}" -j $(makeopts_jobs) @install || die
 }
