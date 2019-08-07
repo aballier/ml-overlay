@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -19,7 +19,6 @@ IUSE=""
 
 RDEPEND=">=dev-ml/ocaml-data-notation-0.0.11:=
 	dev-ml/ocamlbuild:=[ocamlopt]
-	dev-ml/camlp4:=
 "
 DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.3.1
