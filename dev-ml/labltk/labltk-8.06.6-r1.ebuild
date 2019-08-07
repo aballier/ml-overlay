@@ -28,6 +28,7 @@ src_configure() {
 }
 
 src_compile() {
+	export SHAREDCCCOMPOPTS="${CFLAGS} -fPIC"
 	emake -j1
 	use ocamlopt && emake -j1 opt
 }
