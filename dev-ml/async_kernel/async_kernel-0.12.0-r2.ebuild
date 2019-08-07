@@ -20,5 +20,6 @@ RDEPEND="
 			dev-ml/base:=
 	dev-ml/ppx_jane:=
 		dev-ml/ppx_expect:=
+		dev-ml/ppxlib:=
 "
 DEPEND="${RDEPEND}"
