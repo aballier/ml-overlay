@@ -1,7 +1,7 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="5"
+EAPI="7"
 
 inherit findlib eutils
 
@@ -25,6 +25,7 @@ RDEPEND="${DEPEND}"
 IUSE="examples +ocamlopt"
 
 S=${WORKDIR}/${MY_P}
+PATCHES=( "${FILESDIR}/oc408.patch" )
 
 src_configure() {
 	#the included configure does not support  many standard switches and is quite picky
