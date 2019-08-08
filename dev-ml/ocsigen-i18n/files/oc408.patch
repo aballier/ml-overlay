@@ -1,0 +1,14 @@
+Index: ocsigen-i18n-3.4.0/i18n_ppx_rewriter.ml
+===================================================================
+--- ocsigen-i18n-3.4.0.orig/i18n_ppx_rewriter.ml
++++ ocsigen-i18n-3.4.0/i18n_ppx_rewriter.ml
+@@ -30,7 +30,8 @@ let unit loc = { pexp_desc =
+                Pexp_construct ( Location.mknoloc (Longident.Lident "()")
+                               , None )
+            ; pexp_loc = loc
+-           ; pexp_attributes = [] }
++           ; pexp_attributes = [] 
++	   ; pexp_loc_stack = [] }
+ 
+ let lang_args = function
+   | ((Labelled("?lang"), _) as lang) :: args
