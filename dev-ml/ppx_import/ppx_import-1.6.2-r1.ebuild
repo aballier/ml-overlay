@@ -10,7 +10,7 @@ HOMEPAGE="https://github.com/ocaml-ppx/ppx_import"
 SRC_URI="https://github.com/ocaml-ppx/ppx_import/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="MIT"
-SLOT="0/${PV}"
+SLOT="0/${PV}oc408"
 KEYWORDS="~amd64"
 IUSE="test"
 
@@ -23,3 +23,4 @@ RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( dev-ml/ounit dev-ml/ppx_deriving )
 "
+PATCHES=( "${FILESDIR}/ompt.patch" "${FILESDIR}/oc408.patch" )
