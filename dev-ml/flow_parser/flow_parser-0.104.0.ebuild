@@ -20,12 +20,14 @@ DEPEND="
 	dev-ml/wtf8:=
 	dev-ml/ppx_gen_rec:=
 	dev-ml/ppx_deriving:=
+	dev-ml/visitors:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	dev-ml/ocamlbuild"
 
 S="${WORKDIR}/flow-${PV}/src/parser"
+PATCHES=( "${FILESDIR}/warn.patch" )
 
 src_compile() {
 	emake build-parser

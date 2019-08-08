@@ -1,0 +1,13 @@
+Index: flow-0.104.0/parser_flow.ml
+===================================================================
+--- flow-0.104.0.orig/parser_flow.ml
++++ flow-0.104.0/parser_flow.ml
+@@ -22,7 +22,7 @@ let filter_duplicate_errors =
+     let compare (a_loc, a_error) (b_loc, b_error) =
+       let loc = Loc.compare a_loc b_loc in
+       if loc = 0
+-      then Pervasives.compare a_error b_error
++      then Stdlib.compare a_error b_error
+       else loc
+   end) in
+   fun errs ->
