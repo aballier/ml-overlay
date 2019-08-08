@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -17,6 +17,7 @@ IUSE=""
 DEPEND=">=dev-lang/ocaml-4.05:=
 	dev-ml/js_of_ocaml:="
 RDEPEND="${DEPEND}"
+PATCHES=( "${FILESDIR}/oc408.patch" )
 
 src_install () {
 	findlib_src_install
