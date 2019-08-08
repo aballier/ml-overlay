@@ -23,6 +23,8 @@ CDEPEND=">=dev-lang/ocaml-3.12:=[ocamlopt?]
 	dev-ml/menhir:=[ocamlopt?]
 	dev-ml/camlp4:=[ocamlopt?]
 	dev-ml/parmap:=[ocamlopt?]
+	dev-ml/pyml:=
+		dev-ml/stdcompat:=
 	emacs? ( virtual/emacs )
 	ocaml? ( dev-ml/findlib:= )
 	pcre? ( dev-ml/pcre:=[ocamlopt(+)?] )
@@ -61,6 +63,8 @@ src_prepare() {
 		-i Makefile || die
 
 	export VERBOSE=yes
+
+	sed -e 's#:= bundles/stdcompat#:= $(shell ocamlfind query stdcompat)#' -i Makefile || die
 
 	cp "${FILESDIR}/SCORE_expected.sexp" tests/ || die
 }
