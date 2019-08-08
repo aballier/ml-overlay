@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -15,7 +15,6 @@ IUSE="examples"
 
 RDEPEND=">=net-misc/curl-7.9.8
 	dev-ml/lwt:=
-	dev-ml/camlp4:=
 	>=dev-lang/ocaml-3.12:=[ocamlopt]"
 DEPEND="${RDEPEND}
 	virtual/pkgconfig"
