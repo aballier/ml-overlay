@@ -17,6 +17,7 @@ IUSE=""
 DEPEND="
 	dev-ml/result:=
 	dev-ml/uchar:=
+	dev-lang/ocaml:=
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
