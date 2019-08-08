@@ -1,0 +1,43 @@
+From f52962636a0069ccbdd3e60d0bec9519e9f13909 Mon Sep 17 00:00:00 2001
+From: Gabriel Scherer <gabriel.scherer@gmail.com>
+Date: Thu, 11 Jul 2019 15:07:40 +0200
+Subject: [PATCH 16/42] Lexing: no support for disabling position-tracking
+
+---
+ src/batLexing.ml  | 4 ++++
+ src/batLexing.mli | 4 ++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/src/batLexing.ml b/src/batLexing.ml
+index 499e9992..0ac3185b 100644
+--- a/src/batLexing.ml
++++ b/src/batLexing.ml
+@@ -22,6 +22,10 @@
+ 
+ open BatIO
+ include Lexing
++
++let from_string s : lexbuf = Lexing.from_string s
++let from_function f : lexbuf = Lexing.from_function f
++
+ let from_input inp =
+   from_function (fun s n -> try input inp s 0 n with No_more_input -> 0)
+ 
+diff --git a/src/batLexing.mli b/src/batLexing.mli
+index b052d3af..8b93bfbd 100644
+--- a/src/batLexing.mli
++++ b/src/batLexing.mli
+@@ -85,6 +85,10 @@ type lexbuf = Lexing.lexbuf =
+     accurate, they must be initialised before the first use of the
+     lexbuf, and updated by the relevant lexer actions (i.e. at each
+     end of line -- see also [new_line]).
++
++    Note: Batteries does not currently support the ~with_positions:false
++    mode available since OCaml 4.08 to disable position tracking. If you
++    need this, please get in touch with the Batteries maintainers.
+ *)
+ 
+ val from_input   : BatIO.input   -> lexbuf
+-- 
+2.22.0
+

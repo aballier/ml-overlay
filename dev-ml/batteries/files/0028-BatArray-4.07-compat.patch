@@ -1,0 +1,27 @@
+From 96bd3d6857efeee9d9ce20c0aac5c8cf6c4df09f Mon Sep 17 00:00:00 2001
+From: Francois Berenger <unixjunkie@sdf.org>
+Date: Wed, 31 Jul 2019 15:29:48 +0900
+Subject: [PATCH 28/42] BatArray: 4.07 compat
+
+---
+ src/batArray.mliv | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/batArray.mliv b/src/batArray.mliv
+index 11150959..cef39623 100644
+--- a/src/batArray.mliv
++++ b/src/batArray.mliv
+@@ -96,6 +96,10 @@ external make : int -> 'a -> 'a array = "caml_make_vect"
+    @since 2.3.0
+ *)
+ 
++##V>=4.07##val of_seq: 'a Seq.t -> 'a array
++##V>=4.07##val to_seq: 'a array -> 'a Seq.t
++##V>=4.07##val to_seqi: 'a array -> (int * 'a) Seq.t
++
+ external create : int -> 'a -> 'a array = "caml_make_vect"
+ (** @deprecated [Array.create] is an alias for {!Array.make}. *)
+ 
+-- 
+2.22.0
+

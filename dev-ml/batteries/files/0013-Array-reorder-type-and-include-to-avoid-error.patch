@@ -1,0 +1,31 @@
+From 6227355cba2b31527c83831da87a29b8c45d26da Mon Sep 17 00:00:00 2001
+From: Gabriel Scherer <gabriel.scherer@gmail.com>
+Date: Thu, 11 Jul 2019 14:51:27 +0200
+Subject: [PATCH 13/42] Array: reorder type and include to avoid error
+
+---
+ src/batArray.mlv | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/batArray.mlv b/src/batArray.mlv
+index 1037a0cc..64efbcb5 100644
+--- a/src/batArray.mlv
++++ b/src/batArray.mlv
+@@ -20,12 +20,12 @@
+  *)
+ 
+ 
++include Array
++
+ type 'a t = 'a array
+ type 'a enumerable = 'a t
+ type 'a mappable = 'a t
+ 
+-include Array
+-
+ ##V<4.2##let create_float n = make n 0.
+ ##V<4.2##let make_float = create_float
+ 
+-- 
+2.22.0
+

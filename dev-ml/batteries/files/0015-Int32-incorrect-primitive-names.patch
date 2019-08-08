@@ -1,0 +1,47 @@
+From 65cf7cad0393f1dd5ed97e5727f6e83f9209b5c5 Mon Sep 17 00:00:00 2001
+From: Gabriel Scherer <gabriel.scherer@gmail.com>
+Date: Thu, 11 Jul 2019 15:03:35 +0200
+Subject: [PATCH 15/42] Int32: incorrect primitive names
+
+---
+ src/batInt32.mliv | 4 ++--
+ src/batInt32.mlv  | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/batInt32.mliv b/src/batInt32.mliv
+index 80c50af7..a00dbf4b 100644
+--- a/src/batInt32.mliv
++++ b/src/batInt32.mliv
+@@ -175,12 +175,12 @@ external to_int64 : int32 -> int64 = "%int64_of_int32"
+ (** Convert the given 32-bit integer (type [int32])
+     to a 64-bit integer (type [int64]). *)
+ 
+-external of_nativeint : nativeint -> int32 = "%int32_of_nativeint"
++external of_nativeint : nativeint -> int32 = "%nativeint_to_int32"
+ (** Convert the given native integer (type [nativeint])
+     to a 32-bit integer (type [int32]). On 64-bits platform
+     the top 32 bits are lost. *)
+ 
+-external to_nativeint : int32 -> nativeint = "%int32_to_nativeint"
++external to_nativeint : int32 -> nativeint = "%nativeint_of_int32"
+ (** Convert the given 32-bit integer (type [int32]) to a
+     native integer. *)
+ 
+diff --git a/src/batInt32.mlv b/src/batInt32.mlv
+index 5b150f01..836e0a2e 100644
+--- a/src/batInt32.mlv
++++ b/src/batInt32.mlv
+@@ -159,8 +159,8 @@ external of_string : string -> int32 = "caml_int32_of_string"
+ ##V<4.5##let of_string_opt n = try Some (Int32.of_string n) with _ -> None
+ external of_int64 : int64 -> int32 = "%int64_to_int32"
+ external to_int64 : int32 -> int64 = "%int64_of_int32"
+-external of_nativeint : nativeint -> int32 = "%int32_of_nativeint"
+-external to_nativeint : int32 -> nativeint = "%int32_to_nativeint"
++external of_nativeint : nativeint -> int32 = "%nativeint_to_int32"
++external to_nativeint : int32 -> nativeint = "%nativeint_of_int32"
+ 
+ external bits_of_float : float -> int32 = "caml_int32_bits_of_float"
+ ##V>=4.3## "caml_int32_bits_of_float_unboxed" [@@unboxed] [@@noalloc]
+-- 
+2.22.0
+
