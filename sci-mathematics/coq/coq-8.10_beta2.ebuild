@@ -5,7 +5,7 @@ EAPI="5"
 
 inherit eutils multilib
 
-MY_PV=${PV/_p/pl}
+MY_PV=${PV/_beta/+beta}
 MY_P=${PN}-${MY_PV}
 
 DESCRIPTION="Proof assistant written in O'Caml"
@@ -14,13 +14,13 @@ SRC_URI="https://github.com/coq/coq/archive/V${MY_PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="LGPL-2.1"
 SLOT="0"
-KEYWORDS="~amd64 ~ppc ~x86"
+KEYWORDS="~amd64 ~x86"
 IUSE="gtk debug +ocamlopt doc"
 
 RDEPEND="
 	>=dev-lang/ocaml-3.11.2:=[ocamlopt?]
 	>=dev-ml/camlp5-6.02.3:=[ocamlopt?]
-	gtk? ( >=dev-ml/lablgtk-2.10.1:=[sourceview,ocamlopt?] )"
+	gtk? ( dev-ml/lablgtk3:= )"
 DEPEND="${RDEPEND}
 	dev-ml/findlib
 	doc? (
@@ -29,11 +29,11 @@ DEPEND="${RDEPEND}
 		dev-tex/hevea
 		dev-tex/xcolor
 		dev-texlive/texlive-pictures
-		|| ( dev-texlive/texlive-mathscience dev-texlive/texlive-mathextra )
+		dev-texlive/texlive-mathscience
 		dev-texlive/texlive-latexextra
 		)"
 
-S=${WORKDIR}/${MY_P}
+S=${WORKDIR}/${PN}-${PV/_beta/-beta}
 
 src_configure() {
 	ocaml_lib=$(ocamlc -where)
@@ -45,7 +45,6 @@ src_configure() {
 		-coqdocdir /usr/$(get_libdir)/coq/coqdoc
 		-docdir /usr/share/doc/${PF}
 		-configdir /etc/xdg/${PN}
-		-lablgtkdir ${ocaml_lib}/lablgtk2
 		)
 
 	use debug && myconf+=( -debug )
@@ -77,7 +76,7 @@ src_test() {
 
 src_install() {
 	emake STRIP="true" COQINSTALLPREFIX="${D}" install VERBOSE=1
-	dodoc README.md CREDITS CHANGES.md
+	dodoc README.md CREDITS
 
 	use gtk && make_desktop_entry "coqide" "Coq IDE" "${EPREFIX}/usr/share/coq/coq.png"
 }
