@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit eutils multilib findlib opam
 
@@ -47,6 +47,8 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 DEPEND="${RDEPEND}
 	dev-ml/js_of_ocaml-ocamlbuild
 	dev-ml/ocamlbuild"
+
+PATCHES=( "${FILESDIR}/oc408.patch" )
 
 src_compile() {
 	if use ocamlopt ; then
