@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 MY_PV=${PV/_p/+}
 MY_P=${PN}-${MY_PV}
@@ -23,6 +23,7 @@ DEPEND="${DEPEND}
 	dev-ml/ocamlbuild"
 
 S=${WORKDIR}/${P/_p/-}
+PATCHES=( "${FILESDIR}/reload.patch" )
 
 src_configure() {
 	./configure \
