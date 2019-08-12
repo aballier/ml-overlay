@@ -21,7 +21,6 @@ REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 CDEPEND=">=dev-lang/ocaml-3.12:=[ocamlopt?]
 	dev-ml/sexplib:=[ocamlopt(+)?]
 	dev-ml/menhir:=[ocamlopt?]
-	dev-ml/camlp4:=[ocamlopt?]
 	dev-ml/parmap:=[ocamlopt?]
 	dev-ml/pyml:=
 		dev-ml/stdcompat:=
