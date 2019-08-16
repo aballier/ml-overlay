@@ -20,7 +20,10 @@ IUSE="gtk debug +ocamlopt doc"
 RDEPEND="
 	>=dev-lang/ocaml-3.11.2:=[ocamlopt?]
 	>=dev-ml/camlp5-6.02.3:=[ocamlopt?]
-	gtk? ( dev-ml/lablgtk3:= )"
+	gtk? (
+		dev-ml/lablgtk3:=
+		dev-ml/lablgtk3-sourceview3:=
+		)"
 DEPEND="${RDEPEND}
 	dev-ml/findlib
 	doc? (
