@@ -26,5 +26,6 @@ RDEPEND="
 	!dev-ml/ocaml-websocket
 "
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/cohttp.patch" )
 
 S="${WORKDIR}/ocaml-websocket-${PV}"
