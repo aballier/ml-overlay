@@ -25,6 +25,7 @@ RDEPEND="
 	dev-ml/conduit-async:=
 	dev-ml/num:=
 	dev-ml/logs-async:=
+		dev-ml/logs:=
 	dev-ml/logs-async-reporter:=
 
 	!dev-ml/ocaml-websocket
