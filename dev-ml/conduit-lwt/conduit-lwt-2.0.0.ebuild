@@ -18,7 +18,6 @@ RDEPEND="
 	dev-ml/conduit:=
 		dev-ml/uri:=
 	dev-ml/lwt:=
-		dev-ml/result:=
 	dev-ml/sexplib:=
 	dev-ml/ppx_sexp_conv:=
 
