@@ -24,6 +24,7 @@ RDEPEND="
 	dev-ml/ppx_sexp_conv:=
 	dev-ml/stringext:=
 	dev-ml/base64:=
+	dev-ml/stdlib-shims:=
 
 	!dev-ml/ocaml-cohttp
 "
