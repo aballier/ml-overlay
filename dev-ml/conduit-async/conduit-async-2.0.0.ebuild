@@ -10,7 +10,7 @@ HOMEPAGE="https://github.com/mirage/ocaml-conduit"
 SRC_URI="https://github.com/mirage/ocaml-conduit/archive/v${PV}.tar.gz -> ocaml-conduit-${PV}.tar.gz"
 
 LICENSE="ISC"
-SLOT="0/${PV}-ipaddr3"
+SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
@@ -32,7 +32,6 @@ RDEPEND="
 			dev-ml/ppx_inline_test:=
 			dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/async_ssl:=
-	dev-ml/num:=
 
 	!dev-ml/ocaml-conduit
 "
