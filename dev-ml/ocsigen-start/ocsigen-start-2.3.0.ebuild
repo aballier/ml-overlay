@@ -23,20 +23,21 @@ else
 fi
 
 RDEPEND="dev-lang/ocaml:=
+	dev-ml/pgocaml:=
+	dev-ml/macaque:=
+	dev-ml/safepass:=
+	dev-ml/ocsigen-i18n:=
 	>=dev-ml/eliom-6.3:=
 		www-servers/ocsigenserver:=
-	dev-ml/js_of_ocaml-camlp4:=
-	dev-ml/macaque:=
-	dev-ml/ocsigen-i18n:=
 	dev-ml/ocsigen-toolkit:=
-	dev-ml/pgocaml:=
-	dev-ml/safepass:=
-	dev-ml/yojson:=
-	dev-ml/lwt:=
-	dev-ml/lwt_ppx:=
-	dev-ml/lwt_camlp4:=
+	dev-ml/js_of_ocaml:=
+	dev-ml/js_of_ocaml-camlp4:=
 	dev-ml/resource-pooling:=
+	dev-ml/yojson:=
 	dev-ml/cohttp-lwt-unix:=
+		dev-ml/lwt:=
+	dev-ml/ocamlnet:=
+	dev-ml/lwt_camlp4:=
 "
 DEPEND="${RDEPEND}"
 
