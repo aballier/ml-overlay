@@ -12,24 +12,22 @@ SRC_URI="https://github.com/mirage/ocaml-${PN}/archive/v${PV}.tar.gz -> ocaml-${
 LICENSE="LGPL-2 LGPL-2.1-with-linking-exception ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE=""
+IUSE="test"
 
 RDEPEND="
-	>=dev-ml/base64-2.0.0:=
+	dev-ml/rresult:=
+	dev-ml/astring:=
+	dev-ml/fmt:=
+	dev-ml/logs:=
+	dev-ml/ptime:=
+	dev-ml/domain-name:=
+	dev-ml/gmap:=
 	dev-ml/cstruct:=
-	dev-ml/ppx_cstruct:=
-	dev-ml/ocaml-hashcons:=
-	>=dev-ml/ipaddr-2.6.0:=
-		dev-ml/ppx_sexp_conv:=
-	dev-ml/re:=
-	>=dev-ml/uri-1.7.0:=
-	dev-ml/core:=
-	dev-ml/result:=
+	dev-ml/ipaddr:=
 	!dev-ml/odns
 "
-DEPEND="${RDEPEND}"
-
-# Do not work
-RESTRICT="test"
+DEPEND="${RDEPEND}
+	test? ( dev-ml/alcotest )
+"
 
 S="${WORKDIR}/ocaml-${P}"
