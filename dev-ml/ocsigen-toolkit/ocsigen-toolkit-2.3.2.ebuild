@@ -24,16 +24,11 @@ else
 fi
 
 RDEPEND="dev-lang/ocaml:=[ocamlopt?]
-	dev-ml/js_of_ocaml:=
-	dev-ml/js_of_ocaml-ppx:=
 	>=dev-ml/eliom-5.1:=
 		dev-ml/tyxml:=
 		dev-ml/ipaddr:=
 		dev-ml/ssl:=
-	dev-ml/ppx_deriving:=
-		dev-ml/result:=
-	dev-ml/calendar:=
-	dev-ml/lwt:="
+	dev-ml/calendar:="
 DEPEND="${RDEPEND}"
 
 src_compile() {
