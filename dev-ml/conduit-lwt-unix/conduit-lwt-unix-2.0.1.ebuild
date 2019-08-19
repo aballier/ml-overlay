@@ -29,6 +29,5 @@ RDEPEND="
 	!dev-ml/ocaml-conduit
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/fix.patch" )
 
 S="${WORKDIR}/ocaml-conduit-${PV}"
