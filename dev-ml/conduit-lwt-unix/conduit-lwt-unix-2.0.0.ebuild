@@ -15,20 +15,20 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="
+	dev-ml/ppx_sexp_conv:=
 	dev-ml/conduit:=
 		dev-ml/logs:=
 	dev-ml/conduit-lwt:=
 	dev-ml/lwt:=
-		dev-ml/result:=
 
 	dev-ml/uri:=
 	dev-ml/ipaddr:=
 	dev-ml/ipaddr-sexp:=
-	dev-ml/ssl:=
-	dev-ml/ppx_sexp_conv:=
+	dev-ml/lwt_ssl:=
 
 	!dev-ml/ocaml-conduit
 "
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/fix.patch" )
 
 S="${WORKDIR}/ocaml-conduit-${PV}"

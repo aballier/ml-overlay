@@ -1,0 +1,19 @@
+https://github.com/mirage/ocaml-conduit/pull/304
+
+Index: ocaml-conduit-2.0.0/lwt-unix/conduit_lwt_unix_ssl_real.ml
+===================================================================
+--- ocaml-conduit-2.0.0.orig/lwt-unix/conduit_lwt_unix_ssl_real.ml
++++ ocaml-conduit-2.0.0/lwt-unix/conduit_lwt_unix_ssl_real.ml
+@@ -32,10 +32,9 @@ module Client = struct
+     let ctx = Ssl.create_context Ssl.SSLv23 Ssl.Client_context in
+     Ssl.disable_protocols ctx [Ssl.SSLv23];
+     (* Use default CA certificates *)
+-    ignore (Ssl.set_default_verify_paths default_ctx);
++    ignore (Ssl.set_default_verify_paths ctx);
+     (* Enable peer verification *)
+-    Ssl.set_verify default_ctx [Ssl.Verify_peer] None
+-    ignore (Ssl.set_default_verify_paths default_ctx);
++    Ssl.set_verify ctx [Ssl.Verify_peer] None;
+     (match certfile, keyfile with
+      | Some certfile, Some keyfile -> Ssl.use_certificate ctx certfile keyfile
+      | None, _ | _, None -> ());
