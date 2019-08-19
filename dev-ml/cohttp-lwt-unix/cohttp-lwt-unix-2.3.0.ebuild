@@ -20,8 +20,8 @@ RDEPEND="
 	dev-ml/magic-mime:=
 	dev-ml/logs:=
 	dev-ml/fmt:=
-	dev-ml/cohttp:=
 	dev-ml/cohttp-lwt:=
+		dev-ml/cohttp:=
 	dev-ml/lwt:=
 	dev-libs/openssl:0=
 "
