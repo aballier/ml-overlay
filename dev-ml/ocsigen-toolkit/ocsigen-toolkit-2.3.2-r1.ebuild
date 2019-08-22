@@ -28,6 +28,7 @@ RDEPEND="dev-lang/ocaml:=[ocamlopt?]
 		dev-ml/tyxml:=
 		dev-ml/ipaddr:=
 		dev-ml/ssl:=
+		dev-ml/lwt:=
 	dev-ml/calendar:="
 DEPEND="${RDEPEND}"
 
