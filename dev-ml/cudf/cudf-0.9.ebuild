@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -7,7 +7,7 @@ inherit multilib toolchain-funcs
 
 DESCRIPTION="Library to parse, pretty print, and evaluate CUDF documents"
 HOMEPAGE="http://www.mancoosi.org/cudf/"
-SRC_URI="https://gforge.inria.fr/frs/download.php/file/34659/${P}.tar.gz"
+SRC_URI="https://gforge.inria.fr/frs/download.php/file/36602/${P}.tar.gz"
 
 LICENSE="LGPL-3"
 SLOT="0/${PV}"
@@ -18,7 +18,6 @@ RDEPEND="
 	>=dev-lang/ocaml-3.12:=[ocamlopt?]
 	dev-ml/extlib:=
 	dev-libs/glib:2
-	dev-ml/camlp4:=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit )
