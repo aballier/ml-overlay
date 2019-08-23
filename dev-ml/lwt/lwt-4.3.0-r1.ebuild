@@ -14,6 +14,7 @@ IUSE=""
 DEPEND="
 	dev-ml/result:=
 	dev-ml/mmap:=
+	dev-ml/ocplib-endian:=
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/ppx_tools_versioned:=
 	dev-libs/libev"
