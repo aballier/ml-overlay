@@ -12,7 +12,7 @@ HOMEPAGE="https://github.com/aantron/lwt_ssl"
 IUSE=""
 
 RDEPEND="
-	>=dev-ml/lwt-3.1:=
+	>=dev-ml/lwt-4.2:=
 	dev-ml/result:=
 	>=dev-ml/ssl-0.4.0:=
 "
