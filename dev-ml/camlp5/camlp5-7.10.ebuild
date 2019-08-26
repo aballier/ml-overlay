@@ -66,5 +66,5 @@ src_install() {
 
 	use doc && dohtml -r doc/*
 
-	dodoc CHANGES DEVEL ICHANGES README UPGRADING MODE
+	dodoc CHANGES DEVEL ICHANGES README.md UPGRADING MODE
 }
