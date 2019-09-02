@@ -21,5 +21,5 @@ DEPEND="${RDEPEND}
 	dev-ml/ppxfind
 	dev-ml/ppx_tools
 	dev-ml/cppo
-	test? ( dev-ml/ounit dev-ml/ocaml-uint )
+	test? ( dev-ml/ounit dev-ml/uint )
 "
