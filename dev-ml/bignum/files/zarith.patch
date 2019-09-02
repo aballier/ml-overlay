@@ -1,0 +1,127 @@
+Index: bignum-0.12.0/src/bignum0.ml
+===================================================================
+--- bignum-0.12.0.orig/src/bignum0.ml
++++ bignum-0.12.0/src/bignum0.ml
+@@ -3,7 +3,6 @@ module Stable = struct
+     module Z = Zarith.Z
+ 
+     open Core_kernel
+-    open Int.Replace_polymorphic_compare
+ 
+     include Zarith.Q
+ 
+@@ -21,7 +20,7 @@ module Stable = struct
+       let tbl = Array.create ~len:Int.(max_memoized_pow + 1) None in
+       let pow_10_z n = Z.pow z_ten n in
+       fun n ->
+-        if n > max_memoized_pow then begin
++        if Int.(<) n max_memoized_pow then begin
+           pow_10_z n
+         end else begin
+           match tbl.(n) with
+@@ -78,7 +77,7 @@ module Stable = struct
+       let num,den = shifted.num,shifted.den in
+       let s       = Z.to_string (Z.div num den) in
+       let rec dec_end_pos pos count =
+-        if pos < 0 || count = shift_len then None
++        if Int.(<) pos 0 || Int.(=) count shift_len then None
+         else begin
+           if Char.(=) s.[pos] '0' then dec_end_pos (pos - 1) (count + 1)
+           else (Some pos)
+@@ -89,15 +88,15 @@ module Stable = struct
+         match dec_end_pos (String.length s - 1) 0 with
+         | None ->
+           let int_part =
+-            if len > shift_len then String.sub s ~pos:0 ~len:(len - shift_len)
++            if Int.(>) len shift_len then String.sub s ~pos:0 ~len:(len - shift_len)
+             else ""
+           in
+           int_part, ""
+         | Some end_pos ->
+-          let int_len  = if len > shift_len then len - shift_len else 0 in
+-          let int_part = if int_len > 0 then String.sub s ~pos:0 ~len:int_len else "" in
++          let int_len  = if Int.(>) len shift_len then len - shift_len else 0 in
++          let int_part = if Int.(>) int_len 0 then String.sub s ~pos:0 ~len:int_len else "" in
+           let dec_pad  =
+-            if len >= shift_len then "" else String.make (shift_len - len) '0'
++            if Int.(>=) len shift_len then "" else String.make (shift_len - len) '0'
+           in
+           let dec_part = dec_pad ^ String.sub s ~pos:int_len ~len:(end_pos - int_len + 1) in
+           int_part,dec_part
+@@ -126,7 +125,7 @@ module Stable = struct
+       let fail s = failwithf "unable to parse %S as Bignum.t" s ()
+ 
+       let rec all_zeroes s ~pos ~len =
+-        if len <= 0
++        if Int.(<=) len 0
+         then true
+         else Char.equal s.[pos] '0' &&  all_zeroes s ~pos:Int.(pos+1) ~len:Int.(len-1)
+ 
+@@ -142,14 +141,14 @@ module Stable = struct
+         let (+) = Int.(+) in
+         let decimal_len = Int.max 0 (dot - starting) in
+         let frac_len = Int.max 0 (1 + finishing - (dot + 1)) in
+-        if decimal_len = 0 && frac_len = 0 then fail s;
++        if Int.(=) decimal_len 0 && Int.(=) frac_len 0 then fail s;
+         let decimal =
+-          if decimal_len = 0 then
++          if Int.(=) decimal_len 0 then
+             Z.zero
+           else
+             Z.of_substring s ~pos:starting ~len:decimal_len
+         in
+-        if frac_len = 0 || all_zeroes s ~pos:(dot + 1) ~len:frac_len then
++        if Int.(=) frac_len 0 || all_zeroes s ~pos:(dot + 1) ~len:frac_len then
+           of_bigint decimal
+         else
+           let frac = Z.of_substring s ~pos:(dot + 1) ~len:frac_len in
+@@ -228,26 +227,26 @@ module Stable = struct
+       ;;
+ 
+       let rec decompose s ~length i ~state ~dot ~exp ~slash =
+-        if i < length
++        if Int.(<) i length
+         then
+           match s.[i] with
+           | '0'..'9' ->  decompose s ~length (succ i) ~state ~dot ~exp ~slash
+           | '.' ->
+-            if state land has_dot <> 0
++            if Int.(<>) (state land has_dot) 0
+             then fail s
+             else decompose s ~length (succ i) ~state:(state lor has_dot) ~dot:i ~exp ~slash
+           | '/' ->
+-            if state land has_slash <> 0
++            if Int.(<>) (state land has_slash) 0
+             then fail s
+             else decompose s ~length (succ i) ~state:(state lor has_slash) ~dot ~exp ~slash:i
+           | 'e' | 'E' ->
+-            if state land has_exp <> 0
++            if Int.(<>) (state land has_exp) 0
+             then fail s
+             else decompose s ~length (succ i) ~state:(state lor has_exp) ~dot ~exp:i ~slash
+           | '+' | '-' ->
+             (* the only place where signs are allowed is at the very beginning, or after
+                an exp sign (in scientific notation). *)
+-            if i = 0 || pred i = exp
++            if Int.(=) i 0 || Int.(=) (pred i) exp
+             then decompose s ~length (succ i) ~state  ~dot ~exp ~slash
+             else fail s
+           | _ ->
+@@ -269,7 +268,7 @@ module Stable = struct
+           | '_' -> incr underscores
+           | _ -> ()
+         done;
+-        if !underscores > 0
++        if Int.(>) (!underscores) 0
+         then
+           begin
+             let underscores_seen = ref 0 in
+@@ -285,7 +284,7 @@ module Stable = struct
+       let of_string_internal s : t =
+         let s = strip_underscores_if_any s in
+         let length = String.length s in
+-        if length = 0 then fail s;
++        if Int.(=) length 0 then fail s;
+         decompose s ~length 0 ~state:0 ~dot:(-1) ~exp:(-1) ~slash:(-1)
+       ;;
+     end

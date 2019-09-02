@@ -23,3 +23,4 @@ RDEPEND="
 	dev-ml/zarith:=
 "
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/zarith.patch" )
