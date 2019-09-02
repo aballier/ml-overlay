@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -15,7 +15,7 @@ KEYWORDS="~amd64 ~x86"
 IUSE="doc test"
 
 RDEPEND=">=dev-lang/ocaml-3.12.1:=
-	>=dev-ml/ocaml-fileutils-0.4.0:=
+	>=dev-ml/fileutils-0.4.0:=
 	>=dev-ml/camomile-0.8.3:=
 	sys-devel/gettext
 	dev-ml/camlp4:=
