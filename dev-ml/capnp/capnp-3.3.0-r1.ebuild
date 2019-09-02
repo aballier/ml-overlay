@@ -19,7 +19,7 @@ RDEPEND="
 	dev-ml/ocaml-extunix:=
 	dev-ml/ocplib-endian:=
 	dev-ml/res:=
-	dev-ml/ocaml-uint:=
+	dev-ml/uint:=
 	dev-libs/capnproto:=
 	dev-ml/num:=
 	!dev-ml/capnp-ocaml
