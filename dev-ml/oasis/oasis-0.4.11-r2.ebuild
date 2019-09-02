@@ -26,7 +26,7 @@ DEPEND="${RDEPEND}
 	dev-ml/ocamlmod
 	!<sci-chemistry/oasis-4.0-r3
 	test? (
-		>=dev-ml/ocaml-fileutils-0.4.2
+		>=dev-ml/fileutils-0.4.2
 		>=dev-ml/ounit-2.0.0
 		>=dev-ml/ocaml-expect-0.0.4
 		dev-ml/pcre
