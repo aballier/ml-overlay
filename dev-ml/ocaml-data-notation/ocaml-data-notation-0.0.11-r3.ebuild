@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -20,7 +20,7 @@ RDEPEND=">=dev-ml/type-conv-108.07.01:=
 	dev-ml/camlp4:=
 	"
 DEPEND="${RDEPEND}
-	test? ( >=dev-ml/ounit-2.0.0[ocamlopt?] dev-ml/ocaml-fileutils[ocamlopt?] )"
+	test? ( >=dev-ml/ounit-2.0.0[ocamlopt?] dev-ml/fileutils[ocamlopt?] )"
 
 DOCS=( "README.txt" "AUTHORS.txt" "CHANGES.txt" )
 PATCHES=( "${FILESDIR}/oasis_regen.patch" )
