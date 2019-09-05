@@ -20,6 +20,7 @@ IUSE="gtk debug +ocamlopt doc"
 RDEPEND="
 	>=dev-lang/ocaml-3.11.2:=[ocamlopt?]
 	>=dev-ml/camlp5-6.02.3:=[ocamlopt?]
+	dev-ml/num:=
 	gtk? (
 		dev-ml/lablgtk3:=
 		dev-ml/lablgtk3-sourceview3:=
