@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit jbuilder vim-plugin
+inherit vim-plugin jbuilder
 
 DESCRIPTION="Context sensitive completion for OCaml in Vim and Emacs"
 HOMEPAGE="https://github.com/ocaml/merlin"
