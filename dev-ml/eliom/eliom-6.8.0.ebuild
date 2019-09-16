@@ -23,32 +23,28 @@ SLOT="0/${PV}"
 IUSE="doc +ocamlopt +ppx"
 
 RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
+	dev-ml/ppx_deriving:=
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-lwt:=
 	dev-ml/js_of_ocaml-ppx:=
 	dev-ml/js_of_ocaml-ppx_deriving_json:=
-		dev-ml/ppx_deriving:=
 	dev-ml/js_of_ocaml-tyxml:=
-	dev-ml/result:=
-
-	>=www-servers/ocsigenserver-2.10:=
+	dev-ml/lwt_log:=
+		>=dev-ml/lwt-2.5.0:=
+	dev-ml/lwt_ppx:=
 	>=dev-ml/tyxml-4.3:=
-	>=dev-ml/deriving-0.6:=
-	>=dev-ml/reactiveData-0.2.1:=
+	>=www-servers/ocsigenserver-2.10:=
 	dev-ml/ipaddr:=
+	>=dev-ml/reactiveData-0.2.1:=
+
+	dev-ml/result:=
+	>=dev-ml/deriving-0.6:=
 	dev-ml/react:=
 	dev-ml/ssl:=
-	>=dev-ml/lwt-2.5.0:=
-	dev-ml/lwt_log:=
-	dev-ml/lwt_ppx:=
-	dev-ml/lwt_camlp4:=
-	dev-ml/camlp4:=
 	ppx? ( >=dev-ml/ppx_tools-0.99.3:= )"
 DEPEND="${RDEPEND}
 	dev-ml/js_of_ocaml-ocamlbuild
 	dev-ml/ocamlbuild"
-
-PATCHES=( "${FILESDIR}/oc408.patch" )
 
 src_compile() {
 	if use ocamlopt ; then
