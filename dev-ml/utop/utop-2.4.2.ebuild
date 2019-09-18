@@ -19,10 +19,10 @@ RDEPEND="
 		dev-ml/result:=
 	dev-ml/lwt_react:=
 	>=dev-ml/lambda-term-2:=
-	>=dev-ml/zed-2:=
 	>=dev-ml/findlib-1.7.2:=
 	dev-ml/camomile:=
 	dev-ml/react:=
+	dev-ml/dune:=
 "
 DEPEND="${RDEPEND}
 	>=dev-ml/cppo-1.0.1
