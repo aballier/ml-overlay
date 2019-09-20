@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -30,7 +30,8 @@ src_prepare() {
 src_compile() {
 	ocaml pkg/build.ml \
 		"native=$(usex ocamlopt true false)" \
-		"native-dynlink=$(usex ocamlopt true false)" || die
+		"native-dynlink=$(usex ocamlopt true false)" \
+		"native=$(usex ocamlopt true false)" || die
 }
 
 src_test() {
