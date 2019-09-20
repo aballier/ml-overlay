@@ -1,0 +1,26 @@
+Index: labltk-8.06.6/configure
+===================================================================
+--- labltk-8.06.6.orig/configure
++++ labltk-8.06.6/configure
+@@ -159,8 +159,8 @@ if test $tk_x11 = no; then
+ else
+ #  tk_x11_include=`cat $where/Makefile.config | grep '^X11_INCLUDES=' | sed -e 's/^X11_INCLUDES=//'`
+ #  tk_x11_libs=`cat $where/Makefile.config | grep '^X11_LIBS=' | sed -e 's/^X11_LIBS=//'`
+-  tk_x11_include=`$MAKE where=$where includes -f readconf.mk`
+-  tk_x11_libs=`$MAKE where=$where libs -f readconf.mk`
++  tk_x11_include=`${PKG_CONFIG:-pkg-config} --cflags x11`
++  tk_x11_libs=`${PKG_CONFIG:-pkg-config} --libs x11`
+   has_tk=true
+ fi
+ 
+@@ -288,8 +288,8 @@ fi
+ 
+ if test $has_tk = true; then
+   if test $tk_x11 = yes; then
+-    echo "TK_DEFS=$tk_defs "'$(X11_INCLUDES)' >> Makefile
+-    echo "TK_LINK=$tk_libs "'$(X11_LINK)' >> Makefile
++    echo "TK_DEFS=$tk_defs $tk_x11_include" >> Makefile
++    echo "TK_LINK=$tk_libs $tk_x11_libs" >> Makefile
+   else
+     echo "TK_DEFS=$tk_defs" >> Makefile
+     echo "TK_LINK=$tk_libs" >> Makefile

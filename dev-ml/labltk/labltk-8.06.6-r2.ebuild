@@ -11,16 +11,17 @@ SRC_URI="https://github.com/garrigue/labltk/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="QPL-1.0 LGPL-2"
 SLOT="0/${PV}"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
+KEYWORDS="~amd64 ~arm ~arm64 ~hppa ~mips ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
 IUSE="+ocamlopt X"
 
 RDEPEND=">=dev-lang/tk-8.0.3:=
-	>=dev-lang/ocaml-4.07_beta:=[ocamlopt?,X?]"
+	>=dev-lang/ocaml-4.08_beta:=[ocamlopt?]
+	X? ( dev-ml/graphics:= x11-libs/libX11 )"
 DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.5.5-r1"
 
 src_prepare() {
-	epatch "${FILESDIR}/findlib.patch"
+	epatch "${FILESDIR}/findlib.patch" "${FILESDIR}/graphics_oot.patch"
 }
 
 src_configure() {
@@ -28,6 +29,7 @@ src_configure() {
 }
 
 src_compile() {
+	export SHAREDCCCOMPOPTS="${CFLAGS} -fPIC"
 	emake -j1
 	use ocamlopt && emake -j1 opt
 }
