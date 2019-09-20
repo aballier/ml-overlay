@@ -20,7 +20,7 @@ RDEPEND=">=dev-ml/type-conv-108.07.01:=
 	dev-ml/camlp4:=
 	"
 DEPEND="${RDEPEND}
-	test? ( >=dev-ml/ounit-2.0.0[ocamlopt?] dev-ml/fileutils[ocamlopt?] )"
+	test? ( >=dev-ml/ounit-2.0.0[ocamlopt?] dev-ml/fileutils )"
 
 DOCS=( "README.txt" "AUTHORS.txt" "CHANGES.txt" )
 PATCHES=( "${FILESDIR}/oasis_regen.patch" )
