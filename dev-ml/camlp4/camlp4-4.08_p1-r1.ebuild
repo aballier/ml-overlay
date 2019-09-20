@@ -23,7 +23,7 @@ DEPEND="${DEPEND}
 	dev-ml/ocamlbuild"
 
 S=${WORKDIR}/${P/_p/-}
-PATCHES=( "${FILESDIR}/reload.patch" )
+PATCHES=( "${FILESDIR}/reload.patch" "${FILESDIR}/oc409.patch" )
 
 src_configure() {
 	./configure \
