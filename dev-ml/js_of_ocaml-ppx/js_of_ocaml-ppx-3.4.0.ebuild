@@ -33,3 +33,4 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}"
 RESTRICT="test"
+PATCHES=( "${FILESDIR}/oc409.patch" )
