@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -26,4 +26,5 @@ src_prepare() {
 	oasis setup || die
 
 	has_version '>=dev-lang/ocaml-4.06_beta' && epatch "${FILESDIR}/ocaml406.patch"
+	has_version '>=dev-lang/ocaml-4.09_beta' && epatch "${FILESDIR}/ocaml409.patch"
 }

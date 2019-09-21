@@ -1,0 +1,13 @@
+Index: ocaml-snappy-0.1.0/src/snappy_stubs.c
+===================================================================
+--- ocaml-snappy-0.1.0.orig/src/snappy_stubs.c
++++ ocaml-snappy-0.1.0/src/snappy_stubs.c
+@@ -14,7 +14,7 @@ extern "C" {
+ 
+ static void raise_error(char const* s)
+ {
+-  static value* exn = NULL;
++  static const value* exn = NULL;
+   if (NULL == exn)
+   {
+     exn = caml_named_value("Snappy.Error");
