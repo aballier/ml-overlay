@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -26,7 +26,10 @@ RDEPEND="
 	x11-libs/libXpm
 	x11-apps/rgb
 	sys-libs/zlib
+
+	dev-ml/graphics:=
 	"
 DEPEND="${DEPEND}
 	virtual/pkgconfig
 	dev-ml/findlib"
+PATCHES=( "${FILESDIR}/graphics.patch" )
