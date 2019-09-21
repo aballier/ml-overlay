@@ -27,3 +27,8 @@ DEPEND="${RDEPEND}
 	test? ( dev-ml/lwt app-text/pandoc )
 "
 BDEPEND="dev-ml/cppo"
+
+src_prepare() {
+	default
+	has_version '>=dev-lang/ocaml-4.09' && eapply "${FILESDIR}/oc409.patch"
+}
