@@ -14,7 +14,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="!dev-ml/ocaml-cstruct"
+RDEPEND="!dev-ml/ocaml-cstruct
+	dev-ml/bigarray-compat:=
+"
 DEPEND="
 	test? ( dev-ml/alcotest )
 	${RDEPEND}
