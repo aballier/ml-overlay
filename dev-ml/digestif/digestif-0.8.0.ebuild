@@ -17,6 +17,8 @@ IUSE="test"
 
 RDEPEND="
 	dev-ml/eqaf:=
+	dev-ml/stdlib-shims:=
+	dev-ml/bigarray-compat:=
 "
 DEPEND="${RDEPEND}
 	test? (
