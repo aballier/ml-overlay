@@ -23,5 +23,5 @@ RDEPEND="
 	dev-ml/digestif:=
 "
 DEPEND="${RDEPEND}
-	test? ( dev-ml/alcotest dev-ml/async_unix )"
+	test? ( dev-ml/alcotest dev-ml/async_unix dev-ml/graphql-lwt )"
 S="${WORKDIR}/ocaml-graphql-server-${PV}"
