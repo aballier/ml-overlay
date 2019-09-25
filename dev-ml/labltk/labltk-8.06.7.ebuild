@@ -21,11 +21,11 @@ DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.5.5-r1"
 
 src_prepare() {
-	epatch "${FILESDIR}/findlib.patch" "${FILESDIR}/graphics_oot.patch"
+	epatch "${FILESDIR}/findlib.patch"
 }
 
 src_configure() {
-	./configure --use-findlib --verbose $(use X || echo "--tk-no-x11") || die "configure failed!"
+	./configure --use-findlib --verbose $(usex X "-tk-x11" "--tk-no-x11") || die "configure failed!"
 }
 
 src_compile() {
