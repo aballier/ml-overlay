@@ -16,6 +16,6 @@ IUSE="test"
 
 RDEPEND="!dev-ml/ocaml-re"
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit )"
+	test? ( dev-ml/ounit2 )"
 S="${WORKDIR}/ocaml-${P}"
-PATCHES=( "${FILESDIR}/seq.patch" )
+PATCHES=( "${FILESDIR}/seq.patch" "${FILESDIR}/ounit2.patch" )
