@@ -12,7 +12,7 @@ LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 DEPEND="
-	dev-ml/ounit:=
+	dev-ml/ounit2:=
 		dev-ml/stdlib-shims:=
 	dev-ml/lwt:=
 "
