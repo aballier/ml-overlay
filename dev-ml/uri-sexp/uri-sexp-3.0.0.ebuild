@@ -22,7 +22,8 @@ RDEPEND="
 	dev-ml/sexplib0:=
 "
 DEPEND="${RDEPEND}
-	test? ( >=dev-ml/ounit-1.0.2 )
+	test? ( dev-ml/ounit2 )
 "
 
 S="${WORKDIR}/ocaml-uri-${PV}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )
