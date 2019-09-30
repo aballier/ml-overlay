@@ -1,0 +1,13 @@
+Index: ocaml-redis-0.3.6/test/jbuild
+===================================================================
+--- ocaml-redis-0.3.6.orig/test/jbuild
++++ ocaml-redis-0.3.6/test/jbuild
+@@ -4,7 +4,7 @@
+  ((name redis_test)
+   (modules test)
+   (flags (:standard -safe-string))
+-  (libraries (redis oUnit))))
++  (libraries (redis ounit2))))
+ 
+ (executables
+  ((libraries (redis_test redis_sync redis_lwt))
