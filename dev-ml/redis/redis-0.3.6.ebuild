@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -20,8 +20,9 @@ RDEPEND="
 	!dev-ml/ocaml-redis
 "
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit dev-db/redis dev-ml/lwt )"
+	test? ( dev-ml/ounit2 dev-db/redis dev-ml/lwt )"
 S="${WORKDIR}/ocaml-${P}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )
 
 src_test() {
 	einfo "Starting test redis server"
