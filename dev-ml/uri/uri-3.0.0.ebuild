@@ -19,7 +19,8 @@ RDEPEND="
 	dev-ml/stringext:=
 "
 DEPEND="${RDEPEND}
-	test? ( >=dev-ml/ounit-1.0.2 dev-ml/ppx_sexp_conv )
+	test? ( dev-ml/ounit2 dev-ml/ppx_sexp_conv )
 "
 
 S="${WORKDIR}/ocaml-${P}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )
