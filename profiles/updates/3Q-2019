@@ -1,3 +1,4 @@
 move dev-ml/ocaml-cairo dev-ml/cairo2
 move dev-ml/ocaml-fileutils dev-ml/fileutils
 move dev-ml/ocaml-uint dev-ml/uint
+move dev-ml/ounit dev-ml/ounit2
