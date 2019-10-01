@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 inherit jbuilder
 
@@ -16,5 +16,6 @@ IUSE="test"
 
 RDEPEND=""
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit )"
+	test? ( dev-ml/ounit2 )"
 S="${WORKDIR}/${PN}-v${PV}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )

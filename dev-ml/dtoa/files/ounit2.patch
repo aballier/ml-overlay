@@ -1,0 +1,12 @@
+Index: dtoa-v0.3.2/test/dune
+===================================================================
+--- dtoa-v0.3.2.orig/test/dune
++++ dtoa-v0.3.2/test/dune
+@@ -1,6 +1,6 @@
+ (executable
+  (name test)
+- (libraries dtoa oUnit))
++ (libraries dtoa ounit2))
+ 
+ (alias
+  (name runtest)
