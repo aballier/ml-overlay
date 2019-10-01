@@ -1,0 +1,75 @@
+Index: ocaml-extunix-0.1.7/_tags
+===================================================================
+--- ocaml-extunix-0.1.7.orig/_tags
++++ ocaml-extunix-0.1.7/_tags
+@@ -176,27 +176,27 @@ true: annot, bin_annot
+ # Executable test
+ <test/test.{native,byte}>: pkg_bigarray
+ <test/test.{native,byte}>: pkg_bytes
+-<test/test.{native,byte}>: pkg_oUnit
++<test/test.{native,byte}>: pkg_ounit2
+ <test/test.{native,byte}>: pkg_unix
+ <test/test.{native,byte}>: use_extunix
+ <test/test.{native,byte}>: custom
+ # Executable testba
+ <test/testba.{native,byte}>: pkg_bigarray
+ <test/testba.{native,byte}>: pkg_bytes
+-<test/testba.{native,byte}>: pkg_oUnit
++<test/testba.{native,byte}>: pkg_ounit2
+ <test/testba.{native,byte}>: pkg_unix
+ <test/testba.{native,byte}>: use_extunix
+ <test/testba.{native,byte}>: custom
+ # Executable test_user_namespace
+ <test/test_user_namespace.{native,byte}>: pkg_bigarray
+ <test/test_user_namespace.{native,byte}>: pkg_bytes
+-<test/test_user_namespace.{native,byte}>: pkg_oUnit
++<test/test_user_namespace.{native,byte}>: pkg_ounit2
+ <test/test_user_namespace.{native,byte}>: pkg_str
+ <test/test_user_namespace.{native,byte}>: pkg_unix
+ <test/test_user_namespace.{native,byte}>: use_extunix
+ <test/*.ml{,i,y}>: pkg_bigarray
+ <test/*.ml{,i,y}>: pkg_bytes
+-<test/*.ml{,i,y}>: pkg_oUnit
++<test/*.ml{,i,y}>: pkg_ounit2
+ <test/*.ml{,i,y}>: pkg_str
+ <test/*.ml{,i,y}>: pkg_unix
+ <test/*.ml{,i,y}>: use_extunix
+Index: ocaml-extunix-0.1.7/setup.ml
+===================================================================
+--- ocaml-extunix-0.1.7.orig/setup.ml
++++ ocaml-extunix-0.1.7/setup.ml
+@@ -7355,7 +7355,7 @@ let setup_t =
+                         [
+                            InternalLibrary "extunix";
+                            FindlibPackage
+-                             ("oUnit",
++                             ("ounit2",
+                                Some (OASISVersion.VGreaterEqual "1.0.3"))
+                         ];
+                       bs_build_tools =
+@@ -7500,7 +7500,7 @@ let setup_t =
+                         [
+                            InternalLibrary "extunix";
+                            FindlibPackage
+-                             ("oUnit",
++                             ("ounit2",
+                                Some (OASISVersion.VGreaterEqual "1.0.3"))
+                         ];
+                       bs_build_tools =
+@@ -7646,7 +7646,7 @@ let setup_t =
+                            FindlibPackage ("str", None);
+                            InternalLibrary "extunix";
+                            FindlibPackage
+-                             ("oUnit",
++                             ("ounit2",
+                                Some (OASISVersion.VGreaterEqual "1.0.3"))
+                         ];
+                       bs_build_tools =
+Index: ocaml-extunix-0.1.7/test/.merlin
+===================================================================
+--- ocaml-extunix-0.1.7.orig/test/.merlin
++++ ocaml-extunix-0.1.7/test/.merlin
+@@ -1,2 +1,2 @@
+ REC
+-PKG oUnit
++PKG ounit2

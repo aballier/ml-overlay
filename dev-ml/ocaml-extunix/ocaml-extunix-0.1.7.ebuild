@@ -19,5 +19,6 @@ IUSE=""
 
 RDEPEND="dev-ml/camlp4:="
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit )"
+	test? ( dev-ml/ounit2 )"
 DOCS=( "README.md" "TODO" "CHANGES.txt" )
+PATCHES=( "${FILESDIR}/ounit2.patch" )
