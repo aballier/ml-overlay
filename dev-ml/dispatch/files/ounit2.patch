@@ -1,0 +1,12 @@
+Index: ocaml-dispatch-0.4.0/test/jbuild
+===================================================================
+--- ocaml-dispatch-0.4.0.orig/test/jbuild
++++ ocaml-dispatch-0.4.0/test/jbuild
+@@ -1,6 +1,6 @@
+ (executables
+  ((names (test_dispatch))
+-  (libraries (dispatch oUnit))
++  (libraries (dispatch ounit2))
+ ))
+ (alias
+  ((name    runtest)
