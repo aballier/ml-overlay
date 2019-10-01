@@ -25,8 +25,9 @@ RDEPEND="
 	!dev-ml/capnp-ocaml
 "
 DEPEND="${RDEPEND}
-	test? ( dev-ml/core dev-ml/ounit )
+	test? ( dev-ml/core dev-ml/ounit2 )
 "
 BDEPEND=""
 
 S="${WORKDIR}/${PN}-ocaml-${PV}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )
