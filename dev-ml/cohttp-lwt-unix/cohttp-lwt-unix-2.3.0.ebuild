@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 inherit jbuilder
 
@@ -26,6 +26,7 @@ RDEPEND="
 	dev-libs/openssl:0=
 "
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit )"
+	test? ( dev-ml/ounit2 )"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )

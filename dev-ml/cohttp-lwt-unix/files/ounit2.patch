@@ -1,0 +1,46 @@
+Index: ocaml-cohttp-2.3.0/cohttp-async/test/dune
+===================================================================
+--- ocaml-cohttp-2.3.0.orig/cohttp-async/test/dune
++++ ocaml-cohttp-2.3.0/cohttp-async/test/dune
+@@ -1,6 +1,6 @@
+ (executable
+   (name      test_async_integration)
+-  (libraries cohttp_async_test async_unix base core async_kernel oUnit
++  (libraries cohttp_async_test async_unix base core async_kernel ounit2
+              cohttp-async))
+ 
+ (alias
+Index: ocaml-cohttp-2.3.0/cohttp-lwt-unix/test/dune
+===================================================================
+--- ocaml-cohttp-2.3.0.orig/cohttp-lwt-unix/test/dune
++++ ocaml-cohttp-2.3.0/cohttp-lwt-unix/test/dune
+@@ -1,7 +1,7 @@
+ (executable
+   (name      test_parser)
+   (modules   test_parser)
+-  (libraries cohttp-lwt-unix oUnit lwt.unix))
++  (libraries cohttp-lwt-unix ounit2 lwt.unix))
+ 
+ (alias
+   (name    runtest)
+Index: ocaml-cohttp-2.3.0/cohttp_lwt_unix_test/src/dune
+===================================================================
+--- ocaml-cohttp-2.3.0.orig/cohttp_lwt_unix_test/src/dune
++++ ocaml-cohttp-2.3.0/cohttp_lwt_unix_test/src/dune
+@@ -1,4 +1,4 @@
+ (library
+  (name      cohttp_lwt_unix_test)
+  (wrapped   false)
+- (libraries cohttp-lwt-unix cohttp_test oUnit))
+\ No newline at end of file
++ (libraries cohttp-lwt-unix cohttp_test ounit2))
+Index: ocaml-cohttp-2.3.0/cohttp_test/src/dune
+===================================================================
+--- ocaml-cohttp-2.3.0.orig/cohttp_test/src/dune
++++ ocaml-cohttp-2.3.0/cohttp_test/src/dune
+@@ -1,4 +1,4 @@
+ (library
+   (name      cohttp_test)
+   (wrapped   false)
+-  (libraries cohttp oUnit))
++  (libraries cohttp ounit2))
