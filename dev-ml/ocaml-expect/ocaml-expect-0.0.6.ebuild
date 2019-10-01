@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -21,6 +21,7 @@ RDEPEND="
 	dev-ml/batteries:=
 	dev-ml/pcre:="
 DEPEND="${RDEPEND}
-	test? ( >=dev-ml/ounit-2.0.0 )"
+	test? ( >=dev-ml/ounit2-2.0.0 )"
 
 DOCS=( "README.txt" "CHANGES.txt" "AUTHORS.txt" )
+PATCHES=( "${FILESDIR}/ounit2.patch" )
