@@ -19,7 +19,8 @@ RDEPEND="!dev-ml/ocaml-ipaddr
 	dev-ml/ppx_sexp_conv:=
 "
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit dev-ml/macaddr-cstruct )
+	test? ( dev-ml/ounit2 dev-ml/macaddr-cstruct )
 "
 
 S="${WORKDIR}/ocaml-ipaddr-${PV}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )
