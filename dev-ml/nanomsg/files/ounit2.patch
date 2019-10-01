@@ -1,0 +1,13 @@
+Index: onanomsg-1.0/_tags
+===================================================================
+--- onanomsg-1.0.orig/_tags
++++ onanomsg-1.0/_tags
+@@ -18,7 +18,7 @@ true: debug, bin_annot, safe_string
+ 	      package(ipaddr), \
+ 	      package(lwt.unix), \
+ 	      package(lwt_ppx), \
+-	      package(oUnit), \
++	      package(ounit2), \
+ 	      package(ppx_deriving), \
+ 	      package(containers)
+ 

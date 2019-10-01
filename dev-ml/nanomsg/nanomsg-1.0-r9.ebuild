@@ -27,7 +27,7 @@ RDEPEND="
 	!dev-ml/onanomsg
 "
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit )
+	test? ( dev-ml/ounit2 )
 "
 S="${WORKDIR}/onanomsg-${PV}"
 
@@ -37,7 +37,8 @@ src_prepare() {
 		"${FILESDIR}/testrun.patch" \
 		"${FILESDIR}/thread.patch" \
 		"${FILESDIR}/lwt4.patch" \
-		"${FILESDIR}/ipaddr3.patch"
+		"${FILESDIR}/ipaddr3.patch" \
+		"${FILESDIR}/ounit2.patch"
 	default
 }
 
