@@ -1,0 +1,12 @@
+Index: ocaml-pcap-0.5.2/lib_test/dune
+===================================================================
+--- ocaml-pcap-0.5.2.orig/lib_test/dune
++++ ocaml-pcap-0.5.2/lib_test/dune
+@@ -1,6 +1,6 @@
+ (executable
+  (name test)
+- (libraries pcap-format oUnit mmap))
++ (libraries pcap-format ounit2 mmap))
+ 
+ (alias
+  (name runtest)

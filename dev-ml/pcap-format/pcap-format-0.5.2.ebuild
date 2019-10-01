@@ -22,8 +22,9 @@ RDEPEND="
 "
 DEPEND="
 	dev-ml/ppx_tools
-	test? ( dev-ml/ounit )
+	test? ( dev-ml/ounit2 )
 	${RDEPEND}
 "
+PATCHES=( "${FILESDIR}/ounit2.patch" )
 
 S="${WORKDIR}/ocaml-pcap-${PV}"
