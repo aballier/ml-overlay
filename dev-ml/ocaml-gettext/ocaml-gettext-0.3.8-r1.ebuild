@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit findlib eutils autotools
 
@@ -24,7 +24,10 @@ DEPEND="${RDEPEND}
 	doc? ( app-text/docbook-xsl-stylesheets dev-libs/libxslt )
 	test? ( dev-ml/ounit )"
 
+PATCHES=( "${FILESDIR}/ounit2.patch" )
+
 src_prepare() {
+	default
 	eautoreconf
 }
 
