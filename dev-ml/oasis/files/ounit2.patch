@@ -1,0 +1,170 @@
+Index: oasis-0.4.11/setup.ml
+===================================================================
+--- oasis-0.4.11.orig/setup.ml
++++ oasis-0.4.11/setup.ml
+@@ -8338,7 +8338,7 @@ let setup_t =
+                       bs_build_depends =
+                         [
+                            FindlibPackage
+-                             ("oUnit",
++                             ("ounit2",
+                                Some (OASISVersion.VGreaterEqual "2.0.0"));
+                            InternalLibrary "base";
+                            FindlibPackage ("fileutils", None);
+@@ -8656,7 +8656,7 @@ let setup_t =
+                       bs_build_depends =
+                         [
+                            FindlibPackage
+-                             ("oUnit",
++                             ("ounit2",
+                                Some (OASISVersion.VGreaterEqual "2.0.0"));
+                            FindlibPackage ("findlib", None);
+                            FindlibPackage
+@@ -8823,7 +8823,7 @@ let setup_t =
+                       bs_build_depends =
+                         [
+                            FindlibPackage
+-                             ("oUnit",
++                             ("ounit2",
+                                Some (OASISVersion.VGreaterEqual "2.0.0"));
+                            FindlibPackage ("findlib", None);
+                            FindlibPackage
+@@ -8990,7 +8990,7 @@ let setup_t =
+                       bs_build_depends =
+                         [
+                            FindlibPackage
+-                             ("oUnit",
++                             ("ounit2",
+                                Some (OASISVersion.VGreaterEqual "2.0.0"));
+                            FindlibPackage ("findlib", None);
+                            FindlibPackage
+@@ -9159,7 +9159,7 @@ let setup_t =
+                       bs_build_depends =
+                         [
+                            FindlibPackage
+-                             ("oUnit",
++                             ("ounit2",
+                                Some (OASISVersion.VGreaterEqual "2.0.0"));
+                            InternalLibrary "oasis";
+                            InternalLibrary "test-common"
+@@ -11567,7 +11567,7 @@ let setup_t =
+                         [
+                            InternalLibrary "plugin-loader";
+                            FindlibPackage ("fileutils", None);
+-                           FindlibPackage ("oUnit", None)
++                           FindlibPackage ("ounit2", None)
+                         ];
+                       bs_build_tools =
+                         [ExternalTool "ocamlbuild"; ExternalTool "make"];
+Index: oasis-0.4.11/_tags
+===================================================================
+--- oasis-0.4.11.orig/_tags
++++ oasis-0.4.11/_tags
+@@ -91,7 +91,7 @@ true: annot, bin_annot
+ # Library test-common
+ "test/test-common/test-common.cmxs": use_test-common
+ <test/test-common/*.ml{,i,y}>: package(fileutils)
+-<test/test-common/*.ml{,i,y}>: package(oUnit)
++<test/test-common/*.ml{,i,y}>: package(ounit2)
+ <test/test-common/*.ml{,i,y}>: package(pcre)
+ <test/test-common/*.ml{,i,y}>: package(unix)
+ <test/test-common/*.ml{,i,y}>: use_base
+@@ -102,7 +102,7 @@ true: annot, bin_annot
+ # Executable test-main
+ <test/test-main/Test.{native,byte}>: package(fileutils)
+ <test/test-main/Test.{native,byte}>: package(findlib)
+-<test/test-main/Test.{native,byte}>: package(oUnit)
++<test/test-main/Test.{native,byte}>: package(ounit2)
+ <test/test-main/Test.{native,byte}>: package(ocamlbuild)
+ <test/test-main/Test.{native,byte}>: package(pcre)
+ <test/test-main/Test.{native,byte}>: package(unix)
+@@ -112,7 +112,7 @@ true: annot, bin_annot
+ <test/test-main/Test.{native,byte}>: use_test-common
+ <test/test-main/*.ml{,i,y}>: package(fileutils)
+ <test/test-main/*.ml{,i,y}>: package(findlib)
+-<test/test-main/*.ml{,i,y}>: package(oUnit)
++<test/test-main/*.ml{,i,y}>: package(ounit2)
+ <test/test-main/*.ml{,i,y}>: package(ocamlbuild)
+ <test/test-main/*.ml{,i,y}>: package(pcre)
+ <test/test-main/*.ml{,i,y}>: package(unix)
+@@ -123,7 +123,7 @@ true: annot, bin_annot
+ # Executable test-omake
+ <test/test-omake/TestOMake.{native,byte}>: package(fileutils)
+ <test/test-omake/TestOMake.{native,byte}>: package(findlib)
+-<test/test-omake/TestOMake.{native,byte}>: package(oUnit)
++<test/test-omake/TestOMake.{native,byte}>: package(ounit2)
+ <test/test-omake/TestOMake.{native,byte}>: package(ocamlbuild)
+ <test/test-omake/TestOMake.{native,byte}>: package(pcre)
+ <test/test-omake/TestOMake.{native,byte}>: package(unix)
+@@ -133,7 +133,7 @@ true: annot, bin_annot
+ <test/test-omake/TestOMake.{native,byte}>: use_test-common
+ <test/test-omake/*.ml{,i,y}>: package(fileutils)
+ <test/test-omake/*.ml{,i,y}>: package(findlib)
+-<test/test-omake/*.ml{,i,y}>: package(oUnit)
++<test/test-omake/*.ml{,i,y}>: package(ounit2)
+ <test/test-omake/*.ml{,i,y}>: package(ocamlbuild)
+ <test/test-omake/*.ml{,i,y}>: package(pcre)
+ <test/test-omake/*.ml{,i,y}>: package(unix)
+@@ -145,7 +145,7 @@ true: annot, bin_annot
+ <test/test-quickstart/TestQuickstart.{native,byte}>: package(expect.pcre)
+ <test/test-quickstart/TestQuickstart.{native,byte}>: package(fileutils)
+ <test/test-quickstart/TestQuickstart.{native,byte}>: package(findlib)
+-<test/test-quickstart/TestQuickstart.{native,byte}>: package(oUnit)
++<test/test-quickstart/TestQuickstart.{native,byte}>: package(ounit2)
+ <test/test-quickstart/TestQuickstart.{native,byte}>: package(ocamlbuild)
+ <test/test-quickstart/TestQuickstart.{native,byte}>: package(pcre)
+ <test/test-quickstart/TestQuickstart.{native,byte}>: package(unix)
+@@ -156,7 +156,7 @@ true: annot, bin_annot
+ <test/test-quickstart/*.ml{,i,y}>: package(expect.pcre)
+ <test/test-quickstart/*.ml{,i,y}>: package(fileutils)
+ <test/test-quickstart/*.ml{,i,y}>: package(findlib)
+-<test/test-quickstart/*.ml{,i,y}>: package(oUnit)
++<test/test-quickstart/*.ml{,i,y}>: package(ounit2)
+ <test/test-quickstart/*.ml{,i,y}>: package(ocamlbuild)
+ <test/test-quickstart/*.ml{,i,y}>: package(pcre)
+ <test/test-quickstart/*.ml{,i,y}>: package(unix)
+@@ -166,14 +166,14 @@ true: annot, bin_annot
+ <test/test-quickstart/*.ml{,i,y}>: use_test-common
+ # Executable test-devel
+ <test/test-devel/TestDevel.{native,byte}>: package(fileutils)
+-<test/test-devel/TestDevel.{native,byte}>: package(oUnit)
++<test/test-devel/TestDevel.{native,byte}>: package(ounit2)
+ <test/test-devel/TestDevel.{native,byte}>: package(pcre)
+ <test/test-devel/TestDevel.{native,byte}>: package(unix)
+ <test/test-devel/TestDevel.{native,byte}>: use_base
+ <test/test-devel/TestDevel.{native,byte}>: use_oasis
+ <test/test-devel/TestDevel.{native,byte}>: use_test-common
+ <test/test-devel/*.ml{,i,y}>: package(fileutils)
+-<test/test-devel/*.ml{,i,y}>: package(oUnit)
++<test/test-devel/*.ml{,i,y}>: package(ounit2)
+ <test/test-devel/*.ml{,i,y}>: package(pcre)
+ <test/test-devel/*.ml{,i,y}>: package(unix)
+ <test/test-devel/*.ml{,i,y}>: use_base
+@@ -284,12 +284,12 @@ true: annot, bin_annot
+ "src/ext/plugin-loader/test/TestLoader.byte": package(dynlink)
+ "src/ext/plugin-loader/test/TestLoader.byte": package(fileutils)
+ "src/ext/plugin-loader/test/TestLoader.byte": package(findlib)
+-"src/ext/plugin-loader/test/TestLoader.byte": package(oUnit)
++"src/ext/plugin-loader/test/TestLoader.byte": package(ounit2)
+ "src/ext/plugin-loader/test/TestLoader.byte": use_plugin-loader
+ <src/ext/plugin-loader/test/*.ml{,i,y}>: package(dynlink)
+ <src/ext/plugin-loader/test/*.ml{,i,y}>: package(fileutils)
+ <src/ext/plugin-loader/test/*.ml{,i,y}>: package(findlib)
+-<src/ext/plugin-loader/test/*.ml{,i,y}>: package(oUnit)
++<src/ext/plugin-loader/test/*.ml{,i,y}>: package(ounit2)
+ <src/ext/plugin-loader/test/*.ml{,i,y}>: use_plugin-loader
+ # OASIS_STOP
+ 
+Index: oasis-0.4.11/test/test-common/META
+===================================================================
+--- oasis-0.4.11.orig/test/test-common/META
++++ oasis-0.4.11/test/test-common/META
+@@ -24,7 +24,7 @@
+ # DO NOT EDIT (digest: 72262e29ffedcd966ef295973b90794f)
+ version = "0.4.11~HEAD"
+ description = "Tooling for building OCaml libraries and applications"
+-requires = "oUnit oasis.base fileutils pcre"
++requires = "ounit oasis.base fileutils pcre"
+ archive(byte) = "test-common.cma"
+ archive(byte, plugin) = "test-common.cma"
+ archive(native) = "test-common.cmxa"

@@ -27,7 +27,7 @@ DEPEND="${RDEPEND}
 	!<sci-chemistry/oasis-4.0-r3
 	test? (
 		>=dev-ml/fileutils-0.4.2
-		>=dev-ml/ounit-2.0.0
+		>=dev-ml/ounit2-2.0.0
 		>=dev-ml/ocaml-expect-0.0.4
 		dev-ml/pcre
 		dev-ml/extlib
@@ -35,3 +35,4 @@ DEPEND="${RDEPEND}
 
 STRIP_MASK="*/bin/*"
 DOCS=( "README.md" "TODO.txt" "AUTHORS.md" "CHANGES.txt" )
+PATCHES=( "${FILESDIR}/ounit2.patch" )
