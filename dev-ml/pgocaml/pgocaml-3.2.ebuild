@@ -36,6 +36,7 @@ DOCS=( "README.md" "CHANGELOG.txt"
 	"doc/BUGS.txt" "doc/CONTRIBUTORS.txt"
 	"doc/HOW_IT_WORKS.txt" "doc/PROFILING.txt"
 	)
+PATCHES=( "${FILESDIR}/ounit2.patch" )
 
 src_configure() {
 	oasis_configure_opts="$(use_enable camlp4 p4)" oasis_src_configure
