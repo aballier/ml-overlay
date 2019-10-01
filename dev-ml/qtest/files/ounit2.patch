@@ -1,0 +1,48 @@
+Index: qtest-2.9/src/META
+===================================================================
+--- qtest-2.9.orig/src/META
++++ qtest-2.9/src/META
+@@ -1,6 +1,6 @@
+ version = "2.2"
+ description = "qTest: inline unit tests extractor, from Batteries."
+-requires = "oUnit unix bytes"
++requires = "ounit2 unix bytes"
+ archive(byte) = "qcheck.cma"
+ archive(byte, plugin) = "qcheck.cma"
+ archive(native) = "qcheck.cmxa"
+Index: qtest-2.9/src/jbuild
+===================================================================
+--- qtest-2.9.orig/src/jbuild
++++ qtest-2.9/src/jbuild
+@@ -17,6 +17,6 @@
+    (modules ())
+    (inline_tests.backend
+      ((generate_runner (run qtest extract ${impl-files} ${intf-files}))
+-      (runner_libraries (qcheck oUnit bytes))
++      (runner_libraries (qcheck ounit2 bytes))
+       ))
+    ))
+Index: qtest-2.9/tests/testcppo.sh
+===================================================================
+--- qtest-2.9.orig/tests/testcppo.sh
++++ qtest-2.9/tests/testcppo.sh
+@@ -3,7 +3,7 @@ echo | cppo > /dev/null \
+   || (echo "cppo is required to run this test"; exit 1)
+ cppo cppo.ml.cppo > cppo.ml
+ qtest extract cppo.ml -o cppo_test.ml
+-ocamlbuild -cflags -warn-error,+26 -use-ocamlfind -pkg oUnit,qcheck cppo_test.native
++ocamlbuild -cflags -warn-error,+26 -use-ocamlfind -pkg ounit2,qcheck cppo_test.native
+ ./cppo_test.native 2>&1 | grep cppo.test.ml >/dev/null \
+   || { echo "test failed"; exit 1; } \
+   && { rm -f cppo.ml cppo_test.ml; echo "test passed"; }
+Index: qtest-2.9/tests/testfoo.sh
+===================================================================
+--- qtest-2.9.orig/tests/testfoo.sh
++++ qtest-2.9/tests/testfoo.sh
+@@ -2,5 +2,5 @@ set -e # stop on first error
+ # ./make.sh
+ rm -rf footest.ml _build
+ qtest -o footest.ml $@ extract foo.ml
+-ocamlbuild -cflags -warn-error,+26 -use-ocamlfind -pkg oUnit,qcheck footest.native
++ocamlbuild -cflags -warn-error,+26 -use-ocamlfind -pkg ounit2,qcheck footest.native
+ ./footest.native
