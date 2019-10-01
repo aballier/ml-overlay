@@ -22,8 +22,6 @@ RDEPEND="dev-ml/cstruct:=
 "
 DEPEND="
 	test? (
-		dev-ml/ounit
-		dev-ml/ppx_driver
 		dev-ml/ppx_sexp_conv
 		dev-ml/cstruct-unix
 		dev-ml/cstruct-sexp
