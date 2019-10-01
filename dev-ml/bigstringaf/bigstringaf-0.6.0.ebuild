@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -14,7 +14,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="dev-ml/result:="
+DEPEND="
+	dev-ml/bigarray-compat:=
+"
 RDEPEND="${DEPEND}"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )"
