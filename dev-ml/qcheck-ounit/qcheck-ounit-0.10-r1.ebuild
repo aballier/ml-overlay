@@ -10,12 +10,13 @@ HOMEPAGE="https://github.com/c-cube/qcheck/"
 SRC_URI="https://github.com/c-cube/qcheck/archive/${PV}.tar.gz -> qcheck-${PV}.tar.gz"
 
 LICENSE="BSD"
-SLOT="0/${PV}"
+SLOT="0/${PV}-ounit2"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-RDEPEND="dev-ml/ounit:=
+RDEPEND="dev-ml/ounit2:=
 	dev-ml/qcheck-core:=
 	!<dev-ml/iTeML-2.5"
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/qcheck-${PV}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )
