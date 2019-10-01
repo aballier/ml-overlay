@@ -25,7 +25,6 @@ DEPEND="${RDEPEND}
 	test? (
 		dev-ml/qtest
 		dev-ml/qcheck
-		dev-ml/ounit
 		dev-ml/iter
 		dev-ml/gen
 		dev-ml/uutf
