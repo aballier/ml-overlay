@@ -22,7 +22,7 @@ RDEPEND=">=dev-lang/ocaml-3.12.1:=
 	"
 DEPEND="${RDEPEND}
 	doc? ( app-text/docbook-xsl-stylesheets dev-libs/libxslt )
-	test? ( dev-ml/ounit )"
+	test? ( dev-ml/ounit2 )"
 
 PATCHES=( "${FILESDIR}/ounit2.patch" )
 
