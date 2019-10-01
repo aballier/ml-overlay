@@ -30,7 +30,7 @@ DEPEND="${DEPEND}
 	dev-ml/ocamlbuild
 	dev-ml/findlib
 	dev-ml/rresult
-	test? ( dev-ml/ounit )"
+	test? ( dev-ml/ounit2 )"
 
 DOCS=( "README.md" "CHANGELOG.txt"
 	"doc/BUGS.txt" "doc/CONTRIBUTORS.txt"
