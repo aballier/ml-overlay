@@ -21,7 +21,7 @@ DEPEND="
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
-	test? ( dev-ml/ounit dev-ml/ppx_deriving )
+	test? ( dev-ml/ounit2 dev-ml/ppx_deriving )
 "
 PATCHES=(
 	"${FILESDIR}/ompt.patch"
