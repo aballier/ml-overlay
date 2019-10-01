@@ -23,7 +23,8 @@ RDEPEND="
 DEPEND="
 	${RDEPEND}
 	dev-ml/configurator
-	test? ( dev-ml/ounit )
+	test? ( dev-ml/ounit2 )
 "
 
 S="${WORKDIR}/${MY_P}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )

@@ -1,0 +1,12 @@
+Index: io-page-v2.3.0/lib_test/dune
+===================================================================
+--- io-page-v2.3.0.orig/lib_test/dune
++++ io-page-v2.3.0/lib_test/dune
+@@ -1,6 +1,6 @@
+ (executables
+  (names portable)
+- (libraries io-page-unix io-page oUnit))
++ (libraries io-page-unix io-page ounit2))
+ 
+ (alias
+  (name runtest)
