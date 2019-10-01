@@ -1,0 +1,12 @@
+Index: ppx_deriving_protobuf-2.7/src_test/dune
+===================================================================
+--- ppx_deriving_protobuf-2.7.orig/src_test/dune
++++ ppx_deriving_protobuf-2.7/src_test/dune
+@@ -1,6 +1,6 @@
+ (executable
+  (name test_ppx_protobuf)
+- (libraries str uint oUnit)
++ (libraries str uint ounit2)
+  (preprocess
+   (pps ppx_deriving_protobuf)))
+ 

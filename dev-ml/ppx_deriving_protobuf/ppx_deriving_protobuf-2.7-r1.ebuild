@@ -21,5 +21,6 @@ DEPEND="${RDEPEND}
 	dev-ml/ppxfind
 	dev-ml/ppx_tools
 	dev-ml/cppo
-	test? ( dev-ml/ounit dev-ml/uint )
+	test? ( dev-ml/ounit2 dev-ml/uint )
 "
+PATCHES=( "${FILESDIR}/ounit2.patch" )
