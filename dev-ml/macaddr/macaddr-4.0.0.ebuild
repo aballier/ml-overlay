@@ -16,7 +16,7 @@ IUSE="test"
 
 RDEPEND="!dev-ml/ocaml-ipaddr"
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit dev-ml/ppx_sexp_conv )
+	test? ( dev-ml/ppx_sexp_conv )
 "
 
 S="${WORKDIR}/ocaml-ipaddr-${PV}"
