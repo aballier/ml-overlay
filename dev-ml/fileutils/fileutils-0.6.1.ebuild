@@ -20,6 +20,7 @@ RDEPEND="
 	!dev-ml/ocaml-fileutils
 "
 DEPEND="${RDEPEND}
-	test? ( >=dev-ml/ounit-2.0.0 )"
+	test? ( >=dev-ml/ounit2-2.0.0 )"
 
 S="${WORKDIR}/ocaml-${P}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )
