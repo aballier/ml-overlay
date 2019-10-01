@@ -23,7 +23,11 @@ RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( dev-ml/ounit dev-ml/ppx_deriving )
 "
-PATCHES=( "${FILESDIR}/ompt.patch" "${FILESDIR}/oc408.patch" )
+PATCHES=(
+	"${FILESDIR}/ompt.patch"
+	"${FILESDIR}/oc408.patch"
+	"${FILESDIR}/ounit2.patch"
+)
 
 src_prepare() {
 	default
