@@ -21,7 +21,7 @@ RDEPEND="dev-ml/sexplib0:=
 "
 DEPEND="${RDEPEND}
 	dev-ml/findlib
-	test? ( dev-ml/ounit dev-ml/ppx_sexp_conv )
+	test? ( dev-ml/ppx_sexp_conv )
 "
 
 S="${WORKDIR}/ocaml-${P}"
