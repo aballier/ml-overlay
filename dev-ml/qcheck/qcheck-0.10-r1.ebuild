@@ -16,7 +16,7 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/qcheck-ounit:=
-		dev-ml/ounit:=
+		dev-ml/ounit2:=
 	dev-ml/qcheck-core:=
 	!<dev-ml/iTeML-2.5"
 DEPEND="${RDEPEND}"
