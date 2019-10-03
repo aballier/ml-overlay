@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit multilib eutils
+inherit multilib
 
 MY_PV="${PV/_/-}"
 DESCRIPTION="Library to exploit multicore architectures for OCaml programs"
@@ -21,7 +21,6 @@ DEPEND="${RDEPEND}
 	dev-ml/ocamlbuild
 	dev-ml/ocaml-autoconf"
 S="${WORKDIR}/${PN}-${MY_PV/+/-}"
-PATCHES=( "${FILESDIR}/oc408.patch" )
 
 src_test() {
 	mkdir "${WORKDIR}/tmpinstall" || die
