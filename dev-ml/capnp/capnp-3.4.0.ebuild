@@ -15,17 +15,16 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="
-	dev-ml/core_kernel:=
-	dev-ml/ocaml-extunix:=
+	dev-ml/result:=
+	dev-ml/base:=
+	dev-ml/stdio:=
 	dev-ml/ocplib-endian:=
 	dev-ml/res:=
-	dev-ml/uint:=
+	dev-ml/stdint:=
 	dev-libs/capnproto:=
-	dev-ml/num:=
-	!dev-ml/capnp-ocaml
 "
 DEPEND="${RDEPEND}
-	test? ( dev-ml/core dev-ml/ounit2 )
+	test? ( dev-ml/ounit2 dev-ml/base_quickcheck )
 "
 BDEPEND=""
 
