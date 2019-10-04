@@ -25,10 +25,3 @@ DEPEND="${DEPEND}
 	dev-ml/findlib
 "
 S=( "${WORKDIR}/package" )
-PATCHES=( "${FILESDIR}/oc409.patch" )
-
-src_prepare() {
-	cp src/reason-parser/lexer_warning.ml-4.0{8,9} || die
-	cp src/reason-parser/lexer_report_error.ml-4.0{8,9} || die
-	default
-}
