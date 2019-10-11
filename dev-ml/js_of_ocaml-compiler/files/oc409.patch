@@ -1,0 +1,70 @@
+commit d4b036203795edd121e26739c084f067f6789cb8
+Author: hhugo <hugo.heuzard@gmail.com>
+Date:   Thu Aug 15 12:43:14 2019 +0800
+
+    Compiler: support for 4.09 (#859)
+
+diff --git a/compiler/lib/instr.ml b/compiler/lib/instr.ml
+index 4ec59917e..9d2824f4a 100644
+--- a/compiler/lib/instr.ml
++++ b/compiler/lib/instr.ml
+@@ -197,7 +197,7 @@ let ops =
+   let if_v407 =
+     match Ocaml_version.v with
+     | `V4_02 | `V4_03 | `V4_04 | `V4_06 -> fun _ -> K_will_not_happen
+-    | `V4_07 | `V4_08 -> fun k -> k
++    | `V4_07 | `V4_08 | `V4_09 -> fun k -> k
+   in
+   let instrs =
+     [| ACC0, KNullary, "ACC0"
+diff --git a/compiler/lib/magic_number.ml b/compiler/lib/magic_number.ml
+index efa2413f6..7e3e63b64 100644
+--- a/compiler/lib/magic_number.ml
++++ b/compiler/lib/magic_number.ml
+@@ -70,6 +70,7 @@ let current_exe =
+     | `V4_06 -> 11
+     | `V4_07 -> 23
+     | `V4_08 -> 25
++    | `V4_09 -> 26
+   in
+   "Caml1999X", v
+ 
+@@ -81,6 +82,7 @@ let current_cmo =
+     | `V4_06 -> 22
+     | `V4_07 -> 23
+     | `V4_08 -> 25
++    | `V4_09 -> 26
+   in
+   "Caml1999O", v
+ 
+@@ -92,6 +94,7 @@ let current_cma =
+     | `V4_06 -> 22
+     | `V4_07 -> 23
+     | `V4_08 -> 25
++    | `V4_09 -> 26
+   in
+   "Caml1999A", v
+ 
+diff --git a/compiler/lib/ocaml_version.ml b/compiler/lib/ocaml_version.ml
+index e8e423ee4..e42db14d6 100644
+--- a/compiler/lib/ocaml_version.ml
++++ b/compiler/lib/ocaml_version.ml
+@@ -51,4 +51,6 @@ let v =
+   then `V4_06
+   else if compare current [4; 8] < 0
+   then `V4_07
+-  else `V4_08
++  else if compare current [4; 9] < 0
++  then `V4_08
++  else `V4_09
+diff --git a/compiler/lib/ocaml_version.mli b/compiler/lib/ocaml_version.mli
+index d1fef10ff..e8b7cf8af 100644
+--- a/compiler/lib/ocaml_version.mli
++++ b/compiler/lib/ocaml_version.mli
+@@ -30,4 +30,5 @@ val v :
+   | `V4_04 (* OCaml 4.04 / OCaml 4.05 *)
+   | `V4_06 (* OCaml 4.06 *)
+   | `V4_07 (* OCaml 4.07 *)
+-  | `V4_08 (* OCaml 4.08 *) ]
++  | `V4_08 (* OCaml 4.08 *)
++  | `V4_09 (* OCaml 4.09 *) ]
