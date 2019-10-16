@@ -35,4 +35,4 @@ DEPEND="${RDEPEND}
 	test? ( dev-ml/ppx_expect )
 "
 RESTRICT="test"
-PATCHES=( "${FILESDIR}/oc409.patch" )
+PATCHES=( "${FILESDIR}/oc409.patch" "${FILESDIR}/oc409-2.patch" )
