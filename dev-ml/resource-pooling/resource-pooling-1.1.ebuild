@@ -1,9 +1,9 @@
 # Copyright 2018-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
-inherit oasis
+inherit jbuilder
 
 DESCRIPTION="Library for pooling resources like connections, threads, or similar"
 HOMEPAGE="https://github.com/ocsigen/resource-pooling"
