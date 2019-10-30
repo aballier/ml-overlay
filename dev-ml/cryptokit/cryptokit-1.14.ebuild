@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="5"
@@ -13,14 +13,14 @@ HOMEPAGE="https://github.com/xavierleroy/cryptokit"
 SRC_URI="https://github.com/xavierleroy/cryptokit/archive/release$(replace_all_version_separators '').tar.gz -> ${P}.tar.gz"
 LICENSE="LGPL-2"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~ppc ~x86-fbsd"
+KEYWORDS="~amd64 ~ppc"
 IUSE="zlib"
 
 DEPEND="zlib? ( >=sys-libs/zlib-1.1 )
 	dev-ml/zarith:="
 RDEPEND="${DEPEND}"
 
-DOCS=( "Changes" "README.txt" "AUTHORS.txt" )
+DOCS=( "Changes" "README.md" )
 REQUIRED_USE="test? ( ocamlopt )"
 
 S="${WORKDIR}/${PN}-release$(replace_all_version_separators '')"
