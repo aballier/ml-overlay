@@ -24,6 +24,8 @@ RDEPEND="
 	dev-ml/gmap:=
 	dev-ml/cstruct:=
 	dev-ml/ipaddr:=
+	dev-ml/lru:=
+	dev-ml/duration:=
 	!dev-ml/odns
 "
 DEPEND="${RDEPEND}
