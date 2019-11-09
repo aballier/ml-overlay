@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Auto-formatter for OCaml code"
 HOMEPAGE="https://github.com/ocaml-ppx/ocamlformat"
-SRC_URI="https://github.com/ocaml-ppx/ocamlformat/archive/${PV}.tar.gz -> ocamlformat-${PV}.tar.gz"
+SRC_URI="https://github.com/ocaml-ppx/ocamlformat/releases/download/${PV}/${P}.tbz"
 
 LICENSE="MIT"
 SLOT="0/${PV}"
