@@ -16,6 +16,7 @@ RESTRICT="test"
 
 RDEPEND="
 	dev-ml/cmdliner:=
+	dev-ml/ptime:=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/cstruct dev-ml/lwt )"
