@@ -32,7 +32,6 @@ RDEPEND="
 	!<dev-ml/js_of_ocaml-3.0.1
 "
 DEPEND="${RDEPEND}
-	test? ( dev-ml/ppx_expect )
+	test? ( dev-ml/ppx_expect dev-ml/js_of_ocaml-ppx_deriving_json )
 "
-RESTRICT="test"
-PATCHES=( "${FILESDIR}/oc409.patch" "${FILESDIR}/oc409-2.patch" )
+#RESTRICT="test"
