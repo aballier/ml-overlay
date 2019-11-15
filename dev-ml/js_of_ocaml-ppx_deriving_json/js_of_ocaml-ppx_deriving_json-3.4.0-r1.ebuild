@@ -15,7 +15,7 @@ if [ "${PV#9999}" != "${PV}" ] ; then
 	KEYWORDS=""
 else
 	SRC_URI="https://github.com/ocsigen/js_of_ocaml/archive/${PV}.tar.gz -> js_of_ocaml-${PV}.tar.gz"
-	KEYWORDS="~amd64"
+	KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 	S="${WORKDIR}/js_of_ocaml-${PV}"
 fi
 
