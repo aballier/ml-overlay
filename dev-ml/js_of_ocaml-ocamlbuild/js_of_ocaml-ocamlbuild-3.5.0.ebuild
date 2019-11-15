@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -29,4 +29,3 @@ RDEPEND="
 	!<dev-ml/js_of_ocaml-3.0.1
 "
 DEPEND="${RDEPEND}"
-RESTRICT="test"
