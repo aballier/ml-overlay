@@ -20,7 +20,7 @@ fi
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
-IUSE=""
+IUSE="test"
 
 RDEPEND="
 	dev-ml/ocaml-migrate-parsetree:=
@@ -28,6 +28,6 @@ RDEPEND="
 	dev-ml/uchar:=
 	dev-ml/js_of_ocaml-compiler:=
 "
-DEPEND="${RDEPEND}"
-RESTRICT="test"
-PATCHES=( "${FILESDIR}/oc409.patch" )
+DEPEND="${RDEPEND}
+	test? ( dev-ml/ppx_expect dev-ml/js_of_ocaml-ppx_deriving_json )
+"
