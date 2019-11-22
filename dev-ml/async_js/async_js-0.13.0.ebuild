@@ -26,4 +26,3 @@ RDEPEND="
 	dev-ml/uri-sexp:=
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/uri.patch" )
