@@ -26,6 +26,7 @@ S="${WORKDIR}/opam-full-${PV/_/-}"
 OPAM_INSTALLER="${S}/opam-installer"
 
 src_compile() {
+	sed -e 's/DUNE = .*$/DUNE = /' -i Makefile.config
 	emake lib-ext
 	emake -j1
 }
