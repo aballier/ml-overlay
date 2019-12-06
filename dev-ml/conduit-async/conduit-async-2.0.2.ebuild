@@ -31,10 +31,11 @@ RDEPEND="
 		dev-ml/ppx_jane:=
 			dev-ml/ppx_inline_test:=
 			dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/async_ssl:=
 
 	!dev-ml/ocaml-conduit
 "
-DEPEND="${RDEPEND}"
+DEPEND="${RDEPEND}
+	!!dev-ml/async_ssl
+"
 
 S="${WORKDIR}/ocaml-conduit-${PV}"
