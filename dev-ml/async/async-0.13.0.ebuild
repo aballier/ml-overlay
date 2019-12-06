@@ -15,7 +15,6 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="
-	dev-ml/async_extra:=
 	dev-ml/async_kernel:=
 	dev-ml/async_rpc_kernel:=
 	dev-ml/async_unix:=
