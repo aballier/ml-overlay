@@ -25,6 +25,7 @@ RDEPEND="
 			dev-ml/base:=
 		dev-ml/sexplib0:=
 		dev-ml/num:=
+	dev-ml/timezone:=
 	dev-ml/spawn:=
 "
 DEPEND="${RDEPEND}"
