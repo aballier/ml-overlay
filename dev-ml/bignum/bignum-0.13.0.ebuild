@@ -21,6 +21,6 @@ RDEPEND="
 	dev-ml/typerep:=
 	dev-ml/num:=
 	dev-ml/zarith:=
+	dev-ml/zarith_stubs_js:=
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/zarith.patch" )
