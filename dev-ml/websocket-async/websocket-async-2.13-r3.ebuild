@@ -16,8 +16,6 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/websocket:=
-	dev-ml/async_ssl:=
-		dev-libs/openssl:0=
 	dev-ml/async_unix:=
 	dev-ml/async_extra:=
 	dev-ml/cohttp-async:=
