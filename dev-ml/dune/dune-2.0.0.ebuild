@@ -38,5 +38,5 @@ src_configure() {
 
 src_compile() {
 	ocaml bootstrap.ml || die
-	./boot.exe -j $(makeopts_jobs) || die
+	./dune.exe build -p "${PN}" --profile dune-bootstrap -j $(makeopts_jobs) || die
 }
