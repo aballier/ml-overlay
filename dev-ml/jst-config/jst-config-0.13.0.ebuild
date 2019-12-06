@@ -18,5 +18,6 @@ DEPEND="
 	dev-ml/base:=
 	dev-ml/ppx_assert:=
 	dev-ml/stdio:=
+	dev-ml/dune-configurator:=
 "
 RDEPEND="${DEPEND}"
