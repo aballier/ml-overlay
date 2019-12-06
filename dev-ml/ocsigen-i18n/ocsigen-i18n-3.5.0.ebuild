@@ -16,8 +16,6 @@ RDEPEND="dev-lang/ocaml:="
 DEPEND="${RDEPEND}
 	dev-ml/findlib"
 
-PATCHES=( "${FILESDIR}/oc408.patch" )
-
 src_install() {
 	dodir /usr/bin
 	emake bindir="${ED}/usr/bin" install || die
