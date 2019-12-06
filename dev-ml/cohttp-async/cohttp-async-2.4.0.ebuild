@@ -17,18 +17,6 @@ IUSE="test"
 RDEPEND="
 	dev-ml/async_kernel:=
 	dev-ml/async_unix:=
-	dev-ml/async_extra:=
-		dev-ml/core:=
-			dev-ml/sexplib:=
-				dev-ml/parsexp:=
-					dev-ml/base:=
-				dev-ml/sexplib0:=
-				dev-ml/num:=
-		dev-ml/core_kernel:=
-		dev-ml/ppx_jane:=
-			dev-ml/ppx_inline_test:=
-			dev-ml/ocaml-migrate-parsetree:=
-			dev-ml/ppxlib:=
 	dev-ml/base:=
 	dev-ml/cohttp:=
 	dev-ml/conduit-async:=
@@ -43,4 +31,5 @@ DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 dev-ml/core )"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
+PATCHES=( "${FILESDIR}/ounit2.patch"
+	"${FILESDIR}/async.patch" )
