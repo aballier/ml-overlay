@@ -26,3 +26,4 @@ DEPEND="${DEPEND}
 		dev-ml/alcotest
 	)
 "
+PATCHES=( "${FILESDIR}/ppxlib.patch" )

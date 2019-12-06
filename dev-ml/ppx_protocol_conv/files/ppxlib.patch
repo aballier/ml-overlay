@@ -1,0 +1,101 @@
+Index: ppx_protocol_conv-5.0.0/ppx/ppx_protocol_conv.ml
+===================================================================
+--- ppx_protocol_conv-5.0.0.orig/ppx/ppx_protocol_conv.ml
++++ ppx_protocol_conv-5.0.0/ppx/ppx_protocol_conv.ml
+@@ -86,19 +86,19 @@ let location_of_attrib t name (attribs:a
+   let prefix = module_name t.driver in
+   let has_name s = String.equal s name || String.equal s (sprintf "%s.%s" prefix name) in
+   List.find_map_exn
+-    ~f:(function ({ loc=_; txt}, Parsetree.PStr [{pstr_loc; _}]) when has_name txt -> Some pstr_loc
++    ~f:(function {attr_name={ loc=_; txt}; attr_payload=Parsetree.PStr [{pstr_loc; _}]; attr_loc=_} when has_name txt -> Some pstr_loc
+                | _ -> None
+       ) attribs
+ 
+ let row_loc = function
+-  | Rtag (sloc, _, _, _) -> sloc.loc
++  | Rtag (sloc, _, _) -> sloc.loc
+   | Rinherit typ -> typ.ptyp_loc
+ 
+ let get_variant_name t row =
+   match Attribute.get t.variant_name row, Attribute.get t.variant_key row with
+   | Some name, None -> Some name
+   | None, Some name -> Some name
+-  | Some _, Some _ -> raise_errorf ~loc:(row_loc row)  "Both 'key' and 'name' attributes supplied. Use of @@key is deprecated - use @@name instead"
++  | Some _, Some _ -> raise_errorf ~loc:(row_loc row.prf_desc)  "Both 'key' and 'name' attributes supplied. Use of @@key is deprecated - use @@name instead"
+   | None, None -> None
+ 
+ let get_constr_name t constr =
+@@ -132,13 +132,13 @@ let test_constructor_mapping t constrs =
+ 
+ let test_row_mapping t rows =
+   let base, mapped = List.partition_map ~f:(fun row ->
+-      let (row_name, attrs) = match row with
++      let row_name = match row.prf_desc with
+         | Rinherit _ -> raise_errorf "Inherited polymorphic variant types not supported"
+-        | Rtag (name, attrs, _, _) -> name, attrs
++        | Rtag (name, _, _) -> name
+       in
+       match get_variant_name t row with
+       | Some name when String.equal row_name.txt name -> `Fst name
+-      | Some name -> `Snd (name, attrs)
++      | Some name -> `Snd (name, row.prf_attributes)
+       | None -> `Fst row_name.txt
+     ) rows
+   in
+@@ -248,7 +248,7 @@ and serialize_variant t ~loc type_ ~name
+     let f_name = { loc; txt = sprintf "_%s_of_record_" name } in
+     let lhs = ppat_constr ~loc name (Some patt) in
+     let rhs = pexp_apply ~loc (pexp_ident_string_loc f_name) [Nolabel, pexp_tuple ~loc (List.map ~f:snd args)] in
+-    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]} ~expr:f in
++    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]; ppat_loc_stack=[]} ~expr:f in
+     binding, case ~lhs ~guard:None ~rhs
+   | Pcstr_tuple core_types ->
+     let f_name = { loc; txt = sprintf "_%s_of_tuple" name } in
+@@ -261,7 +261,7 @@ and serialize_variant t ~loc type_ ~name
+           [%e estring ~loc alias] Protocol_conv.Runtime.Tuple_out.([%e spec])
+       ]
+     in
+-    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]} ~expr:f in
++    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]; ppat_loc_stack=[]} ~expr:f in
+ 
+     let lhs = ppat_constr ~loc name (mk_pattern core_types) in
+     let args =
+@@ -331,10 +331,10 @@ and serialize_expr_of_type_descr t ~loc
+   | Ptyp_variant (rows, _closed, None) ->
+     test_row_mapping t rows;
+     let bindings, cases =
+-      List.map ~f:(function
++      List.map ~f:(fun x -> match x.prf_desc with
+           | Rinherit _ -> raise_errorf ~loc "Inherited types not supported"
+-          | Rtag (name, _attributes, _bool, core_types) as row ->
+-            let alias = match get_variant_name t row with
++          | Rtag (name, _bool, core_types) ->
++            let alias = match get_variant_name t x with
+               | Some key -> key
+               | None -> name.txt
+             in
+@@ -510,10 +510,10 @@ and deserialize_expr_of_type_descr t ~lo
+ 
+   | Ptyp_variant (rows, _closed, None) ->
+     test_row_mapping t rows;
+-    let mk_elem = function
++    let mk_elem = fun x -> match x.prf_desc with
+       | Rinherit _ -> raise_errorf ~loc "Inherited variant types not supported"
+-      | Rtag (name, _attributes, _bool, core_types) as row ->
+-        let ser_name = match get_variant_name t row with
++      | Rtag (name, _bool, core_types) ->
++        let ser_name = match get_variant_name t x with
+           | Some key -> key
+           | None -> name.txt
+         in
+@@ -602,8 +602,8 @@ let rec is_recursive_ct types = function
+   | { ptyp_desc = Ptyp_class _; _} -> false
+   | { ptyp_desc = Ptyp_alias (c, _); _} -> is_recursive_ct types c
+   | { ptyp_desc = Ptyp_variant (rows, _, _); _} ->
+-    List.exists ~f:(function
+-        | Rtag (_, _, _, cts) -> List.exists ~f:(is_recursive_ct types) cts
++    List.exists ~f:(fun x -> match x.prf_desc with
++        | Rtag (_, _, cts) -> List.exists ~f:(is_recursive_ct types) cts
+         | Rinherit _ -> false
+       ) rows
+   | { ptyp_desc = Ptyp_poly (_, ct); _} -> is_recursive_ct types ct
