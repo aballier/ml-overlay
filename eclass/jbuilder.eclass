@@ -27,6 +27,15 @@ esac
 # This disables Werror-like behavior
 DUNE_PROFILE="release"
 
+jbuilder_src_prepare() {
+	default
+	local jb=$(find . -name jbuild -type f)
+	if [ -n "${jb}" ] ; then
+		ewarn "${PN} still uses jbuild, upgrading it"
+		dune upgrade || die
+	fi
+}
+
 jbuilder_src_compile() {
 	dune build -p "${PN}" -j $(makeopts_jobs) @install || die
 }
@@ -35,4 +44,4 @@ jbuilder_src_test() {
 	dune runtest -p "${PN}" -j $(makeopts_jobs) || die
 }
 
-EXPORT_FUNCTIONS src_compile src_test
+EXPORT_FUNCTIONS src_prepare src_compile src_test
