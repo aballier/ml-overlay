@@ -21,11 +21,3 @@ RDEPEND="${DEPEND}
 	|| ( app-editors/vim[python] app-editors/gvim[python] )"
 DEPEND="${DEPEND}
 	test? ( dev-ml/mdx )"
-
-PATCHES=( "${FILESDIR}/oc409.patch" )
-src_prepare() {
-	for i in utils typing preprocess parsing merlin_specific ; do
-		cp -a src/ocaml/${i}/40{8,9} || die #hack
-	done
-	default
-}
