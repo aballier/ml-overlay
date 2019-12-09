@@ -45,6 +45,7 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 DEPEND="${RDEPEND}
 	dev-ml/js_of_ocaml-ocamlbuild
 	dev-ml/ocamlbuild"
+PATCHES=( "${FILESDIR}/jsoo.patch" )
 
 src_compile() {
 	if use ocamlopt ; then
