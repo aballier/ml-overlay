@@ -16,14 +16,11 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/core:=
-	dev-ml/core_extended:=
-	dev-ml/expect_test_helpers:=
 	dev-ml/patience_diff:=
 	dev-ml/ppx_jane:=
 		dev-ml/ocaml-migrate-parsetree:=
 		dev-ml/ppxlib:=
 	dev-ml/sexplib:=
-	dev-ml/shell:=
 	dev-ml/pcre:=
 	dev-ml/re:=
 "
