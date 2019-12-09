@@ -31,6 +31,7 @@ RDEPEND="dev-lang/ocaml:=[ocamlopt?]
 		dev-ml/lwt:=
 	dev-ml/calendar:="
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/jsoo.patch" )
 
 src_compile() {
 	emake \
