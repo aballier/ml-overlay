@@ -31,7 +31,6 @@ DEPEND="${RDEPEND}
 		media-libs/netpbm[png,zlib]
 		virtual/latex-base
 		dev-tex/hevea
-		dev-tex/xcolor
 		dev-texlive/texlive-pictures
 		dev-texlive/texlive-mathscience
 		dev-texlive/texlive-latexextra
