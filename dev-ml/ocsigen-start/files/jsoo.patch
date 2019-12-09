@@ -1,0 +1,196 @@
+Index: ocsigen-start-2.9.2/src/os_connect_phone.eliom
+===================================================================
+--- ocsigen-start-2.9.2.orig/src/os_connect_phone.eliom
++++ ocsigen-start-2.9.2/src/os_connect_phone.eliom
+@@ -92,7 +92,7 @@ let%server request_recovery_code = reque
+ let%client request_recovery_code =
+   ~%(Eliom_client.server_function
+        ~name:"Os_connect_phone.request_recovery_code"
+-       [%derive.json : string]
++       [%json : string]
+        request_recovery_code)
+ 
+ let%server request_code = request_wrapper @@ fun number ->
+@@ -105,7 +105,7 @@ let%server request_code = request_wrappe
+ let%client request_code =
+   ~%(Eliom_client.server_function
+        ~name:"Os_connect_phone.request_code"
+-       [%derive.json : string]
++       [%json : string]
+        request_code)
+ 
+ let%server confirm_code_extra =
+@@ -141,7 +141,7 @@ let%server confirm_code_signup
+ let%client confirm_code_signup =
+   ~%(Eliom_client.server_function
+        ~name:"Os_connect_phone.confirm_code_signup"
+-       [%derive.json: string * string * string * string]
++       [%json: string * string * string * string]
+        confirm_code_signup)
+ 
+ let%shared confirm_code_signup
+@@ -182,7 +182,7 @@ let%server connect ~keepmeloggedin ~pass
+ let%client connect =
+   let f =
+     ~%(Eliom_client.server_function ~name:"Os_connect_phone.connect"
+-         [%derive.json: string * string * bool]
++         [%json: string * string * bool]
+          (Os_session.Opt.connected_rpc
+             (fun _ (number, password, keepmeloggedin) ->
+                connect ~keepmeloggedin ~password number)))
+Index: ocsigen-start-2.9.2/src/os_current_user.eliom
+===================================================================
+--- ocsigen-start-2.9.2.orig/src/os_current_user.eliom
++++ ocsigen-start-2.9.2/src/os_current_user.eliom
+@@ -146,7 +146,7 @@ let%server remove_email_from_user email
+ let%client remove_email_from_user email =
+   ~%(Eliom_client.server_function
+        ~name:"Os_current_user.remove_email_from_user"
+-       [%derive.json: string]
++       [%json: string]
+        (Os_session.connected_wrapper remove_email_from_user)
+   )
+   email
+@@ -158,7 +158,7 @@ let%server update_main_email email =
+ let%client update_main_email email =
+   ~%(Eliom_client.server_function
+        ~name:"Os_current_user.update_main_email"
+-       [%derive.json: string]
++       [%json: string]
+        (Os_session.connected_wrapper update_main_email)
+   )
+   email
+@@ -178,7 +178,7 @@ let%server update_language language =
+ let%client update_language language =
+   ~%(Eliom_client.server_function
+        ~name:"Os_current_user.update_language"
+-       [%derive.json: string]
++       [%json: string]
+        (Os_session.connected_wrapper update_language)
+     )
+     language
+Index: ocsigen-start-2.9.2/src/os_date.eliom
+===================================================================
+--- ocsigen-start-2.9.2.orig/src/os_date.eliom
++++ ocsigen-start-2.9.2/src/os_date.eliom
+@@ -91,7 +91,7 @@ let%client init_time_rpc' = ()
+ (** When the browser is loaded, we init the timezone *)
+ let init_time_rpc : (_, unit) Eliom_client.server_function =
+   Eliom_client.server_function ~name:"os_date.init_time_rpc"
+-    [%derive.json: string]
++    [%json: string]
+     init_time_rpc'
+ 
+ let%client init_time_rpc = ~%init_time_rpc
+Index: ocsigen-start-2.9.2/src/os_handlers.eliom
+===================================================================
+--- ocsigen-start-2.9.2.orig/src/os_handlers.eliom
++++ ocsigen-start-2.9.2/src/os_handlers.eliom
+@@ -60,7 +60,7 @@ let%server set_password_handler myid ()
+ let%client set_password_rpc =
+   ~%(Eliom_client.server_function
+        ~name:"Os_handlers.set_password_rpc"
+-       [%derive.json: string * string]
++       [%json: string * string]
+        (Os_session.connected_rpc
+           (fun myid p -> set_password_handler myid () p))
+     )
+@@ -152,7 +152,7 @@ let%server sign_up_handler_rpc v =
+ let%client sign_up_handler_rpc =
+   ~%(Eliom_client.server_function
+        ~name:"Os_handlers.sign_up_handler"
+-       [%derive.json: string]
++       [%json: string]
+        sign_up_handler_rpc)
+ 
+ let%client sign_up_handler () v =
+@@ -225,7 +225,7 @@ let%server disconnect_handler_rpc main_p
+ let%client disconnect_handler_rpc  =
+   ~%(Eliom_client.server_function
+        ~name:"Os_handlers.disconnect_handler"
+-       [%derive.json: bool]
++       [%json: bool]
+        disconnect_handler_rpc)
+ 
+ let%client disconnect_handler ?(main_page = false) () () =
+@@ -259,7 +259,7 @@ let%server connect_handler_rpc v = conne
+ let%client connect_handler_rpc =
+   ~%(Eliom_client.server_function
+        ~name:"Os_handlers.connect_handler"
+-       [%derive.json: (string * string) * bool]
++       [%json: (string * string) * bool]
+        connect_handler_rpc)
+ 
+ let%client connect_handler () v = connect_handler_rpc v
+@@ -338,7 +338,7 @@ let action_link_handler_common akey =
+ 
+ let%client action_link_handler_common =
+   ~%(Eliom_client.server_function ~name:"Os_handlers.action_link_handler_common"
+-       [%derive.json: string]
++       [%json: string]
+        (Os_session.connected_wrapper action_link_handler_common))
+ 
+ let%client restart_if_client_side () =
+@@ -409,7 +409,7 @@ let%server add_email_handler =
+ let%client add_email_handler =
+   let rpc = ~%(Eliom_client.server_function
+                  ~name:"Os_handlers.add_email_handler"
+-                 [%derive.json: string]
++                 [%json: string]
+                  @@ add_email_handler ())
+   in
+   fun () -> rpc
+Index: ocsigen-start-2.9.2/src/os_session.eliom
+===================================================================
+--- ocsigen-start-2.9.2.orig/src/os_session.eliom
++++ ocsigen-start-2.9.2/src/os_session.eliom
+@@ -411,12 +411,12 @@ let%shared connected_wrapper ?allow ?den
+ 
+ let%client disconnect =
+   ~%(Eliom_client.server_function ~name:"Os_session.disconnect"
+-       [%derive.json: unit]
++       [%json: unit]
+        (connected_wrapper disconnect))
+ 
+ let%client disconnect_all ?(user_indep = true) () =
+   ~%(Eliom_client.server_function ~name:"Os_session.disconnect_all"
+-       [%derive.json: bool]
++       [%json: bool]
+        (connected_wrapper
+           (fun user_indep -> disconnect_all ~user_indep ())))
+     user_indep
+Index: ocsigen-start-2.9.2/src/os_tips.eliom
+===================================================================
+--- ocsigen-start-2.9.2.orig/src/os_tips.eliom
++++ ocsigen-start-2.9.2/src/os_tips.eliom
+@@ -92,7 +92,7 @@ let%client set_tip_seen name =
+   tips_seen_client_ref := Stringset.add name !tips_seen_client_ref;
+   ~%(Eliom_client.server_function
+        ~name:"Os_tips.set_tip_seen"
+-       [%derive.json: string]
++       [%json: string]
+        (Os_session.connected_wrapper set_tip_seen))
+   name
+ 
+@@ -128,7 +128,7 @@ let%client reset_tips () =
+   tips_seen_client_ref := Stringset.empty;
+   ~%(Eliom_client.server_function
+        ~name:"Os_tips.reset_tips"
+-       [%derive.json: unit]
++       [%json: unit]
+        (Os_session.connected_wrapper reset_tips))
+     ()
+ 
+Index: ocsigen-start-2.9.2/src/os_user_proxy.eliom
+===================================================================
+--- ocsigen-start-2.9.2.orig/src/os_user_proxy.eliom
++++ ocsigen-start-2.9.2/src/os_user_proxy.eliom
+@@ -48,7 +48,7 @@ let%server get_data_rpc' =
+ let%server get_data_rpc
+   : (_, Os_types.User.t) Eliom_client.server_function =
+   Eliom_client.server_function ~name:"os_user_proxy.get_data_rpc"
+-    [%derive.json: Os_types.User.id] get_data_rpc'
++    [%json: Os_types.User.id] get_data_rpc'
+ 
+ let%client get_data_rpc = ~%get_data_rpc
+ 

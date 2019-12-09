@@ -40,6 +40,7 @@ RDEPEND="dev-lang/ocaml:=
 	dev-ml/lwt_camlp4:=
 "
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/jsoo.patch" )
 
 src_install() {
 	findlib_src_preinst
