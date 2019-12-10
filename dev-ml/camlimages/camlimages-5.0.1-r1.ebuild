@@ -32,4 +32,4 @@ RDEPEND="
 DEPEND="${DEPEND}
 	virtual/pkgconfig
 	dev-ml/findlib"
-PATCHES=( "${FILESDIR}/graphics.patch" )
+PATCHES=( "${FILESDIR}/graphics.patch" "${FILESDIR}/jbuild.patch" )
