@@ -17,6 +17,7 @@ DEPEND="
 	dev-ml/ocplib-endian:=
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/ppx_tools_versioned:=
+	dev-ml/dune-configurator:=
 	dev-libs/libev"
 
 RDEPEND="${DEPEND}
@@ -27,5 +28,5 @@ DEPEND="${DEPEND}
 
 SLOT="0/${PV}"
 LICENSE="LGPL-2.1-with-linking-exception"
-KEYWORDS="~amd64 ~arm ~arm64 ~x86 ~x86-fbsd"
+KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 PATCHES=( "${FILESDIR}/noseq.patch" )
