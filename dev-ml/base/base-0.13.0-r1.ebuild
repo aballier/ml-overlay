@@ -16,5 +16,6 @@ IUSE=""
 
 RDEPEND="
 	>=dev-ml/sexplib0-0.12:=
+	dev-ml/dune-configurator:=
 "
 DEPEND="${RDEPEND}"
