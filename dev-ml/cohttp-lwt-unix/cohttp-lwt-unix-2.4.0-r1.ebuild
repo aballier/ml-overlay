@@ -22,6 +22,7 @@ RDEPEND="
 	dev-ml/fmt:=
 	dev-ml/cohttp-lwt:=
 		dev-ml/cohttp:=
+			dev-ml/sexplib0:=
 	dev-ml/lwt:=
 	dev-libs/openssl:0=
 "
