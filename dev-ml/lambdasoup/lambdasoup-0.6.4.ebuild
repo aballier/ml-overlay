@@ -9,7 +9,7 @@ DESCRIPTION="Functional HTML scraping and rewriting with CSS in OCaml"
 HOMEPAGE="https://github.com/aantron/lambda-soup"
 SRC_URI="https://github.com/aantron/lambda-soup/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
-LICENSE="BSD-2"
+LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
@@ -18,4 +18,4 @@ RDEPEND="dev-ml/markup:="
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit )"
 BDEPEND=""
-S="${WORKDIR}/lambda-soup-${PV}"
+PATCHES=( "${FILESDIR}/ounit2.patch" )

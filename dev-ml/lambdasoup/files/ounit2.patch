@@ -1,0 +1,13 @@
+Index: lambdasoup-0.6.4/test/dune
+===================================================================
+--- lambdasoup-0.6.4.orig/test/dune
++++ lambdasoup-0.6.4/test/dune
+@@ -1,7 +1,7 @@
+ (executable
+  (name test)
+  (flags (:standard -w +A))
+- (libraries lambdasoup oUnit))
++ (libraries lambdasoup ounit2))
+ 
+ (alias
+  (name build-test)
