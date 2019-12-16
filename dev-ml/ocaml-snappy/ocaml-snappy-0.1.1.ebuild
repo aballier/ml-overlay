@@ -18,8 +18,7 @@ IUSE=""
 
 DEPEND="app-arch/snappy:="
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	dev-ml/oasis"
+DEPEND="${DEPEND}"
 
 src_prepare() {
 	has_version '>=dev-lang/ocaml-4.09_beta' && epatch "${FILESDIR}/ocaml409.patch"
