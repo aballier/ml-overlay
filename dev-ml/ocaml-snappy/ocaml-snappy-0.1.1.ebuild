@@ -22,9 +22,5 @@ DEPEND="${DEPEND}
 	dev-ml/oasis"
 
 src_prepare() {
-	epatch "${FILESDIR}/oasis.patch"
-	oasis setup || die
-
-	has_version '>=dev-lang/ocaml-4.06_beta' && epatch "${FILESDIR}/ocaml406.patch"
 	has_version '>=dev-lang/ocaml-4.09_beta' && epatch "${FILESDIR}/ocaml409.patch"
 }
