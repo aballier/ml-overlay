@@ -15,6 +15,7 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
 RDEPEND="dev-ml/result:=
+	dev-ml/seq:=
 	>=dev-lang/ocaml-4.07:=[ocamlopt]
 	dev-ml/uchar:=[ocamlopt]
 	dev-ml/cmdliner:=[ocamlopt]"
@@ -22,8 +23,6 @@ DEPEND="${RDEPEND}
 	>=dev-ml/topkg-0.9
 	dev-ml/ocamlbuild
 	dev-ml/findlib"
-
-PATCHES=( "${FILESDIR}/noseq.patch" )
 
 src_compile() {
 	ocaml pkg/pkg.ml build --tests $(usex test 'true' 'false') || die
