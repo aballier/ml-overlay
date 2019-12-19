@@ -14,8 +14,10 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-RDEPEND="!dev-ml/ocaml-re"
+RDEPEND="!dev-ml/ocaml-re
+	dev-ml/seq:=
+"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 )"
 S="${WORKDIR}/ocaml-${P}"
-PATCHES=( "${FILESDIR}/seq.patch" "${FILESDIR}/ounit2.patch" )
+PATCHES=( "${FILESDIR}/ounit2.patch" )
