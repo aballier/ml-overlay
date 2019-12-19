@@ -12,6 +12,7 @@ HOMEPAGE="http://ocsigen.org/lwt"
 IUSE=""
 
 DEPEND="
+	dev-ml/seq:=
 	dev-ml/result:=
 	dev-ml/mmap:=
 	dev-ml/ocplib-endian:=
@@ -29,4 +30,3 @@ DEPEND="${DEPEND}
 SLOT="0/${PV}"
 LICENSE="LGPL-2.1-with-linking-exception"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-PATCHES=( "${FILESDIR}/noseq.patch" )
