@@ -19,6 +19,7 @@ IUSE="test"
 RDEPEND="
 	dev-ml/result:=
 	dev-ml/uchar:=
+	dev-ml/seq:=
 	!dev-ml/ocaml-containers
 "
 DEPEND="${RDEPEND}
