@@ -17,9 +17,8 @@ RDEPEND="
 	dev-ml/graphql_parser:=
 	dev-ml/yojson:=
 	dev-ml/rresult:=
+	dev-ml/seq:=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )"
 S="${WORKDIR}/ocaml-graphql-server-${PV}"
-
-PATCHES=( "${FILESDIR}/seq.patch" )
