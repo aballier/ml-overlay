@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -40,7 +40,7 @@ RDEPEND="dev-lang/ocaml:=
 	dev-ml/lwt_camlp4:=
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/jsoo.patch" )
+PATCHES=( "${FILESDIR}/jsoo.patch" "${FILESDIR}/jsoo2.patch" )
 
 src_install() {
 	findlib_src_preinst
