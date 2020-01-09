@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
@@ -16,6 +16,7 @@ IUSE="test"
 
 RDEPEND="dev-ml/result:=
 	dev-ml/seq:=
+	dev-ml/stdlib-shims:=
 	>=dev-lang/ocaml-4.07:=[ocamlopt]
 	dev-ml/uchar:=[ocamlopt]
 	dev-ml/cmdliner:=[ocamlopt]"
