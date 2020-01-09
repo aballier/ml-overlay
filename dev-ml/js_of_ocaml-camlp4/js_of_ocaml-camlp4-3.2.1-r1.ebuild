@@ -1,7 +1,7 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit jbuilder findlib
 
@@ -31,3 +31,9 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}"
 RESTRICT="test"
+PATCHES=( "${FILESDIR}/dune.patch" )
+
+src_prepare() {
+	jbuilder_src_prepare
+	rm -rf compiler
+}
