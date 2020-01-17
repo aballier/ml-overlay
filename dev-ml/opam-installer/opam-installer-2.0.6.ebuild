@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -28,5 +28,5 @@ OPAM_INSTALLER="${S}/opam-installer"
 src_compile() {
 	sed -e 's/DUNE = .*$/DUNE = /' -i Makefile.config
 	emake lib-ext
-	emake -j1
+	emake DUNE_PROMOTE_ARG="" -j1
 }
