@@ -1,12 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-# We are opam
-OPAM_INSTALLER_DEP=" "
-
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="Core libraries for opam"
 HOMEPAGE="https://opam.ocaml.org/ https://github.com/ocaml/opam"
@@ -26,9 +23,3 @@ RDEPEND="
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/opam-${PV/_/-}"
-OPAM_INSTALLER="${S}/opam-installer"
-
-src_compile() {
-	emake opam-installer
-	emake ${PN}.install
-}
