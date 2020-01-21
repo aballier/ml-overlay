@@ -59,6 +59,7 @@ src_configure() {
 		--mandir /usr/share/man/man1 \
 		--libdir /usr/$(get_libdir)/ocaml \
 		$(use_enable debug) \
+		$(use_enable debug annot) \
 		$(use_with zlib camlzip) \
 		$(use_with sqlite) \
 		$(use_with dbm) \
