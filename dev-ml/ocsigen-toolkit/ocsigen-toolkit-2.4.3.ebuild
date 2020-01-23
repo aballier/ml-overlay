@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -31,7 +31,6 @@ RDEPEND="dev-lang/ocaml:=[ocamlopt?]
 		dev-ml/lwt:=
 	dev-ml/calendar:="
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/jsoo.patch" )
 
 src_compile() {
 	emake \
