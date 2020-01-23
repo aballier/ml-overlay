@@ -24,20 +24,17 @@ fi
 
 RDEPEND="dev-lang/ocaml:=
 	dev-ml/pgocaml:=
-	dev-ml/macaque:=
+	dev-ml/pgocaml_ppx:=
 	dev-ml/safepass:=
 	dev-ml/ocsigen-i18n:=
 	>=dev-ml/eliom-6.3:=
 		www-servers/ocsigenserver:=
 	dev-ml/ocsigen-toolkit:=
-	dev-ml/js_of_ocaml:=
-	dev-ml/js_of_ocaml-camlp4:=
 	dev-ml/resource-pooling:=
 	dev-ml/yojson:=
 	dev-ml/cohttp-lwt-unix:=
 		dev-ml/lwt:=
 	dev-ml/ocamlnet:=
-	dev-ml/lwt_camlp4:=
 "
 DEPEND="${RDEPEND}"
 
