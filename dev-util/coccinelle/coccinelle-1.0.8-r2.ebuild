@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -19,14 +19,14 @@ REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 # ocaml enables ocaml scripting (uses findlib)
 CDEPEND=">=dev-lang/ocaml-3.12:=[ocamlopt?]
-	dev-ml/sexplib:=[ocamlopt(+)?]
-	dev-ml/menhir:=[ocamlopt?]
-	dev-ml/parmap:=[ocamlopt?]
+	dev-ml/sexplib:=
+	dev-ml/menhir:=
+	dev-ml/parmap:=
 	dev-ml/pyml:=
 		dev-ml/stdcompat:=
 	emacs? ( virtual/emacs )
 	ocaml? ( dev-ml/findlib:= )
-	pcre? ( dev-ml/pcre:=[ocamlopt(+)?] )
+	pcre? ( dev-ml/pcre:= )
 	${PYTHON_DEPS}"
 
 RDEPEND="${CDEPEND}
