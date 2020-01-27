@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -27,7 +27,6 @@ RDEPEND="
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-compiler:=
 	dev-ml/js_of_ocaml-ppx:=
-	dev-ml/camlp4:=
 
 	!<dev-ml/js_of_ocaml-3.0.1
 "
