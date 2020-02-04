@@ -21,7 +21,6 @@ RDEPEND=">=x11-libs/gtk+-2.10:2
 		>=x11-libs/gtkglarea-1.9:2 )
 	spell? ( app-text/gtkspell:2 )
 	sourceview? ( x11-libs/gtksourceview:2.0 )
-	dev-ml/camlp4:=
 	"
 DEPEND="${RDEPEND}
 	virtual/pkgconfig"
@@ -30,6 +29,7 @@ SLOT="2/${PV}"
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~sparc ~x86 ~amd64-linux ~x86-linux"
 
 src_configure() {
+	export ac_cv_prog_CAMLP4O="no" # Avoid automagic
 	econf $(use_enable debug) \
 		$(use_with svg rsvg) \
 		$(use_with glade) \
