@@ -38,7 +38,6 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	>=dev-ml/reactiveData-0.2.1:=
 
 	dev-ml/result:=
-	>=dev-ml/deriving-0.6:=
 	dev-ml/react:=
 	dev-ml/ssl:=
 	ppx? ( >=dev-ml/ppx_tools-0.99.3:= )"
