@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -17,8 +17,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="dev-ml/camlp4:="
+RDEPEND=""
 DEPEND="${RDEPEND}
+	dev-ml/ocaml-migrate-parsetree
 	test? ( dev-ml/ounit2 )"
 DOCS=( "README.md" "TODO" "CHANGES.txt" )
 PATCHES=( "${FILESDIR}/ounit2.patch" )
