@@ -1,4 +1,4 @@
-# Copyright 2019 Gentoo Authors
+# Copyright 2019-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -14,7 +14,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="x11-libs/libX11"
+DEPEND="x11-libs/libX11
+	dev-ml/dune-configurator:=
+"
 RDEPEND="${DEPEND}
 	!<dev-ml/findlib-1.8.1-r1
 "
