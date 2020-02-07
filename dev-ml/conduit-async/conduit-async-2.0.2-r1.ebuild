@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -31,11 +31,10 @@ RDEPEND="
 		dev-ml/ppx_jane:=
 			dev-ml/ppx_inline_test:=
 			dev-ml/ocaml-migrate-parsetree:=
+	dev-ml/async_ssl:=
 
 	!dev-ml/ocaml-conduit
 "
-DEPEND="${RDEPEND}
-	!!dev-ml/async_ssl
-"
+DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-conduit-${PV}"
