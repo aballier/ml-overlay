@@ -1,7 +1,7 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
 inherit findlib versionator eutils
 
@@ -18,6 +18,11 @@ IUSE="+ocamlopt"
 DEPEND=">=dev-lang/ocaml-4.06_beta:=[ocamlopt?]"
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/${PN}-$(replace_version_separator 2 '-')"
+
+src_prepare() {
+	has_version '>=dev-lang/ocaml-4.10_beta' && eapply "${FILESDIR}/oc410.patch"
+	default
+}
 
 src_compile() {
 	emake -j1 $(usex ocamlopt "" "ARCH=none")
