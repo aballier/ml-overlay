@@ -16,6 +16,7 @@ IUSE="test"
 
 DEPEND="
 	dev-ml/yojson:=
+	dev-ml/findlib:=
 "
 RDEPEND="${DEPEND}
 	|| ( app-editors/vim[python] app-editors/gvim[python] )"
