@@ -15,7 +15,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND=""
+RDEPEND="
+	dev-ml/cstruct:=
+"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )"
 BDEPEND=""
