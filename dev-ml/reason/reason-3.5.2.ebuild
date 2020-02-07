@@ -1,7 +1,7 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 inherit jbuilder
 
@@ -25,3 +25,10 @@ DEPEND="${DEPEND}
 	dev-ml/findlib
 "
 S=( "${WORKDIR}/package" )
+
+src_prepare() {
+	cp src/reason-parser/lexer_warning.ml-4.{09,10} || die
+	cp src/reason-parser/lexer_report_error.ml-4.{09,10} || die
+	eapply "${FILESDIR}/oc410.patch"
+	default
+}

@@ -1,0 +1,34 @@
+Index: package/src/reason-parser/dune
+===================================================================
+--- package.orig/src/reason-parser/dune
++++ package/src/reason-parser/dune
+@@ -5,12 +5,12 @@
+ 
+ (rule
+  (targets lexer_warning.ml)
+- (deps ../generate/select.exe lexer_warning.ml-4.09 lexer_warning.ml-4.08
++ (deps ../generate/select.exe lexer_warning.ml-4.10 lexer_warning.ml-4.09 lexer_warning.ml-4.08
+    lexer_warning.ml-4.07 lexer_warning.ml-4.06 lexer_warning.ml-default)
+  (action
+   (with-stdout-to
+    %{targets}
+-   (run ../generate/select.exe lexer_warning.ml-4.09 lexer_warning.ml-4.08
++   (run ../generate/select.exe lexer_warning.ml-4.10 lexer_warning.ml-4.09 lexer_warning.ml-4.08
+      lexer_warning.ml-4.07 lexer_warning.ml-4.06 lexer_warning.ml-default))))
+ 
+ (rule
+@@ -23,12 +23,12 @@
+ 
+ (rule
+  (targets lexer_report_error.ml)
+- (deps ../generate/select.exe lexer_report_error.ml-4.09
++ (deps ../generate/select.exe lexer_report_error.ml-4.10 lexer_report_error.ml-4.09
+    lexer_report_error.ml-4.08 lexer_report_error.ml-default)
+  (action
+   (with-stdout-to
+    %{targets}
+-   (run ../generate/select.exe lexer_report_error.ml-4.09
++   (run ../generate/select.exe lexer_report_error.ml-4.10 lexer_report_error.ml-4.09
+      lexer_report_error.ml-4.08 lexer_report_error.ml-default))))
+ 
+ ; Update error messages based on new grammar
