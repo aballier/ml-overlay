@@ -1,7 +1,7 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit findlib
 
@@ -19,6 +19,7 @@ RDEPEND=">=net-misc/curl-7.9.8
 DEPEND="${RDEPEND}
 	virtual/pkgconfig"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
+PATCHES=( "${FILESDIR}/oc410.patch" )
 
 src_compile()
 {
