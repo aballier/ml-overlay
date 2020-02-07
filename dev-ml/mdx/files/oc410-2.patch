@@ -1,0 +1,241 @@
+From 299532f792da036f1422fa410c47a0370043237f Mon Sep 17 00:00:00 2001
+From: Kate <kit.ty.kate@disroot.org>
+Date: Wed, 8 Jan 2020 13:47:37 +0000
+Subject: [PATCH] Add support for OCaml 4.10
+
+---
+ lib/top/compat_top.ml  | 72 +++++++++++++++++++++++++++++++++++++++---
+ lib/top/compat_top.mli | 18 +++++++++++
+ lib/top/mdx_top.ml     | 18 ++++++-----
+ 3 files changed, 96 insertions(+), 12 deletions(-)
+
+diff --git a/lib/top/compat_top.ml b/lib/top/compat_top.ml
+index 8665e4d..2df2645 100644
+--- a/lib/top/compat_top.ml
++++ b/lib/top/compat_top.ml
+@@ -41,12 +41,70 @@ let rec get_id_in_path = function
+   | Path.Papply (_, p) -> get_id_in_path p
+ 
+ let lookup_type typ env =
+-#if OCAML_VERSION >= (4, 4, 0)
++#if OCAML_VERSION >= (4, 10, 0)
++  Env.find_type_by_name typ env |> fst
++#elif OCAML_VERSION >= (4, 4, 0)
+   Env.lookup_type typ env
+ #else
+   Env.lookup_type typ env |> fst
+ #endif
+ 
++let lookup_value v env =
++#if OCAML_VERSION >= (4, 10, 0)
++  Env.find_value_by_name v env
++#else
++  Env.lookup_value v env
++#endif
++
++let find_value env loc id =
++#if OCAML_VERSION >= (4, 10, 0)
++  Env.lookup_value ~loc id env
++#else
++  Typetexp.find_value env loc id
++#endif
++
++let find_type env loc id =
++#if OCAML_VERSION >= (4, 10, 0)
++  Env.lookup_type ~loc id env
++#else
++  Typetexp.find_type env loc id
++#endif
++
++let find_constructor env loc id =
++#if OCAML_VERSION >= (4, 10, 0)
++  Env.lookup_constructor ~loc Env.Positive id env
++#else
++  Typetexp.find_constructor env loc id
++#endif
++
++let find_module env loc id =
++#if OCAML_VERSION >= (4, 10, 0)
++  Env.lookup_module ~loc id env
++#else
++  Typetexp.find_module env loc id
++#endif
++
++let find_modtype env loc id =
++#if OCAML_VERSION >= (4, 10, 0)
++  Env.lookup_modtype ~loc id env
++#else
++  Typetexp.find_modtype env loc id
++#endif
++
++let find_class env loc id =
++#if OCAML_VERSION >= (4, 10, 0)
++  Env.lookup_class ~loc id env
++#else
++  Typetexp.find_class env loc id
++#endif
++
++let find_class_type env loc id =
++#if OCAML_VERSION >= (4, 10, 0)
++  Env.lookup_cltype ~loc id env
++#else
++  Typetexp.find_class_type env loc id
++#endif
++
+ let type_structure env str loc =
+ #if OCAML_VERSION >= (4, 8, 0)
+   let tstr, _, _, env =
+@@ -123,7 +181,7 @@ let add_directive ~name ~doc kind =
+ #if OCAML_VERSION >= (4, 3, 0)
+   let directive = match kind with
+     | `Bool f -> Toploop.Directive_bool f
+-    | `Show_prim to_sig -> 
++    | `Show_prim to_sig ->
+         let show_prim to_sig lid =
+           let env = !Toploop.toplevel_env in
+           let loc = Location.none in
+@@ -243,8 +301,10 @@ let match_env
+     ~cltype
+     ~class_
+     ~extension
++    ~value_unbound
++    ~module_unbound
+     env =
+-  ignore (constraints, persistent, copy_types);
++  ignore (constraints, persistent, copy_types, value_unbound, module_unbound);
+   match env with
+   | Env.Env_value (summary, id, _) ->
+     value summary id
+@@ -275,7 +335,11 @@ let match_env
+ #if OCAML_VERSION >= (4, 4, 0)
+   | Env_constraints (summary, _) -> constraints summary
+ #endif
+-#if OCAML_VERSION >= (4, 6, 0)
++#if OCAML_VERSION >= (4, 10, 0)
++  | Env_copy_types summary -> copy_types summary
++  | Env_value_unbound (summary, _, _) -> value_unbound summary
++  | Env_module_unbound (summary, _, _) -> module_unbound summary
++#elif OCAML_VERSION >= (4, 6, 0)
+   | Env_copy_types (summary, _) -> copy_types summary
+ #endif
+ #if OCAML_VERSION >= (4, 8, 0)
+diff --git a/lib/top/compat_top.mli b/lib/top/compat_top.mli
+index 559f14b..7f68d5d 100644
+--- a/lib/top/compat_top.mli
++++ b/lib/top/compat_top.mli
+@@ -11,6 +11,22 @@ val get_id_in_path : Path.t -> Ident.t
+ 
+ val lookup_type : Longident.t -> Env.t -> Path.t
+ 
++val lookup_value : Longident.t -> Env.t -> Path.t * Types.value_description
++
++val find_value : Env.t -> Location.t -> Longident.t -> Path.t * Types.value_description
++
++val find_type : Env.t -> Location.t -> Longident.t -> Path.t * Types.type_declaration
++
++val find_constructor : Env.t -> Location.t -> Longident.t -> Types.constructor_description
++
++val find_module : Env.t -> Location.t -> Longident.t -> Path.t * Types.module_declaration
++
++val find_modtype : Env.t -> Location.t -> Longident.t -> Path.t * Types.modtype_declaration
++
++val find_class : Env.t -> Location.t -> Longident.t -> Path.t * Types.class_declaration
++
++val find_class_type : Env.t -> Location.t -> Longident.t -> Path.t * Types.class_type_declaration
++
+ val type_structure : Env.t -> Parsetree.structure -> Location.t -> Typedtree.structure * Env.t
+ 
+ val sig_value : Ident.t -> Types.value_description -> Types.signature_item
+@@ -69,5 +85,7 @@ val match_env :
+   cltype:(Env.summary -> 'a) ->
+   class_:(Env.summary -> Ident.t -> 'a) ->
+   extension:(Env.summary -> Ident.t -> 'a) ->
++  value_unbound:(Env.summary -> 'a) ->
++  module_unbound:(Env.summary -> 'a) ->
+   Env.summary ->
+   'a
+diff --git a/lib/top/mdx_top.ml b/lib/top/mdx_top.ml
+index 2464879..02d6ae7 100644
+--- a/lib/top/mdx_top.ml
++++ b/lib/top/mdx_top.ml
+@@ -218,7 +218,7 @@ module Rewrite = struct
+     let is_persistent_path p =
+       Ident.persistent (get_id_in_path p)
+     in
+-    try is_persistent_path (fst (Env.lookup_value longident env))
++    try is_persistent_path (fst (Compat_top.lookup_value longident env))
+     with Not_found -> false
+ 
+   let apply ts env pstr_item path e =
+@@ -433,7 +433,7 @@ let reg_show_prim name to_sig doc =
+ let show_val () =
+   reg_show_prim "show_val"
+     (fun env loc id lid ->
+-       let _path, desc = Typetexp.find_value env loc lid in
++       let _path, desc = Compat_top.find_value env loc lid in
+        [sig_value id desc]
+     )
+     "Print the signature of the corresponding value."
+@@ -441,7 +441,7 @@ let show_val () =
+ let show_type () =
+   reg_show_prim "show_type"
+     (fun env loc id lid ->
+-       let _path, desc = Typetexp.find_type env loc lid in
++       let _path, desc = Compat_top.find_type env loc lid in
+        [sig_type id desc]
+     )
+     "Print the signature of the corresponding type constructor."
+@@ -449,7 +449,7 @@ let show_type () =
+ let show_exception () =
+   reg_show_prim "show_exception"
+     (fun env loc id lid ->
+-       let desc = Typetexp.find_constructor env loc lid in
++       let desc = Compat_top.find_constructor env loc lid in
+        if not (Ctype.equal env true [desc.cstr_res] [Predef.type_exn]) then
+          raise Not_found;
+        let ret_type =
+@@ -498,7 +498,7 @@ let show_module () =
+          | Some path -> accum_aliases path acc
+          | None -> List.rev acc
+        in
+-       let path, _ = Typetexp.find_module env loc lid in
++       let path, _ = Compat_top.find_module env loc lid in
+        accum_aliases path []
+     )
+     "Print the signature of the corresponding module."
+@@ -506,7 +506,7 @@ let show_module () =
+ let show_module_type () =
+   reg_show_prim "show_module_type"
+     (fun env loc id lid ->
+-       let _path, desc = Typetexp.find_modtype env loc lid in
++       let _path, desc = Compat_top.find_modtype env loc lid in
+        [sig_modtype id desc]
+     )
+     "Print the signature of the corresponding module type."
+@@ -514,7 +514,7 @@ let show_module_type () =
+ let show_class () =
+   reg_show_prim "show_class"
+     (fun env loc id lid ->
+-       let _path, desc = Typetexp.find_class env loc lid in
++       let _path, desc = Compat_top.find_class env loc lid in
+        [sig_class id desc]
+     )
+     "Print the signature of the corresponding class."
+@@ -522,7 +522,7 @@ let show_class () =
+ let show_class_type () =
+   reg_show_prim "show_class_type"
+     (fun env loc id lid ->
+-       let _path, desc = Typetexp.find_class_type env loc lid in
++       let _path, desc = Compat_top.find_class_type env loc lid in
+        [sig_class_type id desc]
+     )
+     "Print the signature of the corresponding class type."
+@@ -650,6 +650,8 @@ let rec save_summary acc s =
+     ~type_:default_case
+     ~copy_types:default_case
+     ~persistent:default_case
++    ~value_unbound:default_case
++    ~module_unbound:default_case
+ 
+ let default_env = ref (Compmisc.initial_env ())
+ let first_call = ref true
