@@ -1,0 +1,44 @@
+Index: ppx_deriving-4.4/src/api/ppx_deriving.cppo.ml
+===================================================================
+--- ppx_deriving-4.4.orig/src/api/ppx_deriving.cppo.ml
++++ ppx_deriving-4.4/src/api/ppx_deriving.cppo.ml
+@@ -681,14 +681,17 @@ let mapper =
+     | { pstr_desc = Pstr_module ({ pmb_name = { txt = name } } as mb) } as item :: rest ->
+       let derived =
+         { item with pstr_desc = Pstr_module (
+-            with_module name
+-              (fun () -> mapper.Ast_mapper.module_binding mapper mb)) }
++	    (let rname = match name with None -> "" | Some s -> s in
++              with_module rname (fun () -> mapper.Ast_mapper.module_binding mapper mb)
++	      )
++	      ) }
+       in derived :: mapper.Ast_mapper.structure mapper rest
+     | { pstr_desc = Pstr_recmodule mbs } as item :: rest ->
+       let derived =
+         { item with pstr_desc = Pstr_recmodule (
+             mbs |> List.map (fun ({ pmb_name = { txt = name } } as mb) ->
+-              with_module name
++	      let rname = match name with None -> "" | Some s -> s in
++              with_module rname
+                 (fun () -> mapper.Ast_mapper.module_binding mapper mb))) }
+       in derived :: mapper.Ast_mapper.structure mapper rest
+     | { pstr_loc } as item :: rest ->
+@@ -722,14 +725,16 @@ let mapper =
+     | { psig_desc = Psig_module ({ pmd_name = { txt = name } } as md) } as item :: rest ->
+       let derived =
+         { item with psig_desc = Psig_module (
+-            with_module name
++	    let rname = match name with None -> "" | Some s -> s in
++            with_module rname
+               (fun () -> mapper.Ast_mapper.module_declaration mapper md)) }
+       in derived :: mapper.Ast_mapper.signature mapper rest
+     | { psig_desc = Psig_recmodule mds } as item :: rest ->
+       let derived =
+         { item with psig_desc = Psig_recmodule (
+             mds |> List.map (fun ({ pmd_name = { txt = name } } as md) ->
+-              with_module name
++	      let rname = match name with None -> "" | Some s -> s in
++              with_module rname
+                 (fun () -> mapper.Ast_mapper.module_declaration mapper md))) }
+       in derived :: mapper.Ast_mapper.signature mapper rest
+     | { psig_loc } as item :: rest ->
