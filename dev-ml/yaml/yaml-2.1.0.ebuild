@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -16,6 +16,7 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 DEPEND="
+	dev-ml/dune-configurator:=
 	dev-ml/ocaml-ctypes:=
 	dev-ml/ppx_sexp_conv:=
 	dev-ml/sexplib:=
@@ -27,6 +28,7 @@ DEPEND="
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? (
+		dev-ml/mdx
 		dev-ml/alcotest
 		dev-ml/ezjsonm
 	)
