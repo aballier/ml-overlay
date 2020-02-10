@@ -1,7 +1,7 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 inherit jbuilder
 
@@ -42,3 +42,8 @@ RDEPEND="
 	dev-ml/variantslib:=
 "
 DEPEND="${RDEPEND}"
+
+src_prepare() {
+	has_version '>=dev-lang/ocaml-4.10_beta' && eapply "${FILESDIR}/oc410.patch"
+	jbuilder_src_prepare
+}
