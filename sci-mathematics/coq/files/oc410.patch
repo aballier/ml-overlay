@@ -1,0 +1,15 @@
+Index: coq-8.11.0/kernel/byterun/coq_interp.c
+===================================================================
+--- coq-8.11.0.orig/kernel/byterun/coq_interp.c
++++ coq-8.11.0/kernel/byterun/coq_interp.c
+@@ -33,6 +33,10 @@
+ #include "coq_uint63_emul.h"
+ #endif
+ 
++#if OCAML_VERSION >= 41000
++#define caml_young_ptr (Caml_state_field(young_ptr))
++#define caml_young_limit (Caml_state_field(young_limit)) 
++#endif
+ 
+ 
+ /* Registers for the abstract machine:

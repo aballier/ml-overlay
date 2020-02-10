@@ -1,9 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="5"
+EAPI="7"
 
-inherit eutils multilib
+inherit desktop
 
 MY_PV=${PV/_beta/+beta}
 MY_P=${PN}-${MY_PV}
@@ -24,7 +24,8 @@ RDEPEND="
 		dev-ml/lablgtk3:=
 		dev-ml/lablgtk3-sourceview3:=
 		)"
-DEPEND="${RDEPEND}
+DEPEND="${RDEPEND}"
+BDEPEND="
 	dev-ml/findlib
 	doc? (
 		media-libs/netpbm[png,zlib]
@@ -36,6 +37,7 @@ DEPEND="${RDEPEND}
 		)"
 
 S=${WORKDIR}/${PN}-${PV/_beta/-beta}
+PATCHES=( "${FILESDIR}/oc410.patch" )
 
 src_configure() {
 	ocaml_lib=$(ocamlc -where)
@@ -69,7 +71,7 @@ src_configure() {
 }
 
 src_compile() {
-	emake STRIP="true" -j1 world VERBOSE=1
+	emake STRIP="true" world VERBOSE=1
 }
 
 src_test() {
