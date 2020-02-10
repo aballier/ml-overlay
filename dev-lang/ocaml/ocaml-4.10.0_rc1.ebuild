@@ -28,16 +28,9 @@ PDEPEND="emacs? ( app-emacs/ocaml-mode )
 
 S="${WORKDIR}/${MY_P}"
 
-src_prepare() {
-	eapply "${FILESDIR}/${PV%_*}"/*.patch
-	default
-	eautoreconf
-}
-
 src_configure() {
 	econf \
 		--libdir="${EPREFIX}/usr/$(get_libdir)/ocaml" \
-		--disable-graph-lib \
 		$(use_enable flambda) \
 		$(use_enable spacetime)
 }
