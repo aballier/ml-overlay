@@ -53,9 +53,9 @@ opam_src_install() {
 	local pkg="${1:-${PN}}"
 	opam-install "${pkg}"
 	# Handle opam putting doc in a subdir
-	if [ -d "${ED}usr/share/doc/${PF}/${pkg}" ] ; then
-		mv "${ED}usr/share/doc/${PF}/${pkg}/"* "${ED}usr/share/doc/${PF}/" || die
-		rmdir "${ED}usr/share/doc/${PF}/${pkg}" || die
+	if [ -d "${ED}/usr/share/doc/${PF}/${pkg}" ] ; then
+		mv "${ED}/usr/share/doc/${PF}/${pkg}/"* "${ED}/usr/share/doc/${PF}/" || die
+		rmdir "${ED}/usr/share/doc/${PF}/${pkg}" || die
 	fi
 }
 
