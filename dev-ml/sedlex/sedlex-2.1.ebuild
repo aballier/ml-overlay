@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -11,8 +11,7 @@ SRC_URI="https://github.com/alainfrisch/sedlex/archive/v${PV}.tar.gz -> ${P}.tar
 
 LICENSE="MIT"
 SLOT="0/${PV}"
-#breaks flow_parser
-#KEYWORDS="~amd64"
+KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND="
