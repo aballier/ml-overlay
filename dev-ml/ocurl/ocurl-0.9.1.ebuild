@@ -19,7 +19,6 @@ RDEPEND=">=net-misc/curl-7.9.8
 DEPEND="${RDEPEND}
 	virtual/pkgconfig"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
-PATCHES=( "${FILESDIR}/oc410.patch" )
 
 src_compile()
 {
