@@ -33,4 +33,3 @@ src_test() {
 	DUNE_PROFILE=release dune runtest -p "${PN}" || { kill ${rpid}; die; }
 	kill ${rpid} || die
 }
-
