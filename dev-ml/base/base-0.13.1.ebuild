@@ -19,4 +19,3 @@ RDEPEND="
 	dev-ml/dune-configurator:=
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/oc410.patch" )
