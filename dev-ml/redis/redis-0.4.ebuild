@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -31,6 +31,6 @@ src_test() {
 	local rpid=$!
 	export OCAML_REDIS_TEST_PORT=${port}
 	sleep 1
-	jbuilder runtest || { kill ${rpid}; die; }
+	DUNE_PROFILE=release dune runtest -p "${PN}" || { kill ${rpid}; die; }
 	kill ${rpid} || die
 }
