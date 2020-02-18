@@ -42,8 +42,3 @@ RDEPEND="
 	dev-ml/variantslib:=
 "
 DEPEND="${RDEPEND}"
-
-src_prepare() {
-	has_version '>=dev-lang/ocaml-4.10_beta' && eapply "${FILESDIR}/oc410.patch"
-	jbuilder_src_prepare
-}
