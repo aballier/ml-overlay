@@ -28,4 +28,3 @@ DEPEND="${RDEPEND}
 	test? ( dev-ml/lwt app-text/pandoc )
 "
 BDEPEND="dev-ml/cppo"
-PATCHES=( "${FILESDIR}/oc410-1.patch" "${FILESDIR}/oc410-2.patch" )
