@@ -24,13 +24,5 @@ DEPEND="${DEPEND}
 	test? ( dev-ml/ounit2 dev-ml/ppx_deriving )
 "
 PATCHES=(
-	"${FILESDIR}/ompt.patch"
-	"${FILESDIR}/oc408.patch"
 	"${FILESDIR}/ounit2.patch"
 )
-
-src_prepare() {
-	default
-	has_version '>=dev-lang/ocaml-4.09' && eapply "${FILESDIR}/oc409.patch"
-	has_version '>=dev-lang/ocaml-4.10_beta' && eapply "${FILESDIR}/oc410.patch"
-}
