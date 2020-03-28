@@ -24,6 +24,7 @@ IUSE="doc +ocamlopt +ppx"
 
 RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	dev-ml/ppx_deriving:=
+	dev-ml/js_of_ocaml-compiler:=
 	dev-ml/js_of_ocaml:=
 	dev-ml/js_of_ocaml-lwt:=
 	dev-ml/js_of_ocaml-ppx:=
