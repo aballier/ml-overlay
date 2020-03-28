@@ -19,16 +19,10 @@ DEPEND="
 	dev-ml/result:=
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/menhir:=
+	dev-ml/fix:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	dev-ml/findlib
 "
 S=( "${WORKDIR}/package" )
-
-src_prepare() {
-	cp src/reason-parser/lexer_warning.ml-4.{09,10} || die
-	cp src/reason-parser/lexer_report_error.ml-4.{09,10} || die
-	eapply "${FILESDIR}/oc410.patch"
-	default
-}
