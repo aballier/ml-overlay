@@ -19,6 +19,7 @@ DEPEND="
 	dev-ml/tyxml:=
 		>=dev-ml/uutf-1.0:=
 		dev-ml/re:=
+	dev-ml/tyxml-syntax:=
 	dev-ml/markup:=
 	dev-ml/ppx_tools_versioned:=
 "
