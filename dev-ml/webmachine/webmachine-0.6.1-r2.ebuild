@@ -18,6 +18,7 @@ DEPEND="
 	dev-ml/ptime:=
 		dev-ml/result:=
 	dev-ml/cohttp:=
+		dev-ml/base64:=
 	dev-ml/dispatch:=
 	dev-ml/re:=
 	!dev-ml/ocaml-webmachine
