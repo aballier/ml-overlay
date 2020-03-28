@@ -26,6 +26,7 @@ RDEPEND="
 	dev-ml/ipaddr:=
 	dev-ml/lru:=
 	dev-ml/duration:=
+	dev-ml/metrics:=
 	!dev-ml/odns
 "
 DEPEND="${RDEPEND}
