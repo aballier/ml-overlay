@@ -12,13 +12,15 @@ SRC_URI="https://github.com/aantron/bisect_ppx/archive/${PV}.tar.gz -> ${P}.tar.
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE=""
+IUSE="test"
 
-DEPEND="
+RDEPEND="
 	dev-ml/cmdliner:=
 	dev-ml/ocaml-migrate-parsetree:=
 		dev-ml/result:=
 	dev-ml/ppx_tools_versioned:=
 "
-RDEPEND="${DEPEND}"
+DEPEND="${RDEPEND}
+	test? ( dev-ml/ounit2 )
+"
 BDEPEND=""
