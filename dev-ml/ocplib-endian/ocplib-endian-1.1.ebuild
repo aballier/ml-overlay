@@ -1,10 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
-OASIS_BUILD_TESTS=1
+EAPI=7
 
-inherit oasis
+inherit jbuilder
 
 DESCRIPTION="Functions to read and write int16/32/64 from strings, bytes, and bigarrays"
 HOMEPAGE="https://github.com/OCamlPro/ocplib-endian"
@@ -16,9 +15,6 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
 DEPEND="
-	>=dev-lang/ocaml-4.01
 	>=dev-ml/cppo-1.1.0
 "
 RDEPEND=""
-
-DOCS=( CHANGES.md COPYING.txt README.md )
