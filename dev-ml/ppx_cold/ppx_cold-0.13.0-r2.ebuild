@@ -18,5 +18,6 @@ DEPEND="
 	dev-ml/base:=
 	dev-ml/ppxlib:=
 		dev-ml/ocaml-migrate-parsetree:=
+		dev-ml/result:=
 "
 RDEPEND="${DEPEND}"
