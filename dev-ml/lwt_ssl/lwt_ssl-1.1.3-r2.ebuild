@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -13,6 +13,7 @@ IUSE=""
 
 RDEPEND="
 	>=dev-ml/lwt-4.2:=
+		dev-ml/ppx_tools_versioned:=
 	dev-ml/result:=
 	>=dev-ml/ssl-0.4.0:=
 "
@@ -20,4 +21,4 @@ DEPEND="${RDEPEND}"
 
 SLOT="0/${PV}"
 LICENSE="LGPL-2.1-with-linking-exception"
-KEYWORDS="~amd64 ~arm ~x86-fbsd"
+KEYWORDS="~amd64 ~arm"
