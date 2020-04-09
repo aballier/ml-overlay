@@ -20,6 +20,7 @@ RDEPEND="
 		dev-ml/logs:=
 	dev-ml/conduit-lwt:=
 	dev-ml/lwt:=
+		dev-ml/ppx_tools_versioned:=
 
 	dev-ml/uri:=
 	dev-ml/ipaddr:=
