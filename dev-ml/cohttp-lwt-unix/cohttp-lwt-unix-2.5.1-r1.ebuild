@@ -24,6 +24,7 @@ RDEPEND="
 		dev-ml/cohttp:=
 			dev-ml/sexplib0:=
 	dev-ml/lwt:=
+		dev-ml/ppx_tools_versioned:=
 	dev-libs/openssl:0=
 "
 DEPEND="${RDEPEND}
