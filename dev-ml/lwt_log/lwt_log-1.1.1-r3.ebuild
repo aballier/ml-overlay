@@ -17,6 +17,7 @@ IUSE=""
 DEPEND="
 	dev-ml/lwt:=
 		dev-ml/result:=
+		dev-ml/ppx_tools_versioned:=
 	dev-ml/lwt_log:=
 "
 RDEPEND="${DEPEND}"
