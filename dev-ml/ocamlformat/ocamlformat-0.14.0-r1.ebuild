@@ -18,6 +18,7 @@ DEPEND="
 	dev-ml/base:=
 	dev-ml/bisect_ppx:=
 	dev-ml/cmdliner:=
+	dev-ml/fix:=
 	dev-ml/fpath:=
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/odoc:=
