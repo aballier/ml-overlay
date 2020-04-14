@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -19,7 +19,7 @@ RDEPEND="
 	>=dev-ml/biniou-1.2:=
 "
 DEPEND="${RDEPEND}
-	dev-ml/cppo
+	>=dev-ml/cppo-1.6.6
 	test? ( dev-ml/alcotest )
 "
 
