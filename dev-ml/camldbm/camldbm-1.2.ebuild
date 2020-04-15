@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -9,7 +9,7 @@ SRC_URI="https://github.com/ocaml/dbm/archive/${P}.tar.gz"
 
 LICENSE="LGPL-2-with-linking-exception"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~arm ~ppc ~x86 ~amd64-fbsd ~x86-fbsd"
+KEYWORDS="~amd64 ~arm ~ppc ~x86"
 IUSE=""
 
 DEPEND=">=sys-libs/gdbm-1.9.1-r2[berkdb]
