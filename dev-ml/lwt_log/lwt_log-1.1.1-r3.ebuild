@@ -21,4 +21,3 @@ DEPEND="
 	dev-ml/lwt_log:=
 "
 RDEPEND="${DEPEND}"
-
