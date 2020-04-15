@@ -12,7 +12,7 @@ SRC_URI="https://github.com/ocaml-ppx/ocamlformat/releases/download/${PV}/${P}.t
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE=""
+IUSE="test"
 
 DEPEND="
 	dev-ml/base:=
@@ -29,5 +29,7 @@ DEPEND="
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
+DEPEND="${DEPEND}
+	test? ( dev-ml/ocp-indent )"
 
 S="${WORKDIR}/ocamlformat-${PV}"
