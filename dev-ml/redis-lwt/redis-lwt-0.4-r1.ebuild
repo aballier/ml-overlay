@@ -17,6 +17,8 @@ IUSE="test"
 RDEPEND="
 	dev-ml/redis:=
 	dev-ml/lwt:=
+		dev-ml/result:=
+		dev-ml/ppx_tools_versioned:=
 	!dev-ml/ocaml-redis-lwt
 "
 DEPEND="${RDEPEND}
