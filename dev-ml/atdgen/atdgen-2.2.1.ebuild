@@ -12,7 +12,7 @@ SRC_URI="https://github.com/ahrefs/atd/releases/download/${PV}/atd-${PV}.tbz"
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE=""
+IUSE="test"
 
 DEPEND="
 	dev-ml/atd:=
@@ -24,4 +24,5 @@ DEPEND="
 	dev-ml/yojson:=
 "
 RDEPEND="${DEPEND}"
+DEPEND="test? ( dev-ml/atdgen-codec-runtime )"
 S="${WORKDIR}/atd-${PV}"
