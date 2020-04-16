@@ -24,5 +24,6 @@ DEPEND="
 	dev-ml/yojson:=
 "
 RDEPEND="${DEPEND}"
-DEPEND="test? ( dev-ml/atdgen-codec-runtime )"
+DEPEND="${DEPEND}
+	test? ( dev-ml/atdgen-codec-runtime )"
 S="${WORKDIR}/atd-${PV}"
