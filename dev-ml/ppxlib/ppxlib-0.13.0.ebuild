@@ -12,7 +12,7 @@ SRC_URI="https://github.com/ocaml-ppx/ppxlib/archive/${PV}.tar.gz -> ${P}.tar.gz
 LICENSE="Apache-2.0"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-IUSE=""
+IUSE="test"
 
 DEPEND="
 	>=dev-ml/base-0.11.0:=
@@ -23,3 +23,5 @@ DEPEND="
 	>=dev-ml/stdio-0.11.0:=
 "
 RDEPEND="${DEPEND}"
+DEPEND="${DEPEND}
+	test? ( dev-ml/cinaps )"
