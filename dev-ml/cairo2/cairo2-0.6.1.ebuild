@@ -16,6 +16,7 @@ IUSE=""
 
 DEPEND="
 	x11-libs/cairo:=
+	dev-ml/dune-configurator:=
 "
 RDEPEND="${DEPEND}
 	!dev-ml/ocaml-cairo
