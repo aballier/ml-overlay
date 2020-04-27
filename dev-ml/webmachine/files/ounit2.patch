@@ -1,13 +1,10 @@
-Index: ocaml-webmachine-0.6.1/lib_test/jbuild
+Index: ocaml-webmachine-0.6.2/lib_test/dune
 ===================================================================
---- ocaml-webmachine-0.6.1.orig/lib_test/jbuild
-+++ ocaml-webmachine-0.6.1/lib_test/jbuild
-@@ -1,7 +1,7 @@
- (jbuild_version 1)
- 
- (executables
-- ((libraries (webmachine oUnit))
-+ ((libraries (webmachine ounit2))
-   (modules (test_dispatch test_logic))
-   (names (test_dispatch test_logic))))
- 
+--- ocaml-webmachine-0.6.2.orig/lib_test/dune
++++ ocaml-webmachine-0.6.2/lib_test/dune
+@@ -1,4 +1,4 @@
+ (tests
+- (libraries webmachine oUnit)
++ (libraries webmachine ounit2)
+  (modules test_dispatch test_logic)
+  (names test_dispatch test_logic))
