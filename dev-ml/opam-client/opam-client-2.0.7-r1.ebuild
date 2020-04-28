@@ -19,6 +19,10 @@ RDEPEND="
 		dev-ml/opam-file-format:=
 			dev-ml/re:=
 	dev-ml/opam-solver:=
+		>=dev-ml/mccs-1.1.4:=
+		dev-ml/dose3:=
+		dev-ml/cudf:=
+			dev-ml/extlib:=
 	dev-ml/cmdliner:=
 	!<dev-ml/opam-2.0.0_beta
 "
