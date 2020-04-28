@@ -21,6 +21,7 @@ RDEPEND="
 	>=dev-ml/mccs-1.1.4:=
 	dev-ml/dose3:=
 	dev-ml/cudf:=
+		dev-ml/extlib:=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/opam-client )"
