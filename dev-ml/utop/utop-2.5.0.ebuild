@@ -24,6 +24,5 @@ RDEPEND="
 	dev-ml/react:=
 	dev-ml/dune:=
 "
-DEPEND="${RDEPEND}
-	>=dev-ml/cppo-1.0.1
-"
+DEPEND="${RDEPEND}"
+BDEPEND=">=dev-ml/cppo-1.0.1"
