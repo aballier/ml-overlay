@@ -7,7 +7,7 @@ inherit findlib autotools
 
 DESCRIPTION="Stdcompat: compatibility module for OCaml standard library"
 HOMEPAGE="https://github.com/thierry-martinez/stdcompat"
-SRC_URI="https://github.com/thierry-martinez/stdcompat/archive/${PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/thierry-martinez/stdcompat/releases/download/v${PV}/${P}.tar.gz"
 
 LICENSE="BSD"
 SLOT="0/${PV}"
@@ -37,5 +37,5 @@ src_compile() {
 }
 
 src_test() {
-	emake tests
+	emake test
 }
