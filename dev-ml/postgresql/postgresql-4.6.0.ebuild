@@ -1,7 +1,7 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit jbuilder
 
@@ -13,9 +13,11 @@ IUSE=""
 RDEPEND="
 	dev-db/postgresql:=[server]
 	dev-ml/stdio:=
+	dev-ml/base:=
+	dev-ml/dune-configurator:=
 "
-DEPEND="${RDEPEND}
-	>=dev-ml/findlib-1.5"
+DEPEND="${RDEPEND}"
+BDEPEND=">=dev-ml/findlib-1.5"
 
 SLOT="0/${PV}"
 LICENSE="LGPL-2"
