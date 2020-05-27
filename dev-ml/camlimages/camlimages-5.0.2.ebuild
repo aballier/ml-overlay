@@ -1,13 +1,13 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-inherit vcs-snapshot jbuilder
+inherit jbuilder
 
 DESCRIPTION="An image manipulation library for ocaml"
-HOMEPAGE="http://gallium.inria.fr/camlimages/"
-SRC_URI="https://bitbucket.org/camlspotter/camlimages/get/${PV}.tar.bz2 -> ${P}.tar.bz2"
+HOMEPAGE="http://gallium.inria.fr/camlimages/ https://gitlab.com/camlspotter/camlimages"
+SRC_URI="https://gitlab.com/camlspotter/camlimages/-/archive/${PV}/${P}.tar.bz2"
 
 LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
@@ -32,4 +32,3 @@ RDEPEND="
 DEPEND="${DEPEND}
 	virtual/pkgconfig
 	dev-ml/findlib"
-PATCHES=( "${FILESDIR}/graphics.patch" "${FILESDIR}/jbuild.patch" )
