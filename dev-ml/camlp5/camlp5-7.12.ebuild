@@ -39,6 +39,7 @@ src_prepare() {
 	for i in ${PATCHLIST} ; do
 		epatch "${DISTDIR}/${i}"
 	done
+	epatch "${FILESDIR}/destdir.patch"
 }
 
 src_configure() {
