@@ -32,3 +32,5 @@ RDEPEND="
 	dev-ml/spawn:=
 "
 DEPEND="${RDEPEND}"
+RDEPEND="${RDEPEND}
+	!dev-ml/bigstring-unix"
