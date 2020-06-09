@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -24,6 +24,7 @@ DEPEND="
 	dev-ml/ppx_expect:=
 	dev-ml/ppx_fail:=
 	dev-ml/ppx_fields_conv:=
+	dev-ml/ppx_fixed_literal:=
 	dev-ml/ppx_here:=
 	dev-ml/ppx_inline_test:=
 	dev-ml/ppx_let:=
@@ -34,6 +35,7 @@ DEPEND="
 	dev-ml/ppx_sexp_message:=
 	dev-ml/ppx_sexp_value:=
 	dev-ml/ppx_stable:=
+	dev-ml/ppx_string:=
 	dev-ml/ppx_typerep_conv:=
 	dev-ml/ppx_variants_conv:=
 	dev-ml/ppxlib:=
