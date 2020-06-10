@@ -19,6 +19,7 @@ DEPEND="
 		dev-ml/result:=
 	dev-ml/cohttp:=
 		dev-ml/base64:=
+		dev-ml/sexplib0:=
 	dev-ml/dispatch:=
 	dev-ml/re:=
 	!dev-ml/ocaml-webmachine
