@@ -1,0 +1,13 @@
+Index: ocaml-cohttp-2.5.1/cohttp-async/bin/cohttp_server_async.ml
+===================================================================
+--- ocaml-cohttp-2.5.1.orig/cohttp-async/bin/cohttp_server_async.ml
++++ ocaml-cohttp-2.5.1/cohttp-async/bin/cohttp_server_async.ml
+@@ -72,7 +72,7 @@ let serve ~info ~docroot ~index uri path
+   | Ok res -> return res
+   | Error exn ->
+     begin match Monitor.extract_exn exn with
+-    | Unix.Unix_error (Unix.ENOENT, "stat", p) ->
++    | Unix.Unix_error (ENOENT, "stat", p) ->
+       if String.equal p ("((filename "^file_name^"))") (* Really? *)
+       then Server.respond_string ~status:`Not_found
+         (html_of_not_found path info)
