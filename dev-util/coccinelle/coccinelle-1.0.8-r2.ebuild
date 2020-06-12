@@ -55,6 +55,11 @@ src_prepare() {
 	epatch "${FILESDIR}/pcre.patch"
 	default
 
+	# See: https://github.com/coccinelle/coccinelle/pull/199
+	sed -e 's/Ast[.]/Ast_cocci./g' \
+		-e 's/Ast0[.]/Ast0_cocci./g' \
+		-i parsing_cocci/parser_cocci_menhir.mly || die
+
 	eautoreconf
 
 	# fix python install location
