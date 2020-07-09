@@ -31,4 +31,4 @@ DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 dev-ml/core )"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
-PATCHES=( "${FILESDIR}/ounit2.patch" "${FILESDIR}/async014.patch" )
+PATCHES=( "${FILESDIR}/ounit2.patch" )
