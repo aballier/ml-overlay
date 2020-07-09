@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
@@ -18,7 +18,7 @@ RDEPEND="
 	dev-libs/nanomsg:=
 	dev-lang/ocaml:=[ocamlopt?]
 	dev-ml/ocaml-ctypes:=
-	dev-ml/ipaddr:=[ocamlopt?]
+	dev-ml/ipaddr:=
 		dev-ml/sexplib:=
 	dev-ml/ppx_deriving:=
 	dev-ml/containers:=[ocamlopt(+)?]
