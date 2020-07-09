@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -23,4 +23,9 @@ DEPEND="${RDEPEND}
 "
 
 S="${WORKDIR}/ocaml-ipaddr-${PV}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
+
+src_prepare() {
+	default
+	sed -e 's/oUnit/ounit2/' -i lib_test/dune || die
+}
+
