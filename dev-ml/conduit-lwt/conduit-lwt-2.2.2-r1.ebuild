@@ -17,6 +17,7 @@ IUSE=""
 RDEPEND="
 	dev-ml/conduit:=
 		dev-ml/uri:=
+		dev-ml/ipaddr:=
 	dev-ml/lwt:=
 	dev-ml/sexplib:=
 	dev-ml/ppx_sexp_conv:=
