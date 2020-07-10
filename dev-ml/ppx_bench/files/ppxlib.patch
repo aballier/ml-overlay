@@ -1,0 +1,13 @@
+Index: ppx_bench-0.14.0/src/ppx_bench.ml
+===================================================================
+--- ppx_bench-0.14.0.orig/src/ppx_bench.ml
++++ ppx_bench-0.14.0/src/ppx_bench.ml
+@@ -128,7 +128,7 @@ let expand_bench_module ~loc ~path name_
+   apply_to_descr_bench
+     path "add_bench_module" loc ~inner_loc:m.pmod_loc None ?name_suffix name
+     (pexp_fun ~loc Nolabel None (punit ~loc)
+-       (pexp_letmodule ~loc (Located.mk ~loc "M")
++       (pexp_letmodule ~loc (Located.mk ~loc (Some "M"))
+           m
+           (eunit ~loc)))
+ 
