@@ -31,6 +31,7 @@ RDEPEND="
 		dev-ml/ppx_jane:=
 			dev-ml/ppx_inline_test:=
 			dev-ml/ocaml-migrate-parsetree:=
+		dev-ml/ppxlib:=
 	dev-ml/async_ssl:=
 
 	!dev-ml/ocaml-conduit
