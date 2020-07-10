@@ -1,0 +1,13 @@
+Index: ppx_inline_test-0.14.0/src/ppx_inline_test.ml
+===================================================================
+--- ppx_inline_test-0.14.0.orig/src/ppx_inline_test.ml
++++ ppx_inline_test-0.14.0/src/ppx_inline_test.ml
+@@ -178,7 +178,7 @@ let expand_test_module ~loc ~path:_ ~nam
+   validate_extension_point_exn ~name_of_ppx_rewriter ~loc ~tags;
+   apply_to_descr "test_module" ~loc ~inner_loc:m.pmod_loc None id tags
+     (pexp_fun ~loc Nolabel None (punit ~loc)
+-       (pexp_letmodule ~loc (Located.mk ~loc "M")
++       (pexp_letmodule ~loc (Located.mk ~loc (Some "M"))
+           m
+           (eunit ~loc)))
+ ;;

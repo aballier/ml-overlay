@@ -23,3 +23,4 @@ DEPEND="
 "
 RDEPEND="${DEPEND}"
 RESTRICT="test"
+PATCHES=( "${FILESDIR}/ppxlib.patch" )
