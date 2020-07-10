@@ -17,6 +17,7 @@ IUSE=""
 DEPEND="
 	dev-ml/core_kernel:=
 	dev-ml/ppx_jane:=
+		dev-ml/ppxlib:=
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
