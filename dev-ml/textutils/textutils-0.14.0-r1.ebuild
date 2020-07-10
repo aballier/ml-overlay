@@ -16,6 +16,7 @@ IUSE=""
 
 RDEPEND="
 	dev-ml/core:=
+		dev-ml/ppxlib:=
 		dev-ml/sexplib:=
 			dev-ml/parsexp:=
 				dev-ml/base:=
