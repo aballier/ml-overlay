@@ -16,6 +16,7 @@ IUSE="test"
 
 RDEPEND="
 	dev-ml/ipaddr:=
+		dev-ml/fmt:=
 	dev-ml/ppx_sexp_conv:=
 "
 DEPEND="${RDEPEND}
