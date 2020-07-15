@@ -15,7 +15,7 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
 RDEPEND="
-	dev-ml/fmt:=
+	>=dev-ml/fmt-0.8.8:=
 	dev-ml/astring:=
 	dev-ml/cmdliner:=
 	dev-ml/uuidm:=
