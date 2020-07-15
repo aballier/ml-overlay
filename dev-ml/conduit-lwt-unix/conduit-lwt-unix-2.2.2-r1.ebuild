@@ -24,6 +24,7 @@ RDEPEND="
 
 	dev-ml/uri:=
 	dev-ml/ipaddr:=
+		dev-ml/fmt:=
 	dev-ml/ipaddr-sexp:=
 	dev-ml/lwt_ssl:=
 
