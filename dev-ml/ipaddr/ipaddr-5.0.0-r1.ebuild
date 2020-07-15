@@ -17,6 +17,7 @@ IUSE="test"
 RDEPEND="dev-ml/sexplib0:=
 	dev-ml/macaddr:=
 	dev-ml/domain-name:=
+		dev-ml/fmt:=
 	!dev-ml/ocaml-ipaddr
 "
 DEPEND="${RDEPEND}
