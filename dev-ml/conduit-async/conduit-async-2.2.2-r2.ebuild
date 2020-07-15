@@ -20,6 +20,7 @@ RDEPEND="
 	dev-ml/sexplib:=
 	dev-ml/conduit:=
 	dev-ml/ipaddr:=
+		dev-ml/fmt:=
 	dev-ml/async:=
 		dev-ml/core:=
 			dev-ml/sexplib:=
