@@ -23,6 +23,7 @@ RDEPEND="
 	dev-ml/uri:=
 	dev-ml/logs:=
 	dev-ml/ipaddr:=
+		dev-ml/fmt:=
 	dev-ml/ipaddr-sexp:=
 
 	!dev-ml/ocaml-conduit
