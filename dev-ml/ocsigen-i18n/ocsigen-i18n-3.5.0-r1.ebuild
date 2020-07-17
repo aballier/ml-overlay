@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -12,7 +12,10 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="dev-lang/ocaml:="
+RDEPEND="dev-lang/ocaml:=
+	dev-ml/tyxml:=
+	dev-ml/ppx_tools:=
+"
 DEPEND="${RDEPEND}
 	dev-ml/findlib"
 
