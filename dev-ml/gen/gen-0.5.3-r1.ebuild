@@ -14,7 +14,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND=""
+RDEPEND="
+	dev-ml/dune-configurator:=
+"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/qcheck dev-ml/qtest )
 "
