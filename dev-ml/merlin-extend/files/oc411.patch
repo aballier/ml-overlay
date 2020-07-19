@@ -1,0 +1,39 @@
+From 04f86e539d252a2c26bb1021d9d4349acc7eb031 Mon Sep 17 00:00:00 2001
+From: Antonio Nuno Monteiro <anmonteiro@gmail.com>
+Date: Thu, 28 May 2020 11:54:17 -0700
+Subject: [PATCH] Support OCaml 4.11
+
+https://github.com/ocaml/ocaml/commit/abc53d1a6eab81beeb00afb2f980f89a84f6fa81
+introduced an additional argument to `Pconst_string`
+---
+ extend_helper.cppo.ml | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/extend_helper.cppo.ml b/extend_helper.cppo.ml
+index 377ff19..abd2ccc 100644
+--- a/extend_helper.cppo.ml
++++ b/extend_helper.cppo.ml
+@@ -27,7 +27,11 @@ let syntax_error msg loc : extension =
+       pstr_loc = Location.none;
+       pstr_desc = Pstr_eval ({
+           pexp_loc = Location.none;
++#if OCAML_VERSION >= (4, 11, 0)
++          pexp_desc = Pexp_constant (CONST_STRING (msg, Location.none,None));
++#else
+           pexp_desc = Pexp_constant (CONST_STRING (msg, None));
++#endif
+           pexp_attributes = [];
+ #if OCAML_VERSION >= (4, 8, 0)
+           pexp_loc_stack = []
+@@ -145,7 +149,11 @@ let extract_syntax_error (id, payload : extension) : string * Location.t =
+   let msg = match payload with
+     | PStr [{
+         pstr_desc = Pstr_eval ({
++#if OCAML_VERSION >= (4, 11, 0)
++            pexp_desc = Pexp_constant (CONST_STRING (msg, _, _)); _
++#else
+             pexp_desc = Pexp_constant (CONST_STRING (msg, _)); _
++#endif
+           }, _); _
+       }] -> msg
+     | _ -> "Warning: extension produced an incorrect syntax-error node"
