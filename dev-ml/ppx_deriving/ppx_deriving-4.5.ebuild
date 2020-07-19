@@ -19,7 +19,6 @@ DEPEND="
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/ppx_derivers:=
 	dev-ml/result:=
-	dev-ml/cppo_ocamlbuild:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${RDEPEND}
