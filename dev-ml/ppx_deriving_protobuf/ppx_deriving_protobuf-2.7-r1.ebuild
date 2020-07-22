@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -23,4 +23,4 @@ DEPEND="${RDEPEND}
 	dev-ml/cppo
 	test? ( dev-ml/ounit2 dev-ml/uint )
 "
-PATCHES=( "${FILESDIR}/ounit2.patch" )
+PATCHES=( "${FILESDIR}/ounit2.patch" "${FILESDIR}/oc411.patch" )
