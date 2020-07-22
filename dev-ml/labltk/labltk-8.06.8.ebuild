@@ -11,7 +11,7 @@ SRC_URI="https://github.com/garrigue/labltk/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="QPL-1.0 LGPL-2"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~arm ~arm64 ~hppa ~mips ~sparc ~x86 ~amd64-linux ~x86-linux"
+KEYWORDS="~amd64 ~arm ~arm64 ~mips ~x86 ~amd64-linux ~x86-linux"
 IUSE="+ocamlopt X"
 
 RDEPEND=">=dev-lang/tk-8.0.3:=
