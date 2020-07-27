@@ -23,6 +23,7 @@ RDEPEND="
 	dev-ml/result:=
 	dev-ml/ocaml-migrate-parsetree:=
 	dev-ml/ocaml-version:=
+	dev-ml/odoc:=
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/lwt app-text/pandoc )
