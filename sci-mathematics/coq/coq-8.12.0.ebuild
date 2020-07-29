@@ -37,7 +37,6 @@ BDEPEND="
 		)"
 
 S=${WORKDIR}/${PN}-${PV/_beta/-beta}
-PATCHES=( "${FILESDIR}/oc410.patch" )
 
 src_configure() {
 	ocaml_lib=$(ocamlc -where)
