@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
-PYTHON_COMPAT=( python2_7 )
+PYTHON_COMPAT=( python3_{7,8} )
 
 inherit multilib eutils python-single-r1 bash-completion-r1 elisp-common autotools
 
