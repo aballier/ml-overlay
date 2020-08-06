@@ -19,4 +19,3 @@ RDEPEND="dev-ml/ounit2:=
 	!<dev-ml/iTeML-2.5"
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/qcheck-${PV}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
