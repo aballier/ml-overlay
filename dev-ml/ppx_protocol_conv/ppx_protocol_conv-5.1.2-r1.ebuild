@@ -16,6 +16,7 @@ IUSE="test"
 
 DEPEND="
 	dev-ml/base:=
+	dev-ml/stdio:=
 	dev-ml/ppxlib:=
 		dev-ml/ocaml-migrate-parsetree:=
 		dev-ml/result:=
@@ -28,3 +29,4 @@ DEPEND="${DEPEND}
 		dev-ml/alcotest
 	)
 "
+PATCHES=( "${FILESDIR}/stdio.patch" )

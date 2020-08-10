@@ -1,0 +1,13 @@
+Index: ppx_protocol_conv-5.1.2/ppx/dune
+===================================================================
+--- ppx_protocol_conv-5.1.2.orig/ppx/dune
++++ ppx_protocol_conv-5.1.2/ppx/dune
+@@ -2,7 +2,7 @@
+  (name ppx_protocol_conv)
+  (public_name ppx_protocol_conv)
+  (kind ppx_deriver)
+- (libraries base ppxlib)
++ (libraries base ppxlib stdio)
+  (preprocess (pps ppxlib.metaquot))
+  (synopsis "ppx to derive (de)serializers of a type")
+ )
