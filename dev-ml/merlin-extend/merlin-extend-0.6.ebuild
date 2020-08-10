@@ -18,4 +18,3 @@ DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	dev-ml/cppo"
-PATCHES=( "${FILESDIR}/oc411.patch" )
