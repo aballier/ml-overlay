@@ -16,9 +16,11 @@ IUSE=""
 
 DEPEND="
 	dev-ml/base:=
+	dev-ml/stdio:=
 	dev-ml/ppx_base:=
 	dev-ml/ppxlib:=
 		dev-ml/ocaml-migrate-parsetree:=
 			dev-ml/result:=
 "
 RDEPEND="${DEPEND}"
+PATCHES=( "${FILESDIR}/stdio.patch" )
