@@ -33,4 +33,3 @@ DEPEND="${DEPEND}
 	test? ( dev-ml/ocp-indent )"
 
 S="${WORKDIR}/ocamlformat-${PV}"
-PATCHES=("${FILESDIR}/oc411.patch" )
