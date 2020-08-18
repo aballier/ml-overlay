@@ -15,7 +15,5 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
 DEPEND="
-	dev-ml/result:=
-	dev-ml/ppx_derivers:=
 "
 RDEPEND="${DEPEND}"
