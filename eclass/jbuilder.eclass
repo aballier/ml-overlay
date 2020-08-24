@@ -20,8 +20,8 @@ inherit opam multiprocessing
 
 RDEPEND="dev-lang/ocaml:="
 case ${EAPI:-0} in
-	0|1|2|3|4|5|6) DEPEND="${RDEPEND} >=dev-ml/dune-2.3";;
-	*) BDEPEND=">=dev-ml/dune-2.3 dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
+	0|1|2|3|4|5|6) DEPEND="${RDEPEND} >=dev-ml/dune-2.7";;
+	*) BDEPEND=">=dev-ml/dune-2.7 dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
 esac
 
 # This disables Werror-like behavior
