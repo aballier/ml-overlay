@@ -17,8 +17,10 @@ IUSE="test"
 DEPEND="
 	>=dev-ml/base-0.11.0:=
 	>=dev-ml/ocaml-compiler-libs-0.11:=
-	dev-ml/ocaml-migrate-parsetree:=
+	>=dev-ml/ocaml-migrate-parsetree-2.0.0:=
 		dev-ml/result:=
+	dev-ml/sexplib0:=
+	dev-ml/stdlib-shims:=
 	dev-ml/ppx_derivers:=
 	>=dev-ml/stdio-0.11.0:=
 "
