@@ -22,4 +22,3 @@ DEPEND="
 			dev-ml/result:=
 "
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/ppxlib.patch" )
