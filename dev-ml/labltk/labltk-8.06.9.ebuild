@@ -22,7 +22,6 @@ DEPEND="${RDEPEND}
 
 src_prepare() {
 	epatch "${FILESDIR}/findlib.patch"
-	epatch "${FILESDIR}/oc411.patch"
 }
 
 src_configure() {
