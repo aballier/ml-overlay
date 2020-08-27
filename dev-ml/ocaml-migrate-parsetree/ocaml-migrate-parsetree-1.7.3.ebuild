@@ -11,9 +11,11 @@ SRC_URI="https://github.com/let-def/ocaml-migrate-parsetree/archive/v${PV}.tar.g
 
 LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
-#KEYWORDS="~amd64 ~arm ~arm64 ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
 DEPEND="
+	dev-ml/result:=
+	dev-ml/ppx_derivers:=
 "
 RDEPEND="${DEPEND}"
