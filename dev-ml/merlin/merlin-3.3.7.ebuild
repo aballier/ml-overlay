@@ -7,7 +7,7 @@ inherit vim-plugin jbuilder
 
 DESCRIPTION="Context sensitive completion for OCaml in Vim and Emacs"
 HOMEPAGE="https://github.com/ocaml/merlin"
-SRC_URI="https://github.com/ocaml/merlin/archive/v${PV%_*}-4.11-${PV/*_pre/preview}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/ocaml/merlin/releases/download/v${PV}/${PN}-v${PV}.tbz"
 
 LICENSE="MIT"
 SLOT="0/${PV}"
@@ -23,4 +23,4 @@ RDEPEND="${DEPEND}
 DEPEND="${DEPEND}
 	test? ( dev-ml/mdx )"
 
-S="${WORKDIR}/${PN}-${PV%_*}-4.11-${PV/*_pre/preview}"
+S="${WORKDIR}/${PN}-v${PV}"
