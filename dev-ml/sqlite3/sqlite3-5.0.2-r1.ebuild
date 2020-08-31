@@ -19,7 +19,4 @@ RDEPEND=">=dev-db/sqlite-3.3.3
 	!dev-ml/ocaml-sqlite3
 "
 DEPEND="${RDEPEND}
-	dev-ml/base
-	dev-ml/stdio
-	dev-ml/configurator
 	>=dev-ml/findlib-1.3.2"
