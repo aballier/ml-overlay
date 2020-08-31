@@ -16,9 +16,6 @@ KEYWORDS="~amd64 ~arm ~arm64"
 RDEPEND=">=dev-libs/libpcre-4.5
 	!dev-ml/pcre-ocaml"
 DEPEND="${RDEPEND}
-	dev-ml/base
-	dev-ml/stdio
-	dev-ml/configurator
 "
 
 S="${WORKDIR}/pcre-${PV}"
