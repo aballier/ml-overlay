@@ -40,6 +40,7 @@ src_prepare() {
 		epatch "${DISTDIR}/${i}"
 	done
 	epatch "${FILESDIR}/destdir.patch"
+	camlp5_hack_ocaml_support 4.11.0 4.11.1
 }
 
 src_configure() {
