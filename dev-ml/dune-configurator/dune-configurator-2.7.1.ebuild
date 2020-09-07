@@ -16,6 +16,7 @@ IUSE=""
 
 DEPEND="
 	dev-ml/dune-private-libs:=
+	dev-ml/csexp:=
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}"
