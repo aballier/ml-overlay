@@ -23,4 +23,3 @@ DEPEND="
 			dev-ml/result:=
 "
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/stdio.patch" )
