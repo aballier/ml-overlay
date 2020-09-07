@@ -20,4 +20,3 @@ RDEPEND="dev-ml/ounit2:=
 	!dev-ml/iTeML
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
