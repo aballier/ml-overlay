@@ -19,8 +19,3 @@ RDEPEND="
 	dev-ml/camomile:="
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ppx_expect )"
-
-src_unpack() {
-	default
-	export S="$(echo "${WORKDIR}/zandoye-charinfo_width-"*)"
-}
