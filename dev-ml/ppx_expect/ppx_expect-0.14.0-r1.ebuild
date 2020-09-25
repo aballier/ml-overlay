@@ -26,6 +26,7 @@ DEPEND="
 	dev-ml/ppx_variants_conv:=
 	dev-ml/stdio:=
 	dev-ml/ppxlib:=
+		dev-ml/ocaml-compiler-libs:=
 		dev-ml/ocaml-migrate-parsetree:=
 			dev-ml/result:=
 	dev-ml/re:=
