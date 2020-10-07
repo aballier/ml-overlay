@@ -16,6 +16,8 @@ IUSE="test"
 
 RDEPEND="
 	dev-ml/conduit-lwt-unix:=
+		dev-ml/ipaddr:=
+		dev-ml/macaddr:=
 	dev-ml/cmdliner:=
 	dev-ml/magic-mime:=
 	dev-ml/logs:=
