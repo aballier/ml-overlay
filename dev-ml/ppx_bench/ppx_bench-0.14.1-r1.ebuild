@@ -17,6 +17,7 @@ IUSE=""
 DEPEND="
 	dev-ml/ppx_inline_test:=
 	dev-ml/ppxlib:=
+		dev-ml/ocaml-compiler-libs:=
 		dev-ml/stdio:=
 		dev-ml/ocaml-migrate-parsetree:=
 			dev-ml/result:=
