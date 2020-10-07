@@ -17,6 +17,7 @@ IUSE=""
 RDEPEND="
 	dev-ml/base64:=
 	dev-ml/conduit:=
+		dev-ml/fmt:=
 		dev-ml/sexplib:=
 			dev-ml/parsexp:=
 				dev-ml/base:=
