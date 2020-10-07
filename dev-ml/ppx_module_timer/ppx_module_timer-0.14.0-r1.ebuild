@@ -20,6 +20,7 @@ DEPEND="
 	dev-ml/stdio:=
 	dev-ml/time_now:=
 	dev-ml/ppxlib:=
+		dev-ml/ocaml-compiler-libs:=
 		dev-ml/result:=
 "
 RDEPEND="${DEPEND}"
