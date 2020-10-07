@@ -18,6 +18,7 @@ DEPEND="
 	dev-ml/base:=
 	dev-ml/ppx_sexp_conv:=
 	dev-ml/ppxlib:=
+		dev-ml/ocaml-compiler-libs:=
 		dev-ml/ocaml-migrate-parsetree:=
 			dev-ml/result:=
 "
