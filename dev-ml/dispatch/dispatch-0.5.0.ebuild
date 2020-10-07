@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -15,12 +15,10 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 DEPEND="
-	dev-ml/result:=
 	!dev-ml/ocaml-dispatch
 "
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
-	test? ( dev-ml/ounit2 )
+	test? ( dev-ml/alcotest )
 "
 S="${WORKDIR}/ocaml-${P}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
