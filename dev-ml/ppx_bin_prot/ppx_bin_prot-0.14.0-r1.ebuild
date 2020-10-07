@@ -19,6 +19,7 @@ DEPEND="
 	dev-ml/bin_prot:=
 	dev-ml/ppx_here:=
 	dev-ml/ppxlib:=
+		dev-ml/ocaml-compiler-libs:=
 		dev-ml/ocaml-migrate-parsetree:=
 			dev-ml/result:=
 	"
