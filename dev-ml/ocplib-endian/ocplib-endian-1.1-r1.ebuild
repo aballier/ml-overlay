@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Functions to read and write int16/32/64 from strings, bytes, and bigarrays"
