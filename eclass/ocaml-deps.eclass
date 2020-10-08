@@ -51,6 +51,7 @@ declare -A -r -g _GLOBAL_OCAML_DEPS=(
 	[ppx_sexp_message]="base ppx_here ppx_sexp_conv ppxlib"
 	[ppx_sexp_value]="base ppx_here ppx_sexp_conv ppxlib"
 	[ppx_string]="base ppx_base ppxlib"
+	[ppx_variants_conv]="base variantslib ppxlib"
 	[ppxlib]="ocaml-compiler-libs ocaml-migrate-parsetree ppx_derivers sexplib0 stdlib-shims"
 	[result]=""
 	[seq]=""
@@ -60,6 +61,7 @@ declare -A -r -g _GLOBAL_OCAML_DEPS=(
 	[typerep]="base"
 	[uchar]=""
 	[uuidm]="cmdliner"
+	[variantslib]="base"
 )
 
 _ocaml_gen_tr_deps() {
