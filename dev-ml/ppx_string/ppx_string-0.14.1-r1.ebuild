@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Ppx extension for string interpolation"
@@ -14,12 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/stdio:=
-	dev-ml/ppx_base:=
-	dev-ml/ppxlib:=
-		dev-ml/ocaml-migrate-parsetree:=
-			dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
