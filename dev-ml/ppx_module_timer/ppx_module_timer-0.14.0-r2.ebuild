@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Ppx rewriter that records top-level module startup times"
@@ -14,13 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/ppx_base:=
-	dev-ml/stdio:=
-	dev-ml/time_now:=
-	dev-ml/ppxlib:=
-		dev-ml/ocaml-compiler-libs:=
-		dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
