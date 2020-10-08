@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Compile-time configuration for Jane Street libraries"
@@ -14,10 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/ppx_assert:=
-	dev-ml/stdio:=
-	dev-ml/dune-configurator:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
