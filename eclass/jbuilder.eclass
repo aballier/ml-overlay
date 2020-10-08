@@ -39,6 +39,7 @@ jbuilder_src_prepare() {
 		ewarn "${PN} still uses jbuild, upgrading it"
 		dune upgrade || die
 	fi
+	[[ "${OPAM_DEPS}" != "auto" ]] && eqawarn "${CATEGORY}/${PN} should set OPAM_DEPS=auto"
 }
 
 jbuilder_src_compile() {
