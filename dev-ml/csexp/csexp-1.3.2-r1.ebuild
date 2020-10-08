@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Parsing and printing of S-expressions in Canonical form"
@@ -14,11 +15,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-DEPEND="
-	dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
-BDEPEND=""
 DEPEND="${DEPEND}
 	test? ( dev-ml/ppx_expect )
 "
+BDEPEND=""
