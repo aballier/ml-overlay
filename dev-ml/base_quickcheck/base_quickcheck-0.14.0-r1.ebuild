@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Randomized testing framework, designed for compatibility with Base "
@@ -14,15 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/ppx_base:=
-	dev-ml/ppx_fields_conv:=
-	dev-ml/ppx_let:=
-	dev-ml/ppx_sexp_message:=
-	dev-ml/splittable_random:=
-	dev-ml/ppxlib:=
-		dev-ml/ocaml-migrate-parsetree:=
-			dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
