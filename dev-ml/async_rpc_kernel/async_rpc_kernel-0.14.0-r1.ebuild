@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Platform-independent core of Async RPC library"
@@ -14,15 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/async_kernel:=
-	dev-ml/core_kernel:=
-		dev-ml/typerep:=
-			dev-ml/base:=
-	dev-ml/protocol_version_header:=
-	dev-ml/ppx_jane:=
-		dev-ml/ppx_inline_test:=
-		dev-ml/ocaml-migrate-parsetree:=
-		dev-ml/ppxlib:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
