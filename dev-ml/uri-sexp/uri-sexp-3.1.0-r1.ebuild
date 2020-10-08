@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="RFC3986 URI parsing library for OCaml"
@@ -14,13 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/uri:=
-		>=dev-ml/re-1.9.0:=
-		dev-ml/stringext:=
-	dev-ml/ppx_sexp_conv:=
-	dev-ml/sexplib0:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 )
 "
