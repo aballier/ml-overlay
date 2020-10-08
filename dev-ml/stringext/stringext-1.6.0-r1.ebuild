@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Extra string functions for OCaml"
@@ -16,5 +17,6 @@ IUSE="test"
 
 RDEPEND=""
 DEPEND="${RDEPEND}
-	test? ( dev-ml/qtest )
+	test? ( dev-ml/qtest dev-ml/ounit2 )
 "
+PATCHES=( "${FILESDIR}/ounit2.patch" )
