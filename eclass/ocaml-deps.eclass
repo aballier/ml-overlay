@@ -46,6 +46,7 @@ declare -A -r -g _GLOBAL_OCAML_DEPS=(
 				ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_variants_conv ppxlib"
 	[ppx_js_style]="base octavius ppxlib"
 	[ppx_let]="base ppxlib"
+	[ppx_typerep_conv]="base typerep ppxlib"
 	[ppx_sexp_conv]="base sexplib0 ppxlib"
 	[ppx_sexp_message]="base ppx_here ppx_sexp_conv ppxlib"
 	[ppx_sexp_value]="base ppx_here ppx_sexp_conv ppxlib"
@@ -56,6 +57,7 @@ declare -A -r -g _GLOBAL_OCAML_DEPS=(
 	[sexplib0]=""
 	[stdio]="base"
 	[stdlib-shims]=""
+	[typerep]="base"
 	[uchar]=""
 	[uuidm]="cmdliner"
 )
