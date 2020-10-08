@@ -36,7 +36,7 @@ if [[ "${OPAM_DEPS}" = "auto" ]] ; then
 		test? (
 			dev-lang/ocaml
 			dev-ml/opam-file-format
-			dev-ml/ocamlfind
+			dev-ml/findlib
 		)
 	"
 fi
@@ -63,7 +63,7 @@ jbuilder_src_test() {
 	dune runtest -p "${PN}" -j $(makeopts_jobs) || die
 	if [[ "${OPAM_DEPS}" = "auto" ]] ; then
 		pushd "${T}" &> /dev/null
-		echo ${_GLOBAL_OCAML_DEPS[${PN}]} | tr ' ' '\n' | sort -u > ebuild.deps || die
+		printf "%s" "${_GLOBAL_OCAML_DEPS[${PN}]}" | tr ' ' '\n' | sort -u > ebuild.deps || die
 		cat << EOF >> parser.ml
 open OpamParserTypes
 
