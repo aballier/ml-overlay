@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Reports the current time"
@@ -14,11 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/jane-street-headers:=
-	dev-ml/jst-config:=
-	dev-ml/ppx_base:=
-	dev-ml/ppx_optcomp:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
