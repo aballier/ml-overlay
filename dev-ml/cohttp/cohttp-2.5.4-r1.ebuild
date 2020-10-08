@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Very lightweight HTTP server using Lwt or Async"
@@ -14,20 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/re:=
-	>=dev-ml/uri-2:=
-	dev-ml/uri-sexp:=
-	dev-ml/fieldslib:=
-	dev-ml/sexplib0:=
-	dev-ml/ppx_fields_conv:=
-	dev-ml/ppx_sexp_conv:=
-	dev-ml/stringext:=
-	dev-ml/base64:=
-	dev-ml/stdlib-shims:=
-
-	!dev-ml/ocaml-cohttp
-"
+RDEPEND="!dev-ml/ocaml-cohttp"
 DEPEND="${RDEPEND}
 	dev-ml/jsonm
 	test? (
