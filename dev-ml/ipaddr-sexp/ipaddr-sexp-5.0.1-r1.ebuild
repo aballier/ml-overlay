@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="OCaml library for manipulation of IP (and MAC) address representations"
@@ -14,11 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/ipaddr:=
-		dev-ml/fmt:=
-	dev-ml/ppx_sexp_conv:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ipaddr-cstruct dev-ml/ounit2 )
 "
