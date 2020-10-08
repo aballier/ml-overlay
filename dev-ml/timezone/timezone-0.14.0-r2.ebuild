@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Time-zone handling"
@@ -14,10 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/core_kernel:=
-	dev-ml/ppx_jane:=
-		dev-ml/ppxlib:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
