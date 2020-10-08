@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Bigstring intrinsics and fast blits based on memcpy/memmove "
@@ -14,9 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/bigarray-compat:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )"
