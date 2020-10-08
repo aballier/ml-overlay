@@ -22,12 +22,25 @@ RDEPEND="dev-lang/ocaml:="
 
 if [[ "${OPAM_DEPS}" = "auto" ]] ; then
 	RDEPEND="$(ocaml_gen_deps ${PN})"
+	IUSE="test"
+	RESTRICT="!test? ( test )"
 fi
 
 case ${EAPI:-0} in
-	0|1|2|3|4|5|6) DEPEND="${RDEPEND} >=dev-ml/dune-2.7";;
+	0|1|2|3|4|5|6) die "EAPI=${EAPI} unsupported";;
 	*) BDEPEND=">=dev-ml/dune-2.7 dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
 esac
+
+if [[ "${OPAM_DEPS}" = "auto" ]] ; then
+	BDEPEND="${BDEPEND}
+		test? (
+			dev-lang/ocaml
+			dev-ml/opam-file-format
+			dev-ml/ocamlfind
+		)
+	"
+fi
+
 
 # This disables Werror-like behavior
 DUNE_PROFILE="release"
@@ -48,6 +61,34 @@ jbuilder_src_compile() {
 
 jbuilder_src_test() {
 	dune runtest -p "${PN}" -j $(makeopts_jobs) || die
+	if [[ "${OPAM_DEPS}" = "auto" ]] ; then
+		pushd "${T}" &> /dev/null
+		echo ${_GLOBAL_OCAML_DEPS[${PN}]} | tr ' ' '\n' | sort -u > ebuild.deps || die
+		cat << EOF >> parser.ml
+open OpamParserTypes
+
+let rec get_deps = function
+		[] -> failwith "Not found"
+	| Variable (_,"depends",v)::q -> v
+	| _::q -> get_deps q;;
+let rec is_real_dep = function
+		[] -> true
+	| Logop (_,_,l,r)::q -> is_real_dep (l::(r::q))
+	| Ident (_,"with-test")::_ -> false
+	| _ :: q -> is_real_dep q;;
+let rec print_deps = function
+		List (_,l) -> List.iter print_deps l
+	| Option (_,v,l) -> if is_real_dep l then print_deps v else ()
+	| String (_,"ocaml") -> ()
+	| String (_,"dune") -> ()
+	| String (_,s) -> Printf.printf "%s\n" s
+	| _ -> ();;
+print_deps (get_deps (OpamParser.file Sys.argv.(1)).file_contents);;
+EOF
+		ocamlfind ocamlc -package opam-file-format -linkpkg parser.ml  -o parser || die
+		./parser "${S}/${PN}.opam" | sort -u > opam.deps || die
+		diff -u ebuild.deps opam.deps || die "Difference between opam and ebuild dep"
+	fi
 }
 
 EXPORT_FUNCTIONS src_prepare src_compile src_test
