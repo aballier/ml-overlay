@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Cram like framework for OCaml"
@@ -14,21 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/ppx_assert:=
-	dev-ml/ppx_compare:=
-	dev-ml/ppx_custom_printf:=
-	dev-ml/ppx_fields_conv:=
-	dev-ml/ppx_here:=
-	dev-ml/ppx_inline_test:=
-	dev-ml/ppx_sexp_conv:=
-	dev-ml/ppx_variants_conv:=
-	dev-ml/stdio:=
-	dev-ml/ppxlib:=
-		dev-ml/ocaml-compiler-libs:=
-		dev-ml/ocaml-migrate-parsetree:=
-			dev-ml/result:=
-	dev-ml/re:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
