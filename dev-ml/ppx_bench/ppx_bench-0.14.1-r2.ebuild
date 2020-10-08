@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Syntax extension for writing in-line benchmarks in ocaml code"
@@ -14,12 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/ppx_inline_test:=
-	dev-ml/ppxlib:=
-		dev-ml/ocaml-compiler-libs:=
-		dev-ml/stdio:=
-		dev-ml/ocaml-migrate-parsetree:=
-			dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
