@@ -16,9 +16,14 @@ case ${EAPI:-0} in
     *) ;;
 esac
 
-inherit opam multiprocessing
+inherit opam multiprocessing ocaml-deps
 
 RDEPEND="dev-lang/ocaml:="
+
+if [[ "${OPAM_DEPS}" = "auto" ]] ; then
+	RDEPEND="$(ocaml_gen_deps ${PN})"
+fi
+
 case ${EAPI:-0} in
 	0|1|2|3|4|5|6) DEPEND="${RDEPEND} >=dev-ml/dune-2.7";;
 	*) BDEPEND=">=dev-ml/dune-2.7 dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
