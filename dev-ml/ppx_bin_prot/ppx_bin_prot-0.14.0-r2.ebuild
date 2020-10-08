@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Generation of bin_prot readers and writers from types"
@@ -14,13 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/bin_prot:=
-	dev-ml/ppx_here:=
-	dev-ml/ppxlib:=
-		dev-ml/ocaml-compiler-libs:=
-		dev-ml/ocaml-migrate-parsetree:=
-			dev-ml/result:=
-	"
+DEPEND=""
 RDEPEND="${DEPEND}"
