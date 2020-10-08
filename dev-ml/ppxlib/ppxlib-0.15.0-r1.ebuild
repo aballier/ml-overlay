@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS="auto"
 inherit jbuilder
 
 DESCRIPTION="Base library and tools for ppx rewriters "
@@ -14,14 +15,12 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-DEPEND="
-	>=dev-ml/base-0.11.0:=
-	>=dev-ml/ocaml-compiler-libs-0.11:=
-	dev-ml/ocaml-migrate-parsetree:=
-		dev-ml/result:=
-	dev-ml/ppx_derivers:=
-	>=dev-ml/stdio-0.11.0:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
-	test? ( dev-ml/cinaps )"
+	test? (
+		dev-ml/findlib
+		dev-ml/cinaps
+		dev-ml/base
+		dev-ml/stdio
+	)"
