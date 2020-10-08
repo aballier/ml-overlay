@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Regular expression library for OCaml"
@@ -14,9 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-RDEPEND="!dev-ml/ocaml-re
-	dev-ml/seq:=
-"
+RDEPEND="!dev-ml/ocaml-re"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 )"
 S="${WORKDIR}/ocaml-${P}"
