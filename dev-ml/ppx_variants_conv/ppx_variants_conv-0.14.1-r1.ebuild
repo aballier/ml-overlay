@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Generation of accessor and iteration functions for ocaml variant types"
@@ -14,11 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/variantslib:=
-	dev-ml/ppxlib:=
-		dev-ml/ocaml-migrate-parsetree:=
-			dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
