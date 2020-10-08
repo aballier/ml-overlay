@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Jane Street Capital's asynchronous execution library (core)"
@@ -14,12 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/core_kernel:=
-		dev-ml/typerep:=
-			dev-ml/base:=
-	dev-ml/ppx_jane:=
-		dev-ml/ppx_expect:=
-		dev-ml/ppxlib:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
