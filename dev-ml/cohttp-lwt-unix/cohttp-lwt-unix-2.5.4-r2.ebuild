@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Very lightweight HTTP server using Lwt or Async"
@@ -14,21 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/conduit-lwt-unix:=
-		dev-ml/ipaddr:=
-		dev-ml/macaddr:=
-	dev-ml/cmdliner:=
-	dev-ml/magic-mime:=
-	dev-ml/logs:=
-	dev-ml/fmt:=
-	dev-ml/cohttp-lwt:=
-		dev-ml/cohttp:=
-			dev-ml/sexplib0:=
-	dev-ml/lwt:=
-		dev-ml/ppx_tools_versioned:=
-	dev-libs/openssl:0=
-"
+RDEPEND="dev-libs/openssl:0="
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 )"
 
