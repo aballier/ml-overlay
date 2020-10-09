@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="The Graphics library from OCaml"
@@ -14,9 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="x11-libs/libX11
-	dev-ml/dune-configurator:=
-"
+DEPEND="x11-libs/libX11"
 RDEPEND="${DEPEND}
 	!<dev-ml/findlib-1.8.1-r1
 "
