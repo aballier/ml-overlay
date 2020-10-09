@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Zed is an abstract engine for text edition"
@@ -14,9 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/camomile:=
-	dev-ml/charInfo_width:=
-		dev-ml/result:=
-	dev-ml/react:="
+DEPEND=""
 RDEPEND="${DEPEND}"
