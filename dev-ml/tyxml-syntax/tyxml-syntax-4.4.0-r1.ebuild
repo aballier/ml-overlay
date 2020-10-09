@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Common layer for the JSX and PPX syntaxes for Tyxml"
@@ -14,13 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~x86"
 IUSE="test"
 
-DEPEND="
-	>=dev-lang/ocaml-4.07
-	dev-ml/tyxml:=
-		>=dev-ml/uutf-1.0:=
-		dev-ml/re:=
-	dev-ml/ppx_tools_versioned:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( dev-ml/alcotest )"
