@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A libary to build xml trees typechecked by OCaml"
@@ -14,10 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-DEPEND="
-	>=dev-lang/ocaml-4.07
-	>=dev-ml/uutf-1.0:=
-	dev-ml/re:="
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( dev-ml/alcotest )"
