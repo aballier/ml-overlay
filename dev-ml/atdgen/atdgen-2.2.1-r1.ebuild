@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Syntax for cross-language type definitions"
@@ -14,15 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/atd:=
-		dev-ml/easy-format:=
-		dev-ml/menhir:=
-		dev-ml/re:=
-	dev-ml/atdgen-runtime:=
-	dev-ml/biniou:=
-	dev-ml/yojson:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( dev-ml/atdgen-codec-runtime )"
