@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Dereference URIs into communication channels for Async or Lwt"
@@ -14,23 +15,7 @@ SLOT="0/${PV}-ipaddr3"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/ppx_sexp_conv:=
-	dev-ml/conduit:=
-		dev-ml/logs:=
-	dev-ml/conduit-lwt:=
-	dev-ml/lwt:=
-		dev-ml/ppx_tools_versioned:=
-
-	dev-ml/uri:=
-	dev-ml/ipaddr:=
-		dev-ml/fmt:=
-		dev-ml/macaddr:=
-	dev-ml/ipaddr-sexp:=
-	dev-ml/lwt_ssl:=
-
-	!dev-ml/ocaml-conduit
-"
+RDEPEND="!dev-ml/ocaml-conduit"
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-conduit-${PV}"
