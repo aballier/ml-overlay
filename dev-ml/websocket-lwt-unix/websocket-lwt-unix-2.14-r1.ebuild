@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Websocket library for OCaml"
@@ -14,17 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/websocket:=
-	dev-ml/ipaddr:=
-	dev-ml/lwt_log:=
-	dev-ml/lwt_ssl:=
-		dev-libs/openssl:0=
-	dev-ml/cohttp-lwt-unix:=
-		dev-ml/cohttp:=
-
-	!dev-ml/ocaml-websocket
-"
+RDEPEND="!dev-ml/ocaml-websocket"
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-websocket-${PV}"
