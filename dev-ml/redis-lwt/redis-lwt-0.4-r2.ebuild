@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Redis bindings for OCaml via Lwt"
@@ -14,13 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/redis:=
-	dev-ml/lwt:=
-		dev-ml/result:=
-		dev-ml/ppx_tools_versioned:=
-	!dev-ml/ocaml-redis-lwt
-"
+RDEPEND="!dev-ml/ocaml-redis-lwt"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 dev-ml/containers )"
 
