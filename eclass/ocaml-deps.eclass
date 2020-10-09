@@ -36,6 +36,7 @@ declare -A -r -g _GLOBAL_OCAML_DEPS=(
 	[cmdliner]="result findlib"
 	[cohttp]="re uri uri-sexp fieldslib sexplib0 ppx_fields_conv stringext base64 stdlib-shims ppx_sexp_conv"
 	[cohttp-async]="async ppx_sexp_conv stdlib-shims uri-sexp async_kernel async_unix base cohttp conduit-async magic-mime logs fmt sexplib0 uri"
+	[cohttp-lwt]="cohttp lwt sexplib0 ppx_sexp_conv logs"
 	[conduit]="ppx_sexp_conv sexplib astring uri logs ipaddr ipaddr-sexp"
 	[conduit-async]="core ppx_sexp_conv sexplib conduit ipaddr async"
 	[core]="core_kernel jst-config ppx_jane sexplib timezone spawn"
