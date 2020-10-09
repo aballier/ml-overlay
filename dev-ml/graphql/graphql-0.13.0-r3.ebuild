@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Library for creating GraphQL servers in OCaml"
@@ -13,14 +14,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/graphql_parser:=
-		dev-ml/re:=
-		dev-ml/fmt:=
-	dev-ml/yojson:=
-	dev-ml/rresult:=
-	dev-ml/seq:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )"
 S="${WORKDIR}/ocaml-graphql-server-${PV}"
