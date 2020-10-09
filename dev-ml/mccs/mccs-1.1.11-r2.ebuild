@@ -1,11 +1,12 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-inherit versionator jbuilder
+OPAM_DEPS=auto
+inherit jbuilder
 
-MY_PV=$(replace_version_separator 2 '+')
+MY_PV=$(ver_rs 2 '+')
 
 DESCRIPTION="Multi Criteria CUDF Solver"
 HOMEPAGE="http://www.i3s.unice.fr/~cpjm/misc/ https://github.com/AltGr/ocaml-mccs/issues"
@@ -23,4 +24,4 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}"
 
-S=${WORKDIR}/ocaml-${PN}-$(replace_version_separator 2 '-')
+S=${WORKDIR}/ocaml-${PN}-$(ver_rs 2 '-')
