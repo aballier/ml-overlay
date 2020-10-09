@@ -125,7 +125,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 
 _ocaml_gen_tr_deps() {
 	for d ; do
-		printf "dev-ml/${d}:=\n"
+		_items[dev-ml/${d}:=]=1
 		if [[ -v _GLOBAL_OCAML_DEPS[$d] ]]; then
 			_ocaml_gen_tr_deps ${_GLOBAL_OCAML_DEPS[$d]}
 		else
@@ -136,11 +136,9 @@ _ocaml_gen_tr_deps() {
 
 ocaml_gen_deps() {
 	if [[ -v _GLOBAL_OCAML_DEPS[$1] ]]; then
-		declare -A items=()
-		for item in $(_ocaml_gen_tr_deps ${_GLOBAL_OCAML_DEPS[$1]}) ; do
-			items[$item]=1
-		done
-		echo ${!items[*]}
+		declare -A -g _items=()
+		_ocaml_gen_tr_deps ${_GLOBAL_OCAML_DEPS[$1]}
+		echo ${!_items[*]}
 	else
 		die "${1} not handled by ocaml-deps.eclass"
 	fi
