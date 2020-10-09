@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="7"
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Type-driven code generation for OCaml"
@@ -14,12 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-DEPEND="
-	dev-ml/ppx_tools:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppx_derivers:=
-	dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${RDEPEND}
 	dev-ml/cppo
