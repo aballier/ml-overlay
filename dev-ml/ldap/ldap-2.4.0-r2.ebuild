@@ -1,8 +1,9 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="an implementation of the Light Weight Directory Access Protocol"
@@ -13,8 +14,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="dev-ml/pcre:=
-	dev-ml/ssl:=
-	dev-ml/ocamlnet:="
+RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocam${P}"
