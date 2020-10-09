@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="GLib integration for Lwt"
@@ -11,12 +12,7 @@ HOMEPAGE="http://ocsigen.org/lwt"
 
 IUSE=""
 
-DEPEND="
-	>=dev-ml/lwt-3:=
-		dev-ml/result:=
-	>=dev-ml/react-1.2:=
-"
-
+DEPEND=""
 RDEPEND="${DEPEND}"
 
 SLOT="0/${PV}"
