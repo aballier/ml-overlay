@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="JSON parsing and pretty-printing library for OCaml"
@@ -14,10 +15,7 @@ LICENSE="BSD"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="examples test"
 
-RDEPEND="
-	dev-ml/easy-format:=
-	>=dev-ml/biniou-1.2:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	>=dev-ml/cppo-1.6.6
 	test? ( dev-ml/alcotest )
