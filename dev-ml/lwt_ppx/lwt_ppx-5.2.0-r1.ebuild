@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Cooperative light-weight thread library for OCaml"
@@ -11,11 +12,8 @@ HOMEPAGE="http://ocsigen.org/lwt"
 
 IUSE=""
 
-DEPEND="
-	dev-ml/lwt:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppx_tools_versioned:=
-"
+DEPEND=""
+RDEPEND="${DEPEND}"
 
 SLOT="0/${PV}"
 LICENSE="LGPL-2.1-with-linking-exception"
