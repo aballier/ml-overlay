@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit findlib jbuilder
 
 DESCRIPTION="Map OCaml arrays onto C-like structs"
@@ -14,8 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="dev-ml/cstruct:=
-	!dev-ml/ocaml-cstruct"
+RDEPEND="!dev-ml/ocaml-cstruct"
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-cstruct-${PV}"
