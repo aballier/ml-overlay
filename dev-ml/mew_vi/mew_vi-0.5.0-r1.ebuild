@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Modal editing witch, VI interpreter"
@@ -14,11 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/mew:=
-		dev-ml/trie:=
-		dev-ml/result:=
-	dev-ml/react:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
