@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Collect profiling information"
@@ -14,12 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	>=dev-lang/ocaml-4:=
-	dev-ml/cstruct:=
-	dev-ml/lwt:=
-	dev-ml/ocplib-endian:=
-"
+RDEPEND=""
 DEPEND="
 	dev-ml/ppx_cstruct
 	${RDEPEND}
