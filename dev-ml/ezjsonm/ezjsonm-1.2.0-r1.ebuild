@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="An easy interface on top of the Jsonm library"
@@ -14,11 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/jsonm:=
-	dev-ml/sexplib:=
-	dev-ml/hex:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( dev-ml/alcotest )"
