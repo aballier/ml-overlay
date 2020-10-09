@@ -3,14 +3,14 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="OCaml bindings for OpenSSL"
 SRC_URI="https://github.com/savonet/ocaml-ssl/archive/${PV}.tar.gz -> ocaml-${P}.tar.gz"
 HOMEPAGE="https://github.com/savonet/ocaml-ssl"
 
-DEPEND="dev-libs/openssl:0=
-	dev-ml/dune-configurator:="
+DEPEND="dev-libs/openssl:0="
 RDEPEND="${DEPEND}
 	!dev-ml/ocaml-ssl"
 
