@@ -83,6 +83,7 @@ let rec print_deps = function
 	| String (_,"base-threads") -> ()
 	| String (_,"base-unix") -> ()
 	| String (_,"conf-openssl") -> ()
+	| String (_,"conf-gnomecanvas") -> ()
 	| String (_,"conf-libX11") -> ()
 	| String (_,"ctypes-foreign") -> ()
 	| String (_,"ctypes") -> Printf.printf "ocaml-ctypes\n"
