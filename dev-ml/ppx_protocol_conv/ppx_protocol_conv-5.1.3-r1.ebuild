@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Pluggable serialization and deserialization of ocaml data strucures based on type_conv"
@@ -14,13 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/stdio:=
-	dev-ml/ppxlib:=
-		dev-ml/ocaml-migrate-parsetree:=
-		dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? (
