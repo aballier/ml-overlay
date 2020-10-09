@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="convert a filesystem into a static OCaml module"
@@ -12,12 +13,8 @@ LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
-RESTRICT="test"
 
-RDEPEND="
-	dev-ml/cmdliner:=
-	dev-ml/ptime:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/cstruct dev-ml/lwt )"
 S="${WORKDIR}/ocaml-${P}"
