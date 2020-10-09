@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A REST toolkit for OCaml"
@@ -14,16 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/ptime:=
-		dev-ml/result:=
-	dev-ml/cohttp:=
-		dev-ml/base64:=
-		dev-ml/sexplib0:=
-	dev-ml/dispatch:=
-	dev-ml/re:=
-	!dev-ml/ocaml-webmachine
-"
+DEPEND="!dev-ml/ocaml-webmachine"
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( dev-ml/ounit2 )
