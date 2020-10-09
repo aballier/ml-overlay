@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 MY_P=${PN}-v${PV}
@@ -15,9 +16,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/cstruct:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )"
 BDEPEND=""
