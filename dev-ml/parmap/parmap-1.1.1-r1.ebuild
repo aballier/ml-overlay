@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 MY_PV="${PV/_/-}"
@@ -15,8 +16,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-RDEPEND="
-	dev-ml/dune-configurator:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/${PN}-${MY_PV/+/-}"
