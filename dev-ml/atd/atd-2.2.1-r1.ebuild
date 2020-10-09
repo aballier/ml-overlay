@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Syntax for cross-language type definitions"
@@ -14,10 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/easy-format:=
-	dev-ml/menhir:=
-	dev-ml/re:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/atd-${PV}"
