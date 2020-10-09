@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
+OPAM_DEPS=auto
 inherit findlib jbuilder
 
 DESCRIPTION="Map OCaml arrays onto C-like structs"
@@ -14,11 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="dev-ml/cstruct:=
-	dev-ml/async_kernel:=
-	dev-ml/async_unix:=
-	dev-ml/core_kernel:=
-	!dev-ml/ocaml-cstruct"
+RDEPEND="!dev-ml/ocaml-cstruct"
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-cstruct-${PV}"
