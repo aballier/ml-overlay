@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Very lightweight HTTP server using Lwt or Async"
@@ -14,9 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/cohttp:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
