@@ -32,6 +32,7 @@ declare -A -r -g _GLOBAL_OCAML_DEPS=(
 	[bigarray-compat]=""
 	[bigstringaf]="bigarray-compat"
 	[bin_prot]="base ppx_compare ppx_custom_printf ppx_fields_conv ppx_sexp_conv ppx_variants_conv ppx_optcomp"
+	[biniou]="easy-format"
 	[camomile]=""
 	[cmdliner]="result findlib"
 	[cohttp]="re uri uri-sexp fieldslib sexplib0 ppx_fields_conv stringext base64 stdlib-shims ppx_sexp_conv"
@@ -46,10 +47,12 @@ declare -A -r -g _GLOBAL_OCAML_DEPS=(
 	[core_kernel]="base base_bigstring base_quickcheck bin_prot fieldslib jane-street-headers jst-config ppx_assert
 ppx_base ppx_hash ppx_inline_test ppx_jane ppx_sexp_conv ppx_sexp_message sexplib splittable_random stdio time_now
 typerep variantslib"
+	[cppo]=""
 	[csexp]="result"
 	[domain-name]="fmt astring"
 	[dune-configurator]="dune-private-libs csexp"
 	[dune-private-libs]=""
+	[easy-format]=""
 	[fieldslib]="base"
 	[findlib]=""
 	[fmt]="result seq stdlib-shims uchar cmdliner"
@@ -57,6 +60,7 @@ typerep variantslib"
 	[ipaddr]="stdlib-shims macaddr domain-name"
 	[ipaddr-sexp]="ipaddr ppx_sexp_conv"
 	[jane-street-headers]=""
+	[js_of_ocaml-compiler]="cmdliner yojson menhir ocaml-migrate-parsetree"
 	[jst-config]="base ppx_assert stdio dune-configurator"
 	[logs]="result"
 	[lwt]="seq result mmap ocplib-endian dune-configurator"
@@ -126,6 +130,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[uri-sexp]="uri ppx_sexp_conv sexplib0"
 	[uuidm]="cmdliner"
 	[variantslib]="base"
+	[yojson]="easy-format biniou"
 )
 
 _ocaml_gen_tr_deps() {

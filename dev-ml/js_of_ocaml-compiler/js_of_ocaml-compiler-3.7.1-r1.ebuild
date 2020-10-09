@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder findlib
 
 DESCRIPTION="A compiler from OCaml bytecode to javascript"
@@ -23,14 +24,7 @@ LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/cmdliner:=
-	dev-ml/yojson:=
-	dev-ml/num:=
-	dev-ml/cppo:=
-
-	!<dev-ml/js_of_ocaml-3.0.1
-"
+RDEPEND="!<dev-ml/js_of_ocaml-3.0.1"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ppx_expect dev-ml/js_of_ocaml-ppx_deriving_json )
 "
