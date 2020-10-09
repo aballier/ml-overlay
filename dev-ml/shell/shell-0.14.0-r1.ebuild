@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Yet another implementation of fork&exec and related functionality "
@@ -14,15 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/core:=
-	dev-ml/core_kernel:=
-	dev-ml/jst-config:=
-	dev-ml/ppx_jane:=
-	dev-ml/re2:=
-	dev-ml/textutils:=
-	dev-ml/spawn:=
-
-	!dev-ml/ocamlnet
-"
+DEPEND="!dev-ml/ocamlnet"
 RDEPEND="${DEPEND}"
