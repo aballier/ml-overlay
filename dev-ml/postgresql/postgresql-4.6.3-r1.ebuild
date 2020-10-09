@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A package for ocaml that provides access to PostgreSQL databases"
@@ -12,9 +13,6 @@ IUSE=""
 
 RDEPEND="
 	dev-db/postgresql:=[server]
-	dev-ml/stdio:=
-	dev-ml/base:=
-	dev-ml/dune-configurator:=
 "
 DEPEND="${RDEPEND}"
 BDEPEND=">=dev-ml/findlib-1.5"
