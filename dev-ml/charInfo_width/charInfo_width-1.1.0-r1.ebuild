@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Determine column width for a character"
@@ -14,8 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/result:=
-	dev-ml/camomile:="
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ppx_expect )"
