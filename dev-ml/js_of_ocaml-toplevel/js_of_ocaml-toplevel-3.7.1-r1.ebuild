@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder findlib
 
 DESCRIPTION="A compiler from OCaml bytecode to javascript"
@@ -23,11 +24,5 @@ LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
 IUSE=""
 
-RDEPEND="
-	dev-ml/js_of_ocaml:=
-	dev-ml/js_of_ocaml-compiler:=
-	dev-ml/js_of_ocaml-ppx:=
-
-	!<dev-ml/js_of_ocaml-3.0.1
-"
+RDEPEND="!<dev-ml/js_of_ocaml-3.0.1"
 DEPEND="${RDEPEND}"
