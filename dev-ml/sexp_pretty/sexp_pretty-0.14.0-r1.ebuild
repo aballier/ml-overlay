@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A set of small helper functions for use in expect test"
@@ -14,12 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/base:=
-	dev-ml/ppx_base:=
-	dev-ml/sexplib:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppxlib:=
-	dev-ml/re:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
