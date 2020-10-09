@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Perl Compatibility Regular Expressions for O'Caml"
@@ -14,7 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64"
 
 RDEPEND=">=dev-libs/libpcre-4.5
-	dev-ml/dune-configurator:=
 	!dev-ml/pcre-ocaml"
 DEPEND="${RDEPEND}
 "
