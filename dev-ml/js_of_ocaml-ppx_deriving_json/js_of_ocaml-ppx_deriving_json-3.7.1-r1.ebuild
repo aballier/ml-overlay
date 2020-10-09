@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder findlib
 
 DESCRIPTION="A compiler from OCaml bytecode to javascript"
@@ -23,14 +24,5 @@ LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
 IUSE=""
 
-RDEPEND="
-	dev-ml/js_of_ocaml:=
-	dev-ml/result:=
-	>=dev-ml/ppx_deriving-4.2.1:=
-		dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppx_tools:=
-	dev-ml/ppxlib:=
-
-	!<dev-ml/js_of_ocaml-3.0.1
-"
+RDEPEND="!<dev-ml/js_of_ocaml-3.0.1"
 DEPEND="${RDEPEND}"
