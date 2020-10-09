@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="LR(1) parser generator for the OCaml language"
@@ -14,10 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-RDEPEND="
-	dev-ml/menhirLib:=
-	dev-ml/menhirSdk:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 BDEPEND=""
 S="${WORKDIR}/menhir-${PV}"
