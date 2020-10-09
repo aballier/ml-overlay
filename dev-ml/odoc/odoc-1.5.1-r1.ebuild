@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="An OCaml API documentation tool"
@@ -14,14 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/astring:=
-	dev-ml/bos:=
-	dev-ml/cmdliner:=
-	dev-ml/fpath:=
-	dev-ml/result:=
-	dev-ml/tyxml:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	dev-ml/cppo
 	dev-ml/findlib
