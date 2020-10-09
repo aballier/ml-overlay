@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 MY_P="${PN}-v${PV}"
@@ -15,16 +16,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/dune-configurator:=
-	dev-ml/ocaml-ctypes:=
-	dev-ml/ppx_sexp_conv:=
-	dev-ml/sexplib:=
-	dev-ml/rresult:=
-	dev-ml/fmt:=
-	dev-ml/logs:=
-	dev-ml/bos:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? (
@@ -33,5 +25,4 @@ DEPEND="${DEPEND}
 		dev-ml/ezjsonm
 	)
 "
-RESTRICT="test"
 S="${WORKDIR}/${MY_P}"
