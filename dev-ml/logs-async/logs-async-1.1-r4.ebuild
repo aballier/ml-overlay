@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Logs asynchronous logger & reporter for Async"
@@ -14,15 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/logs:=
-	dev-ml/async_kernel:=
-		dev-ml/core_kernel:=
-			dev-ml/typerep:=
-				dev-ml/base:=
-		dev-ml/ppx_jane:=
-			dev-ml/ppx_expect:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/logs-async-${PV}"
