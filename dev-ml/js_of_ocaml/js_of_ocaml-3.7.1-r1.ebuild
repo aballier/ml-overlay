@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A compiler from OCaml bytecode to javascript"
@@ -22,12 +23,7 @@ LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppx_tools_versioned:=
-	dev-ml/uchar:=
-	dev-ml/js_of_ocaml-compiler:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ppx_expect dev-ml/js_of_ocaml-ppx_deriving_json )
 "
