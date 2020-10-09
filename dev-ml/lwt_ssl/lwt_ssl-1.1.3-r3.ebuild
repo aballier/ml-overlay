@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="OpenSSL binding with concurrent I/O"
@@ -11,12 +12,7 @@ HOMEPAGE="https://github.com/aantron/lwt_ssl"
 
 IUSE=""
 
-RDEPEND="
-	>=dev-ml/lwt-4.2:=
-		dev-ml/ppx_tools_versioned:=
-	dev-ml/result:=
-	>=dev-ml/ssl-0.4.0:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 
 SLOT="0/${PV}"
