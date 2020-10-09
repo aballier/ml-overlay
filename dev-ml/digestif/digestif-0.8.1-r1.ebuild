@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 MY_P="${PN}-v${PV}"
@@ -15,11 +16,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/eqaf:=
-	dev-ml/stdlib-shims:=
-	dev-ml/bigarray-compat:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? (
 		dev-ml/fmt
