@@ -11,11 +11,6 @@
 # Provides defaut compile and test phases for jbuilder based packages.
 # Uses opam.eclass for install.
 
-case ${EAPI:-0} in
-    0|1|2|3|4) die "You need at least EAPI-5 to use opam.eclass";;
-    *) ;;
-esac
-
 inherit opam multiprocessing ocaml-deps
 
 RDEPEND="dev-lang/ocaml:="
@@ -73,6 +68,7 @@ let rec get_deps = function
 let rec is_real_dep = function
 		[] -> true
 	| Logop (_,_,l,r)::q -> is_real_dep (l::(r::q))
+	| Ident (_,"with-doc")::_ -> false
 	| Ident (_,"with-test")::_ -> false
 	| Ident (_,"build")::_ -> false
 	| Ident (_,"dev")::_ -> false
@@ -82,12 +78,15 @@ let rec print_deps = function
 	| Option (_,v,l) -> if is_real_dep l then print_deps v else ()
 	| String (_,"ocaml") -> ()
 	| String (_,"dune") -> ()
+	| String (_,"base-bigarray") -> ()
 	| String (_,"base-bytes") -> ()
 	| String (_,"base-threads") -> ()
 	| String (_,"base-unix") -> ()
 	| String (_,"conf-openssl") -> ()
+	| String (_,"conf-libX11") -> ()
 	| String (_,"ctypes-foreign") -> ()
 	| String (_,"ctypes") -> Printf.printf "ocaml-ctypes\n"
+	| String (_,"ocamlfind") -> Printf.printf "findlib\n"
 	| String (_,s) -> Printf.printf "%s\n" s
 	| _ -> ();;
 print_deps (get_deps (OpamParser.file Sys.argv.(1)).file_contents);;
