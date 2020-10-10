@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit findlib opam
 
 DESCRIPTION="User interface widgets for Ocsigen applications"

@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit eutils multilib findlib opam
 
 DESCRIPTION="A web framework to program client/server applications"

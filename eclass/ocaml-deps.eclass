@@ -359,11 +359,13 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 
 _ocaml_gen_tr_deps() {
 	for d ; do
-		if [[ -v _items[dev-ml/${d}:=] ]] ; then
+		local pkg=dev-ml/${d}
+		[[ ${d} == ocsigenserver ]] && pkg=www-servers/${d}
+		if [[ -v _items[${pkg}:=] ]] ; then
 			continue
 		fi
 
-		_items[dev-ml/${d}:=]=1
+		_items[${pkg}:=]=1
 		if [[ -v _GLOBAL_OCAML_DEPS[$d] ]]; then
 			_ocaml_gen_tr_deps ${_GLOBAL_OCAML_DEPS[$d]}
 		else
