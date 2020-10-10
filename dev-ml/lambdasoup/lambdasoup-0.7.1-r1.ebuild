@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Functional HTML scraping and rewriting with CSS in OCaml"
@@ -14,7 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-RDEPEND="dev-ml/markup:="
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 )"
 BDEPEND=""
