@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit findlib jbuilder
 
 DESCRIPTION="Map OCaml arrays onto C-like structs"
