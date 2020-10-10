@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=aut
 inherit jbuilder
 
 DESCRIPTION="Meta Language Toolchain"
@@ -14,13 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="+ocamlopt"
 
-DEPEND="
-	dev-ml/merlin-extend:=
-	dev-ml/result:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/menhir:=
-	dev-ml/fix:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	dev-ml/findlib
