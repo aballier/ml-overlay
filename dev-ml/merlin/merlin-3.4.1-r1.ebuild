@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit vim-plugin jbuilder
 
 DESCRIPTION="Context sensitive completion for OCaml in Vim and Emacs"
@@ -14,10 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/yojson:=
-	dev-ml/findlib:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}
 	|| ( app-editors/vim[python] app-editors/gvim[python] )"
 DEPEND="${DEPEND}
