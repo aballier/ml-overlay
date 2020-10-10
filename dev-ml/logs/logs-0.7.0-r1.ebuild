@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="5"
+EAPI="7"
 
+OPAM_DEPS=auto
 inherit findlib opam
 
 DESCRIPTION="Logging infrastructure for OCaml"
@@ -15,7 +16,6 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="javascript +fmt cli +lwt test"
 
 RDEPEND="
-	dev-ml/result:=
 	javascript? ( dev-ml/js_of_ocaml:= )
 	fmt? ( dev-ml/fmt:= )
 	cli? ( dev-ml/cmdliner:=[ocamlopt] )
@@ -27,6 +27,7 @@ DEPEND="${RDEPEND}
 	dev-ml/findlib
 	test? ( dev-ml/mtime )
 "
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build \
@@ -40,4 +41,5 @@ src_compile() {
 
 src_test() {
 	ocaml pkg/pkg.ml test || die
+	opam_src_test
 }
