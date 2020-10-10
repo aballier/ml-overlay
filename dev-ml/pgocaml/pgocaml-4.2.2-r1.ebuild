@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="PG'OCaml is a set of OCaml bindings for the PostgreSQL database"
