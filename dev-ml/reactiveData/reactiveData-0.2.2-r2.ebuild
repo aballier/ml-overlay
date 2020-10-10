@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Functional reactive programming with incremental changes in data structures"
