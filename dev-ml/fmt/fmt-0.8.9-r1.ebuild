@@ -3,6 +3,7 @@
 
 EAPI="7"
 
+OPAM_DEPS=auto
 inherit findlib opam
 
 DESCRIPTION="Combinators to devise OCaml Format pretty-printing functions"
@@ -14,16 +15,13 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-RDEPEND="dev-ml/result:=
-	dev-ml/seq:=
-	dev-ml/stdlib-shims:=
-	>=dev-lang/ocaml-4.07:=[ocamlopt]
-	dev-ml/uchar:=[ocamlopt]
-	dev-ml/cmdliner:=[ocamlopt]"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	>=dev-ml/topkg-0.9
 	dev-ml/ocamlbuild
 	dev-ml/findlib"
+
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build --tests $(usex test 'true' 'false') || die
@@ -31,4 +29,5 @@ src_compile() {
 
 src_test() {
 	ocaml pkg/pkg.ml test || die
+	opam_src_test
 }
