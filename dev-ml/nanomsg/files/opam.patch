@@ -1,0 +1,14 @@
+Index: onanomsg-1.0/opam
+===================================================================
+--- onanomsg-1.0.orig/opam
++++ onanomsg-1.0/opam
+@@ -26,6 +26,7 @@ depends: [
+   "containers"
+   "ipaddr"
+   "ppx_deriving"
++  "bigstring"
+ ]
+ 
+-depopts: [ "lwt" "ounit" ]
+\ No newline at end of file
++depopts: [ "lwt" "ounit" ]

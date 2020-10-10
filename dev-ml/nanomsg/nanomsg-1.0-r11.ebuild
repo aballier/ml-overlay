@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
+OPAM_DEPS=auto
 inherit opam eutils
 
 DESCRIPTION="nanomsg bindings for OCaml"
@@ -16,13 +17,6 @@ IUSE="+lwt +ocamlopt test"
 
 RDEPEND="
 	dev-libs/nanomsg:=
-	dev-lang/ocaml:=[ocamlopt?]
-	dev-ml/ocaml-ctypes:=
-	dev-ml/ipaddr:=
-		dev-ml/sexplib:=
-	dev-ml/ppx_deriving:=
-	dev-ml/containers:=[ocamlopt(+)?]
-	dev-ml/bigstring:=
 	lwt? ( dev-ml/lwt:=[ocamlopt(+)?] dev-ml/lwt_ppx:= )
 	!dev-ml/onanomsg
 "
@@ -30,17 +24,18 @@ DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 )
 "
 S="${WORKDIR}/onanomsg-${PV}"
+OPAM_FILE=opam
 
-src_prepare() {
-	epatch "${FILESDIR}/bigstring.patch" \
-		"${FILESDIR}/tests.patch" \
-		"${FILESDIR}/testrun.patch" \
-		"${FILESDIR}/thread.patch" \
-		"${FILESDIR}/lwt4.patch" \
-		"${FILESDIR}/ipaddr3.patch" \
-		"${FILESDIR}/ounit2.patch"
-	default
-}
+PATCHES=(
+	"${FILESDIR}/bigstring.patch"
+	"${FILESDIR}/tests.patch"
+	"${FILESDIR}/testrun.patch"
+	"${FILESDIR}/thread.patch"
+	"${FILESDIR}/lwt4.patch"
+	"${FILESDIR}/ipaddr3.patch"
+	"${FILESDIR}/ounit2.patch"
+	"${FILESDIR}/opam.patch"
+)
 
 src_compile() {
 	ocaml pkg/build.ml \
