@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit jbuilder findlib
 
 DESCRIPTION="A compiler from OCaml bytecode to javascript"
