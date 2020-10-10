@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Binding to Cairo, a 2D Vector Graphics Library"
@@ -14,10 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND="
-	x11-libs/cairo:=
-	dev-ml/dune-configurator:=
-"
+DEPEND="x11-libs/cairo:="
 RDEPEND="${DEPEND}
 	!dev-ml/ocaml-cairo
 "
