@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A pure OCaml implementation of the DNS protocol"
@@ -14,21 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/rresult:=
-	dev-ml/astring:=
-	dev-ml/fmt:=
-	dev-ml/logs:=
-	dev-ml/ptime:=
-	dev-ml/domain-name:=
-	dev-ml/gmap:=
-	dev-ml/cstruct:=
-	dev-ml/ipaddr:=
-	dev-ml/lru:=
-	dev-ml/duration:=
-	dev-ml/metrics:=
-	!dev-ml/odns
-"
+RDEPEND="!dev-ml/odns"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )
 "
