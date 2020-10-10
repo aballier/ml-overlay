@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Execute code blocks inside markdown files"
@@ -14,17 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/fmt:=
-	dev-ml/astring:=
-	dev-ml/logs:=
-	dev-ml/cmdliner:=
-	dev-ml/re:=
-	dev-ml/result:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ocaml-version:=
-	dev-ml/odoc:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/lwt app-text/pandoc )
 "
