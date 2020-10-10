@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Pluggable serialization and deserialization of ocaml data strucures based on type_conv"
