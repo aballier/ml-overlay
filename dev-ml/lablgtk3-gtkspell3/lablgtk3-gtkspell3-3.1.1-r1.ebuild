@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 MY_PV=${PV/_beta/.beta}
@@ -15,11 +16,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND="
-	app-text/gtkspell:3=
-	>=dev-ml/lablgtk3-${PV}:=
-		dev-ml/cairo2:=
-"
+DEPEND="app-text/gtkspell:3="
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
