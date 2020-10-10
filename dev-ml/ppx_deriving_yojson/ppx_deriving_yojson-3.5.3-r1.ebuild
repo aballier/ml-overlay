@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A Yojson codec generator for OCaml"
@@ -14,12 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/yojson:=
-	dev-ml/result:=
-	>=dev-ml/ppx_deriving-4:=
-	dev-ml/cppo_ocamlbuild:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	dev-ml/cppo
