@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit opam findlib
 
 DESCRIPTION="POSIX time for OCaml"
