@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A composable build system for OCaml"
@@ -14,10 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/dune-private-libs:=
-	dev-ml/csexp:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}"
 S=${WORKDIR}/dune-${PV}
