@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Read and write pcap-formatted network packet traces."
@@ -14,12 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/cstruct:=
-	dev-ml/ppx_cstruct:=
-
-	!dev-ml/ocaml-pcap
-"
+RDEPEND="!dev-ml/ocaml-pcap"
 DEPEND="
 	dev-ml/ppx_tools
 	test? ( dev-ml/ounit2 )
