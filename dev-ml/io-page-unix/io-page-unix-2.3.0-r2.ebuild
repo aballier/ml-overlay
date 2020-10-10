@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 MY_P=io-page-v${PV}
@@ -15,11 +16,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/cstruct:=
-	dev-ml/io-page:=
-	dev-ml/bigarray-compat:=
-"
+RDEPEND=""
 DEPEND="
 	${RDEPEND}
 	test? ( dev-ml/ounit2 )
