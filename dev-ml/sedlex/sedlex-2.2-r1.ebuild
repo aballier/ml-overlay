@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="An OCaml lexer generator for Unicode"
@@ -14,10 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/gen:=
-	dev-ml/ppx_tools_versioned:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/uchar:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
