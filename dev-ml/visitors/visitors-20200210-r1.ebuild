@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="An OCaml syntax extension for generating visitor classes"
@@ -14,11 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/ppx_tools:=
-	dev-ml/ppx_deriving:=
-	dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND="dev-ml/cppo"
 RESTRICT=""
