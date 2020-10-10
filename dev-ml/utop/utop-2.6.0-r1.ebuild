@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A new toplevel for OCaml with completion and colorization"
@@ -14,15 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-RDEPEND="
-	>=dev-ml/lwt-2.4.0:=
-		dev-ml/result:=
-	dev-ml/lwt_react:=
-	>=dev-ml/lambda-term-2:=
-	>=dev-ml/findlib-1.7.2:=
-	dev-ml/camomile:=
-	dev-ml/react:=
-	dev-ml/dune:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 BDEPEND=">=dev-ml/cppo-1.0.1"
