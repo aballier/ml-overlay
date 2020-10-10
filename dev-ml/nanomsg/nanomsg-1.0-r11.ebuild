@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit opam eutils
 
 DESCRIPTION="nanomsg bindings for OCaml"
