@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A syntax extension for importing declarations from interface files"
@@ -14,11 +15,7 @@ SLOT="0/${PV}oc408"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/ppxlib:=
-	dev-ml/ppx_tools_versioned:=
-	dev-ml/ocaml-migrate-parsetree:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( dev-ml/ounit2 dev-ml/ppx_deriving )
