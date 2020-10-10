@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Very lightweight HTTP server using Lwt or Async"
@@ -14,14 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/cohttp:=
-	dev-ml/cohttp-lwt:=
-	dev-ml/lwt:=
-	dev-ml/js_of_ocaml:=
-	dev-ml/js_of_ocaml-ppx:=
-	dev-ml/js_of_ocaml-lwt:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
