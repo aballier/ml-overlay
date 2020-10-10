@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="ocamlfind ppx tool"
@@ -14,8 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/findlib:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
