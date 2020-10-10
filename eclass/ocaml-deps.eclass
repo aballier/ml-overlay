@@ -12,14 +12,16 @@
 # Keep it sorted
 declare -A -r -g _GLOBAL_OCAML_DEPS=(
 	[ANSITerminal]=""
-	[alcotest]="fmt astring cmdliner uuidm stdlib-shims"
+	[alcotest]="fmt astring cmdliner uuidm stdlib-shims re uutf"
 	[alcotest-async]="alcotest async_unix core_kernel"
+	[alcotest-lwt]="alcotest lwt logs"
 	[angstrom]="result bigstringaf"
 	[angstrom-async]="angstrom async"
 	[angstrom-lwt-unix]="angstrom lwt"
 	[angstrom-unix]="angstrom"
 	[astring]=""
 	[async]="async_kernel async_rpc_kernel async_unix core core_kernel ppx_jane textutils"
+	[async_js]="async_kernel async_rpc_kernel ppx_jane js_of_ocaml js_of_ocaml-ppx uri uri-sexp"
 	[async_extra]="async_kernel core_kernel ppx_jane"
 	[async_kernel]="core_kernel ppx_jane"
 	[async_unix]="async_kernel core core_kernel ppx_jane"
@@ -27,7 +29,9 @@ declare -A -r -g _GLOBAL_OCAML_DEPS=(
 	[async_ssl]="async base core ppx_jane stdio ocaml-ctypes dune-configurator"
 	[atd]="easy-format menhir re"
 	[atdgen]="atd atdgen-runtime biniou yojson"
+	[atdgen-codec-runtime]=""
 	[atdgen-runtime]="yojson biniou re"
+	[atdj]="atd re"
 	[base]="sexplib0 dune-configurator"
 	[base64]="dune-configurator"
 	[base_bigstring]="base ppx_jane"
@@ -38,8 +42,12 @@ declare -A -r -g _GLOBAL_OCAML_DEPS=(
 	[bigstring-unix]=""
 	[bigstringaf]="bigarray-compat"
 	[bin_prot]="base ppx_compare ppx_custom_printf ppx_fields_conv ppx_sexp_conv ppx_variants_conv ppx_optcomp"
+	[bisect_ppx]="cmdliner ocaml-migrate-parsetree ppx_tools_versioned"
 	[biniou]="easy-format"
 	[bos]="rresult astring fpath fmt logs"
+	[cairo2]=""
+	[cairo2-pango]="cairo2 lablgtk"
+	[camlimages]="base stdio"
 	[camomile]=""
 	[charInfo_width]="result camomile"
 	[cmdliner]="result findlib"
@@ -76,7 +84,7 @@ typerep variantslib"
 	[digestif]="eqaf stdlib-shims bigarray-compat"
 	[dispatch]=""
 	[domain-name]="fmt astring"
-	[dune-configurator]="dune-private-libs csexp"
+	[dune-configurator]="result csexp"
 	[dune-private-libs]=""
 	[easy-format]=""
 	[expect_test_helpers]="async core expect_test_helpers_kernel ppx_jane sexp_pretty"
@@ -152,6 +160,7 @@ typerep variantslib"
 	[ocplib-endian]=""
 	[octavius]=""
 	[odoc]="astring cmdliner fpath result tyxml"
+	[ounit2]="stdlib-shims"
 	[parmap]="dune-configurator"
 	[parsexp]="sexplib0 base"
 	[parsexp_io]="base parsexp ppx_js_style stdio"
@@ -311,8 +320,9 @@ let rec print_deps = function
 	| String (_,"base-bytes") -> ()
 	| String (_,"base-threads") -> ()
 	| String (_,"base-unix") -> ()
-	| String (_,"conf-openssl") -> ()
+	| String (_,"conf-cairo") -> ()
 	| String (_,"conf-gnomecanvas") -> ()
+	| String (_,"conf-openssl") -> ()
 	| String (_,"conf-libX11") -> ()
 	| String (_,"ctypes-foreign") -> ()
 	| String (_,"ctypes") -> Printf.printf "ocaml-ctypes\n"
