@@ -3,6 +3,7 @@
 
 EAPI="7"
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A lightweight and colourful test framework"
@@ -14,12 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-RDEPEND="
-	>=dev-ml/fmt-0.8.8:=
-	dev-ml/astring:=
-	dev-ml/cmdliner:=
-	dev-ml/uuidm:=
-	dev-ml/stdlib-shims:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	dev-ml/findlib"
