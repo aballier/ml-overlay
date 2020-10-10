@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Virtual DOM diffing library"
@@ -14,13 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/base:=
-	dev-ml/core_kernel:=
-	dev-ml/ppx_jane:=
-	dev-ml/js_of_ocaml:=
-	dev-ml/js_of_ocaml-ppx:=
-	dev-ml/lambdasoup:=
-	dev-ml/tyxml:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
