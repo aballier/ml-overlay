@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Result value combinators for OCaml"
@@ -14,10 +15,11 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-RDEPEND="dev-ml/result:="
+RDEPEND=""
 DEPEND="${RDEPEND}
 	dev-ml/topkg
 	dev-ml/ocamlbuild"
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build || die
