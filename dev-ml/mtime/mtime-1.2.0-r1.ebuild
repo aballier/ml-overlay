@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS="auto"
 inherit eutils opam
 
 DESCRIPTION="OCaml module to access monotonic wall-clock time"
