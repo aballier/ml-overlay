@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Unicode character properties for OCaml"
@@ -14,18 +15,14 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-lang/ocaml:=
-	dev-ml/uchar:=
-	dev-ml/cmdliner:=
-	dev-ml/uutf:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND="
 	dev-ml/topkg
 	dev-ml/findlib
 	dev-ml/ocamlbuild
 "
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build \
