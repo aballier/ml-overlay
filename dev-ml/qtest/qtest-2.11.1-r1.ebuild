@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Inline (Unit) Tests for OCaml"
@@ -14,9 +15,5 @@ SLOT="0/${PV}-ounit2"
 KEYWORDS="~amd64 ~arm ~arm64"
 IUSE=""
 
-RDEPEND="dev-ml/ounit2:=
-	dev-lang/ocaml:=[ocamlopt]
-	>=dev-ml/qcheck-0.5:=
-	!dev-ml/iTeML
-"
+RDEPEND="!dev-ml/iTeML"
 DEPEND="${RDEPEND}"
