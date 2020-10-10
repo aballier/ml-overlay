@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Unit testing framework for OCaml"
@@ -11,9 +12,7 @@ SRC_URI="https://github.com/gildor478/ounit/releases/download/v${PV}/ounit-v${PV
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-DEPEND="
-	dev-ml/stdlib-shims:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
 IUSE=""
