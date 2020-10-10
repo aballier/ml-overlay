@@ -9,6 +9,9 @@
 # @BLURB: Global dependencies definitions for ocaml
 # @DESCRIPTION:
 
+if [[ -z ${_OCAML_DEPS_ECLASS} ]]; then
+_OCAML_DEPS_ECLASS=1
+
 # Keep it sorted
 # It is not readonly so that another eclass can append data here for overlays.
 declare -A -g _GLOBAL_OCAML_DEPS=(
@@ -414,3 +417,5 @@ EOF
 	diff -u ebuild.deps opam.deps || die "Difference between opam and ebuild dep"
 	popd &> /dev/null
 }
+
+fi
