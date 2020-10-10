@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="opam solver"
@@ -14,15 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/opam-format:=
-		dev-ml/opam-file-format:=
-		dev-ml/re:=
-	>=dev-ml/mccs-1.1.4:=
-	dev-ml/dose3:=
-	dev-ml/cudf:=
-		dev-ml/extlib:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/opam-client )"
 
