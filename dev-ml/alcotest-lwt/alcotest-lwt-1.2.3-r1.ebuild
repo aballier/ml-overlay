@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Lwt-based helpers for Alcotest"
@@ -14,10 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~x86"
 IUSE=""
 
-RDEPEND="
-	dev-ml/alcotest:=
-	dev-ml/logs:=
-	dev-ml/lwt:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 S=${WORKDIR}/alcotest-${PV}
