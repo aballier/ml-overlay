@@ -1,8 +1,9 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
+OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Ocaml XML manipulation module"
@@ -19,6 +20,7 @@ DEPEND="${RDEPEND}
 	dev-ml/findlib
 	>=dev-ml/topkg-0.9
 "
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build \
@@ -27,5 +29,6 @@ src_compile() {
 }
 
 src_test() {
+	opam_src_test
 	ocaml pkg/pkg.ml test || die
 }
