@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit opam jbuilder
 
 DESCRIPTION="Pretty-printing library for OCaml"
