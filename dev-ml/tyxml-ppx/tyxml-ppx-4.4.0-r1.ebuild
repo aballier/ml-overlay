@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A libary to build xml trees typechecked by OCaml"
