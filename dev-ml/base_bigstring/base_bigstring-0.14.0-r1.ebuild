@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="String type based on Bigarray, for use in I/O and C-bindings"
@@ -14,9 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/ppx_jane:=
-		dev-ml/ppxlib:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
