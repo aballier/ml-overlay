@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Compatibility package for OCaml's standard iterator type starting from 4.07."
