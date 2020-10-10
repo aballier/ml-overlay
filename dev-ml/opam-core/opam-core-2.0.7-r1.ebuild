@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Core libraries for opam"
@@ -14,12 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-RDEPEND="
-	dev-ml/ocamlgraph:=
-	dev-ml/re:=
-	dev-ml/opam-file-format:=
-	dev-ml/cmdliner:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/opam-${PV/_/-}"
