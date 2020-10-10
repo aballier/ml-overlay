@@ -1,8 +1,9 @@
-# Copyright 2019 Gentoo Authors
+# Copyright 2019-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Binding to Cairo, a 2D Vector Graphics Library"
@@ -14,11 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND="
-	>=dev-ml/cairo2-${PV}:=
-	dev-ml/lablgtk:=
-	x11-libs/cairo:=
-"
+DEPEND="x11-libs/cairo:="
 RDEPEND="${DEPEND}
 	!dev-ml/ocaml-cairo
 "
