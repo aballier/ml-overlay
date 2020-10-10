@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Unicode text segmentation for OCaml"
@@ -14,19 +15,14 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-lang/ocaml:=
-	dev-ml/uchar:=
-	dev-ml/uucp:=
-	dev-ml/uutf:=
-	dev-ml/cmdliner:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND="
 	dev-ml/topkg
 	dev-ml/ocamlbuild
 	dev-ml/findlib
 "
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build \
