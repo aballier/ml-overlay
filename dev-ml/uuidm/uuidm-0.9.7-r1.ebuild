@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit findlib opam
 
 DESCRIPTION="OCaml module implementing 128 bits universally unique identifiers"
