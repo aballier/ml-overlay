@@ -212,7 +212,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[ocsigen-toolkit]="eliom calendar"
 	[octavius]=""
 	[odoc]="astring cmdliner fpath result tyxml"
-	[opam]=""
+	[opam]="opam-client cmdliner"
 	[opam-admin]=""
 	[opam-client]="opam-state re opam-solver cmdliner"
 	[opam-core]="ocamlgraph re"
