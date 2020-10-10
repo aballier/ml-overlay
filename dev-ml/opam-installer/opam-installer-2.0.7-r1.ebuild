@@ -7,7 +7,6 @@ EAPI=7
 OPAM_INSTALLER_DEP=" "
 OPAM_SKIP_VALIDATION=yes
 
-OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Core installer for opam packages"
