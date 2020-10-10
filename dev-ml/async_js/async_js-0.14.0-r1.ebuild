@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Async support for JavaScript platforms"
@@ -14,15 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/async_kernel:=
-	dev-ml/async_rpc_kernel:=
-	dev-ml/ppx_jane:=
-		dev-ml/ppxlib:=
-		dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/js_of_ocaml:=
-	dev-ml/js_of_ocaml-ppx:=
-	>=dev-ml/uri-2:=
-	dev-ml/uri-sexp:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
