@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Auto-formatter for OCaml code"
@@ -14,19 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/bisect_ppx:=
-	dev-ml/cmdliner:=
-	dev-ml/fix:=
-	dev-ml/fpath:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/odoc:=
-	dev-ml/re:=
-	dev-ml/stdio:=
-	dev-ml/uuseg:=
-	dev-ml/uutf:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
 DEPEND="${DEPEND}
