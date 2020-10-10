@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Async-based helpers for Alcotest"
@@ -14,10 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/alcotest:=
-	dev-ml/async_unix:=
-	dev-ml/core_kernel:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 S=${WORKDIR}/alcotest-${PV}
