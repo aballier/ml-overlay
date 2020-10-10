@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Expands [@cold] into [@inline never][@specialise never][@local never]"
@@ -14,11 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/base:=
-	dev-ml/ppxlib:=
-		dev-ml/ocaml-compiler-libs:=
-		dev-ml/ocaml-migrate-parsetree:=
-		dev-ml/result:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
