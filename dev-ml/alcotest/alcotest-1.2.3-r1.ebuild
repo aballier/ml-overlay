@@ -3,7 +3,6 @@
 
 EAPI="7"
 
-OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A lightweight and colourful test framework"
