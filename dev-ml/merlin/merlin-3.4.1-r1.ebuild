@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit vim-plugin jbuilder
 
 DESCRIPTION="Context sensitive completion for OCaml in Vim and Emacs"
