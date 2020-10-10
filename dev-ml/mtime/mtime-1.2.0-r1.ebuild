@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="5"
+EAPI=7
 
+OPAM_DEPS="auto"
 inherit eutils opam
 
 DESCRIPTION="OCaml module to access monotonic wall-clock time"
@@ -14,13 +15,15 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="javascript test"
 
-RDEPEND="dev-lang/ocaml:=[ocamlopt]
+RDEPEND="
 	javascript? ( dev-ml/js_of_ocaml:= )
 "
 DEPEND="${RDEPEND}
 	dev-ml/topkg
 	dev-ml/ocamlbuild
 	dev-ml/findlib"
+
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build \
