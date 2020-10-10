@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Easy OCaml bindings for Javascript libraries"
@@ -14,9 +15,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/js_of_ocaml:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppxlib:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
