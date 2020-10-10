@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Library for automated conversion of OCaml-values to and from S-expressions"
