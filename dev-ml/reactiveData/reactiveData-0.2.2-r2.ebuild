@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Functional reactive programming with incremental changes in data structures"
@@ -22,11 +23,12 @@ LICENSE="LGPL-3-with-linking-exception"
 SLOT="0/${PV}"
 IUSE="+ocamlopt"
 
-RDEPEND="dev-ml/react:="
+RDEPEND=""
 DEPEND="${RDEPEND}
 	dev-ml/findlib
 	dev-ml/ocamlbuild
 "
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/build.ml \
