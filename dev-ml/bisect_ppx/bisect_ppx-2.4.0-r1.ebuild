@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Code coverage for OCaml and Reason"
@@ -14,12 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/cmdliner:=
-	dev-ml/ocaml-migrate-parsetree:=
-		dev-ml/result:=
-	dev-ml/ppx_tools_versioned:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 )
 "
