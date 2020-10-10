@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Basic OS interaction for OCaml"
@@ -14,20 +15,15 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/rresult:=
-	dev-ml/astring:=
-	dev-ml/fpath:=
-		dev-ml/result:=
-	dev-ml/fmt:=
-	dev-ml/logs:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	dev-ml/findlib
 	dev-ml/ocamlbuild
 	dev-ml/topkg
 	test? ( dev-ml/mtime )
 "
+
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build --tests $(usex test true false) || die
