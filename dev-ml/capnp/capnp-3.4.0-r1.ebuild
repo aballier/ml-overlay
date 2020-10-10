@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="OCaml code generator plugin for the Cap'n Proto serialization framework"
@@ -14,15 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/result:=
-	dev-ml/base:=
-	dev-ml/stdio:=
-	dev-ml/ocplib-endian:=
-	dev-ml/res:=
-	dev-ml/stdint:=
-	dev-libs/capnproto:=
-"
+RDEPEND="dev-libs/capnproto:="
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 dev-ml/base_quickcheck )
 "
