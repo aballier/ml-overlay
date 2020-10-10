@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Library for pooling resources like connections, threads, or similar"
@@ -14,10 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/lwt:=
-		dev-ml/result:=
-	dev-ml/lwt_log:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
