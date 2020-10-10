@@ -1,8 +1,9 @@
-# Copyright 2019 Gentoo Authors
+# Copyright 2019-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Compatibility package for OCaml's standard iterator type starting from 4.07."
@@ -15,13 +16,12 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
 DEPEND=""
-RDEPEND="${DEPEND}
-	dev-lang/ocaml
-"
+RDEPEND="${DEPEND}"
 BDEPEND=""
 S="${WORKDIR}"
+OPAM_FILE="opam"
 
 src_prepare() {
-	cp "${FILESDIR}/"{seq.install,META.seq} "${S}/" || die
+	cp "${FILESDIR}/"{seq.install,META.seq,opam} "${S}/" || die
 	default
 }
