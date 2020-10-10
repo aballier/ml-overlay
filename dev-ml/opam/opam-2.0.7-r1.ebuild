@@ -4,6 +4,7 @@
 EAPI=7
 
 OPAM_DEPS=auto
+OPAM_SKIP_VALIDATION=yes
 inherit jbuilder
 
 DESCRIPTION="OCaml package manager"
