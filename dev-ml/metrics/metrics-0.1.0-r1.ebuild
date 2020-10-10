@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Infrastructure to collect metrics from OCaml applications"
@@ -14,9 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/fmt:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	test? ( dev-ml/alcotest )
 "
