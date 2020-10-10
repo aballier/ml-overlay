@@ -1,11 +1,13 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 # We are opam
 OPAM_INSTALLER_DEP=" "
+OPAM_SKIP_VALIDATION=yes
 
+OPAM_DEPS=auto
 inherit opam
 
 DESCRIPTION="Core installer for opam packages"
