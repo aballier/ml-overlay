@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit opam multiprocessing
 
 DESCRIPTION="A composable build system for OCaml"
