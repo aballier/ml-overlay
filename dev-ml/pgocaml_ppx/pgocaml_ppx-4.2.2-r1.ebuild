@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="PG'OCaml is a set of OCaml bindings for the PostgreSQL database"
@@ -14,15 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="
-	dev-ml/pgocaml:=
-	dev-ml/ocaml-migrate-parsetree:=
-	dev-ml/ppx_optcomp:=
-	dev-ml/ppx_sexp_conv:=
-	dev-ml/ppx_tools:=
-	dev-ml/ppx_tools_versioned:=
-	dev-ml/rresult:=
-	dev-ml/sexplib:="
+DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}"
 S="${WORKDIR}/pgocaml-${PV}"
