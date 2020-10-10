@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="An image manipulation library for ocaml"
@@ -26,9 +27,7 @@ RDEPEND="
 	x11-libs/libXpm
 	x11-apps/rgb
 	sys-libs/zlib
-
-	dev-ml/graphics:=
-	"
+"
 DEPEND="${DEPEND}
 	virtual/pkgconfig
 	dev-ml/findlib"
