@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="opam client libraries"
@@ -14,11 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="
-	dev-ml/opam-client:=
-	dev-ml/opam-file-format:=
-	dev-ml/re:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/opam-${PV/_/-}"
