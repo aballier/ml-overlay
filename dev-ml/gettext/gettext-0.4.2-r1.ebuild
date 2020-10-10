@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Provides support for internationalization of OCaml program"
@@ -14,10 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE="test"
 
-RDEPEND="
-	>=dev-ml/fileutils-0.4.0:=
-	sys-devel/gettext
-	"
+RDEPEND="sys-devel/gettext"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 )"
 S="${WORKDIR}/gettext-v${PV}"
