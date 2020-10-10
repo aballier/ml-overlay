@@ -1,8 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
+OPAM_DEPS=auto
 inherit findlib opam
 
 DESCRIPTION="User interface widgets for Ocsigen applications"
@@ -23,14 +24,9 @@ else
 	KEYWORDS="~amd64"
 fi
 
-RDEPEND="dev-lang/ocaml:=[ocamlopt?]
-	>=dev-ml/eliom-5.1:=
-		dev-ml/tyxml:=
-		dev-ml/ipaddr:=
-		dev-ml/ssl:=
-		dev-ml/lwt:=
-	dev-ml/calendar:="
+RDEPEND=""
 DEPEND="${RDEPEND}"
+OPAM_FILE=opam
 
 src_compile() {
 	emake \
