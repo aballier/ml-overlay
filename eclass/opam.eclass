@@ -11,21 +11,30 @@
 # Provides dependencies on opam and ocaml, opam-install and a default
 # src_install for opam-based packages.
 
-case ${EAPI:-0} in
-    0|1|2|3|4) die "You need at least EAPI-5 to use opam.eclass";;
-    *) ;;
-esac
-
 # @ECLASS-VARIABLE: OPAM_INSTALLER_DEP
 # @DESCRIPTION:
 # Override dependency for OPAM_INSTALLER
 : ${OPAM_INSTALLER_DEP:="dev-ml/opam-installer"}
 
-RDEPEND=">=dev-lang/ocaml-4:="
+inherit ocaml-deps
+
+RDEPEND=">=dev-lang/ocaml-4:=
+	$(ocaml_gen_deps ${PN})"
+IUSE="test"
+RESTRICT="!test? ( test )"
+
 case ${EAPI:-0} in
-	0|1|2|3|4|5|6) DEPEND="${RDEPEND} ${OPAM_INSTALLER_DEP}";;
+	0|1|2|3|4|5|6) die "EAPI=${EAPI} unsupported";;
 	*) BDEPEND="${OPAM_INSTALLER_DEP} dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
 esac
+
+BDEPEND="${BDEPEND}
+	test? (
+		dev-lang/ocaml
+		dev-ml/opam-file-format
+		dev-ml/findlib
+	)
+"
 
 # @ECLASS-VARIABLE: OPAM_INSTALLER
 # @DESCRIPTION:
@@ -49,6 +58,11 @@ opam-install() {
 	done
 }
 
+opam_src_test() {
+	[[ -z ${OPAM_SKIP_VALIDATION} ]] && ocaml_check_deps "${OPAM_FILE:-${PN}.opam}"
+	default
+}
+
 opam_src_install() {
 	local pkg="${1:-${PN}}"
 	opam-install "${pkg}"
@@ -59,4 +73,4 @@ opam_src_install() {
 	fi
 }
 
-EXPORT_FUNCTIONS src_install
+EXPORT_FUNCTIONS src_test src_install
