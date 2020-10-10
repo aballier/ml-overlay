@@ -3,7 +3,6 @@
 
 EAPI=7
 
-OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A simple tool to indent OCaml programs"
