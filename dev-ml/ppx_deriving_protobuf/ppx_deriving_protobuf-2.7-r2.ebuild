@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="A Protocol Buffers codec generator for OCaml"
@@ -14,9 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/ppx_deriving:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}
 	dev-ml/ppxfind
 	dev-ml/ppx_tools
