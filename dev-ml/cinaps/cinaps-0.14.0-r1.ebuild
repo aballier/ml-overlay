@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Trivial metaprogramming tool"
@@ -14,8 +15,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	dev-ml/re:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
