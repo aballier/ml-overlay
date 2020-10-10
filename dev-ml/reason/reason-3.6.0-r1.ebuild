@@ -3,7 +3,7 @@
 
 EAPI=7
 
-OPAM_DEPS=aut
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Meta Language Toolchain"
