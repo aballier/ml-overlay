@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_DEPS=auto
 inherit jbuilder
 
 DESCRIPTION="Pure OCaml functions to manipulate real file (POSIX like) and filename"
@@ -14,11 +15,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="test"
 
-RDEPEND="
-	dev-ml/stdlib-shims:=
-
-	!dev-ml/ocaml-fileutils
-"
+RDEPEND="!dev-ml/ocaml-fileutils"
 DEPEND="${RDEPEND}
 	test? ( >=dev-ml/ounit2-2.0.0 )"
 
