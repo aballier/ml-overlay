@@ -12,9 +12,7 @@ SRC_URI="https://github.com/hannesm/duration/releases/download/${PV}/${P}.tbz"
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/alcotest )"
