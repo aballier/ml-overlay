@@ -16,8 +16,6 @@ IUSE="test"
 
 RDEPEND=""
 DEPEND="${RDEPEND}
-	dev-ml/cppo
-	dev-ml/findlib
 	test? (
 		dev-ml/alcotest
 		dev-ml/lambdasoup
