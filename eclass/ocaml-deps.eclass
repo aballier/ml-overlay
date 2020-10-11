@@ -424,7 +424,7 @@ let rec get_deps = function
 	| _::q -> get_deps q;;
 let rec print_deps is_dep = function
 		List (_,l) -> List.iter (print_deps is_dep) l
-	| Option (_,v,l) -> if is_dep l then print_deps is_dep v else ()
+	| Option (_,v,l) -> if is_dep l then print_deps (fun _ -> true) v else ()
 	| String (_,"ocaml") -> ()
 	| String (_,"dune") -> ()
 	| String (_,"base-bigarray") -> ()
@@ -437,13 +437,13 @@ let rec print_deps is_dep = function
 	| String (_,"conf-openssl") -> ()
 	| String (_,"conf-libX11") -> ()
 	| String (_,"ctypes-foreign") -> ()
-	| String (_,"ctypes") -> Printf.printf "ocaml-ctypes\n"
-	| String (_,"ocamlfind") -> Printf.printf "findlib\n"
-	| String (_,s) -> Printf.printf "%s\n" s
+	| String (_,"ctypes") -> if is_dep [] then Printf.printf "ocaml-ctypes\n" else ()
+	| String (_,"ocamlfind") -> if is_dep [] then Printf.printf "findlib\n" else ()
+	| String (_,s) -> if is_dep [] then Printf.printf "%s\n" s else ()
 	| _ -> ();;
 
 let fn = match (Filename.basename Sys.argv.(0)) with
-  "builddeps" -> is_build_dep
+   "builddeps" -> is_build_dep
  | "rundeps"  -> is_run_dep
  | _ -> failwith "unhandled case" in
 print_deps fn (get_deps (OpamParser.file Sys.argv.(1)).file_contents);;
