@@ -16,9 +16,6 @@ IUSE="+ocamlopt"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	dev-ml/findlib
-"
 S=( "${WORKDIR}/package" )
 
 src_prepare() {
