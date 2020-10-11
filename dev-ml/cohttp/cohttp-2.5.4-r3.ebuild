@@ -12,14 +12,8 @@ SRC_URI="https://github.com/mirage/ocaml-cohttp/archive/v${PV}.tar.gz -> ocaml-c
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!dev-ml/ocaml-cohttp"
-DEPEND="${RDEPEND}
-	test? (
-		dev-ml/alcotest
-		dev-ml/fmt
-	)
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-cohttp-${PV}"
