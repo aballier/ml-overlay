@@ -21,9 +21,7 @@ fi
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!<dev-ml/js_of_ocaml-3.0.1"
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ppx_expect dev-ml/js_of_ocaml-ppx_deriving_json )
-"
+DEPEND="${RDEPEND}"
