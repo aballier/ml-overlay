@@ -16,5 +16,4 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-BDEPEND="dev-ml/cppo"
-RESTRICT=""
+BDEPEND=""
