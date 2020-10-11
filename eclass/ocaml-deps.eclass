@@ -384,6 +384,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[ppx_deriving_yojson]="cppo ppxfind"
 	[ptime]="findlib topkg ocamlbuild"
 	[react]="findlib topkg ocamlbuild"
+	[reason]="findlib"
 	[rresult]="findlib topkg ocamlbuild"
 	[utop]="cppo"
 	[uuidm]="findlib topkg ocamlbuild"
@@ -414,17 +415,21 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[duration]="alcotest"
 	[ezjsonm-lwt]="alcotest ppx_sexp_conv"
 	[eqaf]="alcotest crowbar"
+	[fileutils]="ounit2"
 	[gen]="qcheck qtest"
 	[gettext]="ounit2"
+	[gettext-stub]="fileutils ounit2"
 	[gmap]="alcotest fmt"
 	[graphql-async]="alcotest async_unix"
 	[graphql-cohttp]="alcotest cohttp-lwt-unix graphql-lwt"
+	[graphql-lwt]="alcotest"
 	[graphql_parser]="alcotest"
 	[io-page-unix]="ounit2"
 	[ipaddr]="ounit2 ppx_sexp_conv"
 	[iter]="mdx qcheck qtest"
 	[js_of_ocaml-compiler]="ppx_expect"
 	[logs]="mtime"
+	[lru]="alcotest qcheck-alcotest qcheck-core"
 	[macaddr]="ounit2 ppx_sexp_conv"
 	[merlin]="mdx"
 	[metrics]="alcotest"
@@ -443,9 +448,11 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[redis-lwt]="containers ounit2"
 	[redis-sync]="containers ounit2"
 	[spawn]="ppx_expect"
+	[sqlite3]="ppx_inline_test"
 	[tyxml]="alcotest"
 	[tyxml-ppx]="alcotest"
 	[tyxml-syntax]="alcotest"
+	[yaml]="alcotest ezjsonm junit_alcotest mdx"
 	[yojson]="alcotest"
 	[webmachine]="ounit2"
 )
@@ -544,6 +551,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-gnomecanvas") -> ()
 	| String (_,"conf-gtksourceview3") -> ()
 	| String (_,"conf-gtk3") -> ()
+	| String (_,"conf-g++") -> ()
 	| String (_,"conf-jq") -> ()
 	| String (_,"conf-libpcre") -> ()
 	| String (_,"conf-libX11") -> ()
@@ -551,6 +559,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-openssl") -> ()
 	| String (_,"conf-pkg-config") -> ()
 	| String (_,"conf-postgresql") -> ()
+	| String (_,"conf-sqlite3") -> ()
 	| String (_,"ctypes-foreign") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
 	| String (_,"ctypes") -> if is_dep [] then Printf.printf "ocaml-ctypes\n" else ()
