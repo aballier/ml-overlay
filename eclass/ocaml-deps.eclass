@@ -213,7 +213,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[octavius]=""
 	[odoc]="astring cmdliner fpath result tyxml"
 	[opam]="opam-client cmdliner"
-	[opam-admin]=""
+	[opam-admin]="opam-client opam-file-format re"
 	[opam-client]="opam-state re opam-solver cmdliner"
 	[opam-core]="ocamlgraph re"
 	[opam-format]="opam-core opam-file-format"
