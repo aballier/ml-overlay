@@ -12,10 +12,9 @@ SRC_URI="https://github.com/ocaml/ocaml-re/archive/${PV}.tar.gz -> ocaml-${P}.ta
 LICENSE="LGPL-2-with-linking-exception"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!dev-ml/ocaml-re"
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit2 )"
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${P}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
