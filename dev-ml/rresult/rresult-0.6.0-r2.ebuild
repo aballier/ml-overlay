@@ -15,9 +15,7 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	dev-ml/topkg
-	dev-ml/ocamlbuild"
+DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 
 src_compile() {
