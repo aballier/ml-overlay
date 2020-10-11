@@ -205,6 +205,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[ocaml-ctypes]="integers"
 	[ocaml-migrate-parsetree]="result ppx_derivers"
 	[ocaml-migrate-parsetree-ocamlbuild]="ocaml-migrate-parsetree ocamlbuild"
+	[ocaml-syntax-shims]=""
 	[ocaml-version]=""
 	[ocplib-endian]=""
 	[ocp-indent]="cmdliner findlib"
@@ -358,6 +359,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 )
 
 declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
+	[angstrom]="ocaml-syntax-shims"
 	[astring]="findlib topkg ocamlbuild"
 	[camlimages]="cppo dune-configurator findlib"
 	[cohttp]="jsonm"
@@ -370,6 +372,8 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[ocplib-endian]="cppo"
 	[odoc]="cppo"
 	[opam-core]="cppo"
+	[react]="findlib topkg ocamlbuild"
+	[rresult]="findlib topkg ocamlbuild"
 	[utop]="cppo"
 	[uuseg]="findlib topkg ocamlbuild"
 	[visitors]="cppo"
@@ -377,6 +381,14 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 )
 
 declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
+	[angstrom]="alcotest ppx_let"
+	[bigstringaf]="alcotest"
+	[domain-name]="alcotest"
+	[dune-action-plugin]="ppx_expect"
+	[duration]="alcotest"
+	[ipaddr]="ounit2 ppx_sexp_conv"
+	[spawn]="ppx_expect"
+	[tyxml-ppx]="alcotest"
 )
 
 _ocaml_gen_tr_deps() {
@@ -471,9 +483,10 @@ let rec print_deps is_dep = function
 	| String (_,"conf-gnomecanvas") -> ()
 	| String (_,"conf-gtksourceview3") -> ()
 	| String (_,"conf-gtk3") -> ()
+	| String (_,"conf-libpcre") -> ()
+	| String (_,"conf-libX11") -> ()
 	| String (_,"conf-nanomsg") -> ()
 	| String (_,"conf-openssl") -> ()
-	| String (_,"conf-libX11") -> ()
 	| String (_,"ctypes-foreign") -> ()
 	| String (_,"ctypes") -> if is_dep [] then Printf.printf "ocaml-ctypes\n" else ()
 	| String (_,"ocamlfind") -> if is_dep [] then Printf.printf "findlib\n" else ()
