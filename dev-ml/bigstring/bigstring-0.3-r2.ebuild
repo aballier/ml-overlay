@@ -12,13 +12,8 @@ SRC_URI="https://github.com/c-cube/ocaml-bigstring/archive/${PV}.tar.gz -> ocaml
 LICENSE="BSD-2"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!dev-ml/ocaml-bigstring"
-DEPEND="${RDEPEND}
-	test? (
-		dev-ml/alcotest
-		dev-ml/bigstring-unix
-	)
-"
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${P}"
