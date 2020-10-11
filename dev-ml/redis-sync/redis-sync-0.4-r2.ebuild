@@ -12,12 +12,10 @@ SRC_URI="https://github.com/0xffea/ocaml-redis/archive/${PV}.tar.gz -> ocaml-red
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!dev-ml/ocaml-redis-sync"
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit2 dev-ml/containers )"
-
+DEPEND="${RDEPEND}"
 S=${WORKDIR}/ocaml-redis-${PV}
 PATCHES=( "${FILESDIR}/ounit2.patch" )
 
