@@ -12,10 +12,8 @@ SRC_URI="https://github.com/mirage/ezjsonm/releases/download/v${PV}/${PN}-v${PV}
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/alcotest )"
 S="${WORKDIR}/${PN}-v${PV}"
