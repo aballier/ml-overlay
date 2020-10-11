@@ -12,10 +12,8 @@ SRC_URI="https://github.com/ahrefs/atd/releases/download/${PV}/atd-${PV}.tbz"
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/atdgen-codec-runtime )"
 S="${WORKDIR}/atd-${PV}"
