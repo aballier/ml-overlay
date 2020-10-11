@@ -15,11 +15,7 @@ KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND=""
-DEPEND="
-	dev-ml/ppx_cstruct
-	${RDEPEND}
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/mirage-profile-${PV}"
 
 # Done in -unix
