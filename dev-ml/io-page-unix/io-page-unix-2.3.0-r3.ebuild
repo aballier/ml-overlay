@@ -16,10 +16,6 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND=""
-DEPEND="
-	${RDEPEND}
-	test? ( dev-ml/ounit2 )
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/${MY_P}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
