@@ -20,12 +20,7 @@ RDEPEND="
 	cli? ( dev-ml/cmdliner:=[ocamlopt] )
 	lwt? ( dev-ml/lwt:= )
 "
-DEPEND="${RDEPEND}
-	dev-ml/topkg
-	dev-ml/ocamlbuild
-	dev-ml/findlib
-	test? ( dev-ml/mtime )
-"
+DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 
 src_compile() {
@@ -39,6 +34,6 @@ src_compile() {
 }
 
 src_test() {
-	ocaml pkg/pkg.ml test || die
 	opam_src_test
+	ocaml pkg/pkg.ml test || die
 }
