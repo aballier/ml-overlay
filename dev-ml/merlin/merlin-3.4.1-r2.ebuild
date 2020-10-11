@@ -12,12 +12,9 @@ SRC_URI="https://github.com/ocaml/merlin/releases/download/v${PV}/${PN}-v${PV}.t
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}
 	|| ( app-editors/vim[python] app-editors/gvim[python] )"
-DEPEND="${DEPEND}
-	test? ( dev-ml/mdx )"
-
 S="${WORKDIR}/${PN}-v${PV}"
