@@ -12,11 +12,9 @@ SRC_URI="https://github.com/gildor478/ocaml-fileutils/archive/v${PV}.tar.gz -> $
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!dev-ml/ocaml-fileutils"
-DEPEND="${RDEPEND}
-	test? ( >=dev-ml/ounit2-2.0.0 )"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${P}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
