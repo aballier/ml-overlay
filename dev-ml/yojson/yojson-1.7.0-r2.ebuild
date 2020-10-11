@@ -12,13 +12,10 @@ SRC_URI="https://github.com/ocaml-community/yojson/releases/download/${PV}/${P}.
 SLOT="0/${PV}"
 LICENSE="BSD"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-IUSE="examples test"
+IUSE="examples"
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	>=dev-ml/cppo-1.6.6
-	test? ( dev-ml/alcotest )
-"
+DEPEND="${RDEPEND}"
 
 src_install() {
 	opam_src_install
