@@ -15,6 +15,5 @@ IUSE="test"
 
 RDEPEND=""
 DEPEND="${RDEPEND}
-	dev-ml/menhir
 	test? ( dev-ml/alcotest )"
 S="${WORKDIR}/ocaml-graphql-server-${PV}"
