@@ -12,10 +12,8 @@ SRC_URI="https://github.com/rgrinberg/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz"
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/qtest dev-ml/ounit2 )
-"
+DEPEND="${RDEPEND}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
