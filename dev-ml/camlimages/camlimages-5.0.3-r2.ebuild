@@ -17,7 +17,6 @@ IUSE=""
 RDEPEND="
 	media-libs/libexif
 	media-libs/giflib
-	dev-ml/lablgtk
 	virtual/jpeg
 	media-libs/tiff
 	>=media-libs/libpng-1.4:0=
@@ -27,6 +26,5 @@ RDEPEND="
 	x11-apps/rgb
 	sys-libs/zlib
 "
-DEPEND="${DEPEND}
-	virtual/pkgconfig
-	dev-ml/findlib"
+DEPEND="${RDEPEND}"
+BDEPEND="virtual/pkgconfig"
