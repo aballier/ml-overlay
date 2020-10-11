@@ -12,13 +12,10 @@ SRC_URI="https://github.com/pqwy/psq/releases/download/v${PV}/${PN}-v${PV}.tbz"
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-
-DEPEND="${DEPEND}
-	test? ( dev-ml/qcheck-core dev-ml/qcheck-alcotest dev-ml/alcotest )"
 
 S="${WORKDIR}/${PN}-v${PV}"
