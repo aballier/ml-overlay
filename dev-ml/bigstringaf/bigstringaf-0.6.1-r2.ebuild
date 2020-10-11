@@ -12,9 +12,8 @@ SRC_URI="https://github.com/inhabitedtype/bigstringaf/archive/${PV}.tar.gz -> ${
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${RDEPEND}
-	test? ( dev-ml/alcotest )"
+DEPEND="${RDEPEND}"
