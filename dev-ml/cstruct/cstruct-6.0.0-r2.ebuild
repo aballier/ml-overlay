@@ -12,12 +12,8 @@ SRC_URI="https://github.com/mirage/ocaml-cstruct/archive/v${PV}.tar.gz -> ocaml-
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!dev-ml/ocaml-cstruct"
-DEPEND="
-	test? ( dev-ml/alcotest )
-	${RDEPEND}
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-cstruct-${PV}"
