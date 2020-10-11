@@ -12,9 +12,8 @@ SRC_URI="https://github.com/hannesm/gmap/releases/download/${PV}/${P}.tbz"
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/fmt dev-ml/alcotest )"
+DEPEND="${RDEPEND}"
 BDEPEND=""
