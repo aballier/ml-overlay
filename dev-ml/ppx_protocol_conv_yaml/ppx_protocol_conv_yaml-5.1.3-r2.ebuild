@@ -17,10 +17,4 @@ IUSE="test"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? (
-		dev-ml/ppx_sexp_conv
-		dev-ml/sexplib
-		dev-ml/alcotest
-	)"
 S="${WORKDIR}/${MY_P}"
