@@ -12,13 +12,10 @@ SRC_URI="https://github.com/mirage/ocaml-ipaddr/archive/v${PV}.tar.gz -> ocaml-i
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ipaddr-cstruct dev-ml/ounit2 )
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-ipaddr-${PV}"
 
 src_prepare() {
