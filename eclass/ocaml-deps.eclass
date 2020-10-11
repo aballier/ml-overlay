@@ -357,6 +357,10 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[zed]="camomile charInfo_width react"
 )
 
+declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
+	[astring]="findlib topkg ocamlbuild"
+)
+
 _ocaml_gen_tr_deps() {
 	for d ; do
 		local pkg=dev-ml/${d}
@@ -384,29 +388,43 @@ ocaml_gen_deps() {
 	fi
 }
 
+ocaml_gen_bdeps() {
+	local pn
+	for pn in ${_GLOBAL_OCAML_BUILD_DEPS[$1]}; do
+		echo "dev-ml/${pn}"
+	done
+}
+
 ocaml_check_deps() {
 	local opamfile=${1-${PN}.opam}
 	einfo "Checking ${PN} against ${opamfile}"
-	pushd "${T}" &> /dev/null
+	mkdir -p "${T}/depcheck"
+	pushd "${T}/depcheck" &> /dev/null
 	printf "%s" "${_GLOBAL_OCAML_DEPS[${PN}]}" | tr ' ' '\n' | sort -u > ebuild.deps || die
+	printf "%s" "${_GLOBAL_OCAML_BUILD_DEPS[${PN}]}" | tr ' ' '\n' | sort -u > ebuild_build.deps || die
 	cat << EOF >> parser.ml
 open OpamParserTypes
 
-let rec get_deps = function
-		[] -> failwith "Not found"
-	| Variable (_,"depends",v)::q -> v
-	| _::q -> get_deps q;;
-let rec is_real_dep = function
+let rec is_build_dep = function
+		[] -> false
+	| Logop (_,_,l,r)::q -> is_build_dep (l::(r::q))
+	| Ident (_,"build")::_ -> true
+	| _ :: q -> is_build_dep q;;
+let rec is_run_dep = function
 		[] -> true
-	| Logop (_,_,l,r)::q -> is_real_dep (l::(r::q))
+	| Logop (_,_,l,r)::q -> is_run_dep (l::(r::q))
 	| Ident (_,"with-doc")::_ -> false
 	| Ident (_,"with-test")::_ -> false
 	| Ident (_,"build")::_ -> false
 	| Ident (_,"dev")::_ -> false
-	| _ :: q -> is_real_dep q;;
-let rec print_deps = function
-		List (_,l) -> List.iter print_deps l
-	| Option (_,v,l) -> if is_real_dep l then print_deps v else ()
+	| _ :: q -> is_run_dep q;;
+let rec get_deps = function
+		[] -> failwith "Not found"
+	| Variable (_,"depends",v)::q -> v
+	| _::q -> get_deps q;;
+let rec print_deps is_dep = function
+		List (_,l) -> List.iter (print_deps is_dep) l
+	| Option (_,v,l) -> if is_dep l then print_deps is_dep v else ()
 	| String (_,"ocaml") -> ()
 	| String (_,"dune") -> ()
 	| String (_,"base-bigarray") -> ()
@@ -423,11 +441,19 @@ let rec print_deps = function
 	| String (_,"ocamlfind") -> Printf.printf "findlib\n"
 	| String (_,s) -> Printf.printf "%s\n" s
 	| _ -> ();;
-print_deps (get_deps (OpamParser.file Sys.argv.(1)).file_contents);;
+
+let fn = match (Filename.basename Sys.argv.(0)) with
+  "builddeps" -> is_build_dep
+ | "rundeps"  -> is_run_dep
+ | _ -> failwith "unhandled case" in
+print_deps fn (get_deps (OpamParser.file Sys.argv.(1)).file_contents);;
 EOF
-	ocamlfind ocamlc -package opam-file-format -linkpkg parser.ml  -o parser || die
-	( ./parser "${S}/${opamfile}" || die ) | sort -u > opam.deps
-	diff -u ebuild.deps opam.deps || die "Difference between opam and ebuild dep"
+	ocamlfind ocamlc -package opam-file-format -linkpkg parser.ml  -o rundeps || die
+	ln -s rundeps builddeps || die
+	( ./rundeps "${S}/${opamfile}" || die ) | sort -u > opam.deps
+	diff -u ebuild.deps opam.deps || die "Difference between opam and ebuild runtime deps"
+	( ./builddeps "${S}/${opamfile}" || die ) | sort -u > opam_build.deps
+	diff -u ebuild_build.deps opam_build.deps || die "Difference between opam and ebuild build deps"
 	popd &> /dev/null
 }
 
