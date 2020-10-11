@@ -16,8 +16,4 @@ IUSE="test"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${RDEPEND}
-	dev-ml/cppo
-	dev-ml/ppxfind
-	test? ( dev-ml/ounit2 )"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
