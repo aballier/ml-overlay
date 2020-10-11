@@ -15,8 +15,6 @@ KEYWORDS="~amd64 ~x86"
 IUSE="test"
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/alcotest )
-"
+DEPEND="${RDEPEND}"
 BDEPEND=""
 S="${WORKDIR}/${PN}-v${PV}"
