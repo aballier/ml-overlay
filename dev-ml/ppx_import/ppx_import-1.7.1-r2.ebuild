@@ -12,13 +12,10 @@ SRC_URI="https://github.com/ocaml-ppx/ppx_import/archive/v${PV}.tar.gz -> ${P}.t
 LICENSE="MIT"
 SLOT="0/${PV}oc408"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/ounit2 dev-ml/ppx_deriving )
-"
 PATCHES=(
 	"${FILESDIR}/ounit2.patch"
 )
