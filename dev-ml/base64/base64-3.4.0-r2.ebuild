@@ -15,8 +15,5 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="!dev-ml/ocaml-base64"
-DEPEND="${RDEPEND}
-	test? ( dev-ml/rresult dev-ml/bos dev-ml/alcotest )
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/${PN}-v${PV}"
