@@ -17,11 +17,7 @@ IUSE="javascript test"
 RDEPEND="
 	javascript? ( dev-ml/js_of_ocaml:= )
 "
-DEPEND="${RDEPEND}
-	dev-ml/topkg
-	dev-ml/ocamlbuild
-	dev-ml/findlib"
-
+DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 
 src_compile() {
