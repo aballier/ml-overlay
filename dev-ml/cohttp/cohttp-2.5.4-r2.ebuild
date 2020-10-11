@@ -16,7 +16,6 @@ IUSE="test"
 
 RDEPEND="!dev-ml/ocaml-cohttp"
 DEPEND="${RDEPEND}
-	dev-ml/jsonm
 	test? (
 		dev-ml/alcotest
 		dev-ml/fmt
