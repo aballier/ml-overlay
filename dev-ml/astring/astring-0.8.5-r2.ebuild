@@ -15,10 +15,8 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	dev-ml/topkg
-	dev-ml/ocamlbuild
-	dev-ml/findlib"
+DEPEND="${RDEPEND}"
+OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build || die
