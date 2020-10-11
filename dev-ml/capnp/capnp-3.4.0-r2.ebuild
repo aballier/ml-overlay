@@ -12,12 +12,10 @@ SRC_URI="https://github.com/pelzlpj/capnp-ocaml/archive/v${PV}.tar.gz -> ocaml-$
 LICENSE="BSD-2"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND="dev-libs/capnproto:="
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit2 dev-ml/base_quickcheck )
-"
+DEPEND="${RDEPEND}"
 BDEPEND=""
 
 S="${WORKDIR}/${PN}-ocaml-${PV}"
