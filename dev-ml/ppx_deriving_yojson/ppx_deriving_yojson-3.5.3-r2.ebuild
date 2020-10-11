@@ -12,13 +12,8 @@ SRC_URI="https://github.com/whitequark/ppx_deriving_yojson/archive/v${PV}.tar.gz
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	dev-ml/cppo
-	dev-ml/ppx_tools
-	dev-ml/ppxfind
-	test? ( dev-ml/ounit2 )"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
