@@ -12,10 +12,9 @@ HOMEPAGE="https://github.com/flowtype/ocaml-dtoa"
 SLOT="0/${PV}"
 LICENSE="MIT"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit2 )"
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/${PN}-v${PV}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
