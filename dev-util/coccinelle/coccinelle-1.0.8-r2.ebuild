@@ -9,7 +9,7 @@ inherit multilib eutils python-single-r1 bash-completion-r1 elisp-common autotoo
 MY_P="${P/_/-}"
 DESCRIPTION="Program matching and transformation engine"
 HOMEPAGE="http://coccinelle.lip6.fr/"
-SRC_URI="http://coccinelle.lip6.fr/distrib/${MY_P}.tar.gz"
+SRC_URI="https://github.com/coccinelle/coccinelle/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
@@ -24,7 +24,7 @@ CDEPEND=">=dev-lang/ocaml-3.12:=[ocamlopt?]
 	dev-ml/parmap:=
 	dev-ml/pyml:=
 		dev-ml/stdcompat:=
-	emacs? ( virtual/emacs )
+	emacs? ( app-editors/emacs )
 	ocaml? ( dev-ml/findlib:= )
 	pcre? ( dev-ml/pcre:= )
 	${PYTHON_DEPS}"
