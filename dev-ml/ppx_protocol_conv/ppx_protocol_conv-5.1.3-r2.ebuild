@@ -12,15 +12,8 @@ SRC_URI="https://github.com/andersfugmann/ppx_protocol_conv/archive/${PV}.tar.gz
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? (
-		dev-ml/ppx_sexp_conv
-		dev-ml/sexplib
-		dev-ml/alcotest
-	)
-"
 PATCHES=( "${FILESDIR}/stdio.patch" )
