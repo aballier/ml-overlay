@@ -15,10 +15,7 @@ KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE="test"
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	dev-ml/findlib
-	>=dev-ml/topkg-0.9
-"
+DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 
 src_compile() {
