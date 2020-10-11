@@ -14,7 +14,5 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-DEPEND="
-	>=dev-ml/cppo-1.1.0
-"
+DEPEND=""
 RDEPEND=""
