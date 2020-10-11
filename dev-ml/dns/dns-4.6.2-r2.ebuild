@@ -12,11 +12,8 @@ SRC_URI="https://github.com/mirage/ocaml-${PN}/archive/v${PV}.tar.gz -> ocaml-${
 LICENSE="LGPL-2 LGPL-2.1-with-linking-exception ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!dev-ml/odns"
-DEPEND="${RDEPEND}
-	test? ( dev-ml/alcotest )
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${P}"
