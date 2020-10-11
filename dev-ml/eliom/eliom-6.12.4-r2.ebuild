@@ -24,9 +24,7 @@ IUSE="doc +ocamlopt +ppx"
 
 RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	ppx? ( >=dev-ml/ppx_tools-0.99.3:= )"
-DEPEND="${RDEPEND}
-	dev-ml/js_of_ocaml-ocamlbuild
-	dev-ml/ocamlbuild"
+DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 
 src_compile() {
