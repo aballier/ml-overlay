@@ -12,8 +12,7 @@ SRC_URI="https://github.com/kandu/charInfo_width/archive/${PV}.tar.gz -> ${P}.ta
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ppx_expect )"
+DEPEND="${RDEPEND}"
