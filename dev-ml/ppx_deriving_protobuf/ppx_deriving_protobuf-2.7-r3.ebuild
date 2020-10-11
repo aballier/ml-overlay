@@ -15,10 +15,5 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	dev-ml/ppxfind
-	dev-ml/ppx_tools
-	dev-ml/cppo
-	test? ( dev-ml/ounit2 dev-ml/uint )
-"
+DEPEND="${RDEPEND}"
 PATCHES=( "${FILESDIR}/ounit2.patch" "${FILESDIR}/oc411.patch" )
