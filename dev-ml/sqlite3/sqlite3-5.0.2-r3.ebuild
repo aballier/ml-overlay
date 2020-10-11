@@ -17,5 +17,4 @@ IUSE=""
 RDEPEND=">=dev-db/sqlite-3.3.3
 	!dev-ml/ocaml-sqlite3
 "
-DEPEND="${RDEPEND}
-	>=dev-ml/findlib-1.3.2"
+DEPEND="${RDEPEND}"
