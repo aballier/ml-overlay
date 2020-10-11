@@ -16,11 +16,7 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-BDEPEND="
-	dev-ml/topkg
-	dev-ml/ocamlbuild
-	dev-ml/findlib
-"
+BDEPEND=""
 OPAM_FILE=opam
 
 src_compile() {
