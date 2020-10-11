@@ -3,6 +3,7 @@
 
 EAPI=7
 
+OPAM_SKIP_VALIDATION=yes
 inherit jbuilder
 
 DESCRIPTION="LR(1) parser generator for the OCaml language"
