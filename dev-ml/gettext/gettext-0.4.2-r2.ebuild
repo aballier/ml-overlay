@@ -12,11 +12,10 @@ SRC_URI="https://github.com/gildor478/ocaml-gettext/releases/download/v${PV}/get
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
-IUSE="test"
+IUSE=""
 
 RDEPEND="sys-devel/gettext"
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit2 )"
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/gettext-v${PV}"
 
 PATCHES=( "${FILESDIR}/ounit2.patch" )
