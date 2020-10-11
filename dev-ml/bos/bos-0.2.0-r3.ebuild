@@ -12,16 +12,10 @@ SRC_URI="http://erratique.ch/software/bos/releases/${P}.tbz"
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	dev-ml/findlib
-	dev-ml/ocamlbuild
-	dev-ml/topkg
-	test? ( dev-ml/mtime )
-"
-
+DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 
 src_compile() {
