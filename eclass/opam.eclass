@@ -36,6 +36,9 @@ BDEPEND="${BDEPEND}
 		dev-ml/findlib
 	)
 "
+DEPEND="${DEPEND}
+	$(ocaml_gen_test_deps ${PN})
+"
 
 # @ECLASS-VARIABLE: OPAM_INSTALLER
 # @DESCRIPTION:
