@@ -15,9 +15,11 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="!dev-ml/ocaml-ipaddr"
-DEPEND="${RDEPEND}
-	dev-ml/findlib
-	test? ( dev-ml/ppx_sexp_conv )
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${P}"
+
+src_prepare() {
+	sed -e 's/ounit/ounit2/' -i *.opam || die
+	sed -e 's/oUnit/ounit2/' -i */dune || die
+	jbuilder_src_prepare
+}
