@@ -17,6 +17,4 @@ IUSE="test"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/alcotest )"
 S="${WORKDIR}/${MY_P}"
