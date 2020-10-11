@@ -12,13 +12,9 @@ SRC_URI="https://github.com/inhabitedtype/ocaml-webmachine/archive/${PV}.tar.gz 
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND="!dev-ml/ocaml-webmachine"
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/ounit2 )
-"
-
 S="${WORKDIR}/ocaml-${P}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )

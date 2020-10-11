@@ -1,10 +1,23 @@
-Index: ocaml-webmachine-0.6.2/lib_test/dune
+Index: ocaml-webmachine-0.7.0/lib_test/dune
 ===================================================================
---- ocaml-webmachine-0.6.2.orig/lib_test/dune
-+++ ocaml-webmachine-0.6.2/lib_test/dune
+--- ocaml-webmachine-0.7.0.orig/lib_test/dune
++++ ocaml-webmachine-0.7.0/lib_test/dune
 @@ -1,4 +1,4 @@
  (tests
 - (libraries webmachine oUnit)
 + (libraries webmachine ounit2)
   (modules test_dispatch test_logic)
   (names test_dispatch test_logic))
+Index: ocaml-webmachine-0.7.0/webmachine.opam
+===================================================================
+--- ocaml-webmachine-0.7.0.orig/webmachine.opam
++++ ocaml-webmachine-0.7.0/webmachine.opam
+@@ -17,7 +17,7 @@ depends: [
+   "cohttp" {>= "1.0.0"}
+   "dispatch" {>= "0.5.0"}
+   "dune" {>= "1.0"}
+-  "ounit" {with-test & >= "1.0.2"}
++  "ounit2" {with-test & >= "1.0.2"}
+   "re" {>= "1.7.2"}
+ ]
+ synopsis: "A REST toolkit for OCaml"
