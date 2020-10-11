@@ -12,8 +12,7 @@ SRC_URI="https://github.com/c-cube/sequence/archive/${PV}.tar.gz -> ${P}.tar.gz"
 LICENSE="BSD-2"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/qtest )"
+DEPEND="${RDEPEND}"
