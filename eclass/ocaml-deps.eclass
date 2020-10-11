@@ -376,6 +376,9 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[xmlm]="findlib topkg ocamlbuild"
 )
 
+declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
+)
+
 _ocaml_gen_tr_deps() {
 	for d ; do
 		local pkg=dev-ml/${d}
@@ -406,8 +409,19 @@ ocaml_gen_deps() {
 ocaml_gen_bdeps() {
 	local pn
 	for pn in ${_GLOBAL_OCAML_BUILD_DEPS[$1]}; do
-		echo "dev-ml/${pn}"
+		printf "dev-ml/${pn}\n"
 	done
+}
+
+ocaml_gen_test_deps() {
+	if [[ -v _GLOBAL_OCAML_TEST_DEPS[$1] ]]; then
+		local pn
+		printf 'test? (\n'
+		for pn in ${_GLOBAL_OCAML_TEST_DEPS[$1]}; do
+			printf "\tdev-ml/${pn}\n"
+		done
+		printf ')\n'
+	fi
 }
 
 ocaml_check_deps() {
@@ -417,9 +431,15 @@ ocaml_check_deps() {
 	pushd "${T}/depcheck" &> /dev/null
 	printf "%s" "${_GLOBAL_OCAML_DEPS[${PN}]}" | tr ' ' '\n' | sort -u > ebuild.deps || die
 	printf "%s" "${_GLOBAL_OCAML_BUILD_DEPS[${PN}]}" | tr ' ' '\n' | sort -u > ebuild_build.deps || die
+	printf "%s" "${_GLOBAL_OCAML_TEST_DEPS[${PN}]}" | tr ' ' '\n' | sort -u > ebuild_test.deps || die
 	cat << EOF >> parser.ml
 open OpamParserTypes
 
+let rec is_test_dep = function
+		[] -> false
+	| Logop (_,_,l,r)::q -> is_test_dep (l::(r::q))
+	| Ident (_,"with-test")::_ -> true
+	| _ :: q -> is_test_dep q;;
 let rec is_build_dep = function
 		[] -> false
 	| Logop (_,_,l,r)::q -> is_build_dep (l::(r::q))
@@ -463,15 +483,19 @@ let rec print_deps is_dep = function
 let fn = match (Filename.basename Sys.argv.(0)) with
    "builddeps" -> is_build_dep
  | "rundeps"  -> is_run_dep
+ | "testdeps"  -> is_test_dep
  | _ -> failwith "unhandled case" in
 print_deps fn (get_deps (OpamParser.file Sys.argv.(1)).file_contents);;
 EOF
 	ocamlfind ocamlc -package opam-file-format -linkpkg parser.ml  -o rundeps || die
 	ln -s rundeps builddeps || die
+	ln -s rundeps testdeps || die
 	( ./rundeps "${S}/${opamfile}" || die ) | sort -u > opam.deps
 	diff -u ebuild.deps opam.deps || die "Difference between opam and ebuild runtime deps"
 	( ./builddeps "${S}/${opamfile}" || die ) | sort -u > opam_build.deps
 	diff -u ebuild_build.deps opam_build.deps || die "Difference between opam and ebuild build deps"
+	( ./testdeps "${S}/${opamfile}" || die ) | sort -u > opam_test.deps
+	diff -u ebuild_test.deps opam_test.deps || die "Difference between opam and ebuild test deps"
 	popd &> /dev/null
 }
 
