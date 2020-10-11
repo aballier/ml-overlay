@@ -13,15 +13,8 @@ SRC_URI="https://github.com/avsm/ocaml-yaml/releases/download/v${PV}/${MY_P}.tbz
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? (
-		dev-ml/mdx
-		dev-ml/alcotest
-		dev-ml/ezjsonm
-	)
-"
 S="${WORKDIR}/${MY_P}"
