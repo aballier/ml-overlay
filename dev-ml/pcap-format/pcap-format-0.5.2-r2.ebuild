@@ -15,11 +15,7 @@ KEYWORDS="~amd64"
 IUSE="test"
 
 RDEPEND="!dev-ml/ocaml-pcap"
-DEPEND="
-	dev-ml/ppx_tools
-	test? ( dev-ml/ounit2 )
-	${RDEPEND}
-"
+DEPEND="${RDEPEND}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
 
 S="${WORKDIR}/ocaml-pcap-${PV}"
