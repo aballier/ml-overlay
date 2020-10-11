@@ -17,3 +17,8 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/markup.ml-${PV}"
+
+src_prepare() {
+	default
+	sed -e 's/oUnit/ounit2/' -i test/dune -i test/*/dune || die
+}
