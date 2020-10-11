@@ -12,10 +12,9 @@ SRC_URI="https://github.com/aantron/lambda-soup/archive/${PV}.tar.gz -> ${P}.tar
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit2 )"
+DEPEND="${RDEPEND}"
 BDEPEND=""
 PATCHES=( "${FILESDIR}/ounit2.patch" )
