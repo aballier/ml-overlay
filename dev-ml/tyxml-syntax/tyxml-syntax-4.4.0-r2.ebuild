@@ -12,10 +12,8 @@ SRC_URI="https://github.com/ocsigen/tyxml/archive/${PV}.tar.gz -> tyxml-${PV}.ta
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~x86"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/alcotest )"
 S="${WORKDIR}/tyxml-${PV}"
