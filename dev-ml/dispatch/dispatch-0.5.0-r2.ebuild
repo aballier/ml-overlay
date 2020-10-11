@@ -12,13 +12,10 @@ SRC_URI="https://github.com/inhabitedtype/ocaml-dispatch/archive/${PV}.tar.gz ->
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 DEPEND="
 	!dev-ml/ocaml-dispatch
 "
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/alcotest )
-"
 S="${WORKDIR}/ocaml-${P}"
