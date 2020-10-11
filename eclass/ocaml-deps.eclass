@@ -361,13 +361,16 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[angstrom]="ocaml-syntax-shims"
 	[astring]="findlib topkg ocamlbuild"
+	[bos]="findlib topkg ocamlbuild"
 	[camlimages]="cppo dune-configurator findlib"
 	[cohttp]="jsonm"
 	[digestif]="findlib"
 	[eliom]="js_of_ocaml-ocamlbuild"
 	[fmt]="findlib topkg ocamlbuild"
 	[fpath]="findlib topkg ocamlbuild"
+	[gettext]="cppo"
 	[graphql_parser]="menhir"
+	[logs]="findlib topkg ocamlbuild"
 	[lwt]="cppo"
 	[merlin-extend]="cppo"
 	[mirage-profile]="ppx_cstruct"
@@ -386,6 +389,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[uuidm]="findlib topkg ocamlbuild"
 	[uuseg]="findlib topkg ocamlbuild"
 	[visitors]="cppo"
+	[yojson]="cppo"
 	[xmlm]="findlib topkg ocamlbuild"
 )
 
@@ -393,7 +397,10 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[angstrom]="alcotest ppx_let"
 	[atdgen]="atdgen-codec-runtime"
 	[base64]="alcotest bos rresult"
+	[bigstring]="alcotest bigstring-unix"
 	[bigstringaf]="alcotest"
+	[bisect_ppx]="findlib ounit2"
+	[capnp]="base_quickcheck ounit2"
 	[charInfo_width]="ppx_expect"
 	[cohttp-async]="core ounit2"
 	[cohttp-lwt-unix]="ounit2"
@@ -402,31 +409,44 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[digestif]="alcotest astring bos findlib fmt fpath rresult"
 	[dispatch]="alcotest"
 	[domain-name]="alcotest"
+	[dtoa]="ounit2"
 	[dune-action-plugin]="ppx_expect"
 	[duration]="alcotest"
 	[ezjsonm-lwt]="alcotest ppx_sexp_conv"
 	[eqaf]="alcotest crowbar"
 	[gen]="qcheck qtest"
+	[gettext]="ounit2"
 	[gmap]="alcotest fmt"
+	[graphql-async]="alcotest async_unix"
+	[graphql-cohttp]="alcotest cohttp-lwt-unix graphql-lwt"
+	[graphql_parser]="alcotest"
 	[io-page-unix]="ounit2"
 	[ipaddr]="ounit2 ppx_sexp_conv"
 	[iter]="mdx qcheck qtest"
 	[js_of_ocaml-compiler]="ppx_expect"
+	[logs]="mtime"
+	[macaddr]="ounit2 ppx_sexp_conv"
+	[merlin]="mdx"
 	[metrics]="alcotest"
 	[ocamlformat]="alcotest ocp-indent"
 	[odoc]="bisect_ppx"
 	[pcap-format]="ounit2 mmap"
 	[ppxlib]="base cinaps findlib stdio"
+	[ppx_cstruct]="cppo cstruct-sexp cstruct-unix ounit2 ppx_sexp_conv"
 	[ppx_deriving]="ounit2"
 	[ppx_deriving_protobuf]="ounit2 uint"
 	[ppx_deriving_yojson]="ounit2"
 	[ppx_import]="ounit2 ppx_deriving"
+	[ppx_protocol_conv]="alcotest ppx_sexp_conv sexplib"
+	[ppx_protocol_conv_json]="alcotest ppx_sexp_conv sexplib"
 	[ppx_protocol_conv_yaml]="alcotest ppx_sexp_conv sexplib"
+	[redis-lwt]="containers ounit2"
 	[redis-sync]="containers ounit2"
 	[spawn]="ppx_expect"
 	[tyxml]="alcotest"
 	[tyxml-ppx]="alcotest"
 	[tyxml-syntax]="alcotest"
+	[yojson]="alcotest"
 	[webmachine]="ounit2"
 )
 
@@ -519,13 +539,18 @@ let rec print_deps is_dep = function
 	| String (_,"base-threads") -> ()
 	| String (_,"base-unix") -> ()
 	| String (_,"conf-cairo") -> ()
+	| String (_,"conf-capnproto") -> ()
+	| String (_,"conf-glib-2") -> ()
 	| String (_,"conf-gnomecanvas") -> ()
 	| String (_,"conf-gtksourceview3") -> ()
 	| String (_,"conf-gtk3") -> ()
+	| String (_,"conf-jq") -> ()
 	| String (_,"conf-libpcre") -> ()
 	| String (_,"conf-libX11") -> ()
 	| String (_,"conf-nanomsg") -> ()
 	| String (_,"conf-openssl") -> ()
+	| String (_,"conf-pkg-config") -> ()
+	| String (_,"conf-postgresql") -> ()
 	| String (_,"ctypes-foreign") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
 	| String (_,"ctypes") -> if is_dep [] then Printf.printf "ocaml-ctypes\n" else ()
