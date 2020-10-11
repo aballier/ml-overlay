@@ -360,11 +360,20 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[astring]="findlib topkg ocamlbuild"
 	[camlimages]="cppo dune-configurator findlib"
+	[cohttp]="jsonm"
+	[fmt]="findlib topkg ocamlbuild"
+	[fpath]="findlib topkg ocamlbuild"
+	[graphql_parser]="menhir"
 	[merlin-extend]="cppo"
+	[mirage-profile]="ppx_cstruct"
 	[nanomsg]="findlib"
 	[ocplib-endian]="cppo"
 	[odoc]="cppo"
+	[opam-core]="cppo"
 	[utop]="cppo"
+	[uuseg]="findlib topkg ocamlbuild"
+	[visitors]="cppo"
+	[xmlm]="findlib topkg ocamlbuild"
 )
 
 _ocaml_gen_tr_deps() {
@@ -441,6 +450,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-cairo") -> ()
 	| String (_,"conf-gnomecanvas") -> ()
 	| String (_,"conf-gtksourceview3") -> ()
+	| String (_,"conf-gtk3") -> ()
 	| String (_,"conf-nanomsg") -> ()
 	| String (_,"conf-openssl") -> ()
 	| String (_,"conf-libX11") -> ()
