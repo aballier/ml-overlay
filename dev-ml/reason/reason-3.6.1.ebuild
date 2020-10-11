@@ -17,9 +17,3 @@ IUSE="+ocamlopt"
 DEPEND=""
 RDEPEND="${DEPEND}"
 S=( "${WORKDIR}/package" )
-
-src_prepare() {
-	cp src/reason-parser/ocaml_util.ml-4.{10,11} || die
-	eapply "${FILESDIR}/oc411.patch"
-	default
-}
