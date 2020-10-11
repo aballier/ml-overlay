@@ -13,14 +13,10 @@ SRC_URI="https://github.com/mirage/digestif/releases/download/v${PV}/${MY_P}.tbz
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? (
-		dev-ml/fmt
-		dev-ml/alcotest
-	)"
+DEPEND="${RDEPEND}"
 BDEPEND=""
 
 S="${WORKDIR}/${MY_P}"
