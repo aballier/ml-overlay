@@ -12,11 +12,8 @@ SRC_URI="https://github.com/mirage/ocaml-ipaddr/archive/v${PV}.tar.gz -> ocaml-i
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!dev-ml/ocaml-ipaddr"
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ppx_sexp_conv )
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-ipaddr-${PV}"
