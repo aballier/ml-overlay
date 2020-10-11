@@ -11,9 +11,8 @@ SRC_URI="https://github.com/mirage/ocaml-crunch/archive/v${PV}.tar.gz -> ${P}.ta
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/cstruct dev-ml/lwt )"
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${P}"
