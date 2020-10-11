@@ -16,6 +16,5 @@ IUSE="test"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/alcotest )"
+DEPEND="${DEPEND}"
 S="${WORKDIR}/tyxml-${PV}"
