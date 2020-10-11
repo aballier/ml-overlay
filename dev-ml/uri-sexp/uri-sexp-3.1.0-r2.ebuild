@@ -12,12 +12,9 @@ SRC_URI="https://github.com/mirage/ocaml-uri/archive/v${PV}.tar.gz -> ocaml-uri-
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit2 )
-"
-
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-uri-${PV}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
