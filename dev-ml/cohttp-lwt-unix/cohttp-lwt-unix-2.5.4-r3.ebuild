@@ -12,11 +12,10 @@ SRC_URI="https://github.com/mirage/ocaml-cohttp/archive/v${PV}.tar.gz -> ocaml-c
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND="dev-libs/openssl:0="
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit2 )"
+DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
