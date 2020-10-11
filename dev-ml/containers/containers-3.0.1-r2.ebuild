@@ -14,17 +14,8 @@ SRC_URI="https://github.com/c-cube/ocaml-containers/archive/v${PV}.tar.gz -> ${M
 LICENSE="BSD-2"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
 RDEPEND="!dev-ml/ocaml-containers"
-DEPEND="${RDEPEND}
-	test? (
-		dev-ml/qtest
-		dev-ml/qcheck
-		dev-ml/iter
-		dev-ml/gen
-		dev-ml/uutf
-		dev-ml/odoc
-		dev-ml/mdx
-	)"
+DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${PN}-${PV/_/-}"
