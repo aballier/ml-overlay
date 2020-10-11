@@ -16,6 +16,6 @@ IUSE="test"
 
 RDEPEND=""
 DEPEND="${RDEPEND}
-	test? ( dev-ml/lwt app-text/pandoc )
+	test? ( app-text/pandoc )
 "
-BDEPEND="dev-ml/cppo"
+BDEPEND=""
