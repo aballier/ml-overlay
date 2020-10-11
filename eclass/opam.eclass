@@ -29,6 +29,7 @@ case ${EAPI:-0} in
 esac
 
 BDEPEND="${BDEPEND}
+	$(ocaml_gen_bdeps ${PN})
 	test? (
 		dev-lang/ocaml
 		dev-ml/opam-file-format
