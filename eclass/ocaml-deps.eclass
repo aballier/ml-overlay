@@ -230,6 +230,8 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[ounit2-lwt]="ounit2 lwt"
 	[owl]="ocaml-ctypes dune-configurator eigen owl-base npy"
 	[owl-base]=""
+	[owl-top]="owl ocaml-compiler-libs owl-zoo"
+	[owl-zoo]="owl ocaml-compiler-libs"
 	[parmap]="dune-configurator"
 	[parsexp]="sexplib0 base"
 	[parsexp_io]="base parsexp ppx_js_style stdio"
