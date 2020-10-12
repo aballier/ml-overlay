@@ -38,6 +38,7 @@ jbuilder_src_compile() {
 
 jbuilder_src_test() {
 	opam_src_test
+	einfo "Running 'dune runtest -p "${PN}" -j $(makeopts_jobs)'"
 	dune runtest -p "${PN}" -j $(makeopts_jobs) || die
 }
 
