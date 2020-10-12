@@ -181,7 +181,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[markup-lwt]="markup lwt"
 	[mccs]="cudf"
 	[mdx]="fmt findlib astring logs cmdliner re result ocaml-migrate-parsetree ocaml-version odoc"
-	[menhir]=""
+	[menhir]="menhirLib menhirSdk"
 	[menhirLib]=""
 	[menhirSdk]=""
 	[merlin]="csexp dot-merlin-reader result yojson"
