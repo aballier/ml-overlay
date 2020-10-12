@@ -54,6 +54,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[cairo2-pango]="cairo2 lablgtk"
 	[calendar]=""
 	[camlimages]="base stdio"
+	[camlzip]=""
 	[camomile]=""
 	[capnp]="result base stdio ocplib-endian res stdint"
 	[charInfo_width]="result camomile"
@@ -107,6 +108,7 @@ typerep variantslib"
 	[dune-private-libs]=""
 	[duration]=""
 	[easy-format]=""
+	[eigen]="ocaml-ctypes"
 	[eliom]="findlib ppx_deriving js_of_ocaml-compiler js_of_ocaml js_of_ocaml-lwt js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json
 js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_tools"
 	[expect_test_helpers]="async core expect_test_helpers_kernel ppx_jane sexp_pretty"
@@ -195,6 +197,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[msgpck]="ocplib-endian"
 	[mtime]=""
 	[nanomsg]="ocaml-ctypes ipaddr ppx_deriving containers bigstring"
+	[npy]="camlzip"
 	[num]=""
 	[ocamlbuild]=""
 	[ocamlformat]="base menhir cmdliner fix fpath ocaml-migrate-parsetree odoc re stdio uuseg uutf"
@@ -225,6 +228,8 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[opam-file-format]=""
 	[ounit2]="stdlib-shims"
 	[ounit2-lwt]="ounit2 lwt"
+	[owl]="ocaml-ctypes dune-configurator eigen owl-base npy"
+	[owl-base]=""
 	[parmap]="dune-configurator"
 	[parsexp]="sexplib0 base"
 	[parsexp_io]="base parsexp ppx_js_style stdio"
@@ -381,6 +386,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[ocplib-endian]="cppo"
 	[odoc]="cppo"
 	[opam-core]="cppo"
+	[owl]="base stdio"
 	[ppx_deriving]="cppo ppxfind"
 	[ppx_deriving_protobuf]="cppo ppx_tools ppxfind"
 	[ppx_deriving_yojson]="cppo ppxfind"
@@ -449,6 +455,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[metrics]="alcotest"
 	[ocamlformat]="alcotest ocp-indent"
 	[odoc]="bisect_ppx"
+	[owl]="alcotest"
 	[pcap-format]="ounit2 mmap"
 	[ppxlib]="base cinaps findlib stdio"
 	[ppx_cstruct]="cppo cstruct-sexp cstruct-unix ounit2 ppx_sexp_conv"
@@ -579,6 +586,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-libpcre") -> ()
 	| String (_,"conf-libX11") -> ()
 	| String (_,"conf-nanomsg") -> ()
+	| String (_,"conf-openblas") -> ()
 	| String (_,"conf-openssl") -> ()
 	| String (_,"conf-pkg-config") -> ()
 	| String (_,"conf-postgresql") -> ()
