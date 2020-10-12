@@ -64,7 +64,6 @@ opam-install() {
 
 opam_src_test() {
 	[[ -z ${OPAM_SKIP_VALIDATION} ]] && ocaml_check_deps "${OPAM_FILE:-${PN}.opam}"
-	default
 }
 
 opam_src_install() {
