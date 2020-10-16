@@ -1,33 +1,31 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="5"
+EAPI=7
 
-OASIS_BUILD_DOCS=1
-OASIS_BUILD_TESTS=1
+inherit jbuilder
 
-inherit oasis versionator
-
+MY_PV=release$(ver_rs 1- '')
 DESCRIPTION="Cryptographic primitives library for Objective Caml"
 HOMEPAGE="https://github.com/xavierleroy/cryptokit"
-SRC_URI="https://github.com/xavierleroy/cryptokit/archive/release$(replace_all_version_separators '').tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/xavierleroy/cryptokit/archive/${MY_PV}.tar.gz -> ${P}.tar.gz"
 LICENSE="LGPL-2"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~ppc"
+KEYWORDS="~amd64"
 IUSE="zlib"
 
-DEPEND="zlib? ( >=sys-libs/zlib-1.1 )
-	dev-ml/zarith:="
+DEPEND="
+	zlib? ( >=sys-libs/zlib-1.1:0= )
+	dev-libs/gmp:0=
+"
 RDEPEND="${DEPEND}"
 
-DOCS=( "Changes" "README.md" )
-REQUIRED_USE="test? ( ocamlopt )"
-
-S="${WORKDIR}/${PN}-release$(replace_all_version_separators '')"
+S="${WORKDIR}/${PN}-${MY_PV}"
 
 src_configure() {
-	oasis_configure_opts="$(use_enable zlib)" \
-		oasis_src_configure
+	./configure \
+		$(use_enable zlib) \
+		|| die
 }
 
 pkg_postinst() {
@@ -48,5 +46,5 @@ src_test() {
 	einfo "Daemon (EGD) for this test to succeed!"
 	echo ""
 
-	oasis_src_test
+	jbuilder_src_test
 }
