@@ -82,7 +82,7 @@ typerep variantslib"
 	[cppo_ocamlbuild]="ocamlbuild"
 	[craml]="fmt astring logs cmdliner"
 	[crunch]="cmdliner ptime"
-	[cryptokit]="zarith"
+	[cryptokit]="zarith dune-configurator"
 	[csexp]="result"
 	[cstruct]="bigarray-compat"
 	[cstruct-async]="cstruct async_kernel async_unix core_kernel"
@@ -582,6 +582,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-cairo") -> ()
 	| String (_,"conf-capnproto") -> ()
 	| String (_,"conf-glib-2") -> ()
+	| String (_,"conf-gmp-powm-sec") -> ()
 	| String (_,"conf-gnomecanvas") -> ()
 	| String (_,"conf-gtksourceview3") -> ()
 	| String (_,"conf-gtk3") -> ()
@@ -596,6 +597,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-postgresql") -> ()
 	| String (_,"conf-sqlite3") -> ()
 	| String (_,"conf-snappy") -> ()
+	| String (_,"conf-zlib") -> ()
 	| String (_,"ctypes-foreign") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
 	| String (_,"ctypes") -> if is_dep [] then Printf.printf "ocaml-ctypes\n" else ()
