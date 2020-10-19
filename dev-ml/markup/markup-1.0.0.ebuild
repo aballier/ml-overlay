@@ -16,8 +16,5 @@ IUSE="test"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-DEPEND="${DEPEND}
-	test? ( dev-ml/ounit2 )
-"
+BDEPEND=""
 S="${WORKDIR}/${PN}.ml-${PV}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
