@@ -22,4 +22,3 @@ src_prepare() {
 	default
 	sed -e 's/oUnit/ounit2/' -i lib_test/dune || die
 }
-
