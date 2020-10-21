@@ -11,7 +11,7 @@ SRC_URI="https://github.com/mirage/bigarray-compat/archive/v${PV}.tar.gz -> ${P}
 
 LICENSE="ISC"
 SLOT="0/${PV}"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 DEPEND=""
