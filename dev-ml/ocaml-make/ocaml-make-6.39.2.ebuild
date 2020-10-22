@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=4
@@ -12,7 +12,7 @@ RDEPEND=">=dev-lang/ocaml-3.06-r1
 	>=dev-ml/findlib-0.8"
 SRC_URI="https://github.com/mmottl/ocaml-makefile/releases/download/${PV}/ocaml-makefile-${PV}.tbz"
 SLOT="0"
-KEYWORDS="~amd64 ~ppc ~sparc ~x86"
+KEYWORDS="~amd64 ~ppc ~x86"
 IUSE="examples"
 S="${WORKDIR}/${PN}file-${PV}"
 
