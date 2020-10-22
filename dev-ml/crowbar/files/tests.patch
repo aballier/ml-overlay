@@ -1,0 +1,19 @@
+Index: crowbar-0.2/examples/pprint/test_pprint.ml
+===================================================================
+--- crowbar-0.2.orig/examples/pprint/test_pprint.ml
++++ crowbar-0.2/examples/pprint/test_pprint.ml
+@@ -9,11 +9,11 @@ let doc = fix (fun doc -> choose [
+   const ("awordwhichisalittlebittoolong",
+          string "awordwhichisalittlebittoolong");
+   const ("", hardline);
+-  map [range 10] (fun n -> ("", break n));
+-  map [range 10] (fun n -> ("", break n));
++  map [Crowbar.range 10] (fun n -> ("", break n));
++  map [Crowbar.range 10] (fun n -> ("", break n));
+   map [doc; doc]
+     (fun (sa,da) (sb,db) -> (sa ^ sb, da ^^ db));
+-  map [range 10; doc] (fun n (s,d) -> (s, nest n d));
++  map [Crowbar.range 10; doc] (fun n (s,d) -> (s, nest n d));
+   map [doc] (fun (s, d) -> (s, group d));
+   map [doc] (fun (s, d) -> (s, align d))
+ ])
