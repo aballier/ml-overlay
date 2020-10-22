@@ -12,7 +12,7 @@ IUSE="doc +ocamlopt tk"
 
 LICENSE="MIT"
 
-SLOT="0"
+SLOT="0/${PV}"
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linux ~ppc-macos"
 
 DEPEND=">=dev-lang/ocaml-4.08.1-r1:=[ocamlopt?]
