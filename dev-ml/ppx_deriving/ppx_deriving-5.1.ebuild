@@ -16,4 +16,8 @@ IUSE="test"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
+
+src_prepare() {
+	jbuilder_src_prepare
+	sed -e 's/oUnit/ounit2/' -i src_test/*/dune || die
+}
