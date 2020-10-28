@@ -1,3 +1,0 @@
-# Breaks revdeps
->=dev-ml/ocaml-migrate-parsetree-2.0.0
->=dev-ml/ppxlib-0.16.0
