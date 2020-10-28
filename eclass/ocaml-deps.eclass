@@ -231,7 +231,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[ocamlnet]=""
 	[ocaml-compiler-libs]=""
 	[ocaml-ctypes]="integers"
-	[ocaml-migrate-parsetree]="result ppx_derivers"
+	[ocaml-migrate-parsetree]=""
 	[ocaml-migrate-parsetree-ocamlbuild]="ocaml-migrate-parsetree ocamlbuild"
 	[ocaml-syntax-shims]=""
 	[ocaml-version]=""
