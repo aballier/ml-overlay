@@ -7,15 +7,25 @@ inherit jbuilder
 
 DESCRIPTION="Type-driven code generation for OCaml"
 HOMEPAGE="https://github.com/ocaml-ppx/ppx_deriving"
-SRC_URI="https://github.com/ocaml-ppx/ppx_deriving/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+
+if [[ ${PV%_p*} != ${PV} ]] ; then
+	COMMIT_ID="a0bae72cbf0f0d4ebae8382bf5583406f5358b6e"
+	SRC_URI="https://github.com/ocaml-ppx/ppx_deriving/archive/${COMMIT_ID}.tar.gz -> ${P}.tar.gz"
+	S="${WORKDIR}/${PN}-${COMMIT_ID}"
+else
+	SRC_URI="https://github.com/ocaml-ppx/ppx_deriving/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+fi
+
 
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-IUSE="test"
+IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
+BDEPEND=""
+PATCHES=( "${FILESDIR}/ppxlib.patch" )
 
 src_prepare() {
 	jbuilder_src_prepare
