@@ -529,6 +529,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[sha]="ounit2"
 	[spawn]="ppx_expect"
 	[sqlite3]="ppx_inline_test"
+	[stdint]="qcheck"
 	[stringext]="ounit2 qtest"
 	[tls]="alcotest cstruct-unix ounit2"
 	[tyxml]="alcotest"
@@ -604,6 +605,7 @@ let rec is_test_dep = function
 		[] -> false
 	| Logop (_,_,l,r)::q -> is_test_dep (l::(r::q))
 	| Ident (_,"with-test")::_ -> true
+	| Ident (_,"test")::_ -> true
 	| _ :: q -> is_test_dep q;;
 let rec is_build_dep = function
 		[] -> false
@@ -615,6 +617,7 @@ let rec is_run_dep = function
 	| Logop (_,_,l,r)::q -> is_run_dep (l::(r::q))
 	| Ident (_,"with-doc")::_ -> false
 	| Ident (_,"with-test")::_ -> false
+	| Ident (_,"test")::_ -> false
 	| Ident (_,"build")::_ -> false
 	| Ident (_,"dev")::_ -> false
 	| _ :: q -> is_run_dep q;;
