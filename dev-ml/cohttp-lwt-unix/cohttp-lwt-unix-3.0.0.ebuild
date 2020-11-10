@@ -18,4 +18,8 @@ RDEPEND="dev-libs/openssl:0="
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-cohttp-${PV}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
+
+src_prepare() {
+	jbuilder_src_prepare
+	sed -e 's/oUnit/ounit2/' -i */*/dune || die
+}
