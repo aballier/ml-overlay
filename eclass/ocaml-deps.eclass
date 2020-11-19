@@ -429,6 +429,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[owl]="base stdio"
 	[ppx_deriving]="cppo"
 	[ppx_deriving_protobuf]="cppo ppx_tools ppxfind"
+	[ppx_tools]="cppo"
 	[ptime]="findlib topkg ocamlbuild"
 	[react]="findlib topkg ocamlbuild"
 	[reason]="findlib"
