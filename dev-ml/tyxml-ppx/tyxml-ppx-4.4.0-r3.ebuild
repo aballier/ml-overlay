@@ -10,7 +10,7 @@ HOMEPAGE="http://ocsigen.org/tyxml/"
 SRC_URI="https://github.com/ocsigen/tyxml/archive/${PV}.tar.gz -> tyxml-${PV}.tar.gz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
-SLOT="0/${PV}"
+SLOT="0/${PV}-ppxlib"
 KEYWORDS="~amd64 ~arm ~x86"
 IUSE="test"
 
