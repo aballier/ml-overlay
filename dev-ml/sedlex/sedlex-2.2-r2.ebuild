@@ -10,9 +10,10 @@ HOMEPAGE="https://github.com/alainfrisch/sedlex"
 SRC_URI="https://github.com/alainfrisch/sedlex/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="MIT"
-SLOT="0/${PV}"
+SLOT="0/${PV}-ppxlib"
 KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
+PATCHES=( "${FILESDIR}/ppxlib.patch" )
