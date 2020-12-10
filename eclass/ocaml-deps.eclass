@@ -192,7 +192,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[lwt]="seq result mmap ocplib-endian dune-configurator"
 	[lwt_glib]="lwt"
 	[lwt_log]="lwt"
-	[lwt_ppx]="lwt ocaml-migrate-parsetree ppx_tools_versioned"
+	[lwt_ppx]="lwt ppxlib"
 	[lwt_react]="lwt react"
 	[lwt_ssl]="lwt ssl"
 	[macaddr]=""
