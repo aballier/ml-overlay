@@ -17,3 +17,4 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/tyxml-${PV}"
+PATCHES=( "${FILESDIR}/ppxlib.patch" )

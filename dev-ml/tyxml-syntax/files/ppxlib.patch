@@ -1,0 +1,1460 @@
+From 86b798c49cae33d1a703823e6e46805b230a42db Mon Sep 17 00:00:00 2001
+From: Sonja Heinze <sonjaleaheinze@gmail.com>
+Date: Fri, 12 Jun 2020 12:36:36 +0200
+Subject: [PATCH 1/2] Add tyxml-ppx tests: namespace and open modules
+
+---
+ test/test_ppx.ml | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+Index: tyxml-4.4.0/test/test_ppx.ml
+===================================================================
+--- tyxml-4.4.0.orig/test/test_ppx.ml
++++ tyxml-4.4.0/test/test_ppx.ml
+@@ -5,12 +5,25 @@
+ *)
+ open Tyxml_test
+ 
++module Dummy_html = struct
++  include HtmlWrapped
++  let p = HtmlWrapped.a
++end
++
+ let basics = "ppx basics", HtmlTests.make Html.[
+ 
+   "elems",
+   [[%html "<p></p>"]],
+   [p []] ;
+ 
++  "name space",
++  [[%tyxml.html "<p></p>"]],
++  [p []] ;
++
++  "module",
++  [[%html.Dummy_html "<p></p>"]],
++  [a []] ;
++
+   "child",
+   [[%html "<p><span>foo</span></p>"]],
+   [p [span [txt "foo"]]] ;
+@@ -266,12 +279,25 @@ let ns_nesting = "namespace nesting" , H
+ 
+ ]
+ 
++module Dummy_svg = struct
++  include Svg
++  let svg = Svg.text
++end
++
+ let svg = "svg", SvgTests.make Svg.[
+ 
+   "basic",
+   [[%svg "<svg/>"]],
+   [svg []] ;
+ 
++  "name space",
++  [[%tyxml.svg "<svg/>"]],
++  [svg []] ;
++
++  "module",
++  [[%svg.Dummy_svg "<svg/>"]],
++  [text []] ;
++
+   "transform",
+   [[%svg "<line transform='translate(1) translate(2)'/>"]],
+   [line ~a:[a_transform [`Translate (1., None); `Translate (2., None)]] []] ;
+Index: tyxml-4.4.0/.travis.yml
+===================================================================
+--- tyxml-4.4.0.orig/.travis.yml
++++ tyxml-4.4.0/.travis.yml
+@@ -8,20 +8,16 @@ env:
+   - PINS="tyxml:. tyxml-ppx:. tyxml-jsx:. tyxml-syntax:."
+   - DISTRO="debian-stable"
+   matrix:
+-  - PACKAGE="tyxml" OCAML_VERSION="4.02.3"
+-  - PACKAGE="tyxml" OCAML_VERSION="4.03.0"
+   - PACKAGE="tyxml" OCAML_VERSION="4.04.2"
+   - PACKAGE="tyxml" OCAML_VERSION="4.05.0"
+   - PACKAGE="tyxml" OCAML_VERSION="4.06.1"
+   - PACKAGE="tyxml" OCAML_VERSION="4.07.1"
+   - PACKAGE="tyxml" OCAML_VERSION="4.08.1"
+   - PACKAGE="tyxml" OCAML_VERSION="4.09.0"
+-  - PACKAGE="tyxml-ppx" OCAML_VERSION="4.02.3"
+   - PACKAGE="tyxml-ppx" OCAML_VERSION="4.04.2"
+   - PACKAGE="tyxml-ppx" OCAML_VERSION="4.06.1"
+   - PACKAGE="tyxml-ppx" OCAML_VERSION="4.08.1"
+   - PACKAGE="tyxml-ppx" OCAML_VERSION="4.09.0"
+-  - PACKAGE="tyxml-jsx" OCAML_VERSION="4.02.3"
+   - PACKAGE="tyxml-jsx" OCAML_VERSION="4.04.2"
+   - PACKAGE="tyxml-jsx" OCAML_VERSION="4.06.1"
+   - PACKAGE="tyxml-jsx" OCAML_VERSION="4.08.1"
+Index: tyxml-4.4.0/jsx/dune
+===================================================================
+--- tyxml-4.4.0.orig/jsx/dune
++++ tyxml-4.4.0/jsx/dune
+@@ -1,16 +1,14 @@
+ (library
+  (name tyxml_jsx)
+  (public_name tyxml-jsx)
+- (libraries ppx_tools_versioned
+-            tyxml-syntax
++ (libraries tyxml-syntax
++            ppxlib
+  )
+  (kind ppx_rewriter)
+- (preprocess (pps ppx_tools_versioned.metaquot_408))
++ (preprocess (pps ppxlib.metaquot))
+  (flags (:standard
+          -safe-string
+-         -open Migrate_parsetree
+-         -open Ast_408
+-         -open Ppx_tools_408
++         -open Ppxlib
+          -w "-9"
+  ))
+ )
+Index: tyxml-4.4.0/jsx/tyxml_jsx.ml
+===================================================================
+--- tyxml-4.4.0.orig/jsx/tyxml_jsx.ml
++++ tyxml-4.4.0/jsx/tyxml_jsx.ml
+@@ -1,7 +1,5 @@
+-open Ast_mapper
+-open Parsetree
+-open Asttypes
+-
++open Ppxlib.Parsetree
++open Ppxlib.Asttypes
+ open Tyxml_syntax
+ 
+ let is_jsx e =
+@@ -69,35 +67,35 @@ let rec filter_map f = function
+ let make_txt ~loc ~lang s =
+   let txt = Common.make ~loc lang "txt" in
+   let arg = Common.wrap lang loc @@ Common.string loc s in
+-  Ast_helper.Exp.apply ~loc txt [Common.Label.nolabel, arg]
++  Ppxlib.Ast_helper.Exp.apply ~loc txt [Nolabel, arg]
+ 
+-let element_mapper mapper e =
++let element_mapper transform_expr e =
+   match e with
+   (* Convert string constant into Html.txt "constant" for convenience *)
+-  | { pexp_desc = Pexp_constant (Pconst_string (str, _)); pexp_loc = loc; _ } ->
++  | { pexp_desc = Pexp_constant (Pconst_string (str, _, _)); pexp_loc = loc; _ } ->
+     make_txt ~loc ~lang:Html str
+   | _ ->
+-    mapper.expr mapper e
++    transform_expr e
+ 
+-let extract_element_list mapper elements =
++let extract_element_list transform_expr elements =
+   let rec map acc e =
+     match e with
+     | [%expr []] -> List.rev acc
+     | [%expr [%e? child] :: [%e? rest]] ->
+-      let child = Common.value (element_mapper mapper child) in
++      let child = Common.value (element_mapper transform_expr child) in
+       map (child :: acc) rest
+     | e ->
+-      List.rev (Common.antiquot (element_mapper mapper e) :: acc)
++      List.rev (Common.antiquot (element_mapper transform_expr e) :: acc)
+   in
+   map [] elements
+ 
+-let extract_children mapper args =
++let extract_children transform_expr args =
+   match
+     List.find
+       (function Labelled "children", _ -> true | _ -> false)
+       args
+   with
+-  | _, children -> extract_element_list mapper children
++  | _, children -> extract_element_list transform_expr children
+   | exception Not_found -> []
+ 
+ (** Attributes *)
+@@ -111,7 +109,7 @@ type attr = {
+ let rec extract_attr_value ~lang a_name a_value =
+   let a_name = make_attr_name a_name in
+   match a_value with
+-  | { pexp_desc = Pexp_constant (Pconst_string (attr_value, _));
++  | { pexp_desc = Pexp_constant (Pconst_string (attr_value, _, _));
+       _;
+     } ->
+     ((lang, a_name), Common.value attr_value)
+@@ -149,7 +147,7 @@ let classify_name ~loc hint_lang lid =
+       hint_lang, name
+     | _ ->
+       Common.error loc "Invalid Tyxml tag %s"
+-        (String.concat "." (Longident.flatten lid))
++        (String.concat "." (Longident.flatten_exn lid))
+   in
+   let parent_lang, elt =
+     match Element.find_assembler (Html, name),
+@@ -188,58 +186,14 @@ let mk_component ~lang ~loc f attrs chil
+   in
+   let attrs = List.map mk_attr attrs in
+   let args = attrs @ children @ [Nolabel,[%expr ()]] in
+-  Ast_helper.Exp.apply ~loc f args
++  Ppxlib.Ast_helper.Exp.apply ~loc f args
+   
+ type config = {
+   mutable lang : Common.lang option ;
+   mutable enabled : bool ;
+ }
+ 
+-let expr_mapper c mapper e =
+-  if not (is_jsx e) || not c.enabled then default_mapper.expr mapper e
+-  else
+-    let loc = e.pexp_loc in
+-    match e with
+-    (* matches <> ... </>; *)
+-    | [%expr []]
+-    | [%expr [%e? _] :: [%e? _]] ->
+-      let l = extract_element_list mapper e in
+-      Common.list_wrap_value Common.Html loc l
+-    (* matches <Component foo={bar}> child1 child2 </div>; *)
+-    | {pexp_desc = Pexp_apply
+-           ({ pexp_desc = Pexp_ident { txt }; _ } as f_expr, args )}
+-      when is_homemade_component txt
+-      ->
+-      let lang = match c.lang with
+-        | Some l -> l | None -> Common.Html
+-      in
+-      let attributes = filter_map (extract_attr ~lang) args in
+-      let children = extract_children mapper args in
+-      let e =
+-        mk_component ~loc ~lang f_expr attributes children
+-      in
+-      e
+-    (* matches <div foo={bar}> child1 child2 </div>; *)
+-    | {pexp_desc = Pexp_apply
+-           ({ pexp_desc = Pexp_ident { txt }; _ }, args )}
+-      ->
+-      let hint_lang = c.lang in
+-      let parent_lang, name = classify_name ~loc hint_lang txt in
+-      let lang = fst name in
+-      c.lang <- Some lang;
+-      let attributes = filter_map (extract_attr ~lang) args in
+-      let children = extract_children mapper args in
+-      let e = Element.parse ~loc
+-          ~parent_lang
+-          ~name
+-          ~attributes
+-          children
+-      in
+-      c.lang <- hint_lang ;
+-      e
+-    | _ -> default_mapper.expr mapper e
+-
+-let stri_mapper c mapper stri = match stri.pstr_desc with
++let stri_mapper c default_transform_str_item stri = match stri.pstr_desc with
+   | Pstr_attribute
+       { attr_name = { txt = ("tyxml.jsx" | "tyxml.jsx.enable") as s } ;
+         attr_payload ; attr_loc ;
+@@ -254,16 +208,65 @@ let stri_mapper c mapper stri = match st
+           "Unexpected payload for %s. A boolean is expected." s
+     end ;
+     stri
+-  | _ -> default_mapper.structure_item mapper stri
++  | _ -> default_transform_str_item stri
++
++let traverse = object(self)
++  inherit Ppxlib.Ast_traverse.map as super
+ 
+-let mapper _ _ =
+-  let c = { lang = None; enabled = true } in
+-  { default_mapper with
+-    expr = expr_mapper c ;
+-    structure_item = stri_mapper c ;
+-  }
++  val c = { lang = None; enabled = true }
++  
++  method! structure_item =
++    stri_mapper c super#structure_item
++  
++  method expr_mapper c e =
++    if not (is_jsx e) || not c.enabled then super#expression e
++    else
++      let loc = e.pexp_loc in
++      match e with
++      (* matches <> ... </>; *)
++      | [%expr []]
++      | [%expr [%e? _] :: [%e? _]] ->
++        let l = extract_element_list self#expression e in
++        Common.list_wrap_value Common.Html loc l
++      (* matches <Component foo={bar}> child1 child2 </div>; *)
++      | {pexp_desc = Pexp_apply
++             ({ pexp_desc = Pexp_ident { txt }; _ } as f_expr, args )}
++        when is_homemade_component txt
++        ->
++        let lang = match c.lang with
++          | Some l -> l | None -> Common.Html
++        in
++        let attributes = filter_map (extract_attr ~lang) args in
++        let children = extract_children self#expression args in
++        let e =
++          mk_component ~loc ~lang f_expr attributes children
++        in
++        e
++      (* matches <div foo={bar}> child1 child2 </div>; *)
++      | {pexp_desc = Pexp_apply
++             ({ pexp_desc = Pexp_ident { txt }; _ }, args )}
++        ->
++        let hint_lang = c.lang in
++        let parent_lang, name = classify_name ~loc hint_lang txt in
++        let lang = fst name in
++        c.lang <- Some lang;
++        let attributes = filter_map (extract_attr ~lang) args in
++        let children = extract_children self#expression args in
++        let e = Element.parse ~loc
++            ~parent_lang
++            ~name
++            ~attributes
++            children
++        in
++        c.lang <- hint_lang ;
++        e
++      | _ -> super#expression e
++
++  method! expression =
++    self#expr_mapper c
++end
+ 
+ let () =
+-  Driver.register
+-    ~name:"tyxml-jsx" Versions.ocaml_408
+-    mapper
++Ppxlib.Driver.register_transformation
++  ~impl:traverse#structure
++  "tyxml-jsx"
+Index: tyxml-4.4.0/ppx/dune
+===================================================================
+--- tyxml-4.4.0.orig/ppx/dune
++++ tyxml-4.4.0/ppx/dune
+@@ -2,16 +2,14 @@
+  (name tyxml_ppx)
+  (public_name tyxml-ppx.internal)
+  (libraries re.str
+-            ppx_tools_versioned
+             markup
+             tyxml-syntax
++            ppxlib
+  )
+- (preprocess (pps ppx_tools_versioned.metaquot_408))
++ (preprocess (pps ppxlib.metaquot))
+  (flags (:standard
+          -safe-string
+-         -open Migrate_parsetree
+-         -open Ast_408
+-         -open Ppx_tools_408
++         -open Ppxlib
+          -w "-9"
+  ))
+ )
+Index: tyxml-4.4.0/ppx/register/dune
+===================================================================
+--- tyxml-4.4.0.orig/ppx/register/dune
++++ tyxml-4.4.0/ppx/register/dune
+@@ -1,6 +1,6 @@
+ (library
+  (name tyxml_ppx_register)
+  (public_name tyxml-ppx)
+- (libraries tyxml-ppx.internal)
++ (libraries tyxml-ppx.internal ppxlib)
+  (kind ppx_rewriter)
+ )
+Index: tyxml-4.4.0/ppx/register/tyxml_ppx_register.ml
+===================================================================
+--- tyxml-4.4.0.orig/ppx/register/tyxml_ppx_register.ml
++++ tyxml-4.4.0/ppx/register/tyxml_ppx_register.ml
+@@ -1,6 +1,26 @@
+-open Migrate_parsetree
++open Ppxlib
++
++let str_item_extension name expand =
++  Extension.declare_with_path_arg
++    name
++    Extension.Context.structure_item
++    Ast_pattern.(pstr ((pstr_value __ __) ^:: nil))
++    expand
++
++let html_str_item_rule = str_item_extension "tyxml.html" Tyxml_ppx.expand_html_str_item |> Ppxlib.Context_free.Rule.extension
++let svg_str_item_rule = str_item_extension "tyxml.svg" Tyxml_ppx.expand_svg_str_item |> Ppxlib.Context_free.Rule.extension
++
++let expr_expansion name expand =
++Extension.declare_with_path_arg
++  name
++  Extension.Context.expression
++  Ast_pattern.(pstr ((pstr_eval __ __) ^:: nil))
++  expand
++
++let html_expr_rule = expr_expansion "tyxml.html" Tyxml_ppx.expand_html_expr |> Ppxlib.Context_free.Rule.extension
++let svg_expr_rule = expr_expansion "tyxml.svg" Tyxml_ppx.expand_svg_expr |> Ppxlib.Context_free.Rule.extension
+ 
+ let () =
+-  Driver.register
+-    ~name:"tyxml" Versions.ocaml_408
+-    Tyxml_ppx.mapper
++Ppxlib.Driver.register_transformation
++  ~rules:[html_expr_rule; html_str_item_rule; svg_expr_rule; svg_str_item_rule]
++  "tyxml"
+Index: tyxml-4.4.0/ppx/tyxml_ppx.ml
+===================================================================
+--- tyxml-4.4.0.orig/ppx/tyxml_ppx.ml
++++ tyxml-4.4.0/ppx/tyxml_ppx.ml
+@@ -25,8 +25,8 @@ module String = struct
+   let capitalize_ascii = String.capitalize [@ocaml.warning "-3"]
+ end
+ 
+-open Asttypes
+-open Parsetree
++open Ppxlib.Asttypes
++open Ppxlib.Parsetree
+ 
+ type lang = Common.lang = Html | Svg
+ let lang_of_ns loc ns =
+@@ -39,12 +39,6 @@ module Loc = struct
+ 
+   let shift (pos:Lexing.position) x = {pos with pos_cnum = pos.pos_cnum + x}
+ 
+-  let shrink {Location. loc_start ; loc_end ; loc_ghost } ~xbegin ~xend =
+-    { Location.loc_ghost ;
+-      loc_start = shift loc_start xbegin ;
+-      loc_end = shift loc_end xend ;
+-    }
+-
+   (** Returns the real (OCaml) location of the content of a string, taking
+       delimiters into account. *)
+   let string_start delimiter loc =
+@@ -251,10 +245,10 @@ let ast_to_stream expressions =
+ 
+   let strings =
+     expressions |> List.map @@ fun expr ->
+-    match Ast_convenience.get_str_with_quotation_delimiter expr with
+-    | Some (s, delimiter) ->
++    match expr.pexp_desc with
++    | Pexp_constant (Pconst_string (s, _, delimiter)) ->
+       (s, Loc.string_start delimiter expr.pexp_loc)
+-    | None ->
++    | _ ->
+       (Antiquot.create expr, expr.pexp_loc.loc_start)
+   in
+ 
+@@ -373,41 +367,22 @@ let is_capitalized s =
+     | 'A'..'Z' -> true
+     | _ -> false
+ 
+-(** Extract and verify the modname in the annotation [%html.Bar.Baz .. ].
+-    We need to fiddle with length to provide a correct location. *)
+-let get_modname ~loc len l =
++(** Extract and verify the modname in the annotation [%html.Bar.Baz .. ]. *)
++let get_modname = function
++  | None -> None
++  | Some {txt = longident ; loc} -> let l = Longident.flatten_exn longident in
+   let s = String.concat "." l in
+-  let loc = Loc.shrink loc ~xbegin:(len - String.length s) ~xend:0 in
+   if l = [] then None
+   else if not (List.for_all is_capitalized l) then
+     Common.error loc "This identifier is not a module name"
+   else Some s
+ 
+-let re_dot = Re.(compile @@ char '.')
+-let dispatch_ext {txt ; loc} =
+-  let l = Re.split re_dot txt in
+-  let len = String.length txt in
+-  match l with
+-  | "html" :: l
+-  | "tyxml" :: "html" :: l ->
+-    Some (Common.Html, get_modname ~loc len l)
+-  | "svg" :: l
+-  | "tyxml" :: "svg" :: l ->
+-    Some (Common.Svg, get_modname ~loc len l)
+-  | _ -> None
+-
+ let application_to_list expr =
+   match expr.pexp_desc with
+   | Pexp_apply (f, arguments) -> f::(List.map snd arguments)
+   | _ -> [expr]
+ 
+ 
+-open Ast_mapper
+-open Ast_helper
+-
+-let error { txt ; loc } =
+-  Common.error loc "Invalid payload for [%%%s]" txt
+-
+ let markup_cases ~lang ~modname cases =
+   let f ({pc_rhs} as case) =
+     let loc = pc_rhs.pexp_loc in
+@@ -438,37 +413,32 @@ let markup_bindings ~lang ~modname l =
+   in
+   List.map f l
+ 
+-let rec expr mapper e =
++let expand_expression ~arg ~lang e =
++  let modname = get_modname arg in
+   match e.pexp_desc with
+-  | Pexp_extension (ext, payload) ->
+-    begin match dispatch_ext ext, payload with
+-    | Some (lang, modname), PStr [{pstr_desc = Pstr_eval (e, _)}] ->
+-      begin match e.pexp_desc with
+-        | Pexp_let (recflag, bindings, next) ->
+-          let bindings = markup_bindings ~lang ~modname bindings in
+-          {e with pexp_desc = Pexp_let (recflag, bindings, expr mapper next)}
+-        | _ ->
+-          markup_to_expr_with_implementation lang modname e.pexp_loc  @@
+-          application_to_list e
+-      end
+-    | Some _, _ -> error ext
+-    | None, _ -> default_mapper.expr mapper e
+-    end
+-  | _ -> default_mapper.expr mapper e
+-
+-let structure_item mapper stri =
+-  match stri.pstr_desc with
+-  | Pstr_extension ((ext, payload), _attrs) ->
+-    begin match dispatch_ext ext, payload with
+-    | Some (lang, modname),
+-      PStr [{pstr_desc = Pstr_value (recflag, bindings) }] ->
+-      let bindings = markup_bindings ~lang ~modname bindings in
+-      Str.value recflag bindings
+-
+-    | Some _, _ -> error ext
+-    | None, _ -> default_mapper.structure_item mapper stri
+-    end
+-  | _ -> default_mapper.structure_item mapper stri
++  | Pexp_let (recflag, bindings, next) ->
++    let bindings = markup_bindings ~lang ~modname bindings in
++    {e with pexp_desc = Pexp_let (recflag, bindings, next)}
++  | _ ->
++    markup_to_expr_with_implementation lang modname e.pexp_loc  @@
++    application_to_list e
+ 
+-let mapper _ _ =
+-  {default_mapper with expr ; structure_item}
++let expand_html_expr  ~loc:_ ~path:_ ~arg e _ =
++  let lang = Common.Html in
++  expand_expression e ~arg ~lang
++
++let expand_svg_expr  ~loc:_ ~path:_ ~arg e _ =
++  let lang = Common.Svg in
++  expand_expression e ~arg ~lang
++  
++let expand_str_item recflag value_bindings ~arg ~lang =
++  let bindings = markup_bindings ~lang ~modname:(get_modname arg) value_bindings in 
++  Ppxlib.Ast_helper.Str.value recflag bindings
++
++let expand_html_str_item ~loc:_ ~path:_ ~arg recflag value_bindings =
++  let lang = Common.Html in
++  expand_str_item recflag value_bindings ~arg ~lang
++
++let expand_svg_str_item ~loc:_ ~path:_ ~arg recflag value_bindings =
++  let lang = Common.Svg in
++  expand_str_item recflag value_bindings ~arg ~lang
+Index: tyxml-4.4.0/ppx/tyxml_ppx.mli
+===================================================================
+--- tyxml-4.4.0.orig/ppx/tyxml_ppx.mli
++++ tyxml-4.4.0/ppx/tyxml_ppx.mli
+@@ -28,9 +28,39 @@ type lang = Html | Svg
+ 
+ val markup_to_expr :
+   lang ->
+-  Location.t -> Parsetree.expression list -> Parsetree.expression
++  Location.t -> Ppxlib.expression list -> Ppxlib.expression
+ (** Given the payload of a [%html ...] or [%svg ...] expression,
+     converts it to a TyXML expression representing the markup
+     contained therein. *)
+ 
+-val mapper : _ -> _ -> Ast_mapper.mapper
++val expand_html_expr :
++  loc: Ppxlib.Location.t ->
++  path: string ->
++  arg: Ppxlib.Longident.t Asttypes.loc option ->
++  Ppxlib.expression ->
++  Ppxlib.attribute list ->
++  Ppxlib.expression
++
++val expand_svg_expr :
++  loc: Ppxlib.Location.t ->
++  path: string ->
++  arg: Ppxlib.Longident.t Asttypes.loc option ->
++  Ppxlib.expression ->
++  Ppxlib.attribute list ->
++  Ppxlib.expression
++        
++val expand_html_str_item : 
++  loc: Ppxlib.Location.t ->
++  path: string ->
++  arg: Ppxlib.Longident.t Asttypes.loc option ->
++  Ppxlib.rec_flag ->
++  Ppxlib.value_binding list ->
++  Ppxlib.structure_item
++
++val expand_svg_str_item : 
++  loc: Ppxlib.Location.t ->
++  path: string ->
++  arg: Ppxlib.Longident.t Asttypes.loc option ->
++  Ppxlib.rec_flag ->
++  Ppxlib.value_binding list ->
++  Ppxlib.structure_item
+Index: tyxml-4.4.0/syntax/attribute_value.ml
+===================================================================
+--- tyxml-4.4.0.orig/syntax/attribute_value.ml
++++ tyxml-4.4.0/syntax/attribute_value.ml
+@@ -19,11 +19,11 @@
+ 
+ [@@@ocaml.warning "-3"]
+ 
+-open Ast_helper
++open Ppxlib.Ast_helper
+ 
+ type 'a gparser =
+   ?separated_by:string -> ?default:string -> Location.t -> string -> 'a ->
+-    Parsetree.expression option
++    expression option
+ 
+ type parser = string gparser
+ type vparser = string Common.value gparser
+@@ -144,7 +144,7 @@ let float_exp loc s =
+ 
+ let bool_exp loc b =
+   let s = if b then "true" else "false" in
+-  Exp.construct ~loc (Location.mkloc (Longident.Lident s) loc) None
++  Exp.construct ~loc ({ txt = (Longident.Lident s); loc }) None
+ 
+ (* Numeric. *)
+ 
+@@ -166,7 +166,9 @@ let char ?separated_by:_ ?default:_ loc
+   | `End -> ()
+   | _ -> Common.error loc "Multiple characters in attribute %s" name
+   end;
+-  Some (with_default_loc loc @@ fun () -> Ast_convenience.char c)
++  Some (Ast_builder.Default.echar ~loc c)
++
++
+ 
+ let onoff ?separated_by:_ ?default:_ loc name s =
+   let b = match s with
+@@ -188,7 +190,7 @@ let bool ?separated_by:_ ?default:_ loc
+ 
+ let unit ?separated_by:_ ?default:_ loc name s =
+   if s = "" || s = name then
+-    Some (Ast_convenience.(with_default_loc loc unit))
++    Some (Ast_builder.Default.eunit ~loc)
+   else
+     Common.error loc
+       {|Value of %s must be %s or "".|}
+@@ -411,7 +413,7 @@ let transform =
+ (* String-like. *)
+ 
+ let string ?separated_by:_ ?default:_ loc _ s =
+-  Some (with_default_loc loc @@ fun () -> Ast_convenience.str s)
++  Some (Ast_builder.Default.estring ~loc s)
+ 
+ let variand s =
+   let without_backtick s =
+Index: tyxml-4.4.0/syntax/attribute_value.mli
+===================================================================
+--- tyxml-4.4.0.orig/syntax/attribute_value.mli
++++ tyxml-4.4.0/syntax/attribute_value.mli
+@@ -19,10 +19,9 @@
+ 
+ (** Attribute value parsers and parser combinators. *)
+ 
+-
+ type 'a gparser =
+   ?separated_by:string -> ?default:string -> Location.t -> string -> 'a ->
+-    Parsetree.expression option
++    expression option
+ type parser = string gparser
+ type vparser = string Common.value gparser
+ (** Attribute value parsers are assigned to each attribute depending on the type
+Index: tyxml-4.4.0/syntax/attributes.ml
+===================================================================
+--- tyxml-4.4.0.orig/syntax/attributes.ml
++++ tyxml-4.4.0/syntax/attributes.ml
+@@ -68,7 +68,7 @@ let parse loc (language, element_name) a
+         | Some e -> e
+       in
+ 
+-      (Common.Label.labelled label, e)::labeled, regular
++      (Labelled label, e)::labeled, regular
+ 
+     | None ->
+       (* The attribute is not individually labeled, so it is passed in ~a.
+@@ -143,7 +143,7 @@ let parse loc (language, element_name) a
+   if regular = [] then List.rev labeled
+   else
+     let regular =
+-      Common.Label.labelled "a",
++      Labelled "a",
+       Common.list loc (List.rev regular)
+     in
+     List.rev (regular::labeled)
+Index: tyxml-4.4.0/syntax/attributes.mli
+===================================================================
+--- tyxml-4.4.0.orig/syntax/attributes.mli
++++ tyxml-4.4.0/syntax/attributes.mli
+@@ -21,7 +21,7 @@
+ 
+ val parse :
+   Location.t -> Common.name -> (Common.name * string Common.value) list ->
+-    (Common.Label.t * Parsetree.expression) list
++    (Ppxlib.arg_label * Ppxlib.expression) list
+ (** [parse loc element_name attributes] evaluates to a list of labeled parse
+     trees, each representing an attribute argument to the element function for
+     [element_name]. For example, if called on the HTML element
+Index: tyxml-4.4.0/syntax/common.ml
+===================================================================
+--- tyxml-4.4.0.orig/syntax/common.ml
++++ tyxml-4.4.0/syntax/common.ml
+@@ -17,8 +17,8 @@
+  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1301, USA.
+ *)
+ 
+-open Ast_helper
+-module Label = Ast_convenience.Label
++open Ppxlib.Ast_helper
++open Ppxlib.Parsetree
+ 
+ (** Lang utilities *)
+ 
+@@ -44,9 +44,9 @@ let lang = function
+   | Svg -> "SVG"
+ 
+ let make_lid ~loc i s =
+-  Location.mkloc
+-    (Longident.parse @@ implementation i ^ "." ^ s)
+-    loc
++  { txt =
++    (Longident.parse @@ implementation i ^ "." ^ s);
++    loc }
+ 
+ let make ~loc i s =
+   Exp.ident ~loc @@ make_lid ~loc i s
+@@ -57,9 +57,6 @@ let find f l =
+   try Some (List.find f l)
+   with Not_found -> None
+ 
+-let with_loc loc f x =
+-  with_default_loc loc @@ fun () -> f x
+-
+ let error loc ppf =
+   (* Originally written by @Drup in 24d87befcc505a9e3a1b081849b12560ce38028f. *)
+   (* We use a custom implementation because the type of Location.raise_errorf
+@@ -75,14 +72,14 @@ let error loc ppf =
+ 
+ (** Ast manipulation *)
+ 
+-let int loc = with_loc loc Ast_convenience.int
++let int loc = Ast_builder.Default.eint ~loc
+ 
+-let float loc = with_loc loc Ast_convenience.float
++let float loc fl = Ast_builder.Default.efloat ~loc @@ string_of_float fl
+ 
+-let string loc = with_loc loc Ast_convenience.str
++let string loc = Ast_builder.Default.estring ~loc
+ 
+ let add_constraints ~list lang e =
+-  let loc = {e.Parsetree.pexp_loc with loc_ghost = true} in
++  let loc = {e.pexp_loc with loc_ghost = true} in
+   let elt = make_lid ~loc lang "elt" in
+   let wrap =
+     if list then make_lid ~loc lang "list_wrap"
+@@ -95,7 +92,7 @@ let add_constraints ~list lang e =
+ 
+ type 'a value =
+   | Val of 'a
+-  | Antiquot of Parsetree.expression
++  | Antiquot of expression
+ 
+ let value x = Val x
+ let antiquot e = Antiquot e
+@@ -152,4 +149,4 @@ let wrap_value lang loc = function
+ let txt ~loc ~lang s =
+   let txt = make ~loc lang "txt" in
+   let arg = wrap lang loc @@ string loc s in
+-  Ast_helper.Exp.apply ~loc txt [Label.nolabel, arg]
++  Ast_helper.Exp.apply ~loc txt [Nolabel, arg]
+Index: tyxml-4.4.0/syntax/common.mli
+===================================================================
+--- tyxml-4.4.0.orig/syntax/common.mli
++++ tyxml-4.4.0/syntax/common.mli
+@@ -21,8 +21,6 @@ val find : ('a -> bool) -> 'a list -> 'a
+ (** Similar to [List.find], but evaluates to an option instead of raising
+     [Not_found]. *)
+ 
+-module Label = Ast_convenience.Label
+-
+ (** Markup language *)
+ 
+ type lang = Html | Svg
+@@ -35,36 +33,36 @@ type name = lang * string
+ val make_lid :
+   loc:Location.t -> lang -> string -> Longident.t Location.loc
+ val make :
+-  loc:Location.t -> lang -> string -> Parsetree.expression
++  loc:Location.t -> lang -> string -> expression
+ 
+ (** Expression helpers. *)
+ 
+-val int : Location.t -> int -> Parsetree.expression
+-val float : Location.t -> float -> Parsetree.expression
+-val string : Location.t -> string -> Parsetree.expression
+-val list : Location.t -> Parsetree.expression list -> Parsetree.expression
+-val list_wrap : lang -> Location.t -> Parsetree.expression list -> Parsetree.expression
++val int : Location.t -> int -> expression
++val float : Location.t -> float -> expression
++val string : Location.t -> string -> expression
++val list : Location.t -> expression list -> expression
++val list_wrap : lang -> Location.t -> expression list -> expression
+ 
+ val wrap :
+-  lang -> Location.t -> Parsetree.expression -> Parsetree.expression
++  lang -> Location.t -> expression -> expression
+ (** [wrap implementation loc e] creates a parse tree for
+     [implementation.Xml.W.return e]. *)
+ 
+ type 'a value =
+   | Val of 'a
+-  | Antiquot of Parsetree.expression
++  | Antiquot of expression
+ 
+ val map_value : ('a -> 'b) -> 'a value -> 'b value
+ val value : 'a -> 'a value
+-val antiquot : Parsetree.expression -> _ value
++val antiquot : expression -> _ value
+ 
+ val wrap_value :
+-  lang -> Location.t -> Parsetree.expression value -> Parsetree.expression
++  lang -> Location.t -> expression value -> expression
+ val list_wrap_value :
+-  lang -> Location.t -> Parsetree.expression value list -> Parsetree.expression
++  lang -> Location.t -> expression value list -> expression
+ 
+ 
+ val error : Location.t -> ('b, Format.formatter, unit, 'a) format4 -> 'b
+ 
+ val txt :
+-  loc:Location.t -> lang:lang -> string -> Parsetree.expression
++  loc:Location.t -> lang:lang -> string -> expression
+Index: tyxml-4.4.0/syntax/dune
+===================================================================
+--- tyxml-4.4.0.orig/syntax/dune
++++ tyxml-4.4.0/syntax/dune
+@@ -19,15 +19,13 @@
+  (name tyxml_syntax)
+  (public_name tyxml-syntax)
+  (libraries uutf re.str
+-            ppx_tools_versioned
++            ppxlib
+  )
+- (preprocess (pps ppx_tools_versioned.metaquot_408))
++ (preprocess (pps ppxlib.metaquot))
+  (modules_without_implementation sigs_reflected)
+  (flags (:standard
+          -safe-string
+-         -open Migrate_parsetree
+-         -open Ast_408
+-         -open Ppx_tools_408
++         -open Ppxlib
+          -w "-9"
+  ))
+ )
+Index: tyxml-4.4.0/syntax/element.mli
+===================================================================
+--- tyxml-4.4.0.orig/syntax/element.mli
++++ tyxml-4.4.0/syntax/element.mli
+@@ -24,8 +24,8 @@ val parse :
+   parent_lang:Common.lang ->
+   name:Common.name ->
+   attributes:(Common.name * string Common.value) list ->
+-  Parsetree.expression Common.value list ->
+-  Parsetree.expression
++  Ppxlib.expression Common.value list ->
++  Ppxlib.expression
+ (** [parse ~loc ~parent_lang ~name ~attributes children]
+     evaluates to a parse tree for applying the TyXML function corresponding
+     to element [name] to suitable arguments representing [attributes] and
+@@ -36,7 +36,7 @@ val comment :
+   loc:Location.t ->
+   lang:Common.lang ->
+   string ->
+-  Parsetree.expression
++  Ppxlib.expression
+ (** [comment ~loc ~ns s] evaluates to a parse tree that represents an XML comment. *)
+ 
+ val find_assembler :
+Index: tyxml-4.4.0/syntax/element_content.ml
+===================================================================
+--- tyxml-4.4.0.orig/syntax/element_content.ml
++++ tyxml-4.4.0/syntax/element_content.ml
+@@ -24,8 +24,8 @@ type assembler =
+   lang:Common.lang ->
+   loc:Location.t ->
+   name:string ->
+-  Parsetree.expression Common.value list ->
+-  (Common.Label.t * Parsetree.expression) list
++  expression Common.value list ->
++  (arg_label * expression) list
+ 
+ 
+ 
+@@ -36,8 +36,8 @@ type assembler =
+ let to_txt = function
+   | [%expr[%e? {pexp_desc = Pexp_ident f; _}]
+       ( [%e? {pexp_desc = Pexp_ident f2; _}] [%e? arg])] -> begin
+-      match Longident.last f.txt, Longident.last f2.txt, Ast_convenience.get_str arg with
+-      | "txt", "return", Some s -> Some s
++      match Longident.last_exn f.txt, Longident.last_exn f2.txt, arg.pexp_desc with
++      | "txt", "return", Pexp_constant (Pconst_string (s, _, _)) -> Some s
+       | _ -> None
+     end
+   | _ -> None
+@@ -92,17 +92,17 @@ let html local_name =
+ let nullary ~lang:_ ~loc ~name children =
+   if children <> [] then
+     Common.error loc "%s should have no content" name;
+-  [Common.Label.nolabel, [%expr ()] [@metaloc loc]]
++  [Nolabel, [%expr ()] [@metaloc loc]]
+ 
+ let unary ~lang ~loc ~name children =
+   match children with
+   | [child] ->
+     let child = Common.wrap_value lang loc child in
+-    [Common.Label.nolabel, child]
++    [Nolabel, child]
+   | _ -> Common.error loc "%s should have exactly one child" name
+ 
+ let star ~lang ~loc ~name:_ children =
+-  [Common.Label.nolabel, Common.list_wrap_value lang loc children]
++  [Nolabel, Common.list_wrap_value lang loc children]
+ 
+ 
+ 
+@@ -113,7 +113,7 @@ let head ~lang ~loc ~name children =
+ 
+   match title with
+   | [title] ->
+-    (Common.Label.nolabel, Common.wrap_value lang loc title) :: star ~lang ~loc ~name others
++    (Nolabel, Common.wrap_value lang loc title) :: star ~lang ~loc ~name others
+   | _ ->
+     Common.error loc
+       "%s element must have exactly one title child element" name
+@@ -140,11 +140,11 @@ let figure ~lang ~loc ~name children =
+   begin match caption with
+     | `No -> star ~lang ~loc ~name children
+     | `Top elt -> 
+-      (Common.Label.labelled "figcaption",
++      (Labelled "figcaption",
+        [%expr `Top [%e Common.wrap_value lang loc elt]])::
+       (star ~lang ~loc ~name children)
+     | `Bottom elt ->
+-      (Common.Label.labelled "figcaption",
++      (Labelled "figcaption",
+        [%expr `Bottom [%e Common.wrap_value lang loc elt]])::
+       (star ~lang ~loc ~name children)
+   end [@metaloc loc]
+@@ -153,7 +153,7 @@ let object_ ~lang ~loc ~name children =
+   let params, others = partition (html "param") children in
+ 
+   if params <> [] then
+-    (Common.Label.labelled "params", Common.list_wrap_value lang loc params) ::
++    (Labelled "params", Common.list_wrap_value lang loc params) ::
+     star ~lang ~loc ~name others
+   else
+     star ~lang ~loc ~name others
+@@ -162,7 +162,7 @@ let audio_video ~lang ~loc ~name childre
+   let sources, others = partition (html "source") children in
+ 
+   if sources <> [] then
+-    (Common.Label.labelled "srcs", Common.list_wrap_value lang loc sources) ::
++    (Labelled "srcs", Common.list_wrap_value lang loc sources) ::
+     star ~lang ~loc ~name others
+   else
+     star ~lang ~loc ~name others
+@@ -175,13 +175,13 @@ let table ~lang ~loc ~name children =
+ 
+   let one label = function
+     | [] -> []
+-    | [child] -> [Common.Label.labelled label, Common.wrap_value lang loc child]
++    | [child] -> [Labelled label, Common.wrap_value lang loc child]
+     | _ -> Common.error loc "%s cannot have more than one %s" name label
+   in
+ 
+   let columns =
+     if columns = [] then []
+-    else [Common.Label.labelled "columns", Common.list_wrap_value lang loc columns]
++    else [Labelled "columns", Common.list_wrap_value lang loc columns]
+   in
+ 
+   (one "caption" caption) @
+@@ -196,7 +196,7 @@ let fieldset ~lang ~loc ~name children =
+   match legend with
+   | [] -> star ~lang ~loc ~name others
+   | [legend] ->
+-    (Common.Label.labelled "legend", Common.wrap_value lang loc legend)::
++    (Labelled "legend", Common.wrap_value lang loc legend)::
+       (star ~lang ~loc ~name others)
+   | _ -> Common.error loc "%s cannot have more than one legend" name
+ 
+@@ -206,11 +206,11 @@ let datalist ~lang ~loc ~name children =
+   let children =
+     begin match others with
+     | [] ->
+-      Common.Label.labelled "children",
++      Labelled "children",
+       [%expr `Options [%e Common.list_wrap_value lang loc options]]
+ 
+     | _ ->
+-      Common.Label.labelled "children",
++      Labelled "children",
+       [%expr `Phras [%e Common.list_wrap_value lang loc children]]
+     end [@metaloc loc]
+   in
+@@ -222,10 +222,10 @@ let script ~lang ~loc ~name children =
+   match children with
+   | [] ->
+     let child = Common.txt ~loc ~lang "" in
+-    [Common.Label.Nolabel, child]
++    [Nolabel, child]
+   | [child] ->
+     let child = Common.wrap_value lang loc child in
+-    [Common.Label.nolabel, child]
++    [Nolabel, child]
+   | _ -> Common.error loc "%s can have at most one child" name
+ 
+ let details ~lang ~loc ~name children =
+@@ -233,13 +233,13 @@ let details ~lang ~loc ~name children =
+ 
+   match summary with
+   | [summary] ->
+-    (Common.Label.nolabel, Common.wrap_value lang loc summary)::
++    (Nolabel, Common.wrap_value lang loc summary)::
+       (star ~lang ~loc ~name others)
+   | _ -> Common.error loc "%s must have exactly one summary child" name
+ 
+ let menu ~lang ~loc ~name children =
+   let children =
+-    Common.Label.labelled "child",
++    Labelled "child",
+     [%expr `Flows [%e Common.list_wrap_value lang loc children]]
+       [@metaloc loc]
+   in
+@@ -251,8 +251,8 @@ let html ~lang ~loc ~name children =
+ 
+   match head, body, others with
+   | [head], [body], [] ->
+-    [Common.Label.nolabel, Common.wrap_value lang loc head;
+-     Common.Label.nolabel, Common.wrap_value lang loc body]
++    [Nolabel, Common.wrap_value lang loc head;
++     Nolabel, Common.wrap_value lang loc body]
+   | _ ->
+     Common.error loc
+       "%s element must have exactly head and body child elements" name
+Index: tyxml-4.4.0/syntax/element_content.mli
+===================================================================
+--- tyxml-4.4.0.orig/syntax/element_content.mli
++++ tyxml-4.4.0/syntax/element_content.mli
+@@ -24,8 +24,8 @@ type assembler =
+   lang:Common.lang ->
+   loc:Location.t ->
+   name:string ->
+-  Parsetree.expression Common.value list ->
+-  (Common.Label.t * Parsetree.expression) list
++  expression Common.value list ->
++  (arg_label * expression) list
+ (** Assemblers satisfy: [assembler ~lang ~loc ~name children] evaluates
+     to a list of optionally-labeled parse trees for passing [children] to the
+     the element function for element [name]. For example, for a table element
+@@ -84,8 +84,8 @@ val script : assembler
+ (** Remove txt node containing only whitespace that are at the beginning or the end
+     of the list. *)
+ val filter_surrounding_whitespace :
+-  Parsetree.expression Common.value list ->
+-  Parsetree.expression Common.value list
++  expression Common.value list ->
++  expression Common.value list
+ 
+ (** Improve an assembler by removing txt nodes containing only whitespace *)
+ val comp_filter_whitespace : assembler -> assembler
+Index: tyxml-4.4.0/syntax/reflect/dune
+===================================================================
+--- tyxml-4.4.0.orig/syntax/reflect/dune
++++ tyxml-4.4.0/syntax/reflect/dune
+@@ -1,12 +1,10 @@
+ (executable
+  (name reflect)
+- (libraries ppx_tools_versioned)
+- (preprocess (pps ppx_tools_versioned.metaquot_408))
++ (libraries ppxlib)
++ (preprocess (pps ppxlib.metaquot))
+  (flags (:standard
+          -safe-string
+-         -open Migrate_parsetree
+-         -open Ast_408
+-         -open Ppx_tools_408
++         -open Ppxlib
+          -w "-9"
+  ))
+ )
+Index: tyxml-4.4.0/syntax/reflect/reflect.ml
+===================================================================
+--- tyxml-4.4.0.orig/syntax/reflect/reflect.ml
++++ tyxml-4.4.0/syntax/reflect/reflect.ml
+@@ -23,12 +23,7 @@
+    [html_sigs_reflected.ml]. See comments by functions below and in
+    [sigs_reflected.mli] for details. *)
+ 
+-open Ast_helper
+-open Ast_mapper
+-open Asttypes
+-open Parsetree
+-module AC = Ast_convenience
+-
++open Ppxlib.Ast_helper
+ 
+ let find_attr s l =
+   let f attr = attr.attr_name.txt = s in
+@@ -59,20 +54,22 @@ module FunTyp = struct
+ 
+   (** Check if a type contains the "elt" constructor, somewhere. *)
+   let contains_elt t =
+-    (* Ast_iterator is not available in 4.02, so we use a mapper. *)
+-    let typ mapper = function
++    let iterate = object
++      inherit Ast_traverse.iter as super
++    
++      method! core_type = function
+       | [%type: [%t? _] elt] -> raise Found
+-      | ty -> default_mapper.typ mapper ty
+-    in
+-    let m = {Ast_mapper.default_mapper with typ} in
+-    try ignore (m.typ m t) ; false
++      | ty -> super#core_type ty
++    end in
++    
++    try iterate#core_type t ; false
+     with Found -> true
+ 
+   (** Extract the type inside [wrap]. *)
+   let unwrap = function
+     (* Optional argument are [_ wrap *predef*.option], In 4.02 *)
+     | {ptyp_desc = Ptyp_constr (lid, [[%type: [%t? _] wrap] as t])}
+-      when Longident.last lid.txt = "option" ->
++      when Longident.last_exn lid.txt = "option" ->
+       Some t
+     | [%type: [%t? _] wrap] as t -> Some t
+     | _ -> None
+@@ -80,7 +77,7 @@ module FunTyp = struct
+   (** Extract the type of for html/svg attributes. *)
+   let extract_attribute_argument (lab, t) =
+     if contains_elt t then None
+-    else match AC.Label.explode lab, unwrap t with
++    else match lab, unwrap t with
+       | Nolabel, _ | _, None -> None
+       | (Labelled lab | Optional lab), Some t -> Some (lab, t)
+ 
+@@ -94,14 +91,14 @@ module FunTyp = struct
+ (* Given the name of a TyXML attribute function and a list of its argument
+    types, selects the attribute value parser (in module [Attribute_value])
+    that should be used for that attribute. *)
+-let rec to_attribute_parser lang name = function
++let rec to_attribute_parser lang name ~loc = function
+   | [] -> [%expr nowrap presence]
+   | [[%type: [%t? ty] wrap]] ->
+-    [%expr wrap [%e to_attribute_parser lang name [ty]]]
++    [%expr wrap [%e to_attribute_parser lang name [ty] ~loc]]
+ 
+   | [[%type: character]] -> [%expr char]
+   | [[%type: bool] as ty]
+-    when AC.has_attr "onoff" ty.ptyp_attributes -> [%expr onoff]
++    when (List.exists (fun ty -> ty.attr_name.txt = "onoff") ty.ptyp_attributes) -> [%expr onoff]
+   | [[%type: bool]] -> [%expr bool]
+   | [[%type: unit]] -> [%expr nowrap unit]
+ 
+@@ -217,7 +214,7 @@ let rec to_attribute_parser lang name =
+   | _ ->
+     let name = strip_a name in
+     let name = if name = "in" then "in_" else name in
+-    AC.evar name
++    Ast_builder.Default.evar ~loc name
+ 
+ end
+ 
+@@ -227,6 +224,11 @@ end
+    (e.g. "a_input_max" does not directly correspond to "max"). The annotation is
+    parsed to get the markup name and the element types in which the translation
+    from markup name to TyXML name should be performed. *)
++
++let get_str = function
++  | {pexp_desc=Pexp_constant (Pconst_string (s, _, _)); _} -> Some s
++  | _ -> None
++
+ let ocaml_attributes_to_renamed_attribute name attributes =
+   let maybe_attribute = find_attr "reflect.attribute" attributes in
+ 
+@@ -241,7 +243,7 @@ let ocaml_attributes_to_renamed_attribut
+     | PStr [%str
+         [%e? const]
+         [%e? element_names]] ->
+-      begin match Ast_convenience.get_str const with
++      begin match get_str const with
+         | None -> error ()
+         | Some real_name ->
+           let element_names =
+@@ -251,7 +253,7 @@ let ocaml_attributes_to_renamed_attribut
+             in
+             let rec traverse acc = function
+               | [%expr [%e? e]::[%e? tail]] ->
+-                begin match Ast_convenience.get_str e with
++                begin match get_str e with
+                   | Some element_name -> traverse (element_name::acc) tail
+                   | None -> error e.pexp_loc
+                 end
+@@ -286,9 +288,9 @@ let val_item_to_element_info lang value_
+     | Some { attr_loc = loc ; attr_payload = payload} ->
+       let assembler, real_name = match payload with
+         | PStr [%str [%e? assembler] [%e? name]] ->
+-          Ast_convenience.get_str assembler, Ast_convenience.get_str name
++          get_str assembler, get_str name
+         | PStr [%str [%e? assembler]] ->
+-          Ast_convenience.get_str assembler, None
++          get_str assembler, None
+         | _ -> None, None
+       in
+       begin match assembler with
+@@ -318,7 +320,7 @@ let val_item_to_element_info lang value_
+       let aux x acc = match FunTyp.extract_attribute_argument x with
+         | None -> acc
+         | Some (label, ty) ->
+-          let parser = FunTyp.to_attribute_parser lang label [ty] in
++          let parser = FunTyp.to_attribute_parser lang label [ty] ~loc:ty.ptyp_loc in
+           (name, label, parser) :: acc
+       in
+       List.fold_right aux arguments []
+@@ -354,15 +356,15 @@ let renamed_elements = ref []
+    functions immediately above, and accumulates their results in the above
+    references. This function is relevant for [html_sigs.mli] and
+    [svg_sigs.mli]. *)
+-let signature_item lang mapper item =
++let signature_item lang transform_item item =
+   begin match item.psig_desc with
+-  | Psig_value {pval_name = {txt = name}; pval_type = type_; pval_attributes}
++  | Psig_value {pval_name = {txt = name}; pval_type = type_; pval_attributes; pval_loc = loc}
+       when is_attribute name ->
+     (* Attribute declaration. *)
+ 
+     let argument_types = List.map snd @@ FunTyp.arguments type_ in
+     let attribute_parser_mapping =
+-      name, FunTyp.to_attribute_parser lang name argument_types in
++      name, FunTyp.to_attribute_parser lang name argument_types ~loc in
+     attribute_parsers := attribute_parser_mapping::!attribute_parsers;
+ 
+     let renaming = ocaml_attributes_to_renamed_attribute name pval_attributes in
+@@ -382,7 +384,7 @@ let signature_item lang mapper item =
+   | _ -> ()
+   end;
+ 
+-  default_mapper.signature_item mapper item
++  transform_item item
+ 
+ 
+ 
+@@ -394,7 +396,7 @@ let reflected_variants = ref []
+    constructor that has one string argument. This constructor information is
+    accumulated in [reflected_variants]. This function is relevant for
+    [html_types.mli]. *)
+-let type_declaration mapper declaration =
++let type_declaration transform_decl declaration =
+   let is_reflect attr = attr.attr_name.txt = "reflect.total_variant" in
+   if List.exists is_reflect declaration.ptype_attributes then begin
+     let name = declaration.ptype_name.txt in
+@@ -429,26 +431,28 @@ let type_declaration mapper declaration
+         "[@@reflect.total_variant] expects a polymorphic variant type"
+   end;
+ 
+-  default_mapper.type_declaration mapper declaration
++  transform_decl declaration
+ 
+ (** Small set of combinators to help {!make_module}. *)
+ module Combi = struct
+-  let list f l = AC.list @@ List.map f l
+-  let tuple2 f1 f2 (x1, x2) = Exp.tuple [f1 x1; f2 x2]
+-  let tuple3 f1 f2 f3 (x1, x2, x3) = Exp.tuple [f1 x1; f2 x2; f3 x3]
+-  let str = AC.str
+-  let id = AC.evar
++  module Builder = Ast_builder.Make(struct let loc = Location.none end)
++  let list f l = Builder.elist @@ List.map f l
++  let tuple2 f1 f2 (x1, x2) = Builder.pexp_tuple [f1 x1; f2 x2]
++  let tuple3 f1 f2 f3 (x1, x2, x3) = Builder.pexp_tuple [f1 x1; f2 x2; f3 x3]
++  let str = Builder.estring
++  let id = Builder.evar
+   let expr x = x
+   let let_ p f (x,e) = Str.value Nonrecursive [Vb.mk (p x) (f e)]
+   let rec compose_ids =
+     function
+     | [ i ]   -> id i
+-    | i :: tl -> AC.app (id i) [compose_ids tl]
++    | i :: tl -> Builder.eapply (id i) [compose_ids tl]
+     | []      -> assert false
+ end
+ 
+ (** Create a module based on the various things collected while reading the file. *)
+ let emit_module () =
++  let loc = Location.none in
+   begin if !attribute_parsers <> [] then [%str
+     open Attribute_value
+ 
+@@ -469,7 +473,7 @@ let emit_module () =
+     ] else []
+   end @
+ 
+-  List.map Combi.(let_ AC.pvar (tuple2 str (list str))) !reflected_variants
++  List.map Combi.(let_ (Ast_builder.Default.pvar ~loc) (tuple2 str (list str))) !reflected_variants
+ 
+ 
+ (* Crude I/O tools to read a signature and output a structure.
+@@ -477,24 +481,24 @@ let emit_module () =
+    and as second argument the name of the structure.
+ 
+ *)
+-let version =  Versions.ocaml_408
+ 
+ let read_sig filename =
+-  Location.input_name := filename ;
+   let handle =
+     try open_in filename
+     with Sys_error msg -> prerr_endline msg; exit 1
+   in
+   let buf = Lexing.from_channel handle in
+-  Location.init buf filename ;
+-  let ast = Parse.interface version buf in
++  buf.lex_curr_p <- {
++    pos_fname = filename;
++    pos_lnum = 1;
++    pos_bol = 0;
++    pos_cnum = 0;
++  };
++  let ast = Parse.interface buf in
+   close_in handle ;
+   ast
+ 
+ let write_struct filename ast =
+-  let {Versions. copy_structure; _ } =
+-    Versions.migrate version Versions.ocaml_current in
+-  let ast = copy_structure ast in
+   let handle =
+     try open_out filename
+     with Sys_error msg -> prerr_endline msg; exit 1
+@@ -522,13 +526,14 @@ let () =
+     else `Html
+   in
+ 
+-  let mapper =
+-    let signature_item = signature_item lang in
+-    {default_mapper with signature_item; type_declaration}
+-  in
++  let iterate = object
++    inherit Ast_traverse.iter as super
++    method! signature_item = signature_item lang super#signature_item
++    method! type_declaration = type_declaration super#type_declaration
++  end in
+ 
+   let reflected_struct sig_ =
+-    ignore @@ mapper.signature mapper sig_ ;
++    iterate#signature sig_ ;
+     emit_module ()
+   in
+ 
+Index: tyxml-4.4.0/test/dune
+===================================================================
+--- tyxml-4.4.0.orig/test/dune
++++ tyxml-4.4.0/test/dune
+@@ -36,7 +36,7 @@
+ 
+ ; (executable
+ ;  (name ppx)
+-;  (libraries tyxml-ppx ocaml-migrate-parsetree)
++;  (libraries tyxml-ppx ppxlib)
+ ;  (modules ppx)
+ ; )
+ 
+Index: tyxml-4.4.0/test/ppx.ml
+===================================================================
+--- tyxml-4.4.0.orig/test/ppx.ml
++++ tyxml-4.4.0/test/ppx.ml
+@@ -1 +1 @@
+-Migrate_parsetree.Driver.run_as_ppx_rewriter  ()
++Ppxlib.Driver.standalone ();
+Index: tyxml-4.4.0/tyxml-jsx.opam
+===================================================================
+--- tyxml-4.4.0.orig/tyxml-jsx.opam
++++ tyxml-4.4.0/tyxml-jsx.opam
+@@ -15,12 +15,12 @@ build: [
+ ]
+ 
+ depends: [
+-  "ocaml" {>= "4.02"}
++  "ocaml" {>= "4.04"}
+   "dune"
+   "alcotest" {with-test}
+   "tyxml" {= version}
+   "tyxml-syntax" {= version}
+-  "ppx_tools_versioned"
++  "ppxlib"
+   "reason" {with-test}
+ ]
+ 
+Index: tyxml-4.4.0/tyxml-ppx.opam
+===================================================================
+--- tyxml-4.4.0.orig/tyxml-ppx.opam
++++ tyxml-4.4.0/tyxml-ppx.opam
+@@ -15,13 +15,13 @@ build: [
+ ]
+ 
+ depends: [
+-  "ocaml" {>= "4.02"}
++  "ocaml" {>= "4.04"}
+   "dune"
+   "alcotest" {with-test}
+   "tyxml" {= version}
+   "tyxml-syntax" {= version}
+   "markup" {>= "0.7.2"}
+-  "ppx_tools_versioned"
++  "ppxlib"
+ ]
+ 
+ synopsis:"PPX that allows to write TyXML documents with the HTML syntax"
+Index: tyxml-4.4.0/tyxml-syntax.opam
+===================================================================
+--- tyxml-4.4.0.orig/tyxml-syntax.opam
++++ tyxml-4.4.0/tyxml-syntax.opam
+@@ -15,12 +15,12 @@ build: [
+ ]
+ 
+ depends: [
+-  "ocaml" {>= "4.02"}
++  "ocaml" {>= "4.04"}
+   "dune"
+   "uutf" {>= "1.0.0"}
+   "re" {>= "1.5.0"}
+   "alcotest" {with-test}
+-  "ppx_tools_versioned"
++  "ppxlib"
+ ]
+ 
+ synopsis:"Common layer for the JSX and PPX syntaxes for Tyxml"
+Index: tyxml-4.4.0/tyxml.opam
+===================================================================
+--- tyxml-4.4.0.orig/tyxml.opam
++++ tyxml-4.4.0/tyxml.opam
+@@ -15,7 +15,7 @@ build: [
+ ]
+ 
+ depends: [
+-  "ocaml" {>= "4.02"}
++  "ocaml" {>= "4.04"}
+   "dune" {build}
+   "alcotest" {with-test}
+   "seq"
