@@ -18,3 +18,4 @@ DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}"
 S="${WORKDIR}/tyxml-${PV}"
+PATCHES=( "${FILESDIR}/ppxlib.patch" )
