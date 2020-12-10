@@ -346,7 +346,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[result]=""
 	[rresult]="result"
 	[safepass]=""
-	[sedlex]="gen ppx_tools_versioned ocaml-migrate-parsetree uchar"
+	[sedlex]="gen ppxlib uchar"
 	[seq]=""
 	[sexplib]="parsexp sexplib0 num"
 	[sexplib0]=""
