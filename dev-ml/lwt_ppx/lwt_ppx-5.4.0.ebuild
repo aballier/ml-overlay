@@ -14,9 +14,8 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 
-SLOT="0/${PV}-ppxlib"
+SLOT="0/${PV}"
 LICENSE="LGPL-2.1-with-linking-exception"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 
 S="${WORKDIR}/lwt-${PV}"
-PATCHES=( "${FILESDIR}/ppxlib.patch" )
