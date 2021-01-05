@@ -91,7 +91,7 @@ ppx_base ppx_hash ppx_inline_test ppx_jane ppx_sexp_conv ppx_sexp_message sexpli
 typerep variantslib"
 	[core_profiler]="core core_kernel ppx_jane re2 shell textutils textutils_kernel"
 	[cppo]=""
-	[cppo_ocamlbuild]="ocamlbuild"
+	[cppo_ocamlbuild]="ocamlbuild findlib"
 	[craml]="fmt astring logs cmdliner"
 	[crowbar]="ocplib-endian cmdliner afl-persistent"
 	[crunch]="cmdliner ptime"
