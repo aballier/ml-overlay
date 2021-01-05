@@ -1,15 +1,15 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="5"
+EAPI="7"
 
-inherit multilib findlib eutils versionator
+inherit multilib findlib
 
 MY_P=${P%_p*}
 DESCRIPTION="A preprocessor-pretty-printer of ocaml"
 HOMEPAGE="https://camlp5.github.io/"
-SRC_URI="https://github.com/camlp5/camlp5/archive/rel$(replace_all_version_separators '').tar.gz -> ${P}.tar.gz"
-S="${WORKDIR}/${PN}-rel$(replace_all_version_separators '')"
+SRC_URI="https://github.com/camlp5/camlp5/archive/rel$(ver_rs '2-' '').tar.gz -> ${P}.tar.gz"
+S="${WORKDIR}/${PN}-rel$(ver_rs '2-' '')"
 
 LICENSE="BSD"
 SLOT="0/${PV}"
@@ -37,10 +37,9 @@ camlp5_hack_ocaml_support() {
 
 src_prepare() {
 	for i in ${PATCHLIST} ; do
-		epatch "${DISTDIR}/${i}"
+		eapply "${DISTDIR}/${i}"
 	done
-	epatch "${FILESDIR}/destdir.patch"
-	camlp5_hack_ocaml_support 4.11.0 4.11.1
+	default
 }
 
 src_configure() {
