@@ -269,8 +269,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppx_to
 	[pcap-format]="cstruct ppx_cstruct ppx_tools"
 	[pcre]="dune-configurator"
 	[pgocaml]="calendar csv hex ppx_sexp_conv re ppx_deriving rresult sexplib"
-	[pgocaml_ppx]="pgocaml ocaml-migrate-parsetree ppx_deriving ppx_optcomp ppx_sexp_conv ppx_tools ppx_tools_versioned
-rresult sexplib"
+	[pgocaml_ppx]="pgocaml ppx_optcomp ppxlib"
 	[pomap]=""
 	[postgresql]="dune-configurator"
 	[pprint]=""
