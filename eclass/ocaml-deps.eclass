@@ -514,6 +514,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[mirage-kv-mem]="alcotest ppx_deriving"
 	[ocamlformat]="alcotest ocp-indent"
 	[odoc]="bisect_ppx"
+	[opam-file-format]="alcotest"
 	[owl]="alcotest"
 	[pcap-format]="ounit2 mmap"
 	[ppxlib]="base cinaps findlib stdio"
