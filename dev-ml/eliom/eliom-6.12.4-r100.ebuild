@@ -1,4 +1,4 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -19,13 +19,18 @@ else
 fi
 
 LICENSE="LGPL-2.1-with-linking-exception"
-SLOT="0/${PV}"
+SLOT="0/${PV}-ppxlib"
 IUSE="doc +ocamlopt +ppx"
 
 RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	ppx? ( >=dev-ml/ppx_tools-0.99.3:= )"
 DEPEND="${RDEPEND}"
 OPAM_FILE=opam
+PATCHES=(
+	"${FILESDIR}/ppx.patch"
+	"${FILESDIR}/ppxlib.patch"
+	"${FILESDIR}/ppxlib2.patch"
+)
 
 src_compile() {
 	if use ocamlopt ; then

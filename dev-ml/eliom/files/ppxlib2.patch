@@ -1,0 +1,93 @@
+Index: eliom-6.12.4/src/ppx/ppx_eliom_client.ml
+===================================================================
+--- eliom-6.12.4.orig/src/ppx/ppx_eliom_client.ml
++++ eliom-6.12.4/src/ppx/ppx_eliom_client.ml
+@@ -3,7 +3,7 @@ open Ppxlib.Parsetree
+ open Ppxlib.Asttypes
+ open Ppxlib.Ast_helper
+ 
+-module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
++module AM = Ocaml_common.Ast_mapper
+ 
+ open Ppx_eliom_utils
+ 
+Index: eliom-6.12.4/src/ppx/ppx_eliom_client.mli
+===================================================================
+--- eliom-6.12.4.orig/src/ppx/ppx_eliom_client.mli
++++ eliom-6.12.4/src/ppx/ppx_eliom_client.mli
+@@ -1,2 +1,2 @@
+ 
+-val mapper : Migrate_parsetree.OCaml_410.Ast.Ast_mapper.mapper
++val mapper : Ocaml_common.Ast_mapper.mapper
+Index: eliom-6.12.4/src/ppx/ppx_eliom_server.ml
+===================================================================
+--- eliom-6.12.4.orig/src/ppx/ppx_eliom_server.ml
++++ eliom-6.12.4/src/ppx/ppx_eliom_server.ml
+@@ -24,7 +24,7 @@ open Ppxlib.Parsetree
+ open Ppxlib.Asttypes
+ open Ppxlib.Ast_helper
+ 
+-module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
++module AM = Ocaml_common.Ast_mapper
+ 
+ open Ppx_eliom_utils
+ 
+Index: eliom-6.12.4/src/ppx/ppx_eliom_server.mli
+===================================================================
+--- eliom-6.12.4.orig/src/ppx/ppx_eliom_server.mli
++++ eliom-6.12.4/src/ppx/ppx_eliom_server.mli
+@@ -1 +1 @@
+-val mapper : Migrate_parsetree.OCaml_410.Ast.Ast_mapper.mapper
++val mapper : Ocaml_common.Ast_mapper.mapper
+Index: eliom-6.12.4/src/ppx/ppx_eliom_type.ml
+===================================================================
+--- eliom-6.12.4.orig/src/ppx/ppx_eliom_type.ml
++++ eliom-6.12.4/src/ppx/ppx_eliom_type.ml
+@@ -38,7 +38,7 @@ open Ppxlib.Parsetree
+ open Ppxlib.Asttypes
+ open Ppxlib.Ast_helper
+ 
+-module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
++module AM = Ocaml_common.Ast_mapper
+ 
+ open Ppx_eliom_utils
+ 
+Index: eliom-6.12.4/src/ppx/ppx_eliom_type.mli
+===================================================================
+--- eliom-6.12.4.orig/src/ppx/ppx_eliom_type.mli
++++ eliom-6.12.4/src/ppx/ppx_eliom_type.mli
+@@ -1 +1 @@
+-val mapper : Migrate_parsetree.OCaml_410.Ast.Ast_mapper.mapper
++val mapper : Ocaml_common.Ast_mapper.mapper
+Index: eliom-6.12.4/src/ppx/ppx_eliom_types_ex.ml
+===================================================================
+--- eliom-6.12.4.orig/src/ppx/ppx_eliom_types_ex.ml
++++ eliom-6.12.4/src/ppx/ppx_eliom_types_ex.ml
+@@ -1,2 +1,2 @@
+ open Ppx_eliom_type [@@warning "-33"]
+-let () = Migrate_parsetree.Driver.run_as_ppx_rewriter ()
++let () = Ppxlib.Driver.run_as_ppx_rewriter ()
+Index: eliom-6.12.4/src/ppx/ppx_eliom_utils.ml
+===================================================================
+--- eliom-6.12.4.orig/src/ppx/ppx_eliom_utils.ml
++++ eliom-6.12.4/src/ppx/ppx_eliom_utils.ml
+@@ -4,7 +4,7 @@ module Asttypes = Ppxlib.Asttypes
+ open Parsetree
+ open Ppxlib.Ast_helper
+ 
+-module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
++module AM = Ocaml_common.Ast_mapper
+ 
+ (** Various misc functions *)
+ 
+Index: eliom-6.12.4/src/ppx/ppx_eliom_utils.mli
+===================================================================
+--- eliom-6.12.4.orig/src/ppx/ppx_eliom_utils.mli
++++ eliom-6.12.4/src/ppx/ppx_eliom_utils.mli
+@@ -97,5 +97,5 @@ end
+ val driver_args : (Arg.key * Arg.spec * Arg.doc) list
+ 
+ module Make (_ : Pass) : sig
+-  val mapper : Migrate_parsetree.OCaml_410.Ast.Ast_mapper.mapper
++  val mapper : Ocaml_common.Ast_mapper.mapper
+ end

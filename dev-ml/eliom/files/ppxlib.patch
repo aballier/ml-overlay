@@ -1,0 +1,795 @@
+From 365a99d18f0ec5b1304898d26aadb5bf89d5451c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Vouillon?= <jvouillon@besport.com>
+Date: Tue, 12 Jan 2021 13:02:26 +0100
+Subject: [PATCH] Switch to ppxlib
+
+---
+ opam                           |   4 +-
+ pkg/META                       |   6 +-
+ src/_tags                      |   4 +-
+ src/ppx/.merlin                |   3 +-
+ src/ppx/ppx_eliom_client.ml    |  47 ++++++++-------
+ src/ppx/ppx_eliom_client.mli   |   4 +-
+ src/ppx/ppx_eliom_client_ex.ml |   2 +-
+ src/ppx/ppx_eliom_server.ml    |  53 +++++++++--------
+ src/ppx/ppx_eliom_server.mli   |   3 +-
+ src/ppx/ppx_eliom_server_ex.ml |   2 +-
+ src/ppx/ppx_eliom_type.ml      |  30 +++++-----
+ src/ppx/ppx_eliom_type.mli     |   3 +-
+ src/ppx/ppx_eliom_utils.ml     | 103 +++++++++++++++++----------------
+ src/ppx/ppx_eliom_utils.mli    |  12 ++--
+ 14 files changed, 142 insertions(+), 134 deletions(-)
+
+diff --git a/opam b/opam
+index dcfed24ab..a8c722b17 100644
+--- a/opam
++++ b/opam
+@@ -14,7 +14,7 @@ depends: [
+   "ocaml" {>= "4.08.0"}
+   "ocamlfind"
+   "ppx_deriving"
+-  "ppx_tools" {>= "0.99.3"}
++  "ppxlib" {>= "0.9" & < "0.16.0"}
+   "js_of_ocaml-compiler" {>= "3.5.1"}
+   "js_of_ocaml" {>= "3.5.1"}
+   "js_of_ocaml-lwt" {>= "3.5.1"}
+diff --git a/pkg/META b/pkg/META
+index a829de3ce..6ae57806d 100644
+--- a/pkg/META
++++ b/pkg/META
+@@ -80,7 +80,7 @@ package "ppx" (
+     archive(ppx_driver,native) = "ppx_eliom_server.cmxa"
+     plugin(ppx_driver,byte) = "ppx_eliom_server.cma"
+     plugin(ppx_driver,native) = "ppx_eliom_server.cmxs"
+-    requires(ppx_driver) = "ocaml-migrate-parsetree ppx_tools_versioned"
++    requires(ppx_driver) = "ppxlib"
+     library_kind = "ppx_rewriter"
+   )
+   package "client" (
+@@ -90,7 +90,7 @@ package "ppx" (
+     archive(ppx_driver,native) = "ppx_eliom_client.cmxa"
+     plugin(ppx_driver,byte) = "ppx_eliom_client.cma"
+     plugin(ppx_driver,native) = "ppx_eliom_client.cmxs"
+-    requires(ppx_driver) = "ocaml-migrate-parsetree ppx_tools_versioned"
++    requires(ppx_driver) = "ppxlib"
+     library_kind = "ppx_rewriter"
+   )
+   package "type" (
+@@ -100,7 +100,7 @@ package "ppx" (
+     archive(ppx_driver,native) = "ppx_eliom_type.cmxa"
+     plugin(ppx_driver,byte) = "ppx_eliom_type.cma"
+     plugin(ppx_driver,native) = "ppx_eliom_type.cmxs"
+-    requires(ppx_driver) = "ocaml-migrate-parsetree ppx_tools_versioned"
++    requires(ppx_driver) = "ppxlib"
+     library_kind = "ppx_rewriter"
+   )
+ )
+diff --git a/src/_tags b/src/_tags
+index 22fcbff7f..a281379ab 100644
+--- a/src/_tags
++++ b/src/_tags
+@@ -1,7 +1,7 @@
+ <{lib,tools,ocamlbuild}/**/*>:warn(+A-4-6-7-9-27-37-39-40-42-44-48)
+ true:keep_locs
+ <lib/**/{client,server}*>:linkall
+-<ppx/ppx_eliom_{client,server,type}*>:linkall
++<ppx/ppx_eliom_{client,server,type}.cm{,x}a>:linkall
+ 
+ <lib/client/client.cma>:eliomstubs
+ 
+@@ -38,7 +38,7 @@ true:keep_locs
+ <lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml)
+ <lib/server/monitor/*.ml{,i}>:I(src/lib/server)
+ 
+-<ppx/**/*>: package(ppx_tools_versioned, ppx_tools_versioned.metaquot_408)
++<ppx/**/*>: package(ppxlib, ppxlib.metaquot)
+ 
+ <ocamlbuild/ocamlbuild_eliom.ml{,i}>: package(ocamlbuild,js_of_ocaml-ocamlbuild)
+ <ocamlbuild/eliombuild.{ml,mli,byte,native}>:package(ocamlbuild,js_of_ocaml-ocamlbuild)
+diff --git a/src/ppx/.merlin b/src/ppx/.merlin
+index 769657700..a14fabdfb 100644
+--- a/src/ppx/.merlin
++++ b/src/ppx/.merlin
+@@ -1,4 +1,3 @@
+-PKG compiler-libs.common
+-PKG ppx_tools ppx_tools.metaquot
++PKG ppxlib ppxlib.metaquot
+ 
+ REC
+diff --git a/src/ppx/ppx_eliom_client.ml b/src/ppx/ppx_eliom_client.ml
+index 489d9fe3d..9c1c63780 100644
+--- a/src/ppx/ppx_eliom_client.ml
++++ b/src/ppx/ppx_eliom_client.ml
+@@ -1,11 +1,9 @@
+-open Migrate_parsetree
+-open Ast_408
+-open Parsetree
+-open Asttypes
+-open Ast_helper
+ 
+-module AC = Ast_convenience_408
+-module AM = Ast_mapper
++open Ppxlib.Parsetree
++open Ppxlib.Asttypes
++open Ppxlib.Ast_helper
++
++module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
+ 
+ open Ppx_eliom_utils
+ 
+@@ -17,12 +15,12 @@ module Pass = struct
+      [Eliom_client_core.Syntax_helpers.get_escaped_value v] *)
+   let map_get_escaped_values =
+     let mapper =
+-      {Ast_mapper.default_mapper with
++      {AM.default_mapper with
+        expr = (fun mapper e ->
+          match e.pexp_desc with
+          | Pexp_ident {txt} when Mli.is_escaped_ident @@ Longident.last txt ->
+-           [%expr Eliom_client_core.Syntax_helpers.get_escaped_value [%e e] ]
+-           [@metaloc e.pexp_loc]
++            let loc = e.pexp_loc in
++            [%expr Eliom_client_core.Syntax_helpers.get_escaped_value [%e e] ]
+          | _ -> AM.default_mapper.expr mapper e
+        );
+       }
+@@ -93,18 +91,19 @@ module Pass = struct
+         (fun (loc, num, id, expr, args) ->
+            let typ = find_fragment loc id in
+            let args = List.map Pat.var args in
++           let loc = expr.pexp_loc in
+            [%expr
+              Eliom_client_core.Syntax_helpers.register_client_closure
+-               [%e AC.str num]
+-               (fun [%p pat_args args] ->
++               [%e Exp.constant ~loc @@ Const.string (*~loc*) num]
++               (fun [%p pat_args ~loc args] ->
+                   ([%e map_get_escaped_values expr] : [%t typ]))
+-           ] [@metaloc expr.pexp_loc]
++           ]
+         )
+         client_value_datas
+     in
+     match registrations with
+     | [] -> []
+-    | _ -> [Str.eval (AC.sequence registrations)]
++    | r :: l -> [Str.eval (List.fold_left Exp.sequence r l)]
+ 
+   (* We hoist the body of client fragments to enforce the correct scoping:
+      Identifiers declared earlier in the client section should not be
+@@ -122,8 +121,8 @@ module Pass = struct
+              let args = List.map Pat.var args in
+              let expr =
+                [%expr
+-                 fun [%p pat_args args] -> ([%e expr] : [%t typ])
+-               ] [@metaloc loc]
++                 fun [%p pat_args loc args] -> ([%e expr] : [%t typ])
++               ]
+              in
+              Vb.mk ~loc patt expr)
+           client_value_datas
+@@ -212,7 +211,7 @@ module Pass = struct
+           escaped_bindings
+       in
+       let args =
+-        format_args @@ List.map
++        format_args ~loc @@ List.map
+           (fun (id, _, _) -> eid id)
+           escaped_bindings
+       in
+@@ -266,10 +265,13 @@ module Pass = struct
+       let typ = assert_no_variables typ in
+       let ident = match ident with
+         | None   -> [%expr None]
+-        | Some i -> [%expr Some [%e AC.str i]]
++        | Some i -> [%expr Some [%e Exp.constant ~loc @@ Const.string (*~loc*) i]]
+       in
+       let (u, d) = Mli.get_injected_ident_info id.txt in
+-      let es = (AC.str @@ Printf.sprintf "%s%d" u d)[@metaloc id.loc] in
++      let es =
++        let loc = id.loc in
++        Exp.constant ~loc @@ Const.string (*~loc*) @@ Printf.sprintf "%s%d" u d
++      in
+       [%expr
+         (Eliom_client_core.Syntax_helpers.get_injection
+            ?ident:([%e ident])
+@@ -290,5 +292,8 @@ end
+ include Make(Pass)
+ 
+ let () =
+-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_client" ~args:driver_args
+-    Migrate_parsetree.Versions.ocaml_408 mapper
++  Ppxlib.Driver.register_transformation
++    ~preprocess_impl:(fun str -> mapper.AM.structure mapper str)
++    ~preprocess_intf:(fun sig_ ->
++      mapper.AM.signature mapper sig_)
++     "ppx_eliom_client"
+diff --git a/src/ppx/ppx_eliom_client.mli b/src/ppx/ppx_eliom_client.mli
+index 1c167bd3e..b74a7a723 100644
+--- a/src/ppx/ppx_eliom_client.mli
++++ b/src/ppx/ppx_eliom_client.mli
+@@ -1,2 +1,2 @@
+-val mapper :
+-  Migrate_parsetree.Versions.OCaml_408.types Migrate_parsetree.Driver.rewriter
++
++val mapper : Migrate_parsetree.OCaml_410.Ast.Ast_mapper.mapper
+diff --git a/src/ppx/ppx_eliom_client_ex.ml b/src/ppx/ppx_eliom_client_ex.ml
+index a73c3ba2c..632081973 100644
+--- a/src/ppx/ppx_eliom_client_ex.ml
++++ b/src/ppx/ppx_eliom_client_ex.ml
+@@ -1,2 +1,2 @@
+ open Ppx_eliom_client [@@warning "-33"]
+-let () = Migrate_parsetree.Driver.run_as_ppx_rewriter ()
++let () = Ppxlib.Driver.run_as_ppx_rewriter ()
+diff --git a/src/ppx/ppx_eliom_server.ml b/src/ppx/ppx_eliom_server.ml
+index 074276d10..a4fbd1ce1 100644
+--- a/src/ppx/ppx_eliom_server.ml
++++ b/src/ppx/ppx_eliom_server.ml
+@@ -20,13 +20,11 @@
+ 
+ (* This prepocessor generates the module to be loaded by Ocsigen server *)
+ 
+-open Migrate_parsetree
+-open Ast_408
+-open Parsetree
+-open Asttypes
+-open Ast_helper
++open Ppxlib.Parsetree
++open Ppxlib.Asttypes
++open Ppxlib.Ast_helper
+ 
+-module AC = Ast_convenience_408
++module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
+ 
+ open Ppx_eliom_utils
+ 
+@@ -36,8 +34,8 @@ module Pass = struct
+     let typing_strs = ref [] in
+     let add ~fragment ~unsafe loc id =
+       let typ =
+-        if fragment then [%type: _ Eliom_client_value.t ][@metaloc loc]
+-        else [%type: _][@metaloc loc]
++        if fragment then [%type: _ Eliom_client_value.t ]
++        else [%type: _]
+       in
+       typing_strs :=
+         (if unsafe || Mli.exists () then
+@@ -54,7 +52,8 @@ module Pass = struct
+     let flush () =
+       let res = !typing_strs in
+       typing_strs := [];
+-      [%stri open struct [%%s res] end]
++      let loc = Location.none in
++      [%stri open [%m Mod.structure res]]
+     in
+     add, flush
+ 
+@@ -76,9 +75,8 @@ module Pass = struct
+       let aux (loc, id, arg, unsafe) =
+         push_nongen_str_item ~fragment:false ~unsafe loc id;
+         [%expr Eliom_syntax.escaped_value
+-            [%e [%expr ([%e eid id] [%e arg ])]
+-                [@metaloc one_char_location loc]]]
+-        [@metaloc loc]
++            [%e let loc = one_char_location loc in
++                [%expr ([%e eid id] [%e arg ])]]]
+       in
+       List.map aux res
+     in
+@@ -136,7 +134,7 @@ module Pass = struct
+       let () =
+         Eliom_syntax.close_server_section
+           [%e eid @@ id_file_hash loc]
+-    ] [@metaloc loc]
++    ]
+ 
+   let may_close_server_section ~no_fragment loc =
+     if no_fragment
+@@ -154,16 +152,14 @@ module Pass = struct
+            let frag_eid = eid {txt;loc} in
+            let ident = match ident with
+              | None -> [%expr None]
+-             | Some i -> [%expr Some [%e AC.str i ]] in
++             | Some i -> [%expr Some [%e Exp.constant @@ Const.string i ]] in
+            let (_, num) = Mli.get_injected_ident_info txt in
+            let f_id = {txt = txt ^ "_f"; loc} in
+            push_nongen_str_item ~fragment:false ~unsafe loc f_id;
+            [%expr
+-             ([%e AC.int num],
+-              Eliom_lib.to_poly [%e
+-                                    [%expr [%e eid f_id] [%e frag_eid ]]
+-                                    [@metaloc one_char_location loc0]
+-                ],
++             ([%e Exp.constant @@ Const.int num],
++              Eliom_lib.to_poly [%e let loc = one_char_location loc0 in
++                                    [%expr [%e eid f_id] [%e frag_eid ]]],
+               [%e loc_expr], [%e ident ]) :: [%e sofar ]
+            ])
+         injections
+@@ -174,7 +170,7 @@ module Pass = struct
+         Eliom_syntax.close_client_section
+           [%e eid @@ id_file_hash loc ]
+           [%e injection_list ]
+-    ][@metaloc loc]
++    ]
+ 
+ 
+   (** Syntax extension *)
+@@ -221,20 +217,20 @@ module Pass = struct
+       | Some typ -> typ
+       | None -> [%type: _]
+     in
+-    let e = format_args @@ flush_escaped_bindings () in
++    let e = format_args ~loc @@ flush_escaped_bindings () in
+     push_nongen_str_item ~fragment:true ~unsafe loc id;
+     [%expr
+         [%e eid id]
+-        [%e
++        [%e let loc = one_char_location loc in
+             [%expr
+                 ( (Eliom_syntax.client_value
+                      ~pos:([%e position loc ])
+-                     [%e AC.str num ]
++                     [%e Exp.constant @@ Const.string num ]
+                      [%e e ])
+                   : [%t typ ] Eliom_client_value.t)
+-            ][@metaloc one_char_location loc]
++            ]
+         ]
+-    ][@metaloc loc]
++    ]
+ 
+   let escape_inject
+         ~loc ?ident ~(context:Context.escape_inject) ~id ~unsafe expr =
+@@ -264,5 +260,8 @@ end
+ include Make(Pass)
+ 
+ let () =
+-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_server" ~args:driver_args
+-    Migrate_parsetree.Versions.ocaml_408 mapper
++  Ppxlib.Driver.register_transformation
++    ~preprocess_impl:(fun str -> mapper.AM.structure mapper str)
++    ~preprocess_intf:(fun sig_ ->
++      mapper.AM.signature mapper sig_)
++     "ppx_eliom_server"
+diff --git a/src/ppx/ppx_eliom_server.mli b/src/ppx/ppx_eliom_server.mli
+index 1c167bd3e..0e1b33ee4 100644
+--- a/src/ppx/ppx_eliom_server.mli
++++ b/src/ppx/ppx_eliom_server.mli
+@@ -1,2 +1 @@
+-val mapper :
+-  Migrate_parsetree.Versions.OCaml_408.types Migrate_parsetree.Driver.rewriter
++val mapper : Migrate_parsetree.OCaml_410.Ast.Ast_mapper.mapper
+diff --git a/src/ppx/ppx_eliom_server_ex.ml b/src/ppx/ppx_eliom_server_ex.ml
+index b278f4ea2..8d754351c 100644
+--- a/src/ppx/ppx_eliom_server_ex.ml
++++ b/src/ppx/ppx_eliom_server_ex.ml
+@@ -1,2 +1,2 @@
+ open Ppx_eliom_server [@@warning "-33"]
+-let () = Migrate_parsetree.Driver.run_as_ppx_rewriter ()
++let () = Ppxlib.Driver.run_as_ppx_rewriter ()
+diff --git a/src/ppx/ppx_eliom_type.ml b/src/ppx/ppx_eliom_type.ml
+index 034826c03..5d387d11b 100644
+--- a/src/ppx/ppx_eliom_type.ml
++++ b/src/ppx/ppx_eliom_type.ml
+@@ -34,13 +34,11 @@
+      $global_id$ := Some $expr$
+ 
+ *)
+-open Migrate_parsetree
+-open Ast_408
+-open Parsetree
+-open Asttypes
+-open Ast_helper
++open Ppxlib.Parsetree
++open Ppxlib.Asttypes
++open Ppxlib.Ast_helper
+ 
+-module AC = Ast_convenience_408
++module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
+ 
+ open Ppx_eliom_utils
+ 
+@@ -56,14 +54,16 @@ module Pass = struct
+         let frag_eid = eid id in
+         typing_expr :=
+           (id,
++           let loc = orig_expr.pexp_loc in
+            [%expr [%e frag_eid] := Some [%e orig_expr]]
+-             [@metaloc orig_expr.pexp_loc]
+           ) :: !typing_expr
+     in
+     let flush () =
+       let res = List.rev (List.map snd !typing_expr) in
+       typing_expr := [];
+-      AC.sequence res
++      match res with
++      | []    -> let loc = Location.none in [%expr ()]
++      | r:: l -> List.fold_left Exp.sequence r l
+     in
+     add, flush
+ 
+@@ -77,8 +77,8 @@ module Pass = struct
+       then
+         typing_strs :=
+           (id,
++           let loc = orig_expr.pexp_loc in
+            [%stri let [%p Pat.var id] = Stdlib.ref None]
+-           [@metaloc orig_expr.pexp_loc]
+           ) :: !typing_strs
+     in
+     let flush () =
+@@ -93,7 +93,7 @@ module Pass = struct
+   let client_str item =
+     let loc = item.pstr_loc in
+     flush_typing_str_item () @
+-    [%str let () = [%e flush_typing_expr () ] ] [@metaloc loc]
++    [%str let () = [%e flush_typing_expr () ] ]
+ 
+   let server_str _ item =
+     flush_typing_str_item () @
+@@ -102,7 +102,7 @@ module Pass = struct
+   let shared_str _ item =
+     let loc = item.pstr_loc in
+     flush_typing_str_item () @
+-    [%str let () = [%e flush_typing_expr () ] ] [@metaloc loc] @
++    [%str let () = [%e flush_typing_expr () ] ] @
+     [ item ]
+ 
+   let fragment ~loc ?typ ~context:_ ~num:_ ~id ~unsafe:_ expr =
+@@ -126,6 +126,7 @@ module Pass = struct
+         ~loc:_ ?ident:_ ~(context:Context.escape_inject) ~id ~unsafe:_ expr =
+     push_typing_str_item expr id;
+     push_typing_expr expr id;
++    let loc = expr.pexp_loc in
+     match context with
+     | `Escaped_value _ -> [%expr assert false]
+     | `Injection `Shared -> expr
+@@ -143,5 +144,8 @@ end
+ include Make(Pass)
+ 
+ let () =
+-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_types" ~args:driver_args
+-    Migrate_parsetree.Versions.ocaml_408 mapper
++  Ppxlib.Driver.register_transformation
++    ~preprocess_impl:(fun str -> mapper.AM.structure mapper str)
++    ~preprocess_intf:(fun sig_ ->
++      mapper.AM.signature mapper sig_)
++     "ppx_eliom_types"
+diff --git a/src/ppx/ppx_eliom_type.mli b/src/ppx/ppx_eliom_type.mli
+index 1c167bd3e..0e1b33ee4 100644
+--- a/src/ppx/ppx_eliom_type.mli
++++ b/src/ppx/ppx_eliom_type.mli
+@@ -1,2 +1 @@
+-val mapper :
+-  Migrate_parsetree.Versions.OCaml_408.types Migrate_parsetree.Driver.rewriter
++val mapper : Migrate_parsetree.OCaml_410.Ast.Ast_mapper.mapper
+diff --git a/src/ppx/ppx_eliom_utils.ml b/src/ppx/ppx_eliom_utils.ml
+index 336db1a6d..5b383be61 100644
+--- a/src/ppx/ppx_eliom_utils.ml
++++ b/src/ppx/ppx_eliom_utils.ml
+@@ -1,11 +1,10 @@
+-open Config
+-open Migrate_parsetree
+-open Ast_408
++
++module Parsetree = Ppxlib.Parsetree
++module Asttypes = Ppxlib.Asttypes
+ open Parsetree
+-open Ast_helper
++open Ppxlib.Ast_helper
+ 
+-module AM = Ast_mapper
+-module AC = Ast_convenience_408
++module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
+ 
+ (** Various misc functions *)
+ 
+@@ -30,13 +29,13 @@ let exp_add_attrs attr e =
+ let eid {Location. txt ; loc } =
+   Exp.ident ~loc { loc ; txt = Longident.Lident txt }
+ 
+-let format_args = function
+-  | [] -> AC.unit ()
++let format_args ~loc = function
++  | [] -> [%expr ()]
+   | [e] -> e
+-  | l -> Exp.tuple l
++  | l -> Exp.tuple ~loc l
+ 
+-let pat_args = function
+-  | [] -> AC.punit ()
++let pat_args ~loc = function
++  | [] -> [%pat? ()]
+   | [p] -> p
+   | l -> Pat.tuple l
+ let format_typ (list : Parsetree.core_type list) : Parsetree.core_type =
+@@ -76,7 +75,8 @@ let id_file_hash loc =
+ *)
+ let module_hash_declaration loc =
+   let id = Pat.var ~loc @@ id_file_hash loc in
+-  Str.value ~loc Nonrecursive [Vb.mk ~loc id @@ AC.str @@ file_hash loc]
++  Str.value ~loc Nonrecursive
++    [Vb.mk ~loc id @@ Exp.constant ~loc @@ Const.string @@ file_hash loc]
+ 
+ (** The first position in a file, if it exists.
+     We avoid {!Location.input_name}, as it's unreliable when reading multiple files.
+@@ -87,11 +87,15 @@ let file_position str = match str with
+ 
+ let lexing_position ~loc l =
+   [%expr
+-    { Lexing.pos_fname = [%e AC.str l.Lexing.pos_fname];
+-      Lexing.pos_lnum = [%e AC.int @@ l.Lexing.pos_lnum];
+-      Lexing.pos_bol = [%e AC.int @@ l.Lexing.pos_bol];
+-      Lexing.pos_cnum = [%e AC.int @@ l.Lexing.pos_cnum]; }
+-  ] [@metaloc loc]
++    { Lexing.pos_fname =
++        [%e Exp.constant ~loc @@ Const.string l.Lexing.pos_fname];
++      Lexing.pos_lnum =
++        [%e Exp.constant ~loc @@ Const.int l.Lexing.pos_lnum];
++      Lexing.pos_bol =
++        [%e Exp.constant ~loc @@ Const.int l.Lexing.pos_bol];
++      Lexing.pos_cnum =
++        [%e Exp.constant ~loc @@ Const.int l.Lexing.pos_cnum] }
++  ]
+ 
+ let position loc =
+   let start = loc.Location.loc_start in
+@@ -238,12 +242,9 @@ module Mli = struct
+     try
+       let ch = open_in file in
+       let items =
+-        Parse.interface Versions.ocaml_current (Lexing.from_channel ch)
++        Ppxlib.Parse.interface (Lexing.from_channel ch)
+       in
+       close_in ch;
+-      let migration =
+-        Versions.migrate Versions.ocaml_current Versions.ocaml_408 in
+-      let items = migration.copy_signature items in
+       let h = Hashtbl.create 17 in
+       let f item = match get_binding item with
+         | Some (s, typ) -> Hashtbl.add h s typ
+@@ -302,8 +303,9 @@ module Cmo = struct
+         "Eliom: Error while loading types: %s" s
+     | ic ->
+        let open Cmo_format in
+-       let buffer = really_input_string ic (String.length cmo_magic_number) in
+-       if buffer <> cmo_magic_number then
++       let buffer =
++         really_input_string ic (String.length Config.cmo_magic_number) in
++       if buffer <> Config.cmo_magic_number then
+          Location.raise_errorf
+            ~loc:(Location.in_file file)
+            "Eliom: Error while loading types: not an object file";
+@@ -344,9 +346,8 @@ module Cmo = struct
+ 
+   let counter = ref 0
+ 
+-  let rec type_of_out_type ty =
++  let type_of_out_type ty =
+     let open Outcometree in
+-    let open Parsetree in
+     let map = Hashtbl.create 1 in
+     let var x =
+       try Hashtbl.find map x with Not_found ->
+@@ -405,11 +406,9 @@ module Cmo = struct
+     in
+     type_of_out_type ty
+ 
+-  module Convert = Versions.Convert(OCaml_current)(OCaml_408)
+-
+   let typ ty =
+     let ty = Printtyp.tree_of_type_scheme ty in
+-    type_of_out_type (Convert.copy_out_type ty)
++    type_of_out_type ty
+ 
+   let find err loc =
+     let {Lexing.pos_fname; pos_cnum} = loc.Location.loc_start in
+@@ -476,6 +475,11 @@ let driver_args = [
+     "FILE Load inferred types from server cmo file FILE."
+ ]
+ 
++let () =
++  List.iter
++    (fun (key, spec, doc) -> Ppxlib.Driver.add_arg key spec ~doc) driver_args
++
++
+ (** Signature of specific code of a preprocessor. *)
+ module type Pass = sig
+ 
+@@ -660,17 +664,18 @@ module Rpc = struct
+     Format.sprintf "%s.%s" filename (function_name fun_name_pattern)
+ 
+   let pat_to_exp pattern =
++    let loc = pattern.ppat_loc in
+     match pattern with
+     | {ppat_desc= Ppat_var ident; _} ->
+-        Exp.ident (Location.mkloc (Longident.parse ident.txt) pattern.ppat_loc)
++        Exp.ident ~loc (Location.mkloc (Longident.Lident ident.txt) loc)
+     | {ppat_desc= Ppat_construct ({txt = Lident "()"},_); _} ->
+-        AC.unit ()
++        [%expr ()]
+     | _ ->
+         print_error ~loc:pattern.ppat_loc Fatal_error
+ 
+   let apply_function_expr ~loc fun_name args_list =
+     Exp.apply ~loc
+-      (Exp.ident (Location.mkloc (Longident.parse fun_name) loc))
++      (Exp.ident ~loc (Location.mkloc (Longident.Lident fun_name) loc))
+       args_list
+ 
+   let rec args_parser expr arg_list =
+@@ -678,7 +683,7 @@ module Rpc = struct
+     match expr with
+     | [%expr fun () -> [%e? expr']] ->
+         args_parser expr'
+-          ((AC.punit (), AC.tconstr "unit" [], Asttypes.Nolabel) :: arg_list)
++          (([%pat? ()], [%type: unit], Asttypes.Nolabel) :: arg_list)
+     | { pexp_desc =
+           Pexp_fun
+             (label
+@@ -712,7 +717,7 @@ module Rpc = struct
+              [%json: [%t _typ_of_args]]
+               (fun [%p _pat_of_args] ->
+                   [%e apply]))
+-      ][@metaloc loc]
++      ]
+     in [%expr let aux = [%e inject] in [%e aux_apply]]
+ 
+   let connected_wrapper ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
+@@ -731,7 +736,7 @@ module Rpc = struct
+              [%json: [%t _typ_of_args]]
+              (Os_session.connected_wrapper (fun [%p _pat_of_args] ->
+                   [%e apply])))
+-      ][@metaloc loc]
++      ]
+     in
+     [%expr let aux = [%e inject] in [%e aux_apply]]
+ 
+@@ -751,7 +756,7 @@ module Rpc = struct
+            [%json: [%t _typ_of_args]]
+            (Os_session.connected_rpc (fun [%p id] [%p _pat_of_args] ->
+               [%e apply])))
+-      ][@metaloc loc]
++      ]
+     in [%expr let aux = [%e inject] in [%e aux_apply]]
+ 
+   let connected_rpc_o ~id ~label ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args)
+@@ -773,32 +778,32 @@ module Rpc = struct
+              [%json: [%t _typ_of_args]]
+              (Os_session.Opt.connected_rpc (fun [%p id] [%p _pat_of_args] ->
+                   [%e apply])))
+-    ][@metaloc loc]
++    ]
+     in [%expr let aux = [%e inject] in [%e aux_apply]]
+ 
+   let generate_client_expression fun_name_pattern expr apply_rpc =
+     let _args_list,loc = args_parser  expr [] in
+     let _pat_of_args =
+-      List.map (fun (pattern, _, _) -> pattern) _args_list |> pat_args
++      List.map (fun (pattern, _, _) -> pattern) _args_list |> pat_args ~loc
+     in
+     let _typ_of_args =
+       List.map (fun (_, typ, _) -> typ) _args_list |> format_typ
+     in
+     let _expr_of_args =
+       List.map (fun (pattern, _, _) -> pat_to_exp pattern) _args_list
+-      |> format_args
++      |> format_args ~loc
+     in
+     let rec expr_mapper args_list =
+         match args_list with
+       | [] ->
+           let rpc_name =
+-            Exp.constant (Pconst_string (rpc_name fun_name_pattern, None))
++            Exp.constant ~loc (Const.string (rpc_name fun_name_pattern))
+           in
+           let fun_name = function_name fun_name_pattern in
+           apply_rpc ~loc (rpc_name, fun_name, _args_list, _pat_of_args, _typ_of_args, _expr_of_args)
+       |(pattern,_,label)::args_list' -> Exp.fun_ label None pattern (expr_mapper args_list')
+     in
+-    expr_mapper _args_list [@metaloc loc]
++    expr_mapper _args_list
+ 
+   let generate_server_struct_item rpc_type stri =
+     match stri with
+@@ -807,7 +812,7 @@ module Rpc = struct
+           [%e? {pexp_desc= Pexp_fun (label, None, _, expr')}]] ->
+         let args_list,loc = args_parser expr' [] in
+         let _args =
+-          List.map (fun (pattern, _, _) -> pattern) args_list |> pat_args
++          List.map (fun (pattern, _, _) -> pattern) args_list |> pat_args ~loc
+         in
+         let _apply =
+           match rpc_type with
+@@ -830,9 +835,9 @@ module Rpc = struct
+         in
+         ([ [%stri
+              let [%p pattern] = [%e expr_mapper args_list]]
+-        [@metaloc loc]])
++        ])
+     | _ -> (
+-        ([stri] [@metaloc loc]) )
++        ([stri]) )
+ 
+   let generate_client_struct_item rpc_type stri =
+     let loc = stri.pstr_loc in
+@@ -855,7 +860,7 @@ module Rpc = struct
+         (pattern, generate_client_expression pattern expr'
+            (connected_rpc_o ~id ~label))
+       | _ -> print_error ~loc Fatal_error
+-    in [[%stri let [%p pattern] = [%e expr]][@metaloc loc]]
++    in [[%stri let [%p pattern] = [%e expr]]]
+ end
+ 
+ module Shared = struct
+@@ -889,13 +894,13 @@ module Shared = struct
+           Eliom_shared.Value.create
+           [%e server_expr]
+           [%client.unsafe [%e client_expr]]
+-      ] [@metaloc loc]
++      ]
+     else
+       [%expr
+           Eliom_shared.Value.create
+           [%e server_expr]
+           [%client [%e client_expr]]
+-      ] [@metaloc loc]
++      ]
+ end
+ 
+ module Make (Pass : Pass) = struct
+@@ -1000,9 +1005,9 @@ module Make (Pass : Pass) = struct
+ 
+   let eliom_mapper context =
+     let context = ref (context :> Context.t) in
+-    { Ast_mapper.default_mapper
++    { AM.default_mapper
+       with
+-        Ast_mapper.
++        AM.
+ 
+         expr = eliom_expr context ;
+ 
+@@ -1108,7 +1113,7 @@ module Make (Pass : Pass) = struct
+     in
+     flatmap f sigs
+ 
+-  let mapper _config _cookies =
++  let mapper =
+     let c = ref `Server in
+     {AM.default_mapper
+      with
+diff --git a/src/ppx/ppx_eliom_utils.mli b/src/ppx/ppx_eliom_utils.mli
+index 1a37049a9..53843b0f6 100644
+--- a/src/ppx/ppx_eliom_utils.mli
++++ b/src/ppx/ppx_eliom_utils.mli
+@@ -1,5 +1,4 @@
+-open Migrate_parsetree.Ast_408
+-open Parsetree
++open Ppxlib.Parsetree
+ 
+ (** {2 Various helping functions} *)
+ 
+@@ -10,9 +9,9 @@ val eid : string Location.loc -> expression
+ 
+ val position : Location.t -> expression
+ 
+-val format_args : expression list -> expression
++val format_args : loc:Location.t -> expression list -> expression
+ 
+-val pat_args : pattern list -> pattern
++val pat_args : loc:Location.t -> pattern list -> pattern
+ 
+ (** Context convenience module. *)
+ module Context : sig
+@@ -97,7 +96,6 @@ end
+ 
+ val driver_args : (Arg.key * Arg.spec * Arg.doc) list
+ 
+-module Make (P : Pass) : sig
+-  val mapper :
+-    Migrate_parsetree.Versions.OCaml_408.types Migrate_parsetree.Driver.rewriter
++module Make (_ : Pass) : sig
++  val mapper : Migrate_parsetree.OCaml_410.Ast.Ast_mapper.mapper
+ end
