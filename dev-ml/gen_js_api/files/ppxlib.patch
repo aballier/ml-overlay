@@ -1,0 +1,221 @@
+Index: gen_js_api-1.0.6/ppx-driver/dune
+===================================================================
+--- gen_js_api-1.0.6.orig/ppx-driver/dune
++++ gen_js_api-1.0.6/ppx-driver/dune
+@@ -2,6 +2,6 @@
+   (name gen_js_api_ppx_driver)
+   (public_name gen_js_api.ppx)
+   (synopsis "Syntactic support for gen_js_api")
+-  (libraries compiler-libs.common gen_js_api.ppx-lib ppxlib)
++  (libraries compiler-libs.common gen_js_api.ppx-lib ppxlib ppxlib.ast)
+   (kind ppx_rewriter)
+   (preprocess no_preprocessing))
+Index: gen_js_api-1.0.6/ppx-driver/gen_js_api_ppx_driver.ml
+===================================================================
+--- gen_js_api-1.0.6.orig/ppx-driver/gen_js_api_ppx_driver.ml
++++ gen_js_api-1.0.6/ppx-driver/gen_js_api_ppx_driver.ml
+@@ -1,9 +1,9 @@
+-module Selected = Ppxlib.Select_ast(Migrate_parsetree.Versions.OCaml_408)
++module Selected = Ppxlib.Select_ast(Ppxlib_ast__Versions.OCaml_411)
+ 
+-let copy_attribute (a : Migrate_parsetree.Ast_408.Parsetree.attribute)
++let copy_attribute (a : Migrate_parsetree.Ast_411.Parsetree.attribute)
+   : Ppxlib.Ast.attribute =
+-  let pat : Migrate_parsetree.Ast_408.Parsetree.pattern =
+-    Migrate_parsetree.Ast_408.Ast_helper.Pat.any ~attrs:[a] ()
++  let pat : Migrate_parsetree.Ast_411.Parsetree.pattern =
++    Ppxlib_ast.Ast_helper.Pat.any ~attrs:[a] ()
+   in
+   let pat = Selected.Of_ocaml.copy_pattern pat in
+   List.hd pat.ppat_attributes
+@@ -24,9 +24,8 @@ let () =
+   Gen_js_api_ppx.mark_as_handled_manually := (fun attribute ->
+     let attribute = copy_attribute attribute in
+     Ppxlib.Attribute.mark_as_handled_manually attribute);
+-  let mapper = Selected.Of_ocaml.copy_mapper Gen_js_api_ppx.mapper in
++  let mapper = Gen_js_api_ppx.mapper in
+   let mapper_for_sig =
+-    Selected.Of_ocaml.copy_mapper
+       (Gen_js_api_ppx.mark_attributes_as_used Gen_js_api_ppx.mapper)
+   in
+   Ppxlib.Driver.register_transformation
+Index: gen_js_api-1.0.6/ppx-lib/dune
+===================================================================
+--- gen_js_api-1.0.6.orig/ppx-lib/dune
++++ gen_js_api-1.0.6/ppx-lib/dune
+@@ -1,5 +1,5 @@
+ (library
+   (name gen_js_api_ppx)
+   (public_name gen_js_api.ppx-lib)
+-  (libraries ocaml-migrate-parsetree)
++  (libraries ocaml-migrate-parsetree ppxlib ppxlib.ast)
+   (preprocess no_preprocessing))
+Index: gen_js_api-1.0.6/ppx-lib/gen_js_api_ppx.ml
+===================================================================
+--- gen_js_api-1.0.6.orig/ppx-lib/gen_js_api_ppx.ml
++++ gen_js_api-1.0.6/ppx-lib/gen_js_api_ppx.ml
+@@ -2,7 +2,7 @@
+ (* See the attached LICENSE file.                                         *)
+ (* Copyright 2015 by LexiFi.                                              *)
+ 
+-open Migrate_parsetree.Ast_408
++open Migrate_parsetree.Ast_411
+ 
+ open Location
+ open Asttypes
+@@ -98,7 +98,7 @@ let str_of_payload loc = function
+   | _ -> error loc Structure_expected
+ 
+ let id_of_expr = function
+-  | {pexp_desc=Pexp_constant (Pconst_string (s, _)); _}
++  | {pexp_desc=Pexp_constant (Pconst_string (s, _, _)); _}
+   | {pexp_desc=Pexp_ident {txt=Lident s;_}; _}
+   | {pexp_desc=Pexp_construct ({txt=Lident s;_}, None); _} -> s
+   | e -> error e.pexp_loc Identifier_expected
+@@ -205,7 +205,7 @@ let get_js_constr ~global_attrs name att
+   | None -> `String (js_name ~global_attrs name)
+   | Some (k, v) ->
+       begin match (expr_of_payload k.loc v).pexp_desc with
+-      | Pexp_constant (Pconst_string (s, _)) -> `String s
++      | Pexp_constant (Pconst_string (s, _, _)) -> `String s
+       | Pexp_constant (Pconst_integer (n, _)) -> `Int (int_of_string n)
+       | _ -> error k.loc Invalid_expression
+       end
+@@ -493,9 +493,9 @@ let rec parse_sig_item ~global_attrs res
+       parse_valdecl ~global_attrs ~in_sig:true vd :: rest
+   | Psig_type (rec_flag, decls) ->
+       Type (rec_flag, decls) :: rest
+-  | Psig_module {pmd_name; pmd_type = {pmty_desc = Pmty_signature si; pmty_attributes; pmty_loc = _}; pmd_loc = _; pmd_attributes = _} ->
++  | Psig_module {pmd_name = { txt = Some name; _}; pmd_type = {pmty_desc = Pmty_signature si; pmty_attributes; pmty_loc = _}; pmd_loc = _; pmd_attributes = _} ->
+       let global_attrs = pmty_attributes @ global_attrs in
+-      Module (pmd_name.txt, pmty_attributes, parse_sig ~global_attrs si) :: rest
++      Module (name, pmty_attributes, parse_sig ~global_attrs si) :: rest
+   | Psig_class cs -> Class (List.map (parse_class_decl ~global_attrs) cs) :: rest
+   | Psig_attribute ({attr_payload = PStr str; _} as attribute) when filter_attr_name "js.implem" attribute -> Implem str :: rest
+   | Psig_attribute _ -> rest
+@@ -580,11 +580,13 @@ and parse_class_field ~global_attrs = fu
+ 
+ (** Code generation *)
+ 
+-let var x = Exp.ident (mknoloc (Longident.parse x))
+-let str s = Exp.constant (Pconst_string (s, None))
++let longident_parse x = Longident.parse x [@@ocaml.warning "-deprecated"]
++
++let var x = Exp.ident (mknoloc (longident_parse x))
++let str s = Exp.constant (Pconst_string (s, Location.none, None))
+ let int n = Exp.constant (Pconst_integer (string_of_int n, None))
+ let pat_int n = Pat.constant (Pconst_integer (string_of_int n, None))
+-let pat_str s = Pat.constant (Pconst_string (s, None))
++let pat_str s = Pat.constant (Pconst_string (s, Location.none, None))
+ 
+ let attr s e = (Attr.mk (mknoloc s) (PStr [Str.eval e]))
+ 
+@@ -768,7 +770,7 @@ let get_variant_kind loc attrs =
+         | PStr [] -> `Union No_discriminator
+         | _ ->
+             begin match expr_of_payload k.loc v with
+-            | {pexp_desc = Pexp_apply ({pexp_desc = Pexp_ident {txt = Lident "on_field";_}; _}, [Nolabel, {pexp_desc = Pexp_constant (Pconst_string (s, _)); _}]); _} -> `Union (On_field s)
++            | {pexp_desc = Pexp_apply ({pexp_desc = Pexp_ident {txt = Lident "on_field";_}; _}, [Nolabel, {pexp_desc = Pexp_constant (Pconst_string (s, _, _)); _}]); _} -> `Union (On_field s)
+             | _ -> error k.loc Unknown_union_method
+             end
+         end
+@@ -956,7 +958,7 @@ and ml2js ty exp =
+       let extra_arg =
+         match label_variadic with
+         | Arg | Lab _ -> extra_arg
+-        | Opt _ -> Exp.construct (mknoloc (Longident.parse "Some")) (Some extra_arg)
++        | Opt _ -> Exp.construct (mknoloc (longident_parse "Some")) (Some extra_arg)
+       in
+       let concrete_args = concrete_args @ [arg_label label_variadic, extra_arg] in
+       let res = app exp concrete_args unit_arg in
+@@ -1270,7 +1272,7 @@ and gen_funs ~global_attrs p =
+               (Exp.newtype (mknoloc v)
+                  (Exp.constraint_
+                     to_js
+-                    (Typ.arrow Nolabel (Typ.constr (mknoloc (Longident.parse name)) [Typ.constr (mknoloc (Longident.parse v)) []]) ojs_typ)))
++                    (Typ.arrow Nolabel (Typ.constr (mknoloc (longident_parse name)) [Typ.constr (mknoloc (longident_parse v)) []]) ojs_typ)))
+           ]
+       end
+   | _ ->
+@@ -1295,7 +1297,7 @@ and gen_decl ~global_attrs = function
+       [ Str.type_ rec_flag decls; Str.value rec_flag funs ]
+   | Module (s, attrs, decls) ->
+       let global_attrs = attrs @ global_attrs in
+-      [ Str.module_ (Mb.mk (mknoloc s) (Mod.structure (gen_decls ~global_attrs decls))) ]
++      [ Str.module_ (Mb.mk (mknoloc (Some s)) (Mod.structure (gen_decls ~global_attrs decls))) ]
+ 
+   | Val (s, ty, decl, loc) ->
+       let d = gen_def loc decl ty in
+@@ -1338,7 +1340,7 @@ and gen_classdecl cast_funcs = function
+         | Name (super_class, []) -> super_class
+         | _ -> assert false
+       in
+-      let e = Cl.apply (Cl.constr (mknoloc (Longident.parse super_class)) []) [Nolabel, obj] in
++      let e = Cl.apply (Cl.constr (mknoloc (longident_parse super_class)) []) [Nolabel, obj] in
+       let e = if unit_arg then Cl.fun_ Nolabel None unit_pat e else e in
+       let f e (label, x) = Cl.fun_ label None (Pat.var (mknoloc x)) e in
+       Ci.mk (mknoloc class_name) (List.fold_left f e (List.rev formal_args))
+@@ -1365,7 +1367,7 @@ and gen_class_field x = function
+ 
+ and gen_class_cast = function
+   | Declaration { class_name; class_fields = _ } ->
+-      let class_typ = Typ.constr (mknoloc (Longident.parse class_name)) [] in
++      let class_typ = Typ.constr (mknoloc (longident_parse class_name)) [] in
+       let to_js =
+         let arg = fresh() in
+         Vb.mk (Pat.var (mknoloc (class_name ^ "_to_js")))
+@@ -1594,13 +1596,9 @@ let specs =
+ 
+ let usage = "gen_js_api [-o mymodule.ml] mymodule.mli"
+ 
+-let from_current =
+-  let open Migrate_parsetree in
+-  Versions.migrate Versions.ocaml_current Versions.ocaml_408
+-
+-let to_current =
+-  let open Migrate_parsetree in
+-  Versions.migrate Versions.ocaml_408 Versions.ocaml_current
++
++module From_current = Ppxlib_ast__Versions.Convert(Ppxlib_ast__Versions.OCaml_current)(Ppxlib_ast__Versions.OCaml_411)
++module To_current = Ppxlib_ast__Versions.Convert(Ppxlib_ast__Versions.OCaml_411)(Ppxlib_ast__Versions.OCaml_current)
+ 
+ let standalone () =
+   let files = ref [] in
+@@ -1616,12 +1614,12 @@ let standalone () =
+   let sg =
+     Pparse.parse_interface
+       ~tool_name:"gen_js_iface"
+-      src |> from_current.Migrate_parsetree.Versions.copy_signature
++      src |> From_current.copy_signature
+   in
+   let str = str_of_sg ~global_attrs:[] sg in
+   ignore (check_loc_mapper.Ast_mapper.signature check_loc_mapper sg);
+   let str = clear_attr_mapper.Ast_mapper.structure clear_attr_mapper str in
+-  Format.fprintf (Format.formatter_of_out_channel oc) "%a@." Pprintast.structure (to_current.copy_structure str);
++  Format.fprintf (Format.formatter_of_out_channel oc) "%a@." Pprintast.structure (To_current.copy_structure str);
+   if !out <> "-" then close_out oc
+ 
+ 
+Index: gen_js_api-1.0.6/ppx-lib/gen_js_api_ppx.mli
+===================================================================
+--- gen_js_api-1.0.6.orig/ppx-lib/gen_js_api_ppx.mli
++++ gen_js_api-1.0.6/ppx-lib/gen_js_api_ppx.mli
+@@ -2,14 +2,14 @@
+ (* See the attached LICENSE file.                                         *)
+ (* Copyright 2015 by LexiFi.                                              *)
+ 
+-val mark_as_handled_manually : (Migrate_parsetree.Ast_408.Parsetree.attribute -> unit) ref
++val mark_as_handled_manually : (Migrate_parsetree.Ast_411.Parsetree.attribute -> unit) ref
+ 
+ val check_attribute : bool ref
+ 
+-val mapper : Migrate_parsetree.Ast_408.Ast_mapper.mapper
++val mapper : Ocaml_common.Ast_mapper.mapper
+ 
+ val mark_attributes_as_used
+-  :  Migrate_parsetree.Ast_408.Ast_mapper.mapper
+-  -> Migrate_parsetree.Ast_408.Ast_mapper.mapper
++  :  Ocaml_common.Ast_mapper.mapper
++  -> Ocaml_common.Ast_mapper.mapper
+ 
+ val standalone : unit -> unit
