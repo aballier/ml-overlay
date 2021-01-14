@@ -455,6 +455,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[capnp]="base_quickcheck ounit2"
 	[ca-certs]="alcotest"
 	[charInfo_width]="ppx_expect"
+	[cinaps]="ppx_jane"
 	[cohttp]="alcotest fmt"
 	[cohttp-async]="core ounit2"
 	[cohttp-lwt-unix]="ounit2"
