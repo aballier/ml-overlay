@@ -1,0 +1,14 @@
+Index: bisect_ppx-2.5.0/bisect_ppx.opam
+===================================================================
+--- bisect_ppx-2.5.0.orig/bisect_ppx.opam
++++ bisect_ppx-2.5.0/bisect_ppx.opam
+@@ -23,8 +23,7 @@ depends: [
+   "cmdliner" {>= "1.0.0"}
+   "dune" {>= "2.7.0"}
+   "ocaml" {>= "4.02.0"}
+-  "ocaml-migrate-parsetree" {>= "1.7.0"}
+-  "ppx_tools_versioned" {>= "5.4.0"}
++  "ppxlib"
+ 
+   "ocamlfind" {with-test}
+   "ounit2" {with-test}
