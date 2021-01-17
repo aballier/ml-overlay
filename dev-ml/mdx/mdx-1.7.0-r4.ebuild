@@ -1,4 +1,4 @@
-# Copyright 2019-2020 Gentoo Authors
+# Copyright 2019-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -10,7 +10,7 @@ HOMEPAGE="https://github.com/realworldocaml/mdx"
 SRC_URI="https://github.com/realworldocaml/mdx/releases/download/${PV}/${P}.tbz"
 
 LICENSE="ISC"
-SLOT="0/${PV}"
+SLOT="0/${PV}-ppxlib"
 KEYWORDS="~amd64 ~x86"
 IUSE="test"
 
@@ -19,3 +19,4 @@ DEPEND="${RDEPEND}
 	test? ( app-text/pandoc )
 "
 BDEPEND=""
+PATCHES=( "${FILESDIR}/ppxlib.patch" )
