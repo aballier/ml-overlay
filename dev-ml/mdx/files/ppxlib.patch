@@ -171,3 +171,27 @@ Index: mdx-1.8.0/test/bin/mdx-test/expect/errors/test-case.md
 -Exception: Not_found.
 +Exception: Not_found
  ```
+Index: mdx-1.8.0/mdx.opam
+===================================================================
+--- mdx-1.8.0.orig/mdx.opam
++++ mdx-1.8.0/mdx.opam
+@@ -35,6 +35,7 @@ depends: [
+   "ocaml-migrate-parsetree" {>= "1.0.6" & < "2.0.0"}
+   "ocaml-version" {>= "2.3.0"}
+   "odoc"
++  "ppxlib"
+   "lwt" {with-test}
+   "alcotest" {with-test}
+ ]
+Index: mdx-1.8.0/dune-project
+===================================================================
+--- mdx-1.8.0.orig/dune-project
++++ mdx-1.8.0/dune-project
+@@ -32,6 +32,7 @@
+   (re
+    (>= 1.7.2))
+   result
++  ppxlib
+   (ocaml-migrate-parsetree
+    (and
+     (>= 1.0.6)
