@@ -1,9 +1,9 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-inherit findlib
+inherit findlib opam
 
 DESCRIPTION="Eliom Base Application with users, (pre)registration, notifications, etc."
 HOMEPAGE="https://github.com/ocsigen/ocsigen-start"
@@ -22,21 +22,9 @@ else
 	KEYWORDS="~amd64"
 fi
 
-RDEPEND="dev-lang/ocaml:=
-	dev-ml/pgocaml:=
-	dev-ml/pgocaml_ppx:=
-	dev-ml/safepass:=
-	dev-ml/ocsigen-i18n:=
-	>=dev-ml/eliom-6.3:=
-		www-servers/ocsigenserver:=
-	dev-ml/ocsigen-toolkit:=
-	dev-ml/resource-pooling:=
-	dev-ml/yojson:=
-	dev-ml/cohttp-lwt-unix:=
-		dev-ml/lwt:=
-	dev-ml/ocamlnet:=
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
+OPAM_FILE=opam
 
 src_install() {
 	findlib_src_preinst
