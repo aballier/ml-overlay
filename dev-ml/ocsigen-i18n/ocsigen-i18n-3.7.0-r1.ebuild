@@ -1,7 +1,9 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
+
+inherit opam
 
 DESCRIPTION="I18n made easy for web sites written with eliom"
 HOMEPAGE="https://github.com/besport/ocsigen-i18n"
@@ -12,12 +14,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="dev-lang/ocaml:=
-	dev-ml/tyxml:=
-	dev-ml/ppx_tools:=
-"
-DEPEND="${RDEPEND}
-	dev-ml/findlib"
+RDEPEND=""
+DEPEND="${RDEPEND}"
+OPAM_FILE=opam
 
 src_install() {
 	dodir /usr/bin
