@@ -242,6 +242,8 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ocplib-endian]=""
 	[ocp-indent]="cmdliner findlib"
 	[ocsigenserver]="lwt lwt_react ssl lwt_ssl lwt_log react cryptokit ocamlnet pcre tyxml xml-light ipaddr"
+	[ocsigen-i18n]="tyxml ppx_tools"
+	[ocsigen-start]="pgocaml pgocaml_ppx safepass ocsigen-i18n eliom ocsigen-toolkit yojson resource-pooling cohttp-lwt-unix ocamlnet"
 	[ocsigen-toolkit]="eliom calendar"
 	[octavius]=""
 	[odoc]="astring cmdliner fpath result tyxml"
@@ -423,6 +425,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[mtime]="findlib topkg ocamlbuild"
 	[nanomsg]="findlib"
 	[ocplib-endian]="cppo"
+	[ocsigen-i18n]="findlib"
 	[odoc]="cppo"
 	[opam-core]="cppo"
 	[owl]="base stdio"
@@ -654,6 +657,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-libpcre") -> ()
 	| String (_,"conf-libX11") -> ()
 	| String (_,"conf-nanomsg") -> ()
+	| String (_,"conf-npm") -> ()
 	| String (_,"conf-openblas") -> ()
 	| String (_,"conf-openssl") -> ()
 	| String (_,"conf-pkg-config") -> ()
