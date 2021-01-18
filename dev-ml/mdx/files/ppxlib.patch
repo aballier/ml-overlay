@@ -1,21 +1,21 @@
-Index: mdx-1.7.0/lib/dune
+Index: mdx-1.8.0/lib/dune
 ===================================================================
---- mdx-1.7.0.orig/lib/dune
-+++ mdx-1.7.0/lib/dune
+--- mdx-1.8.0.orig/lib/dune
++++ mdx-1.8.0/lib/dune
 @@ -5,7 +5,7 @@
    (action
     (run %{bin:cppo} -V OCAML:%{ocaml_version} %{input-file})))
   (libraries astring csexp fmt logs ocaml-migrate-parsetree ocaml-version
 -   odoc.parser re result str))
-+   odoc.parser re result str ppxlib.ast ppxlib))
++   odoc.parser re result str ppxlib ppxlib.ast))
  
  (ocamllex lexer_mdx)
  
-Index: mdx-1.7.0/lib/migrate_ast.ml
+Index: mdx-1.8.0/lib/migrate_ast.ml
 ===================================================================
---- mdx-1.7.0.orig/lib/migrate_ast.ml
-+++ mdx-1.7.0/lib/migrate_ast.ml
-@@ -31,57 +31,32 @@ module Asttypes_ = Asttypes
+--- mdx-1.8.0.orig/lib/migrate_ast.ml
++++ mdx-1.8.0/lib/migrate_ast.ml
+@@ -31,39 +31,14 @@ module Asttypes_ = Asttypes
  module Parsetree_ = Parsetree
  
  include (
@@ -58,10 +58,16 @@ Index: mdx-1.7.0/lib/migrate_ast.ml
  
  module Typemod = struct
    open Typemod
- 
+@@ -71,22 +46,22 @@ module Typemod = struct
    let type_structure e s l =
+ #if OCAML_VERSION >= (4, 12, 0)
+     let _ = l in
+-    type_structure e (to_current.copy_structure s)
++    type_structure e (To_current.copy_structure s)
+ #else
 -    type_structure e (to_current.copy_structure s) l
 +    type_structure e (To_current.copy_structure s) l
+ #endif
  end
  
  module Printast = struct
@@ -79,7 +85,7 @@ Index: mdx-1.7.0/lib/migrate_ast.ml
  end
  
  module Printtyp = struct
-@@ -99,8 +74,8 @@ module Pparse = struct
+@@ -104,8 +79,8 @@ module Pparse = struct
    open Pparse
  
    let apply_rewriters_str ~tool_name s =
@@ -90,7 +96,7 @@ Index: mdx-1.7.0/lib/migrate_ast.ml
  end
  
  module Position = struct
-@@ -127,7 +102,7 @@ module Position = struct
+@@ -132,7 +107,7 @@ module Position = struct
  end
  
  module Location = struct
@@ -99,10 +105,10 @@ Index: mdx-1.7.0/lib/migrate_ast.ml
  
    let fmt fs {loc_start; loc_end; loc_ghost} =
      Format.fprintf fs "(%a..%a)%s" Position.fmt loc_start Position.fmt
-Index: mdx-1.7.0/lib/top/mdx_top.ml
+Index: mdx-1.8.0/lib/top/mdx_top.ml
 ===================================================================
---- mdx-1.7.0.orig/lib/top/mdx_top.ml
-+++ mdx-1.7.0/lib/top/mdx_top.ml
+--- mdx-1.8.0.orig/lib/top/mdx_top.ml
++++ mdx-1.8.0/lib/top/mdx_top.ml
 @@ -23,7 +23,7 @@ module Toploop = struct
    include Toploop
  
@@ -121,19 +127,19 @@ Index: mdx-1.7.0/lib/top/mdx_top.ml
        | phrase -> Result.Ok phrase
        | exception exn ->
            let exn =
-@@ -181,9 +181,9 @@ module Rewrite = struct
+@@ -181,9 +181,10 @@ module Rewrite = struct
      let open Ast_helper in
      let rewrite loc e =
        with_default_loc loc (fun () ->
--          Exp.apply
-+          To_408.copy_expression (Exp.apply
++      To_408.copy_expression (
+           Exp.apply
              (Exp.ident (Location.mkloc runner loc))
 -            [ (Asttypes.Nolabel, e) ])
 +            [ (Asttypes_.Nolabel, To_current.copy_expression e) ]))
      in
      { typ; runner; rewrite; witness; preload }
  
-@@ -203,9 +203,10 @@ module Rewrite = struct
+@@ -203,9 +204,10 @@ module Rewrite = struct
          Pat.construct (Location.mkloc (Longident.Lident "()") loc) None
        in
        with_default_loc loc @@ fun () ->
@@ -145,7 +151,7 @@ Index: mdx-1.7.0/lib/top/mdx_top.ml
      in
      { typ; runner; rewrite; witness; preload }
  
-@@ -324,7 +325,7 @@ let toplevel_exec_phrase t ppf p =
+@@ -324,7 +326,7 @@ let toplevel_exec_phrase t ppf p =
        let mapper = Lexbuf.position_mapper (Phrase.start p) in
        let phrase =
          match phrase with
@@ -154,29 +160,10 @@ Index: mdx-1.7.0/lib/top/mdx_top.ml
          | Ptop_dir _ as x -> x
        in
        let phrase =
-Index: mdx-1.7.0/mdx.opam
+Index: mdx-1.8.0/test/bin/mdx-test/expect/errors/test-case.md
 ===================================================================
---- mdx-1.7.0.orig/mdx.opam
-+++ mdx-1.7.0/mdx.opam
-@@ -27,6 +27,7 @@ depends: [
-   "result"
-   "ocaml-migrate-parsetree" {>= "1.0.6"}
-   "ocaml-version" {>= "2.3.0"}
-+  "ppxlib"
-   "odoc"
-   "lwt" {with-test}
-   "alcotest" {with-test}
-@@ -47,4 +48,4 @@ in the documentation always stays up-to-
- 
- `ocaml-mdx` is released as two binaries called `ocaml-mdx` and `mdx` which are
- the same, mdx being the deprecated name, kept for now for compatibility.
--"""
-\ No newline at end of file
-+"""
-Index: mdx-1.7.0/test/bin/mdx-test/expect/errors/test-case.md
-===================================================================
---- mdx-1.7.0.orig/test/bin/mdx-test/expect/errors/test-case.md
-+++ mdx-1.7.0/test/bin/mdx-test/expect/errors/test-case.md
+--- mdx-1.8.0.orig/test/bin/mdx-test/expect/errors/test-case.md
++++ mdx-1.8.0/test/bin/mdx-test/expect/errors/test-case.md
 @@ -63,5 +63,5 @@ Error: This expression has type string b
  
  ```ocaml non-deterministic=output
