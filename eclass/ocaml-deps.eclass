@@ -127,7 +127,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[expect_test_helpers]="async core expect_test_helpers_kernel ppx_jane sexp_pretty"
 	[expect_test_helpers_kernel]="base base_quickcheck core_kernel ppx_jane sexp_pretty re stdio"
 	[extlib]=""
-	[eqaf]=""
+	[eqaf]="cstruct bigarray-compat"
 	[ezjsonm]="jsonm sexplib0 hex"
 	[ezjsonm-lwt]="ezjsonm jsonm sexplib hex lwt"
 	[fiat-p256]="bigarray-compat cstruct dune-configurator eqaf hex"
@@ -632,8 +632,9 @@ let rec is_run_dep = function
 	| Ident (_,"dev")::_ -> false
 	| _ :: q -> is_run_dep q;;
 let rec get_deps = function
-		[] -> failwith "Not found"
-	| Variable (_,"depends",v)::q -> v
+		[] -> List ( ("",0,0), [])
+	| Variable (_,"depends",v)::q -> List ( ("",0,0), [v; get_deps q])
+	| Variable (_,"depopts",v)::q -> List ( ("",0,0), [v; get_deps q])
 	| _::q -> get_deps q;;
 let rec print_deps is_dep = function
 		List (_,l) -> List.iter (print_deps is_dep) l
