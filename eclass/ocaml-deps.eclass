@@ -640,6 +640,7 @@ let rec print_deps is_dep = function
 		List (_,l) -> List.iter (print_deps is_dep) l
 	| Option (_,v,l) -> if is_dep l then print_deps (fun _ -> true) v else ()
 	| String (_,"ocaml") -> ()
+	| String (_,"ocaml-freestanding") -> ()
 	| String (_,"dune") -> ()
 	| String (_,"jbuilder") -> ()
 	| String (_,"base-bigarray") -> ()
