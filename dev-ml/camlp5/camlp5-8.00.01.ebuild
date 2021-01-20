@@ -8,8 +8,8 @@ inherit multilib findlib
 MY_P=${P%_p*}
 DESCRIPTION="A preprocessor-pretty-printer of ocaml"
 HOMEPAGE="https://camlp5.github.io/"
-SRC_URI="https://github.com/camlp5/camlp5/archive/rel$(ver_rs '2-' '').tar.gz -> ${P}.tar.gz"
-S="${WORKDIR}/${PN}-rel$(ver_rs '2-' '')"
+SRC_URI="https://github.com/camlp5/camlp5/archive/rel${PV}.tar.gz -> ${P}.tar.gz"
+S="${WORKDIR}/${PN}-rel${PV}"
 
 LICENSE="BSD"
 SLOT="0/${PV}"
