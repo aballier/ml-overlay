@@ -19,7 +19,7 @@ else
 fi
 
 LICENSE="LGPL-2.1-with-linking-exception"
-SLOT="0/${PV}-ppxlib"
+SLOT="0/${PV}"
 IUSE="doc +ocamlopt +ppx"
 
 RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
@@ -27,7 +27,6 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 PATCHES=(
-	"${FILESDIR}/ppx.patch"
 	"${FILESDIR}/ppxlib.patch"
 	"${FILESDIR}/ppxlib2.patch"
 )
