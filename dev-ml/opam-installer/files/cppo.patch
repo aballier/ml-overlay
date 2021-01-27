@@ -1,0 +1,12 @@
+Index: opam-full-2.1.0-beta4/src_ext/Makefile.sources
+===================================================================
+--- opam-full-2.1.0-beta4.orig/src_ext/Makefile.sources
++++ opam-full-2.1.0-beta4/src_ext/Makefile.sources
+@@ -1,5 +1,5 @@
+-URL_cppo = https://github.com/ocaml-community/cppo/releases/download/v1.6.6/cppo-v1.6.6.tbz
+-MD5_cppo = b13afeea6631d7c9b61f95bfd984a542
++URL_cppo = https://github.com/ocaml-community/cppo/releases/download/v1.6.7/cppo-v1.6.7.tbz
++MD5_cppo = 65c668196c3dabf34d9e887952e5bbb4
+ 
+ $(call PKG_SAME,cppo)
+ 

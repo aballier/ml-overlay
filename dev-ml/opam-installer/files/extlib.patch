@@ -1,0 +1,15 @@
+Index: opam-full-2.1.0-beta4/src_ext/Makefile.sources
+===================================================================
+--- opam-full-2.1.0-beta4.orig/src_ext/Makefile.sources
++++ opam-full-2.1.0-beta4/src_ext/Makefile.sources
+@@ -3,8 +3,8 @@ MD5_cppo = 65c668196c3dabf34d9e887952e5b
+ 
+ $(call PKG_SAME,cppo)
+ 
+-URL_extlib = https://ygrek.org/p/release/ocaml-extlib/extlib-1.7.7.tar.gz
+-MD5_extlib = 2c620993aecd4b31b3a362b21b55dd94
++URL_extlib = https://ygrek.org/p/release/ocaml-extlib/extlib-1.7.8.tar.gz
++MD5_extlib = cdf8db926bb920323f7059e15a3367d8
+ 
+ $(call PKG_SAME,extlib)
+ 
