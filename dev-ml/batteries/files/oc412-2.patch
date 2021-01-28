@@ -1,0 +1,29 @@
+From b4d968dba6d03e33f7e3f3068d4513c7460c1290 Mon Sep 17 00:00:00 2001
+From: Kate <kit.ty.kate@disroot.org>
+Date: Wed, 9 Dec 2020 13:35:16 +0000
+Subject: [PATCH] Fix OCaml 4.12 support (port breaking change
+ https://github.com/ocaml/ocaml/pull/10073)
+
+---
+ src/batUnix.mliv | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/batUnix.mliv b/src/batUnix.mliv
+index 5f792b84..8de6f654 100644
+--- a/src/batUnix.mliv
++++ b/src/batUnix.mliv
+@@ -1424,13 +1424,13 @@ type socket_bool_option = Unix.socket_bool_option =
+     SO_DEBUG       (** Record debugging information *)
+   | SO_BROADCAST   (** Permit sending of broadcast messages *)
+   | SO_REUSEADDR   (** Allow reuse of local addresses for bind *)
+-##V>=4.12## | SO_REUSEPORT   (** Allow connection active *)
+   | SO_KEEPALIVE   (** Keep connection active *)
+   | SO_DONTROUTE   (** Bypass the standard routing algorithms *)
+   | SO_OOBINLINE   (** Leave out-of-band data in line *)
+   | SO_ACCEPTCONN  (** Report whether socket listening is enabled *)
+   | TCP_NODELAY    (** Control the Nagle algorithm for TCP sockets *)
+   | IPV6_ONLY      (** Forbid binding an IPv6 socket to an IPv4 address *)
++##V>=4.12## | SO_REUSEPORT   (** Allow connection active *)
+ (** The socket options that can be consulted with {!Unix.getsockopt}
+     and modified with {!Unix.setsockopt}.  These options have a boolean
+     ([true]/[false]) value. *)
