@@ -37,7 +37,7 @@ DEPEND="${RDEPEND}
 # missing test data
 RESTRICT="test"
 
-S="${WORKDIR}/${MY_P}"
+S="${WORKDIR}/${MY_P/_p*/}"
 
 src_prepare() {
 	sed -e 's/INSTALLOPTS=-s/INSTALLOPTS=/' -i Makefile.config.in || die
