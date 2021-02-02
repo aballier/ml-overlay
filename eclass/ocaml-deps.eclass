@@ -508,7 +508,6 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[macaddr]="ounit2 ppx_sexp_conv"
 	[macaddr-sexp]="macaddr-cstruct ounit2"
 	[mdx]="alcotest lwt"
-	[merlin]="mdx"
 	[metrics]="alcotest"
 	[mirage-crypto]="ounit2"
 	[mirage-crypto-pk]="ounit2 randomconv"
