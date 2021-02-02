@@ -136,7 +136,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[findlib]=""
 	[fix]=""
 	[ffmpeg]=""
-	[fmt]="seq stdlib-shims"
+	[fmt]="seq stdlib-shims cmdliner"
 	[fpath]="astring"
 	[gen]="dune-configurator"
 	[gen_js_api]="ocaml-migrate-parsetree js_of_ocaml ppxlib"
