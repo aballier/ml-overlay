@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -8,8 +8,8 @@ inherit findlib
 IUSE="+ocamlopt"
 
 DESCRIPTION="A package for ocaml that provides access to mysql databases"
-SRC_URI="http://ygrek.org.ua/p/release/ocaml-mysql/${P}.tar.gz"
-HOMEPAGE="http://ocaml-mysql.forge.ocamlcore.org/"
+SRC_URI="https://github.com/ygrek/ocaml-mysql/releases/download/v${PV}/${P}.tar.gz"
+HOMEPAGE="https://ygrek.org/p/ocaml-mysql/"
 
 DEPEND=">=dev-lang/ocaml-3.10.2:=[ocamlopt?]
 	sys-libs/zlib
