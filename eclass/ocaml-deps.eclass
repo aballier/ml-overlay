@@ -358,7 +358,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[spawn]=""
 	[splittable_random]="base ppx_assert ppx_bench ppx_inline_test ppx_sexp_message"
 	[sqlite3]="dune-configurator"
-	[ssl]=""
+	[ssl]="dune-configurator"
 	[stdint]=""
 	[stdio]="base"
 	[stdlib-shims]=""
@@ -656,6 +656,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-g++") -> ()
 	| String (_,"conf-jq") -> ()
 	| String (_,"conf-libpcre") -> ()
+	| String (_,"conf-libssl") -> ()
 	| String (_,"conf-libX11") -> ()
 	| String (_,"conf-nanomsg") -> ()
 	| String (_,"conf-npm") -> ()
