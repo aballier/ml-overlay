@@ -16,9 +16,4 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/ppxlib.patch" )
-
-src_prepare() {
-	default
-	has_version '>=dev-lang/ocaml-4.12_beta' && eapply "${FILESDIR}/412.patch"
-}
+PATCHES=( "${FILESDIR}/ppxlib.patch"  "${FILESDIR}/412.patch" "${FILESDIR}/ppxlib2.patch" )
