@@ -1,0 +1,41 @@
+From 26fa8175c4d9c7464e0cbaef74998bd7f49b1ed9 Mon Sep 17 00:00:00 2001
+From: Sonja Heinze <sonjaleaheinze@gmail.com>
+Date: Thu, 28 Jan 2021 18:03:18 +0100
+Subject: [PATCH] Achieve compatibility with ppxlib 0.22.0
+
+In ppxlib 0.22.0, the AST gets bumped to ocaml 4.12. This commit adapts
+to the compiler changes from 4.11 to 4.12: mainly, the introduction of
+injectivity to type declarations.
+
+Signed-off-by: Sonja Heinze <sonjaleaheinze@gmail.com>
+---
+ expander/str_generate_sexp_grammar.ml | 2 +-
+ ppx_sexp_conv.opam                    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/expander/str_generate_sexp_grammar.ml b/expander/str_generate_sexp_grammar.ml
+index 5029ac0..5b75968 100644
+--- a/expander/str_generate_sexp_grammar.ml
++++ b/expander/str_generate_sexp_grammar.ml
+@@ -604,7 +604,7 @@ let singleton ~loc ~path core_type : t =
+     let type_variables, core_type =
+       collect_type_variables_of_polymorphic_grammar core_type
+     in
+-    ( List.map type_variables ~f:(fun var_name -> ptyp_var ~loc var_name, Invariant)
++    ( List.map type_variables ~f:(fun var_name -> ptyp_var ~loc var_name, (NoVariance, NoInjectivity))
+     , core_type )
+   in
+   let td =
+diff --git a/ppx_sexp_conv.opam b/ppx_sexp_conv.opam
+index 05c4182..5653811 100644
+--- a/ppx_sexp_conv.opam
++++ b/ppx_sexp_conv.opam
+@@ -15,7 +15,7 @@ depends: [
+   "base"     {>= "v0.14" & < "v0.15"}
+   "sexplib0" {>= "v0.14" & < "v0.15"}
+   "dune"     {>= "2.0.0"}
+-  "ppxlib"   {>= "0.18.0"}
++  "ppxlib"   {>= "0.22.0"}
+ ]
+ synopsis: "[@@deriving] plugin to generate S-expression conversion functions"
+ description: "
