@@ -1,0 +1,35 @@
+Index: ocamlformat-0.16.0/lib/Fmt_ast.ml
+===================================================================
+--- ocamlformat-0.16.0.orig/lib/Fmt_ast.ml
++++ ocamlformat-0.16.0/lib/Fmt_ast.ml
+@@ -316,9 +316,9 @@ let fmt_constant c ~loc ?epi const =
+       | `Never -> wrap "\"" "\"" (str s) )
+ 
+ let fmt_variance = function
+-  | Covariant -> str "+"
+-  | Contravariant -> str "-"
+-  | Invariant -> noop
++  | (Covariant,_) -> str "+"
++  | (Contravariant,_) -> str "-"
++  | (NoVariance,_) -> noop
+ 
+ let fmt_label lbl sep =
+   match lbl with
+@@ -2680,7 +2680,7 @@ and fmt_class_type c ?(box = true) ({ast
+   let ctx = Cty typ in
+   match pcty_desc with
+   | Pcty_constr (name, params) ->
+-      let params = List.map params ~f:(fun x -> (x, Invariant)) in
++      let params = List.map params ~f:(fun x -> (x, (NoVariance,NoInjectivity))) in
+       fmt_class_params c ctx params
+       $ fmt_longident_loc c name
+       $ fmt_attributes c ~key:"@" atrs
+@@ -2730,7 +2730,7 @@ and fmt_class_expr c ?eol ?(box = true)
+   @@
+   match pcl_desc with
+   | Pcl_constr (name, params) ->
+-      let params = List.map params ~f:(fun x -> (x, Invariant)) in
++      let params = List.map params ~f:(fun x -> (x, (NoVariance,NoInjectivity))) in
+       fmt_class_params c ctx params $ fmt_longident_loc c name $ fmt_atrs
+   | Pcl_structure {pcstr_fields; pcstr_self} ->
+       hvbox 0
