@@ -19,4 +19,3 @@ DEPEND="${RDEPEND}
 	test? ( app-text/pandoc )
 "
 BDEPEND=""
-PATCHES=( "${FILESDIR}/ppxlib.patch" )
