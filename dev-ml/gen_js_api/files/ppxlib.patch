@@ -1,220 +1,453 @@
-Index: gen_js_api-1.0.6/ppx-driver/dune
+Index: gen_js_api-1.0.7/ppx-driver/gen_js_api_ppx_driver.ml
 ===================================================================
---- gen_js_api-1.0.6.orig/ppx-driver/dune
-+++ gen_js_api-1.0.6/ppx-driver/dune
-@@ -2,6 +2,6 @@
-   (name gen_js_api_ppx_driver)
-   (public_name gen_js_api.ppx)
-   (synopsis "Syntactic support for gen_js_api")
--  (libraries compiler-libs.common gen_js_api.ppx-lib ppxlib)
-+  (libraries compiler-libs.common gen_js_api.ppx-lib ppxlib ppxlib.ast)
-   (kind ppx_rewriter)
-   (preprocess no_preprocessing))
-Index: gen_js_api-1.0.6/ppx-driver/gen_js_api_ppx_driver.ml
-===================================================================
---- gen_js_api-1.0.6.orig/ppx-driver/gen_js_api_ppx_driver.ml
-+++ gen_js_api-1.0.6/ppx-driver/gen_js_api_ppx_driver.ml
-@@ -1,9 +1,9 @@
--module Selected = Ppxlib.Select_ast(Migrate_parsetree.Versions.OCaml_408)
-+module Selected = Ppxlib.Select_ast(Ppxlib_ast__Versions.OCaml_411)
+--- gen_js_api-1.0.7.orig/ppx-driver/gen_js_api_ppx_driver.ml
++++ gen_js_api-1.0.7/ppx-driver/gen_js_api_ppx_driver.ml
+@@ -1,29 +1,28 @@
+-module From_ppx = Migrate_parsetree.Versions.OCaml_411
+-module Selected =  Ppxlib.Select_ast(From_ppx)
++module Selected =  Ppxlib.Selected_ast
  
--let copy_attribute (a : Migrate_parsetree.Ast_408.Parsetree.attribute)
-+let copy_attribute (a : Migrate_parsetree.Ast_411.Parsetree.attribute)
+ module Of_ppxlib = struct
+   include Selected.To_ocaml
+-  let copy_rec_flag (rec_flag : Ppxlib.Asttypes.rec_flag) : From_ppx.Ast.Asttypes.rec_flag =
++  let copy_rec_flag (rec_flag : Ppxlib.Asttypes.rec_flag) : Asttypes.rec_flag =
+     match rec_flag with
+-    | Nonrecursive -> From_ppx.Ast.Asttypes.Nonrecursive
++    | Nonrecursive -> Asttypes.Nonrecursive
+     | Recursive -> Recursive
+ end
+ 
+ module To_ppxlib = struct
+   include Selected.Of_ocaml
+ 
+-  let copy_module_expr (m : From_ppx.Ast.Parsetree.module_expr) : Ppxlib.Parsetree.module_expr =
++  let copy_module_expr (m : Parsetree.module_expr) : Ppxlib.Parsetree.module_expr =
+     match
+       copy_structure
+-        [ From_ppx.Ast.Ast_helper.(Str.module_ (Mb.mk ({txt= Some "FAKE";loc=Location.none}) m))]
++        [ Ast_helper.(Str.module_ (Mb.mk ({txt= Some "FAKE";loc=Location.none}) m))]
+     with
+     | [{pstr_desc=Pstr_module {pmb_expr;_}; _}] -> pmb_expr
+     | _ -> assert false
+ 
+-  let copy_attribute (a : From_ppx.Ast.Parsetree.attribute)
++  let copy_attribute (a : Parsetree.attribute)
    : Ppxlib.Ast.attribute =
--  let pat : Migrate_parsetree.Ast_408.Parsetree.pattern =
--    Migrate_parsetree.Ast_408.Ast_helper.Pat.any ~attrs:[a] ()
-+  let pat : Migrate_parsetree.Ast_411.Parsetree.pattern =
-+    Ppxlib_ast.Ast_helper.Pat.any ~attrs:[a] ()
+-  let pat : Migrate_parsetree.Ast_411.Parsetree.pattern =
+-    Migrate_parsetree.Ast_411.Ast_helper.Pat.any ~attrs:[a] ()
++  let pat : Parsetree.pattern =
++    Ast_helper.Pat.any ~attrs:[a] ()
    in
-   let pat = Selected.Of_ocaml.copy_pattern pat in
+   let pat = copy_pattern pat in
    List.hd pat.ppat_attributes
-@@ -24,9 +24,8 @@ let () =
+@@ -44,20 +43,16 @@ let () =
+     Ppxlib.Driver.enable_location_check ()
+   );
    Gen_js_api_ppx.mark_as_handled_manually := (fun attribute ->
-     let attribute = copy_attribute attribute in
-     Ppxlib.Attribute.mark_as_handled_manually attribute);
--  let mapper = Selected.Of_ocaml.copy_mapper Gen_js_api_ppx.mapper in
-+  let mapper = Gen_js_api_ppx.mapper in
+-      let attribute = To_ppxlib.copy_attribute attribute in
+       Ppxlib.Attribute.mark_as_handled_manually attribute);
    let mapper_for_sig =
--    Selected.Of_ocaml.copy_mapper
+-    To_ppxlib.copy_mapper
        (Gen_js_api_ppx.mark_attributes_as_used Gen_js_api_ppx.mapper)
    in
-   Ppxlib.Driver.register_transformation
-Index: gen_js_api-1.0.6/ppx-lib/dune
+   let mapper_for_str =
+-    To_ppxlib.copy_mapper
+-      (Gen_js_api_ppx.mark_attributes_as_used From_ppx.Ast.Ast_mapper.default_mapper)
++      (Gen_js_api_ppx.mark_attributes_as_used Ast_mapper.default_mapper)
+   in
+   let module_expr_ext =
+     let rewriter ~loc ~path:_ si =
+       si
+-      |> Of_ppxlib.copy_signature
+       |> Gen_js_api_ppx.module_expr_rewriter ~loc ~attrs:[]
+       |> To_ppxlib.copy_module_expr
+     in
+@@ -70,9 +65,7 @@ let () =
+   let ext_to =
+     let rewriter ~loc ~path:_ core_type =
+       core_type
+-      |> Of_ppxlib.copy_core_type
+       |> Gen_js_api_ppx.js_to_rewriter ~loc
+-      |> To_ppxlib.copy_expression
+     in
+     Ppxlib.Extension.declare "js.to"
+       Ppxlib.Extension.Context.Expression
+@@ -83,9 +76,7 @@ let () =
+   let ext_of =
+     let rewriter ~loc ~path:_ core_type =
+       core_type
+-      |> Of_ppxlib.copy_core_type
+       |> Gen_js_api_ppx.js_of_rewriter ~loc
+-      |> To_ppxlib.copy_expression
+     in
+     Ppxlib.Extension.declare "js.of"
+       Ppxlib.Extension.Context.Expression
+@@ -96,11 +87,9 @@ let () =
+   let attr_typ =
+     let rewriter ~ctxt (rec_flag : Ppxlib.Asttypes.rec_flag) tdl _ =
+       tdl
+-      |> List.map (Of_ppxlib.copy_type_declaration)
+       |> Gen_js_api_ppx.type_decl_rewriter
+         ~loc:(Ppxlib.Expansion_context.Deriver.derived_item_loc ctxt)
+-        (Of_ppxlib.copy_rec_flag rec_flag)
+-      |> To_ppxlib.copy_structure
++        rec_flag
+     in
+     Ppxlib.Context_free.Rule.attr_str_type_decl
+       (Ppxlib.Attribute.declare "js"
+@@ -112,6 +101,6 @@ let () =
+     "gen_js_api"
+     ~rules:[module_expr_ext; ext_of; ext_to; attr_typ ]
+     ~impl:(fun str_ ->
+-        mapper_for_str.structure mapper_for_str str_)
++        Selected.of_ocaml_mapper Structure mapper_for_str.structure mapper_for_str str_)
+     ~intf:(fun sig_ ->
+-        mapper_for_sig.signature mapper_for_sig sig_)
++        Selected.of_ocaml_mapper Signature mapper_for_sig.signature mapper_for_sig sig_)
+Index: gen_js_api-1.0.7/ppx-lib/dune
 ===================================================================
---- gen_js_api-1.0.6.orig/ppx-lib/dune
-+++ gen_js_api-1.0.6/ppx-lib/dune
-@@ -1,5 +1,5 @@
+--- gen_js_api-1.0.7.orig/ppx-lib/dune
++++ gen_js_api-1.0.7/ppx-lib/dune
+@@ -1,6 +1,6 @@
  (library
-   (name gen_js_api_ppx)
-   (public_name gen_js_api.ppx-lib)
--  (libraries ocaml-migrate-parsetree)
-+  (libraries ocaml-migrate-parsetree ppxlib ppxlib.ast)
-   (preprocess no_preprocessing))
-Index: gen_js_api-1.0.6/ppx-lib/gen_js_api_ppx.ml
+  (name gen_js_api_ppx)
+  (public_name gen_js_api.lib)
+- (libraries compiler-libs.common ocaml-migrate-parsetree)
++ (libraries compiler-libs.common ocaml-migrate-parsetree ppxlib ppxlib.ast)
+  (ppx_runtime_libraries ojs)
+  (preprocess no_preprocessing))
+Index: gen_js_api-1.0.7/ppx-lib/gen_js_api_ppx.ml
 ===================================================================
---- gen_js_api-1.0.6.orig/ppx-lib/gen_js_api_ppx.ml
-+++ gen_js_api-1.0.6/ppx-lib/gen_js_api_ppx.ml
-@@ -2,7 +2,7 @@
+--- gen_js_api-1.0.7.orig/ppx-lib/gen_js_api_ppx.ml
++++ gen_js_api-1.0.7/ppx-lib/gen_js_api_ppx.ml
+@@ -2,7 +2,8 @@
  (* See the attached LICENSE file.                                         *)
  (* Copyright 2015 by LexiFi.                                              *)
  
--open Migrate_parsetree.Ast_408
-+open Migrate_parsetree.Ast_411
+-open Migrate_parsetree.Ast_411
++open Ppxlib
++open Ppxlib.Selected_ast.Ast
  
  open Location
  open Asttypes
-@@ -98,7 +98,7 @@ let str_of_payload loc = function
-   | _ -> error loc Structure_expected
+@@ -173,9 +174,9 @@ let print_error ppf = function
+       Format.fprintf ppf "Record %s expected." shape
  
- let id_of_expr = function
--  | {pexp_desc=Pexp_constant (Pconst_string (s, _)); _}
-+  | {pexp_desc=Pexp_constant (Pconst_string (s, _, _)); _}
-   | {pexp_desc=Pexp_ident {txt=Lident s;_}; _}
-   | {pexp_desc=Pexp_construct ({txt=Lident s;_}, None); _} -> s
-   | e -> error e.pexp_loc Identifier_expected
-@@ -205,7 +205,7 @@ let get_js_constr ~global_attrs name att
-   | None -> `String (js_name ~global_attrs name)
-   | Some (k, v) ->
-       begin match (expr_of_payload k.loc v).pexp_desc with
--      | Pexp_constant (Pconst_string (s, _)) -> `String s
-+      | Pexp_constant (Pconst_string (s, _, _)) -> `String s
-       | Pexp_constant (Pconst_integer (n, _)) -> `Int (int_of_string n)
-       | _ -> error k.loc Invalid_expression
+ let () =
+-  Location.register_error_of_exn
++  Ocaml_common.Location.register_error_of_exn
+     (function
+-      | Error (loc, err) -> Some (Location.error_of_printer ~loc print_error err)
++      | Error (loc, err) -> Some (Ocaml_common.Location.error_of_printer ~loc print_error err)
+       | _ -> None
+     )
+ 
+@@ -361,7 +362,7 @@ and parse_typ ~global_attrs ty =
+           end
        end
-@@ -493,9 +493,9 @@ let rec parse_sig_item ~global_attrs res
-       parse_valdecl ~global_attrs ~in_sig:true vd :: rest
-   | Psig_type (rec_flag, decls) ->
-       Type (rec_flag, decls) :: rest
--  | Psig_module {pmd_name; pmd_type = {pmty_desc = Pmty_signature si; pmty_attributes; pmty_loc = _}; pmd_loc = _; pmd_attributes = _} ->
-+  | Psig_module {pmd_name = { txt = Some name; _}; pmd_type = {pmty_desc = Pmty_signature si; pmty_attributes; pmty_loc = _}; pmd_loc = _; pmd_attributes = _} ->
-       let global_attrs = pmty_attributes @ global_attrs in
--      Module (pmd_name.txt, pmty_attributes, parse_sig ~global_attrs si) :: rest
-+      Module (name, pmty_attributes, parse_sig ~global_attrs si) :: rest
-   | Psig_class cs -> Class (List.map (parse_class_decl ~global_attrs) cs) :: rest
-   | Psig_attribute ({attr_payload = PStr str; _} as attribute) when filter_attr_name "js.implem" attribute -> Implem str :: rest
-   | Psig_attribute _ -> rest
-@@ -580,11 +580,13 @@ and parse_class_field ~global_attrs = fu
- 
+   | Ptyp_constr ({txt = lid; loc = _}, tl) ->
+-      begin match String.concat "." (Longident.flatten lid), tl with
++      begin match String.concat "." (Longident.flatten_exn lid), tl with
+       | "unit", [] -> Unit ty.ptyp_loc
+       | "Ojs.t", [] -> Js
+       | s, tl -> Name (s, List.map (parse_typ ~global_attrs) tl)
+@@ -642,6 +643,7 @@ and parse_class_field ~global_attrs = fu
  (** Code generation *)
  
--let var x = Exp.ident (mknoloc (Longident.parse x))
--let str s = Exp.constant (Pconst_string (s, None))
-+let longident_parse x = Longident.parse x [@@ocaml.warning "-deprecated"]
+ let longident_parse x = Longident.parse x [@@ocaml.warning "-deprecated"]
++let mknoloc x = { txt = x; loc = none }
+ 
+ let var x = Exp.ident (mknoloc (longident_parse x))
+ let str s = Exp.constant (Pconst_string (s, Location.none, None))
+@@ -806,16 +808,27 @@ let ojs_new_obj_arr cl = function
+ 
+ let assert_false = Exp.assert_ (Exp.construct (mknoloc (longident_parse "false")) None)
+ 
++let to_copy_attribute a =
++  let pat = Ast_helper.Pat.any ~attrs:[a] () in
++  let pat = Selected_ast.To_ocaml.copy_pattern pat in
++  List.hd pat.ppat_attributes
 +
-+let var x = Exp.ident (mknoloc (longident_parse x))
-+let str s = Exp.constant (Pconst_string (s, Location.none, None))
- let int n = Exp.constant (Pconst_integer (string_of_int n, None))
- let pat_int n = Pat.constant (Pconst_integer (string_of_int n, None))
--let pat_str s = Pat.constant (Pconst_string (s, None))
-+let pat_str s = Pat.constant (Pconst_string (s, Location.none, None))
++let of_copy_attribute a =
++  let pat = Ocaml_common.Ast_helper.Pat.any ~attrs:[a] () in
++  let pat = Selected_ast.Of_ocaml.copy_pattern pat in
++  List.hd pat.ppat_attributes
++
++
+ let clear_attr_mapper =
+-  let mapper = Ast_mapper.default_mapper in
++  let mapper = Ocaml_common.Ast_mapper.default_mapper in
+   let attributes _this attrs =
+-    let f {attr_name = {txt = _; loc}; _} = not (is_registered_loc loc) in
++    let f x = let {attr_name = {txt = _; loc}; _} = of_copy_attribute x in not (is_registered_loc loc) in
+     List.filter f attrs
+   in
+-  { mapper with Ast_mapper.attributes }
++  { mapper with Ocaml_common.Ast_mapper.attributes }
  
- let attr s e = (Attr.mk (mknoloc s) (PStr [Str.eval e]))
- 
-@@ -768,7 +770,7 @@ let get_variant_kind loc attrs =
-         | PStr [] -> `Union No_discriminator
-         | _ ->
-             begin match expr_of_payload k.loc v with
--            | {pexp_desc = Pexp_apply ({pexp_desc = Pexp_ident {txt = Lident "on_field";_}; _}, [Nolabel, {pexp_desc = Pexp_constant (Pconst_string (s, _)); _}]); _} -> `Union (On_field s)
-+            | {pexp_desc = Pexp_apply ({pexp_desc = Pexp_ident {txt = Lident "on_field";_}; _}, [Nolabel, {pexp_desc = Pexp_constant (Pconst_string (s, _, _)); _}]); _} -> `Union (On_field s)
-             | _ -> error k.loc Unknown_union_method
-             end
-         end
-@@ -956,7 +958,7 @@ and ml2js ty exp =
-       let extra_arg =
-         match label_variadic with
-         | Arg | Lab _ -> extra_arg
--        | Opt _ -> Exp.construct (mknoloc (Longident.parse "Some")) (Some extra_arg)
-+        | Opt _ -> Exp.construct (mknoloc (longident_parse "Some")) (Some extra_arg)
-       in
-       let concrete_args = concrete_args @ [arg_label label_variadic, extra_arg] in
-       let res = app exp concrete_args unit_arg in
-@@ -1270,7 +1272,7 @@ and gen_funs ~global_attrs p =
-               (Exp.newtype (mknoloc v)
-                  (Exp.constraint_
-                     to_js
--                    (Typ.arrow Nolabel (Typ.constr (mknoloc (Longident.parse name)) [Typ.constr (mknoloc (Longident.parse v)) []]) ojs_typ)))
-+                    (Typ.arrow Nolabel (Typ.constr (mknoloc (longident_parse name)) [Typ.constr (mknoloc (longident_parse v)) []]) ojs_typ)))
-           ]
-       end
-   | _ ->
-@@ -1295,7 +1297,7 @@ and gen_decl ~global_attrs = function
+ let rewrite_typ_decl t =
+-  let t = clear_attr_mapper.type_declaration clear_attr_mapper {t with ptype_private = Public} in
++  let t = Selected_ast.Of_ocaml.copy_type_declaration (clear_attr_mapper.type_declaration clear_attr_mapper {t with ptype_private = Public}) in
+   match t.ptype_manifest, t.ptype_kind with
+   | None, Ptype_abstract -> {t with ptype_manifest = Some ojs_typ}
+   | _ -> t
+@@ -1293,7 +1306,7 @@ and gen_typ = function
+       List.fold_right (fun {lab; att=_; typ} t2 -> Typ.arrow (arg_label lab) (gen_typ typ) t2) tl (gen_typ ty_res)
+   | Variant {location = _; global_attrs = _; attributes = _; constrs} ->
+       let f {mlconstr; arg; attributes = _; location = _} =
+-        let mlconstr = Location.mknoloc mlconstr in
++        let mlconstr = mknoloc mlconstr in
+         match arg with
+         | Constant -> Rf.mk (Rtag (mlconstr, true, []))
+         | Unary typ -> Rf.mk (Rtag (mlconstr, false, [gen_typ typ]))
+@@ -1376,9 +1389,9 @@ and gen_funs ~global_attrs p =
+   let global_attrs = global_attrs in
+   let ctx =
+     List.map (function
+-        | {ptyp_desc = Ptyp_any; ptyp_loc = _; ptyp_attributes = _; ptyp_loc_stack = _}, Invariant ->
++        | {ptyp_desc = Ptyp_any; ptyp_loc = _; ptyp_attributes = _; ptyp_loc_stack = _}, (NoVariance,_) ->
+             fresh ()
+-        | {ptyp_desc = Ptyp_var label; ptyp_loc = _; ptyp_attributes = _; ptyp_loc_stack = _}, Invariant ->
++        | {ptyp_desc = Ptyp_var label; ptyp_loc = _; ptyp_attributes = _; ptyp_loc_stack = _}, (NoVariance,_) ->
+             label
+         | _ -> error p.ptype_loc Cannot_parse_type
+       ) p.ptype_params
+@@ -1500,7 +1513,7 @@ and gen_funs ~global_attrs p =
+ and gen_decl = function
+   | Type (rec_flag, decls, global_attrs) ->
+       let funs = List.concat (List.map (gen_funs ~global_attrs) decls) in
+-      let decls = List.map rewrite_typ_decl decls in
++      let decls = List.map rewrite_typ_decl (List.map Selected_ast.To_ocaml.copy_type_declaration decls) in
        [ Str.type_ rec_flag decls; Str.value rec_flag funs ]
-   | Module (s, attrs, decls) ->
-       let global_attrs = attrs @ global_attrs in
--      [ Str.module_ (Mb.mk (mknoloc s) (Mod.structure (gen_decls ~global_attrs decls))) ]
-+      [ Str.module_ (Mb.mk (mknoloc (Some s)) (Mod.structure (gen_decls ~global_attrs decls))) ]
  
-   | Val (s, ty, decl, loc) ->
-       let d = gen_def loc decl ty in
-@@ -1338,7 +1340,7 @@ and gen_classdecl cast_funcs = function
-         | Name (super_class, []) -> super_class
-         | _ -> assert false
-       in
--      let e = Cl.apply (Cl.constr (mknoloc (Longident.parse super_class)) []) [Nolabel, obj] in
-+      let e = Cl.apply (Cl.constr (mknoloc (longident_parse super_class)) []) [Nolabel, obj] in
-       let e = if unit_arg then Cl.fun_ Nolabel None unit_pat e else e in
-       let f e (label, x) = Cl.fun_ label None (Pat.var (mknoloc x)) e in
-       Ci.mk (mknoloc class_name) (List.fold_left f e (List.rev formal_args))
-@@ -1365,7 +1367,7 @@ and gen_class_field x = function
+   | Module (functor_parameters, s, decls) ->
+@@ -1525,7 +1538,7 @@ and gen_decl = function
+       [Str.class_ classes; Str.value Nonrecursive cast_funcs]
  
- and gen_class_cast = function
-   | Declaration { class_name; class_fields = _ } ->
--      let class_typ = Typ.constr (mknoloc (Longident.parse class_name)) [] in
-+      let class_typ = Typ.constr (mknoloc (longident_parse class_name)) [] in
-       let to_js =
-         let arg = fresh() in
-         Vb.mk (Pat.var (mknoloc (class_name ^ "_to_js")))
-@@ -1594,13 +1596,9 @@ let specs =
+   | Implem str ->
+-      mapper.Ast_mapper.structure mapper str
++      Selected_ast.of_ocaml_mapper Structure mapper.structure mapper str
+ 
+   | Open descr ->
+       let descr = {descr with popen_expr = Mod.ident descr.popen_expr} in
+@@ -1748,9 +1761,9 @@ and str_of_sg ~global_attrs sg =
+ 
+ and module_expr_rewriter ~loc ~attrs sg =
+   let str = str_of_sg ~global_attrs:(attrs) sg in
+-  Mod.constraint_
+-    (Mod.structure ~attrs:[ merlin_hide ] str)
+-    (Mty.signature ~loc ~attrs (clear_attr_mapper.signature clear_attr_mapper sg))
++  Ocaml_common.Ast_helper.Mod.constraint_
++    (Ocaml_common.Ast_helper.Mod.structure ~attrs:[ to_copy_attribute merlin_hide ] (Selected_ast.To_ocaml.copy_structure str))
++    (Ocaml_common.Ast_helper.Mty.signature ~loc ~attrs:(List.map to_copy_attribute attrs) (clear_attr_mapper.signature clear_attr_mapper (Selected_ast.To_ocaml.copy_signature sg)))
+ 
+ and js_to_rewriter ~loc ty =
+   let e' = with_default_loc {loc with loc_ghost = true }
+@@ -1776,52 +1789,63 @@ and type_decl_rewriter ~loc rec_flag l =
+   in
+   itm
+ 
+-and mapper =
+-  let open Ast_mapper in
++and mapper : Ocaml_common.Ast_mapper.mapper =
++  let open Ocaml_common.Ast_mapper in
+   let super = default_mapper in
+ 
+   let module_expr self mexp =
+     let mexp = super.module_expr self mexp in
+     match mexp.pmod_desc with
+     | Pmod_extension ({txt = "js"; _}, PSig sg) ->
+-        module_expr_rewriter ~loc:mexp.pmod_loc ~attrs:mexp.pmod_attributes sg
++        module_expr_rewriter ~loc:mexp.pmod_loc ~attrs:(List.map of_copy_attribute mexp.pmod_attributes) (Selected_ast.Of_ocaml.copy_signature sg)
+     | _ -> mexp
+   in
+   let structure_item self str =
+     let str = super.structure_item self str in
+     let global_attrs = [] in
+-    match str.pstr_desc with
++    let copy_str_item s = List.hd (Selected_ast.Of_ocaml.copy_structure [s]) in
++    let to_copy_str_item s = List.hd (Selected_ast.To_ocaml.copy_structure [s]) in
++    let strp = copy_str_item str in
++    match strp.pstr_desc with
+     | Pstr_primitive vd when vd.pval_prim = [] ->
+         begin match parse_valdecl ~global_attrs ~in_sig:false vd with
+         | exception Exit -> str
+-        | d -> incl (gen_decls [d])
++        | d -> to_copy_str_item (incl (gen_decls [d]))
+         end
+     | Pstr_type (rec_flag, decls) ->
+         let js_decls = List.filter (fun d -> has_attribute "js" d.ptype_attributes) decls in
+         begin match js_decls with
+         | [] -> str
+         | l ->
++	    to_copy_str_item (
+             incl (
+-              {str with pstr_desc = Pstr_type (rec_flag, List.map (fun d -> if has_attribute "js" d.ptype_attributes then rewrite_typ_decl d else d) decls)}
++              {strp with pstr_desc = Pstr_type (rec_flag, List.map (fun d -> if has_attribute "js" d.ptype_attributes then rewrite_typ_decl (Selected_ast.To_ocaml.copy_type_declaration d) else d) decls)}
+               ::
+               type_decl_rewriter ~loc:str.pstr_loc rec_flag l
+             )
++	    )
+         end
+     | _ ->
+         str
+   in
+   let expr self e =
+-    let e = super.expr self e in
++    let e = Selected_ast.Of_ocaml.copy_expression (super.expr self e) in
+     match e.pexp_desc with
+     | Pexp_extension (attr, PTyp ty) when filter_extension "js.to" attr ->
++    	Selected_ast.To_ocaml.copy_expression (
+         js_to_rewriter ~loc:e.pexp_loc ty
++	)
+     | Pexp_extension (attr, PTyp ty) when filter_extension "js.of" attr ->
++    	Selected_ast.To_ocaml.copy_expression (
+         js_of_rewriter ~loc:e.pexp_loc ty
++	)
+     | _ ->
++    	Selected_ast.To_ocaml.copy_expression (
+         e
++	)
+   in
+   let attribute self a =
+-    ignore (filter_attr_name "js.dummy" a : bool);
++    ignore (filter_attr_name "js.dummy" (of_copy_attribute a) : bool);
+     super.attribute self a
+   in
+   {super with module_expr; structure_item; expr; attribute}
+@@ -1829,15 +1853,17 @@ and mapper =
+ let is_js_attribute txt = txt = "js" || has_prefix ~prefix:"js." txt
+ 
+ let check_loc_mapper =
+-  let mapper = Ast_mapper.default_mapper in
+-  let attribute _this ({attr_name = {txt; loc}; _} as attr) =
++  let mapper = Ocaml_common.Ast_mapper.default_mapper in
++  let attribute _this attr = 
++    let oattr = of_copy_attribute attr in
++    let {attr_name = {txt; loc}; _} = oattr in
+     if is_js_attribute txt then begin
+       if is_registered_loc loc || not !check_attribute then ()
+       else error loc Spurious_attribute
+     end;
+     attr
+   in
+-  { mapper with Ast_mapper.attribute }
++  { mapper with Ocaml_common.Ast_mapper.attribute }
+ 
+ (** Main *)
+ 
+@@ -1850,13 +1876,8 @@ let specs =
  
  let usage = "gen_js_api [-o mymodule.ml] mymodule.mli"
  
 -let from_current =
 -  let open Migrate_parsetree in
--  Versions.migrate Versions.ocaml_current Versions.ocaml_408
+-  Versions.migrate Versions.ocaml_current Versions.ocaml_411
 -
 -let to_current =
 -  let open Migrate_parsetree in
--  Versions.migrate Versions.ocaml_408 Versions.ocaml_current
-+
-+module From_current = Ppxlib_ast__Versions.Convert(Ppxlib_ast__Versions.OCaml_current)(Ppxlib_ast__Versions.OCaml_411)
-+module To_current = Ppxlib_ast__Versions.Convert(Ppxlib_ast__Versions.OCaml_411)(Ppxlib_ast__Versions.OCaml_current)
+-  Versions.migrate Versions.ocaml_411 Versions.ocaml_current
++module From_current = Ppxlib.Selected_ast.Of_ocaml
++module To_current = Ppxlib.Selected_ast.To_ocaml
  
  let standalone () =
    let files = ref [] in
-@@ -1616,12 +1614,12 @@ let standalone () =
+@@ -1870,31 +1891,32 @@ let standalone () =
+   if !out = "" then out := Filename.chop_extension src ^ ".ml";
+   let oc = if !out = "-" then stdout else open_out !out in
    let sg =
-     Pparse.parse_interface
+-    Pparse.parse_interface
++    Ocaml_common.Pparse.parse_interface
        ~tool_name:"gen_js_iface"
 -      src |> from_current.Migrate_parsetree.Versions.copy_signature
 +      src |> From_current.copy_signature
    in
    let str = str_of_sg ~global_attrs:[] sg in
-   ignore (check_loc_mapper.Ast_mapper.signature check_loc_mapper sg);
-   let str = clear_attr_mapper.Ast_mapper.structure clear_attr_mapper str in
+-  ignore (check_loc_mapper.Ast_mapper.signature check_loc_mapper sg);
+-  let str = clear_attr_mapper.Ast_mapper.structure clear_attr_mapper str in
 -  Format.fprintf (Format.formatter_of_out_channel oc) "%a@." Pprintast.structure (to_current.copy_structure str);
-+  Format.fprintf (Format.formatter_of_out_channel oc) "%a@." Pprintast.structure (To_current.copy_structure str);
++  ignore (check_loc_mapper.Ocaml_common.Ast_mapper.signature check_loc_mapper (To_current.copy_signature sg));
++  let str = From_current.copy_structure (clear_attr_mapper.Ocaml_common.Ast_mapper.structure clear_attr_mapper (To_current.copy_structure str)) in
++  Format.fprintf (Format.formatter_of_out_channel oc) "%a@." Pprintast.structure str;
    if !out <> "-" then close_out oc
  
  
-Index: gen_js_api-1.0.6/ppx-lib/gen_js_api_ppx.mli
+ let mapper =
+   { mapper with
+-    Ast_mapper.structure = (fun _this str ->
+-        check_loc_mapper.Ast_mapper.structure
++    Ocaml_common.Ast_mapper.structure = (fun _this str ->
++        check_loc_mapper.Ocaml_common.Ast_mapper.structure
+           check_loc_mapper
+-          (mapper.Ast_mapper.structure mapper str));
++          (mapper.Ocaml_common.Ast_mapper.structure mapper str));
+   }
+ 
+ let mark_attributes_as_used mapper =
+   (* mark `js.***` attributes as used in mli. *)
+-  let attribute : _ -> attribute -> _ =
+-    fun this ({attr_name = {txt; _}; _} as attr) ->
++  let attribute this attr =
++      let pattr = of_copy_attribute attr in
++      let {attr_name = {txt; _}; _} = pattr in
+       if is_js_attribute txt then
+-        ignore (filter_attr_name txt attr : bool);
+-      mapper.Ast_mapper.attribute this attr
++        ignore (filter_attr_name txt pattr : bool);
++      mapper.Ocaml_common.Ast_mapper.attribute this attr
+   in
+   { mapper with attribute }
+Index: gen_js_api-1.0.7/ppx-lib/gen_js_api_ppx.mli
 ===================================================================
---- gen_js_api-1.0.6.orig/ppx-lib/gen_js_api_ppx.mli
-+++ gen_js_api-1.0.6/ppx-lib/gen_js_api_ppx.mli
-@@ -2,14 +2,14 @@
+--- gen_js_api-1.0.7.orig/ppx-lib/gen_js_api_ppx.mli
++++ gen_js_api-1.0.7/ppx-lib/gen_js_api_ppx.mli
+@@ -2,36 +2,36 @@
  (* See the attached LICENSE file.                                         *)
  (* Copyright 2015 by LexiFi.                                              *)
  
--val mark_as_handled_manually : (Migrate_parsetree.Ast_408.Parsetree.attribute -> unit) ref
-+val mark_as_handled_manually : (Migrate_parsetree.Ast_411.Parsetree.attribute -> unit) ref
+-val mark_as_handled_manually : (Migrate_parsetree.Ast_411.Parsetree.attribute -> unit) ref
++val mark_as_handled_manually : (Ppxlib.Selected_ast.Ast.Parsetree.attribute -> unit) ref
  
  val check_attribute : bool ref
  
--val mapper : Migrate_parsetree.Ast_408.Ast_mapper.mapper
+-val mapper : Migrate_parsetree.Ast_411.Ast_mapper.mapper
 +val mapper : Ocaml_common.Ast_mapper.mapper
  
+ val module_expr_rewriter
+   :  loc:Location.t
+-  -> attrs:Migrate_parsetree.Ast_411.Parsetree.attributes
+-  -> Migrate_parsetree.Ast_411.Parsetree.signature
+-  -> Migrate_parsetree.Ast_411.Parsetree.module_expr
++  -> attrs:Ppxlib.Selected_ast.Ast.Parsetree.attributes
++  -> Ppxlib.Selected_ast.Ast.Parsetree.signature
++  -> Parsetree.module_expr
+ 
+ val js_of_rewriter
+   :  loc:Location.t
+-  -> Migrate_parsetree.Ast_411.Parsetree.core_type
+-  -> Migrate_parsetree.Ast_411.Parsetree.expression
++  -> Ppxlib.Selected_ast.Ast.Parsetree.core_type
++  -> Ppxlib.Selected_ast.Ast.Parsetree.expression
+ 
+ val js_to_rewriter
+   :  loc:Location.t
+-  -> Migrate_parsetree.Ast_411.Parsetree.core_type
+-  -> Migrate_parsetree.Ast_411.Parsetree.expression
++  -> Ppxlib.Selected_ast.Ast.Parsetree.core_type
++  -> Ppxlib.Selected_ast.Ast.Parsetree.expression
+ 
+ val type_decl_rewriter
+   :  loc:Location.t
+-  -> Migrate_parsetree.Ast_411.Asttypes.rec_flag
+-  -> Migrate_parsetree.Ast_411.Parsetree.type_declaration list
+-  -> Migrate_parsetree.Ast_411.Parsetree.structure
++  -> Ppxlib.Selected_ast.Ast.Asttypes.rec_flag
++  -> Ppxlib.Selected_ast.Ast.Parsetree.type_declaration list
++  -> Ppxlib.Selected_ast.Ast.Parsetree.structure
+ 
  val mark_attributes_as_used
--  :  Migrate_parsetree.Ast_408.Ast_mapper.mapper
--  -> Migrate_parsetree.Ast_408.Ast_mapper.mapper
+-  :  Migrate_parsetree.Ast_411.Ast_mapper.mapper
+-  -> Migrate_parsetree.Ast_411.Ast_mapper.mapper
 +  :  Ocaml_common.Ast_mapper.mapper
 +  -> Ocaml_common.Ast_mapper.mapper
  
