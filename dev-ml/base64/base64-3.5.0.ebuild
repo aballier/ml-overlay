@@ -11,7 +11,7 @@ SRC_URI="https://github.com/mirage/ocaml-base64/releases/download/v${PV}/${PN}-v
 
 LICENSE="ISC"
 SLOT="0/${PV}"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm ~arm64"
 IUSE="test"
 
 RDEPEND="!dev-ml/ocaml-base64"
