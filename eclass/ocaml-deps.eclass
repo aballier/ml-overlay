@@ -56,6 +56,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[cairo2-gtk]="cairo2 lablgtk"
 	[cairo2-pango]="cairo2 lablgtk"
 	[calendar]=""
+	[camlbz2]=""
 	[camlimages]="base stdio graphics lablgtk"
 	[camlzip]=""
 	[camomile]=""
@@ -110,7 +111,7 @@ typerep variantslib"
 	[dispatch]=""
 	[dns]="rresult astring fmt logs ptime domain-name gmap cstruct ipaddr lru duration metrics"
 	[domain-name]="fmt astring"
-	[dose3]="cudf extlib re ocamlgraph"
+	[dose3]="cudf extlib re ocamlgraph base64 camlbz2 camlzip parmap stdlib-shims"
 	[dot-merlin-reader]="yojson findlib csexp result"
 	[dtoa]=""
 	[dune]=""
@@ -139,7 +140,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[fmt]="seq stdlib-shims cmdliner"
 	[fpath]="astring"
 	[gen]="dune-configurator"
-	[gen_js_api]="ocaml-migrate-parsetree js_of_ocaml ppxlib"
+	[gen_js_api]="ocaml-migrate-parsetree ojs ppxlib"
 	[gettext]="fileutils"
 	[gettext-camomile]="gettext camomile"
 	[gettext-stub]="gettext dune-configurator"
@@ -202,7 +203,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[markup]="uutf uchar"
 	[markup-lwt]="markup lwt"
 	[mccs]="cudf"
-	[mdx]="fmt findlib astring logs cmdliner re result ocaml-migrate-parsetree ocaml-version odoc ppxlib"
+	[mdx]="fmt findlib astring logs cmdliner re result ocaml-version odoc csexp"
 	[menhir]="menhirLib menhirSdk"
 	[menhirLib]=""
 	[menhirSdk]=""
@@ -247,6 +248,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ocsigen-toolkit]="eliom calendar"
 	[octavius]=""
 	[odoc]="astring cmdliner fpath result tyxml"
+	[ojs]=""
 	[opam]="opam-client cmdliner"
 	[opam-admin]="opam-client opam-file-format re"
 	[opam-client]="opam-state re opam-solver cmdliner"
@@ -476,6 +478,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[dispatch]="alcotest"
 	[dns]="alcotest"
 	[domain-name]="alcotest"
+	[dose3]="ounit2"
 	[dtoa]="ounit2"
 	[dune-action-plugin]="ppx_expect"
 	[duration]="alcotest"
@@ -485,6 +488,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[fiat-p256]="alcotest asn1-combinators benchmark ppx_deriving_yojson rresult stdlib-shims yojson"
 	[fileutils]="ounit2"
 	[gen]="qcheck qtest"
+	[gen_js_api]="js_of_ocaml-compiler"
 	[gettext]="ounit2"
 	[gettext-camomile]="ounit2 fileutils"
 	[gettext-stub]="fileutils ounit2"
@@ -648,6 +652,7 @@ let rec print_deps is_dep = function
 	| String (_,"base-unix") -> ()
 	| String (_,"conf-cairo") -> ()
 	| String (_,"conf-capnproto") -> ()
+	| String (_,"conf-dpkg") -> ()
 	| String (_,"conf-glib-2") -> ()
 	| String (_,"conf-gmp-powm-sec") -> ()
 	| String (_,"conf-gnomecanvas") -> ()
@@ -664,6 +669,8 @@ let rec print_deps is_dep = function
 	| String (_,"conf-openssl") -> ()
 	| String (_,"conf-pkg-config") -> ()
 	| String (_,"conf-postgresql") -> ()
+	| String (_,"conf-python-3") -> ()
+	| String (_,"conf-python3-yaml") -> ()
 	| String (_,"conf-sqlite3") -> ()
 	| String (_,"conf-snappy") -> ()
 	| String (_,"conf-zlib") -> ()
