@@ -1,2 +1,0 @@
-# Beta
->=dev-lang/ocaml-4.12_beta
