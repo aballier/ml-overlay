@@ -1,0 +1,22 @@
+From 4106a4217956f7b74a8ef3f73a1e1f55e02ade45 Mon Sep 17 00:00:00 2001
+From: Hugo Heuzard <hugo.heuzard@gmail.com>
+Date: Tue, 16 Feb 2021 12:37:06 +0100
+Subject: [PATCH] fix for jsoo.3.9
+
+---
+ src/lib/eliom_client_core.client.ml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/eliom_client_core.client.ml b/src/lib/eliom_client_core.client.ml
+index e7bc429b8..223b68ce3 100644
+--- a/src/lib/eliom_client_core.client.ml
++++ b/src/lib/eliom_client_core.client.ml
+@@ -857,7 +857,7 @@ let a_handler =
+                   (get_element_template node) ev))
+ 
+ let form_handler
+-  : (Dom_html.element Js.t, Dom_html.event Js.t) Dom_html.event_listener
++  : (Dom_html.element Js.t, #Dom_html.event Js.t) Dom_html.event_listener
+   =
+   Dom_html.full_handler
+     (fun node ev ->
