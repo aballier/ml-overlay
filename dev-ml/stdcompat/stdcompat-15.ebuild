@@ -21,7 +21,6 @@ DEPEND="
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
-PATCHES=( "${FILESDIR}/412.patch" )
 
 src_prepare() {
 	default
