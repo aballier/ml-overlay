@@ -230,7 +230,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[npy]="camlzip"
 	[num]=""
 	[ocamlbuild]=""
-	[ocamlformat]="base menhir cmdliner fix fpath ppxlib odoc re stdio uuseg uutf dune-build-info ocaml-version"
+	[ocamlformat]="base menhir cmdliner fix fpath ppxlib odoc re stdio uuseg uutf dune-build-info ocaml-version menhirLib menhirSdk ocaml-migrate-parsetree"
 	[ocamlgraph]="stdlib-shims"
 	[ocamlgraph_gtk]="stdlib-shims lablgtk ocamlgraph"
 	[ocamlnet]=""
