@@ -17,8 +17,8 @@ _OCAML_DEPS_ECLASS=1
 declare -A -g _GLOBAL_OCAML_DEPS=(
 	[afl-persistent]="findlib"
 	[alcotest]="fmt astring cmdliner uuidm stdlib-shims re uutf"
-	[alcotest-async]="alcotest async_unix core_kernel"
-	[alcotest-lwt]="alcotest lwt logs"
+	[alcotest-async]="alcotest async_unix core_kernel async_kernel base core"
+	[alcotest-lwt]="alcotest lwt logs fmt"
 	[angstrom]="result bigstringaf"
 	[angstrom-async]="angstrom async"
 	[angstrom-lwt-unix]="angstrom lwt"
@@ -450,6 +450,8 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 )
 
 declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
+	[alcotest-async]="cmdliner fmt re"
+	[alcotest-lwt]="cmdliner re"
 	[angstrom]="alcotest ppx_let"
 	[asn1-combinators]="alcotest"
 	[atdgen]="atdgen-codec-runtime"
