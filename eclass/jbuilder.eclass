@@ -20,6 +20,8 @@ case ${EAPI:-0} in
 	*) BDEPEND=">=dev-ml/dune-2.7 dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
 esac
 
+IUSE="+ocamlopt"
+
 # This disables Werror-like behavior
 DUNE_PROFILE="release"
 
