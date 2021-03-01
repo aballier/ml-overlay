@@ -520,6 +520,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[mirage-crypto-rng]="ounit2 randomconv"
 	[mirage-kv]="alcotest"
 	[mirage-kv-mem]="alcotest ppx_deriving"
+	[ocaml-version]="alcotest"
 	[ocamlformat]="alcotest ocp-indent"
 	[odoc]="bisect_ppx"
 	[opam-file-format]="alcotest"
