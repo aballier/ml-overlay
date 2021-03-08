@@ -340,7 +340,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[re2]="core_kernel ppx_jane"
 	[react]=""
 	[reactiveData]="react findlib"
-	[reason]="merlin-extend result ocaml-migrate-parsetree menhir fix"
+	[reason]="merlin-extend result menhir fix ppx_derivers"
 	[redis]="re uuidm"
 	[redis-lwt]="redis lwt"
 	[redis-sync]="redis"
