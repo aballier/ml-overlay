@@ -1,0 +1,14 @@
+Index: findlib-1.9.1/configure
+===================================================================
+--- findlib-1.9.1.orig/configure
++++ findlib-1.9.1/configure
+@@ -446,6 +446,9 @@ echo "Configuring libraries..."
+ # Only succeeds if ${ocaml_sitelib}/$1/META exists and we're **certain**
+ # it wasn't installed by a previous findlib installation.
+ is_third_party_META () {
++    case "$1" in
++	graphics|num|ocamlbuild|labltk) return 0;;
++    esac
+     if [ $check_before_install -eq 0 ]; then
+         if [ -f "${ocaml_sitelib}/$1/META" ]; then
+             case ",$findlib_installed_meta," in
