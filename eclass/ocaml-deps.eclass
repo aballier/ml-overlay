@@ -354,7 +354,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[sexplib]="parsexp sexplib0 num"
 	[sexplib0]=""
 	[sexp_pretty]="base ppx_base sexplib re"
-	[sha]=""
+	[sha]="stdlib-shims"
 	[shell]="core core_kernel jst-config ppx_jane textutils spawn"
 	[snappy]=""
 	[spawn]=""
