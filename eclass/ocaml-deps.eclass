@@ -502,6 +502,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[graphql_parser]="alcotest"
 	[hacl_x25519]="benchmark hex alcotest ppx_blob ppx_deriving_yojson stdlib-shims yojson"
 	[hkdf]="alcotest"
+	[io-page]="ounit2"
 	[io-page-unix]="ounit2"
 	[ipaddr]="ounit2 ppx_sexp_conv"
 	[ipaddr-sexp]="ipaddr-cstruct ounit2"
