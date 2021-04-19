@@ -75,11 +75,12 @@ ca-certs"
 	[cohttp-lwt-unix-nossl]="ca-certs cmdliner cohttp-lwt conduit-lwt fmt logs lwt magic-mime"
 	[cohttp-lwt-unix-ssl]="ca-certs cmdliner cohttp-lwt conduit-lwt fmt logs lwt magic-mime conduit-lwt-ssl cohttp-lwt-unix-nossl"
 	[cohttp-top]="cohttp"
-	[conduit]="domain-name ipaddr stdlib-shims"
-	[conduit-async]="core cstruct conduit async"
+	[conduit]="astring ipaddr-sexp logs ppx_sexp_conv sexplib uri ipaddr"
+	[conduit-async]="core async_ssl ipaddr ppx_here ppx_sexp_conv sexplib uri conduit async"
 	[conduit-async-ssl]="core conduit-async async async_ssl"
 	[conduit-async-tls]="core conduit-async async conduit-tls"
-	[conduit-lwt]="conduit cstruct lwt"
+	[conduit-lwt]="conduit ppx_sexp_conv sexplib lwt"
+	[conduit-lwt-unix]="logs ca-certs conduit-lwt ipaddr ipaddr-sexp lwt_ssl ppx_sexp_conv tls uri lwt"
 	[conduit-lwt-ssl]="conduit-lwt lwt_ssl"
 	[conduit-lwt-tls]="conduit-lwt conduit-tls mirage-crypto-rng"
 	[conduit-tls]="conduit ke tls logs bigstringaf"
@@ -472,9 +473,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[cohttp-lwt-unix]="ounit2"
 	[cohttp-lwt-unix-nossl]="ounit2"
 	[cohttp-lwt-unix-ssl]="ounit2"
-	[conduit]="alcotest rresult"
-	[conduit-async]="bigstringaf fmt ke rresult"
-	[conduit-lwt]="bigstringaf fmt ke rresult"
+	[conduit-lwt-unix]="lwt_log lwt_ssl ssl"
 	[containers]="gen iter ounit2 qcheck qtest uutf"
 	[crowbar]="calendar fpath uucp uunf uutf pprint xmldiff"
 	[crunch]="lwt mirage-kv mirage-kv-mem"
@@ -658,6 +657,7 @@ let rec print_deps is_dep = function
 	| String (_,"ocaml-freestanding") -> ()
 	| String (_,"dune") -> ()
 	| String (_,"jbuilder") -> ()
+	| String (_,"launchd") -> ()
 	| String (_,"base-bigarray") -> ()
 	| String (_,"base-bytes") -> ()
 	| String (_,"base-threads") -> ()
