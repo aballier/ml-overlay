@@ -374,7 +374,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[time_now]="base jane-street-headers jst-config ppx_base ppx_optcomp"
 	[timezone]="core_kernel ppx_jane"
 	[tls]="ppx_sexp_conv ppx_cstruct cstruct cstruct-sexp sexplib mirage-crypto mirage-crypto-pk mirage-crypto-rng x509
-domain-name fmt lwt ptime hacl_x25519 fiat-p256 hkdf logs"
+domain-name fmt lwt ptime mirage-crypto-ec rresult hkdf logs"
 	[trie]=""
 	[typerep]="base"
 	[tyxml]="uutf re seq"
