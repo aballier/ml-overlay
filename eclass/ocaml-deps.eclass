@@ -65,13 +65,12 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[charInfo_width]="result camomile"
 	[cinaps]="re"
 	[cmdliner]="result findlib"
-	[cohttp]="re uri uri-sexp fieldslib sexplib0 ppx_fields_conv stringext base64 stdlib-shims ppx_sexp_conv ppx_compare"
-	[cohttp-async]="async ppx_sexp_conv stdlib-shims uri-sexp async_kernel async_unix base cohttp conduit-async
-magic-mime logs fmt sexplib0 uri conduit-async-ssl ipaddr"
-	[cohttp-lwt]="cohttp lwt sexplib0 ppx_sexp_conv logs"
+	[cohttp]="re uri uri-sexp sexplib0 stringext base64 ppx_sexp_conv"
+	[cohttp-async]="async ppx_sexp_conv uri-sexp async_kernel async_unix base cohttp conduit-async
+magic-mime logs fmt sexplib0 uri ipaddr"
+	[cohttp-lwt]="cohttp lwt sexplib0 ppx_sexp_conv logs uri"
 	[cohttp-lwt-jsoo]="cohttp cohttp-lwt lwt js_of_ocaml js_of_ocaml-ppx js_of_ocaml-lwt"
-	[cohttp-lwt-unix]="conduit-lwt conduit-lwt-tls cmdliner magic-mime logs fmt cohttp-lwt lwt cohttp-lwt-unix-nossl
-ca-certs"
+	[cohttp-lwt-unix]="conduit-lwt conduit-lwt-unix ppx_sexp_conv cmdliner magic-mime logs fmt cohttp-lwt lwt"
 	[cohttp-lwt-unix-nossl]="ca-certs cmdliner cohttp-lwt conduit-lwt fmt logs lwt magic-mime"
 	[cohttp-lwt-unix-ssl]="ca-certs cmdliner cohttp-lwt conduit-lwt fmt logs lwt magic-mime conduit-lwt-ssl cohttp-lwt-unix-nossl"
 	[cohttp-top]="cohttp"
@@ -469,7 +468,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[charInfo_width]="ppx_expect"
 	[cinaps]="ppx_jane"
 	[cohttp]="alcotest fmt"
-	[cohttp-async]="core ounit2"
+	[cohttp-async]="core ounit2 mirage-crypto"
 	[cohttp-lwt-unix]="ounit2"
 	[cohttp-lwt-unix-nossl]="ounit2"
 	[cohttp-lwt-unix-ssl]="ounit2"
