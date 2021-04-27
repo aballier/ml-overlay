@@ -1,0 +1,10 @@
+Index: eliom-7.0.0/opam
+===================================================================
+--- eliom-7.0.0.orig/opam
++++ eliom-7.0.0/opam
+@@ -30,5 +30,4 @@ depends: [
+   "reactiveData" {>= "0.2.1"}
+   "dbm" | "sqlite3"
+   "base-bytes"
+-  "ppx_tools_versioned"
+ ]

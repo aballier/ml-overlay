@@ -29,7 +29,7 @@ OPAM_FILE=opam
 PATCHES=(
 	"${FILESDIR}/ppxlib.patch"
 	"${FILESDIR}/ppxlib2.patch"
-	"${FILESDIR}/jsoo.patch"
+	"${FILESDIR}/opam.patch"
 )
 
 src_compile() {
