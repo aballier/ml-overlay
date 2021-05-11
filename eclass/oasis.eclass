@@ -54,12 +54,10 @@
 # EPREFIX is automatically prepended.
 : ${OASIS_DOC_DIR:="/usr/share/doc/${PF}/html"}
 
-inherit multilib findlib eutils base
+inherit multilib findlib eutils
 
-# Implicitly limited to EAPI 5 or earlier because of base.eclass
 case ${EAPI:-0} in
-	0|1|2) die "You need at least EAPI-3 to use oasis.eclass";;
-	3|4) RDEPEND=">=dev-lang/ocaml-3.12[ocamlopt?]";;
+	0|1|2|3|4|5|6) die "You need at least EAPI-7 to use oasis.eclass";;
 	*) RDEPEND=">=dev-lang/ocaml-3.12:=[ocamlopt?]";;
 esac
 
@@ -131,7 +129,7 @@ oasis_src_test() {
 oasis_src_install() {
 	findlib_src_preinst
 	${OASIS_SETUP_COMMAND:-ocaml setup.ml} -install || die
-	base_src_install_docs
+	einstalldocs
 }
 
 EXPORT_FUNCTIONS src_configure src_compile src_test src_install
