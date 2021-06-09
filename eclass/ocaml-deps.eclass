@@ -671,6 +671,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-gtk3") -> ()
 	| String (_,"conf-g++") -> ()
 	| String (_,"conf-jq") -> ()
+	| String (_,"conf-libev") -> ()
 	| String (_,"conf-libpcre") -> ()
 	| String (_,"conf-libssl") -> ()
 	| String (_,"conf-libX11") -> ()
