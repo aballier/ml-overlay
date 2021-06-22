@@ -17,7 +17,6 @@ IUSE=""
 RDEPEND="!dev-ml/ocaml-redis-sync"
 DEPEND="${RDEPEND}"
 S=${WORKDIR}/ocaml-redis-${PV}
-PATCHES=( "${FILESDIR}/ounit2.patch" )
 
 src_test() {
 	einfo "Starting test redis server"
