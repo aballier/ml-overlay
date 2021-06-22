@@ -18,4 +18,3 @@ DEPEND=""
 RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}"
 S="${WORKDIR}/pgocaml-${PV}"
-PATCHES=( "${FILESDIR}/ppxlib.patch" )
