@@ -1,9 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
-inherit findlib eutils
+inherit findlib
 
 DESCRIPTION="Unit testing tool for the Objective Caml language"
 HOMEPAGE="http://kaputt.x9c.fr/"
@@ -20,8 +20,9 @@ DEPEND="${RDEPEND}
 	dev-ml/ocamlbuild"
 
 src_prepare() {
-	has_version '>=dev-lang/ocaml-4.06_beta' && epatch "${FILESDIR}/ocaml406.patch"
-	epatch "${FILESDIR}/numf.patch"
+	has_version '>=dev-lang/ocaml-4.06_beta' && eapply "${FILESDIR}/ocaml406.patch"
+	eapply "${FILESDIR}/numf.patch"
+	default
 }
 
 src_configure() {
