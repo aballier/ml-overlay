@@ -1,7 +1,7 @@
 # Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit findlib eutils
 
@@ -12,7 +12,8 @@ LICENSE="LGPL-2.1"
 RDEPEND="
 	>=dev-lang/ocaml-3.10.2:=[ocamlopt?]
 "
-DEPEND="${RDEPEND}
+DEPEND="${RDEPEND}"
+BDEPEND="
 	dev-ml/cppo"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86 ~amd64-linux ~x86-linux ~ppc-macos"
@@ -42,6 +43,8 @@ src_install () {
 	dodoc README.md
 
 	if use doc; then
-		dohtml src/doc/*
+		docinto html
+		docompress -x /usr/share/doc/${PF}/html
+		dodoc -r src/doc/*
 	fi
 }
