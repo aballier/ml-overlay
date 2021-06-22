@@ -1,7 +1,7 @@
 # Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
 inherit findlib eutils
 
@@ -20,9 +20,7 @@ RDEPEND=">=dev-lang/tk-8.0.3:=
 DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.5.5-r1"
 
-src_prepare() {
-	epatch "${FILESDIR}/findlib.patch"
-}
+PATCHES=( "${FILESDIR}/findlib.patch" )
 
 src_configure() {
 	./configure --use-findlib --verbose $(usex X "-tk-x11" "--tk-no-x11") || die "configure failed!"
