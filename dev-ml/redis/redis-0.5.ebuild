@@ -18,7 +18,6 @@ RDEPEND="!dev-ml/ocaml-redis"
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 dev-db/redis dev-ml/lwt )"
 S="${WORKDIR}/ocaml-${P}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
 
 src_test() {
 	einfo "Starting test redis server"
