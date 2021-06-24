@@ -526,6 +526,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[mirage-kv]="alcotest"
 	[mirage-kv-mem]="alcotest ppx_deriving"
 	[msgpck]="alcotest"
+	[ocaml-migrate-parsetree]="cinaps"
 	[ocaml-version]="alcotest"
 	[ocamlformat]="alcotest ocp-indent bisect_ppx"
 	[odoc]="bisect_ppx"
