@@ -16,7 +16,7 @@ IUSE="test"
 
 RDEPEND="
 	>=dev-lang/ocaml-4.02:=[ocamlopt]
-	virtual/libffi
+	dev-libs/libffi:=
 	dev-ml/integers:=
 "
 DEPEND="${RDEPEND}
