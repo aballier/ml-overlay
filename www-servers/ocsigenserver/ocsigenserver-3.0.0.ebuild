@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit eutils multilib findlib user
+inherit user findlib opam
 
 if [ "${PV#9999}" != "${PV}" ] ; then
 	inherit git-r3
@@ -20,26 +20,12 @@ HOMEPAGE="http://www.ocsigen.org"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}-lwt4"
-IUSE="debug doc dbm +ocamlopt +sqlite zlib postgres"
+IUSE="debug doc dbm +sqlite postgres"
 REQUIRED_USE="|| ( sqlite dbm postgres )"
 RESTRICT="strip installsources"
+OPAM_FILE="opam"
 
-DEPEND=">=dev-ml/lwt-2.5.0:=[camlp4(+)]
-		dev-ml/lwt_react:=
-		>=dev-ml/ssl-0.5.8:=
-		dev-ml/lwt_ssl:=
-			dev-ml/result:=
-			dev-libs/openssl:0=
-		dev-ml/lwt_log:=
-		>=dev-ml/react-0.9.3:=
-		zlib? ( >=dev-ml/camlzip-1.03-r1:= )
-		dev-ml/cryptokit:=
-		>=dev-ml/ocamlnet-3.6:=[pcre]
-		>=dev-ml/pcre-6.2.5:=
-		>=dev-ml/tyxml-4:=
-		dev-ml/xml-light:=
-		>=dev-lang/ocaml-3.12:=[ocamlopt?]
-		dev-ml/ipaddr:=
+DEPEND="
 		postgres? ( dev-ml/pgocaml:=[camlp4(+)] )
 		dbm? ( dev-ml/camldbm:= )
 		sqlite? ( dev-ml/sqlite3:= )"
@@ -52,15 +38,13 @@ pkg_setup() {
 
 src_configure() {
 	sh configure \
-		--prefix /usr \
+		--prefix "${EPREFIX}/usr" \
 		--temproot "${ED}" \
-		--bindir /usr/bin \
-		--docdir /usr/share/doc/${PF} \
-		--mandir /usr/share/man/man1 \
-		--libdir /usr/$(get_libdir)/ocaml \
+		--docdir "${EPREFIX}/usr/share/doc/${PF}" \
+		--mandir "${EPREFIX}/usr/share/man/man1" \
+		--libdir "$(ocamlfind printconf destdir)" \
 		$(use_enable debug) \
 		$(use_enable debug annot) \
-		$(use_with zlib camlzip) \
 		$(use_with sqlite) \
 		$(use_with dbm) \
 		$(use_with postgres pgsql) \
@@ -71,21 +55,13 @@ src_configure() {
 }
 
 src_compile() {
-	if use ocamlopt; then
-		emake
-	else
-		emake byte
-	fi
+	emake
 	use doc && emake doc
 }
 
 src_install() {
 	findlib_src_preinst
-	if use ocamlopt; then
-		emake install
-	else
-		emake install.byte
-	fi
+	emake install
 	if use doc ; then
 		emake install.doc
 	fi
