@@ -157,6 +157,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[hiredis]="lwt hiredis-value"
 	[hiredis-value]=""
 	[hkdf]="cstruct mirage-crypto"
+	[hmap]=""
 	[incremental]="core_kernel ppx_jane"
 	[integers]=""
 	[io-page]="cstruct bigarray-compat"
@@ -244,7 +245,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ocaml-version]=""
 	[ocplib-endian]=""
 	[ocp-indent]="cmdliner findlib"
-	[ocsigenserver]="lwt lwt_react ssl lwt_ssl lwt_log react cryptokit ocamlnet pcre tyxml xml-light ipaddr"
+	[ocsigenserver]="camlzip findlib react ssl lwt lwt_ssl lwt_react lwt_log pcre cryptokit ipaddr cohttp-lwt-unix hmap xml-light"
 	[ocsigen-i18n]="tyxml ppx_tools"
 	[ocsigen-start]="pgocaml pgocaml_ppx safepass ocsigen-i18n eliom ocsigen-toolkit yojson resource-pooling cohttp-lwt-unix ocamlnet"
 	[ocsigen-toolkit]="eliom calendar"
@@ -423,6 +424,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[fpath]="findlib topkg ocamlbuild"
 	[gettext]="cppo"
 	[graphql_parser]="menhir"
+	[hmap]="topkg findlib ocamlbuild"
 	[logs]="findlib topkg ocamlbuild"
 	[lwt]="cppo"
 	[mdx]="cppo"
@@ -686,6 +688,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-python3-yaml") -> ()
 	| String (_,"conf-sqlite3") -> ()
 	| String (_,"conf-snappy") -> ()
+	| String (_,"conf-which") -> ()
 	| String (_,"conf-zlib") -> ()
 	| String (_,"ctypes-foreign") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
