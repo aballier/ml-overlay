@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit user findlib opam
+inherit user findlib jbuilder
 
 if [ "${PV#9999}" != "${PV}" ] ; then
 	inherit git-r3
@@ -19,11 +19,10 @@ DESCRIPTION="Ocaml-powered webserver and framework for dynamic web programming"
 HOMEPAGE="http://www.ocsigen.org"
 
 LICENSE="LGPL-2.1-with-linking-exception"
-SLOT="0/${PV}-lwt4"
-IUSE="debug doc dbm +sqlite postgres"
+SLOT="0/${PV}"
+IUSE="dbm +sqlite postgres"
 REQUIRED_USE="|| ( sqlite dbm postgres )"
 RESTRICT="strip installsources"
-OPAM_FILE="opam"
 
 DEPEND="
 		postgres? ( dev-ml/pgocaml:=[camlp4(+)] )
@@ -43,8 +42,6 @@ src_configure() {
 		--docdir "${EPREFIX}/usr/share/doc/${PF}" \
 		--mandir "${EPREFIX}/usr/share/man/man1" \
 		--libdir "$(ocamlfind printconf destdir)" \
-		$(use_enable debug) \
-		$(use_enable debug annot) \
 		$(use_with sqlite) \
 		$(use_with dbm) \
 		$(use_with postgres pgsql) \
@@ -52,19 +49,11 @@ src_configure() {
 		--ocsigen-user ocsigenserver  \
 		--name ocsigenserver \
 		|| die "Error : configure failed!"
-}
-
-src_compile() {
 	emake
-	use doc && emake doc
 }
 
 src_install() {
-	findlib_src_preinst
-	emake install
-	if use doc ; then
-		emake install.doc
-	fi
+	jbuilder_src_install
 	emake logrotate
 
 	newinitd "${FILESDIR}"/ocsigenserver.initd ocsigenserver || die
