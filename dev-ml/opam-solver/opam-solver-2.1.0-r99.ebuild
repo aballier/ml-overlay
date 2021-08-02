@@ -20,3 +20,10 @@ DEPEND="${RDEPEND}
 
 S="${WORKDIR}/opam-${PV/_/-}"
 PATCHES=( "${FILESDIR}/dose61.patch" )
+
+src_prepare() {
+	sed -e 's/Algo/Dose_algo/g' \
+		-e 's/Common/Dose_common/g' \
+		-i src/solver/*.{ml,mli,ml.real} || die
+	jbuilder_src_prepare
+}
