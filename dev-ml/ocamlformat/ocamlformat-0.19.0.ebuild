@@ -11,7 +11,7 @@ SRC_URI="https://github.com/ocaml-ppx/ocamlformat/releases/download/${PV}/${P}.t
 
 LICENSE="MIT"
 SLOT="0/${PV}"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm64"
 IUSE=""
 
 DEPEND=""
