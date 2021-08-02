@@ -17,7 +17,7 @@ RDEPEND="dev-lang/ocaml:="
 
 case ${EAPI:-0} in
 	0|1|2|3|4|5|6) die "EAPI=${EAPI} unsupported";;
-	*) BDEPEND=">=dev-ml/dune-2.7 dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
+	*) BDEPEND=">=dev-ml/dune-2.9 dev-lang/ocaml"; DEPEND="${RDEPEND}" ;;
 esac
 
 IUSE="+ocamlopt"
