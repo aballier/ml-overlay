@@ -11,7 +11,7 @@ SRC_URI="https://github.com/ocaml-doc/odoc-parser/releases/download/${PV}/${P}.t
 
 LICENSE="ISC"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~x86"
+KEYWORDS="~amd64 ~arm64 ~x86"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
