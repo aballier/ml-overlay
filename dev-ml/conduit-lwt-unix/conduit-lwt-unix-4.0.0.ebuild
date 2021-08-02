@@ -18,3 +18,4 @@ RDEPEND="!dev-ml/ocaml-conduit"
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-conduit-${PV}"
+PATCHES=( "${FILESDIR}/tls.patch" )
