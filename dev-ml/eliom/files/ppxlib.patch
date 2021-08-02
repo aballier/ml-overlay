@@ -20,19 +20,6 @@ Subject: [PATCH] Switch to ppxlib
  src/ppx/ppx_eliom_utils.mli    |  12 ++--
  14 files changed, 142 insertions(+), 134 deletions(-)
 
-diff --git a/opam b/opam
-index dcfed24ab..a8c722b17 100644
---- a/opam
-+++ b/opam
-@@ -14,7 +14,7 @@ depends: [
-   "ocaml" {>= "4.08.0"}
-   "ocamlfind"
-   "ppx_deriving"
--  "ppx_tools" {>= "0.99.3"}
-+  "ppxlib" {>= "0.9" & < "0.16.0"}
-   "js_of_ocaml-compiler" {>= "3.5.1"}
-   "js_of_ocaml" {>= "3.5.1"}
-   "js_of_ocaml-lwt" {>= "3.5.1"}
 diff --git a/pkg/META b/pkg/META
 index a829de3ce..6ae57806d 100644
 --- a/pkg/META
