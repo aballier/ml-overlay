@@ -18,7 +18,7 @@
 
 inherit ocaml-deps
 
-RDEPEND=">=dev-lang/ocaml-4:=
+RDEPEND=">=dev-lang/ocaml-4.12:=
 	$(ocaml_gen_deps ${PN})"
 IUSE="test"
 RESTRICT="!test? ( test )"
