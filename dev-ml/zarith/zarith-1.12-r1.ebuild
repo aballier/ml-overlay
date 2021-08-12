@@ -19,7 +19,7 @@ RDEPEND="
 	!mpir? ( dev-libs/gmp:0= )
 	mpir? ( sci-libs/mpir )"
 
-DEPEND="${RDEPEND} dev-lang/perl"
+DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/Zarith-release-${PV}"
 
