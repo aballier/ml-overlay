@@ -137,7 +137,14 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[fieldslib]="base"
 	[findlib]=""
 	[fix]=""
-	[ffmpeg]=""
+	[ffmpeg]="ffmpeg-avcodec ffmpeg-avdevice ffmpeg-avfilter ffmpeg-avutil ffmpeg-swresample ffmpeg-swscale"
+	[ffmpeg-av]="ffmpeg-avutil ffmpeg-avcodec"
+	[ffmpeg-avcodec]="ffmpeg-avutil"
+	[ffmpeg-avdevice]="ffmpeg-av"
+	[ffmpeg-avfilter]="ffmpeg-avutil"
+	[ffmpeg-avutil]=""
+	[ffmpeg-swresample]="ffmpeg-avutil ffmpeg-avcodec"
+	[ffmpeg-swscale]="ffmpeg-avutil"
 	[fmt]="seq stdlib-shims cmdliner"
 	[fpath]="astring"
 	[gen]="dune-configurator"
@@ -421,6 +428,13 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[cohttp]="jsonm"
 	[eliom]="js_of_ocaml-ocamlbuild"
 	[extunix]="dune-configurator ppxlib"
+	[ffmpeg-av]="dune-configurator"
+	[ffmpeg-avcodec]="dune-configurator"
+	[ffmpeg-avdevice]="dune-configurator"
+	[ffmpeg-avfilter]="dune-configurator"
+	[ffmpeg-avutil]="dune-configurator"
+	[ffmpeg-swresample]="dune-configurator"
+	[ffmpeg-swscale]="dune-configurator"
 	[fmt]="findlib topkg ocamlbuild"
 	[fpath]="findlib topkg ocamlbuild"
 	[gettext]="cppo"
@@ -671,6 +685,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-cairo") -> ()
 	| String (_,"conf-capnproto") -> ()
 	| String (_,"conf-dpkg") -> ()
+	| String (_,"conf-ffmpeg") -> ()
 	| String (_,"conf-glib-2") -> ()
 	| String (_,"conf-gmp-powm-sec") -> ()
 	| String (_,"conf-gnomecanvas") -> ()
