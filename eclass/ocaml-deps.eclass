@@ -338,7 +338,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[ppx_tools_versioned]="ocaml-migrate-parsetree"
 	[ppx_typerep_conv]="base typerep ppxlib"
 	[ppx_variants_conv]="base variantslib ppxlib"
-	[ppxlib]="ocaml-compiler-libs ocaml-migrate-parsetree ppx_derivers sexplib0 stdlib-shims"
+	[ppxlib]="ocaml-compiler-libs ppx_derivers sexplib0 stdlib-shims"
 	[protocol_version_header]="core_kernel ppx_jane"
 	[psq]="seq"
 	[ptime]="result"
