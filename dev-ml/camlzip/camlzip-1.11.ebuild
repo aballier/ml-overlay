@@ -32,5 +32,5 @@ src_install() {
 	findlib_src_preinst
 	emake DESTDIR="${D}" install-findlib
 
-	dodoc README Changes
+	dodoc README.md Changes
 }
