@@ -15,7 +15,7 @@ KEYWORDS="~amd64 ~arm ~arm64 ~mips ~x86 ~amd64-linux ~x86-linux"
 IUSE="+ocamlopt X"
 
 RDEPEND=">=dev-lang/tk-8.0.3:=
-	>=dev-lang/ocaml-4.12_beta:=[ocamlopt?]
+	>=dev-lang/ocaml-4.13_beta:=[ocamlopt?]
 	X? ( dev-ml/graphics:= x11-libs/libX11 )"
 DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.5.5-r1"
