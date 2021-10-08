@@ -17,4 +17,3 @@ IUSE=""
 RDEPEND="!dev-ml/ocaml-sha"
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${P}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
