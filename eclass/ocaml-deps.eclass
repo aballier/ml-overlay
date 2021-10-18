@@ -16,7 +16,7 @@ _OCAML_DEPS_ECLASS=1
 # It is not readonly so that another eclass can append data here for overlays.
 declare -A -g _GLOBAL_OCAML_DEPS=(
 	[afl-persistent]="findlib"
-	[alcotest]="fmt astring cmdliner uuidm stdlib-shims re uutf"
+	[alcotest]="fmt astring cmdliner ocaml-syntax-shims stdlib-shims re uutf"
 	[alcotest-async]="alcotest async_unix core_kernel async_kernel base core"
 	[alcotest-lwt]="alcotest lwt logs fmt"
 	[angstrom]="result bigstringaf"
