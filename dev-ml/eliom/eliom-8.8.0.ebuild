@@ -29,6 +29,7 @@ OPAM_FILE=opam
 PATCHES=(
 	"${FILESDIR}/ppxlib.patch"
 	"${FILESDIR}/ppxlib2.patch"
+	"${FILESDIR}/ppxlib3.patch"
 	"${FILESDIR}/opam.patch"
 )
 
