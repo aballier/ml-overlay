@@ -57,6 +57,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[cairo2-pango]="cairo2 lablgtk"
 	[calendar]=""
 	[camlbz2]=""
+	[camldbm]=""
 	[camlimages]="base stdio graphics lablgtk"
 	[camlzip]=""
 	[camomile]=""
@@ -125,7 +126,7 @@ typerep variantslib"
 	[eigen]="ocaml-ctypes"
 	[either]=""
 	[eliom]="findlib ppx_deriving js_of_ocaml-compiler js_of_ocaml js_of_ocaml-lwt js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json
-js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib"
+js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib ocsipersist"
 	[expect_test_helpers]="async core expect_test_helpers_kernel ppx_jane sexp_pretty"
 	[expect_test_helpers_kernel]="base base_quickcheck core_kernel ppx_jane sexp_pretty re stdio"
 	[extlib]=""
@@ -258,6 +259,11 @@ xml-light conduit-lwt-unix"
 	[ocsigen-i18n]="ppxlib"
 	[ocsigen-start]="pgocaml pgocaml_ppx safepass ocsigen-i18n eliom ocsigen-toolkit yojson resource-pooling cohttp-lwt-unix ocamlnet"
 	[ocsigen-toolkit]="eliom calendar"
+	[ocsipersist]="lwt ocsigenserver ocsipersist-lib ocsipersist-dbm ocsipersist-pgsql ocsipersist-sqlite"
+	[ocsipersist-dbm]="ocsipersist-lib lwt lwt_log xml-light ocsigenserver ocsipersist-lib camldbm"
+	[ocsipersist-lib]="lwt lwt_ppx"
+	[ocsipersist-pgsql]="ocsipersist-lib lwt lwt_log xml-light ocsigenserver ocsipersist-lib pgocaml"
+	[ocsipersist-sqlite]="ocsipersist-lib lwt lwt_log xml-light ocsigenserver ocsipersist-lib sqlite3"
 	[octavius]=""
 	[odoc]="astring cmdliner fpath result tyxml fmt logs ocaml-migrate-parsetree odoc-parser re"
 	[odoc-parser]="astring result"
@@ -723,6 +729,7 @@ let rec print_deps is_dep = function
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
 	| String (_,"ctypes") -> if is_dep [] then Printf.printf "ocaml-ctypes\n" else ()
 	| String (_,"ocamlfind") -> if is_dep [] then Printf.printf "findlib\n" else ()
+	| String (_,"dbm") -> if is_dep [] then Printf.printf "camldbm\n" else ()
 	| String (_,s) -> if is_dep [] then Printf.printf "%s\n" s else ()
 	| _ -> ();;
 
