@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="I18n made easy for web sites written with eliom"
 HOMEPAGE="https://github.com/besport/ocsigen-i18n"
@@ -16,10 +16,3 @@ IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
-OPAM_FILE=opam
-
-src_install() {
-	dodir /usr/bin
-	emake bindir="${ED}/usr/bin" install || die
-	dodoc README.MD
-}
