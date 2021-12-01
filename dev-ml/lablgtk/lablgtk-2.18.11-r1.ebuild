@@ -1,11 +1,11 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
 inherit multilib findlib
 
-IUSE="debug examples glade gnomecanvas sourceview +ocamlopt spell svg"
+IUSE="examples glade gnomecanvas sourceview +ocamlopt spell svg"
 
 DESCRIPTION="Objective CAML interface for Gtk+2"
 HOMEPAGE="http://lablgtk.forge.ocamlcore.org/"
@@ -28,7 +28,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-lin
 
 src_configure() {
 	export ac_cv_prog_CAMLP4O="no" # Avoid automagic
-	econf $(use_enable debug) \
+	econf \
 		$(use_with svg rsvg) \
 		$(use_with glade) \
 		--without-gnomeui \
