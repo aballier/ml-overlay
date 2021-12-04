@@ -349,7 +349,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[ppxlib]="ocaml-compiler-libs ppx_derivers sexplib0 stdlib-shims"
 	[protocol_version_header]="core_kernel ppx_jane"
 	[psq]="seq"
-	[ptime]="result"
+	[ptime]="js_of_ocaml"
 	[qcheck]="qcheck-ounit qcheck-core"
 	[qcheck-alcotest]="qcheck-core alcotest"
 	[qcheck-core]=""
