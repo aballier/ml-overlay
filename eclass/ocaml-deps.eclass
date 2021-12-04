@@ -418,7 +418,7 @@ domain-name fmt lwt ptime mirage-crypto-ec rresult hkdf logs ipaddr ipaddr-sexp"
 	[websocket-lwt-unix]="websocket lwt_log cohttp-lwt-unix"
 	[wtf8]=""
 	[x509]="cstruct asn1-combinators ptime base64 mirage-crypto mirage-crypto-pk mirage-crypto-ec mirage-crypto-rng
-pbkdf rresult fmt gmap domain-name logs ipaddr"
+pbkdf fmt gmap domain-name logs ipaddr"
 	[xmldiff]="xmlm"
 	[xmlm]=""
 	[xml-light]=""
