@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit jbuilder
+inherit jbuilder desktop
 
 DESCRIPTION="The Coq Proof Assistant"
 HOMEPAGE="http://coq.inria.fr/"
@@ -34,4 +34,9 @@ src_configure() {
 		)
 
 	./configure ${myconf[@]} || die "configure failed"
+}
+
+src_install() {
+	jbuilder_src_install
+	make_desktop_entry "coqide" "Coq IDE" "${EPREFIX}/usr/share/coq/coq.png"
 }
