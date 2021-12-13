@@ -247,7 +247,8 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[npy]="camlzip"
 	[num]=""
 	[ocamlbuild]=""
-	[ocamlformat]="base menhir cmdliner fix fpath odoc-parser ocp-indent re stdio uuseg uutf dune-build-info menhirLib menhirSdk"
+	[ocamlformat]="base menhir cmdliner fix fpath odoc-parser ocp-indent re stdio uuseg uutf dune-build-info menhirLib
+menhirSdk either ocaml-version"
 	[ocamlgraph]="stdlib-shims"
 	[ocamlgraph_gtk]="stdlib-shims lablgtk ocamlgraph"
 	[ocamlnet]=""
@@ -568,7 +569,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[msgpck]="alcotest"
 	[ocaml-migrate-parsetree]="cinaps"
 	[ocaml-version]="alcotest"
-	[ocamlformat]="alcotest bisect_ppx"
+	[ocamlformat]="alcotest"
 	[odoc]="alcotest markup bos findlib lwt ocaml-version ppx_expect yojson"
 	[odoc-parser]="ppx_expect"
 	[opam-file-format]="alcotest"
