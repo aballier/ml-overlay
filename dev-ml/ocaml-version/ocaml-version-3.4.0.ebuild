@@ -11,7 +11,7 @@ SRC_URI="https://github.com/ocurrent/ocaml-version/releases/download/v${PV}/${PN
 
 LICENSE="ISC"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~arm64 ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
 DEPEND="
