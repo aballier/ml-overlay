@@ -236,7 +236,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[mirage-crypto-pk]="cstruct mirage-crypto mirage-crypto-rng sexplib0 zarith eqaf"
 	[mirage-crypto-rng]="dune-configurator duration cstruct logs mirage-crypto mtime lwt"
 	[mirage-device]="fmt lwt"
-	[mirage-kv]="mirage-device lwt fmt"
+	[mirage-kv]="lwt fmt"
 	[mirage-kv-mem]="fmt mirage-clock mirage-clock-unix mirage-kv ptime rresult"
 	[mirage-profile]="cstruct lwt ocplib-endian"
 	[mirage-profile-unix]="mirage-profile mtime ocplib-endian"
