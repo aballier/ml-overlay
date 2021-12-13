@@ -17,8 +17,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-
-src_unpack() {
-	default
-	export S="$(echo ${WORKDIR}/${P}-*)"
-}
