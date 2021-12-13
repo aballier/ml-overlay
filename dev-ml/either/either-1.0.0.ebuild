@@ -11,7 +11,7 @@ SRC_URI="https://github.com/mirage/either/releases/download/${PV}/${P}.tbz"
 
 LICENSE="MIT"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~arm64"
+KEYWORDS="~amd64 ~arm ~arm64"
 IUSE=""
 
 RDEPEND=""
