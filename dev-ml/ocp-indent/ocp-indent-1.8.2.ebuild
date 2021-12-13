@@ -11,7 +11,7 @@ SRC_URI="https://github.com/OCamlPro/ocp-indent/archive/${PV}.tar.gz -> ${P}.tar
 
 LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~arm64 ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
 DEPEND=""
