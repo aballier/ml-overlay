@@ -19,4 +19,4 @@ DEPEND="x11-libs/gtksourceview:3.0="
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
-S="${WORKDIR}/lablgtk3-${MY_PV}"
+S="${WORKDIR}/lablgtk-${MY_PV}"
