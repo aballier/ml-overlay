@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit findlib vcs-snapshot
+inherit jbuilder vcs-snapshot
 
 DESCRIPTION="Diffs on XML trees"
 HOMEPAGE="https://zoggy.github.io/xmldiff/"
@@ -13,14 +13,6 @@ LICENSE="LGPL-3"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
 
-DEPEND="
-	dev-lang/ocaml:=
-	dev-ml/xmlm:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-
-src_install() {
-	findlib_src_install
-	dodoc README.md
-}
