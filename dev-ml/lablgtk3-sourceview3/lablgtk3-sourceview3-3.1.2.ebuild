@@ -8,7 +8,7 @@ inherit jbuilder
 MY_PV=${PV/_beta/.beta}
 DESCRIPTION="OCaml bindings to GTK-3"
 HOMEPAGE="https://github.com/garrigue/lablgtk"
-SRC_URI="https://github.com/garrigue/lablgtk/archive/refs/tags/${PV}.tar.gz -> lablgtk3-${MY_PV}.tbz"
+SRC_URI="https://github.com/garrigue/lablgtk/archive/refs/tags/${PV}.tar.gz -> lablgtk3-${MY_PV}.tar.gz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
