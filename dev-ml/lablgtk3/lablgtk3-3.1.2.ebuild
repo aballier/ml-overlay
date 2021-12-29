@@ -19,4 +19,4 @@ DEPEND="x11-libs/gtk+:3="
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
-S="${WORKDIR}/${PN}-${MY_PV}"
+S="${WORKDIR}/lablgtk-${MY_PV}"
