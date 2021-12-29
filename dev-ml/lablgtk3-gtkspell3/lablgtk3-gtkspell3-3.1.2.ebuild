@@ -19,4 +19,4 @@ DEPEND="app-text/gtkspell:3="
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
-S="${WORKDIR}/lablgtk3-${MY_PV}"
+S="${WORKDIR}/lablgtk-${MY_PV}"
