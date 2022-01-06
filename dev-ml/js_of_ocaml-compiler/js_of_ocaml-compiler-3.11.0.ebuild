@@ -1,4 +1,4 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -25,3 +25,4 @@ IUSE=""
 
 RDEPEND="!<dev-ml/js_of_ocaml-3.0.1"
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/menhir.patch" )
