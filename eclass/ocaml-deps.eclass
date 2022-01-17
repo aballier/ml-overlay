@@ -328,7 +328,7 @@ cohttp-lwt-unix ocamlnet re"
 	[ppx_gen_rec]="ocaml-migrate-parsetree"
 	[ppx_hash]="base ppx_compare ppx_sexp_conv ppxlib"
 	[ppx_here]="base ppxlib"
-	[ppx_import]="ppxlib ppx_tools_versioned ocaml-migrate-parsetree"
+	[ppx_import]="ppxlib"
 	[ppx_inline_test]="base time_now ppxlib"
 	[ppx_jane]="base_quickcheck ppx_assert ppx_base ppx_bench ppx_bin_prot ppx_custom_printf ppx_expect ppx_fields_conv
 ppx_fixed_literal ppx_here ppx_inline_test ppx_let ppx_module_timer ppx_optcomp ppx_optional ppx_pipebang
@@ -584,7 +584,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[ppx_deriving]="ounit2"
 	[ppx_deriving_protobuf]="ounit2 uint"
 	[ppx_deriving_yojson]="ounit2"
-	[ppx_import]="ounit2 ppx_deriving"
+	[ppx_import]="ounit2 ppx_deriving ppx_sexp_conv"
 	[ppx_protocol_conv]="alcotest ppx_sexp_conv sexplib"
 	[ppx_protocol_conv_json]="alcotest ppx_sexp_conv sexplib"
 	[ppx_protocol_conv_msgpack]="alcotest ppx_sexp_conv sexplib msgpck"
