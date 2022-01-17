@@ -25,10 +25,8 @@ src_configure() {
 	ocaml_lib=$(ocamlc -where)
 	local myconf=(
 		-prefix /usr
-		-bindir /usr/bin
 		-libdir /usr/$(get_libdir)/ocaml/coq
 		-mandir /usr/share/man
-		-coqdocdir /usr/$(get_libdir)/coq/coqdoc
 		-docdir /usr/share/doc/${PF}
 		-configdir /etc/xdg/${PN}
 		)
