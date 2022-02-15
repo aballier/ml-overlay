@@ -16,4 +16,4 @@ IUSE=""
 
 RDEPEND="!<dev-ml/iTeML-2.5"
 DEPEND="${RDEPEND}"
-S="${WORKDIR}/qcheck-v${PV}"
+S="${WORKDIR}/qcheck-${PV}"
