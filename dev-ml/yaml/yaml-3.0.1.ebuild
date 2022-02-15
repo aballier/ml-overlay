@@ -17,5 +17,3 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-S="${WORKDIR}/${MY_P}"
-PATCHES=( "${FILESDIR}/result.patch" )
