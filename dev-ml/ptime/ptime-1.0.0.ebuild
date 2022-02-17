@@ -12,14 +12,12 @@ SRC_URI="http://erratique.ch/software/ptime/releases/${P}.tbz"
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
-IUSE="+javascript"
+IUSE=""
 
-RDEPEND="
-	javascript? ( dev-ml/js_of_ocaml:= )
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 
 src_compile() {
-	ocaml pkg/pkg.ml build --with-js_of_ocaml $(usex javascript true false) || die
+	ocaml pkg/pkg.ml build || die
 }
