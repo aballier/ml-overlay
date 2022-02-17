@@ -14,15 +14,12 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="javascript test"
 
-RDEPEND="
-	javascript? ( dev-ml/js_of_ocaml:= )
-"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build \
-		--with-js_of_ocaml $(usex javascript true false) \
 		--tests $(usex test true false) \
 		|| die
 }
