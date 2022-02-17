@@ -1,4 +1,4 @@
-# Copyright 2019-2021 Gentoo Authors
+# Copyright 2019-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -20,3 +20,4 @@ DEPEND="media-video/ffmpeg:0="
 RDEPEND="${DEPEND}"
 BDEPEND="virtual/pkgconfig"
 S="${WORKDIR}/${MY_P}"
+PATCHES=( "${FILESDIR}/pre.patch" "${FILESDIR}/ffmpeg5.patch" )
