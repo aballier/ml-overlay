@@ -12,7 +12,7 @@ HOMEPAGE="https://github.com/savonet/ocaml-ffmpeg"
 SRC_URI="https://github.com/savonet/ocaml-ffmpeg/archive/refs/tags/v${MY_PV}.tar.gz -> ${MY_P}.tar.gz"
 
 LICENSE="LGPL-2.1"
-SLOT="0/${PV}"
+SLOT="0/${PV}-ffmpeg5"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
