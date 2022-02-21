@@ -40,7 +40,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[atdj]="atd re"
 	[base]="sexplib0 dune-configurator"
 	[base64]=""
-	[base_bigstring]="base ppx_jane"
+	[base_bigstring]="base ppx_jane int_repr"
 	[base_quickcheck]="base ppx_base ppx_fields_conv ppx_let ppx_sexp_message ppx_sexp_value splittable_random ppxlib"
 	[benchmark]=""
 	[bigarray-compat]=""
@@ -90,12 +90,12 @@ magic-mime logs fmt sexplib0 uri ipaddr core_unix"
 	[coq-stdlib]="coq-core"
 	[coqide]="coqide-server"
 	[coqide-server]="coq-core"
-	[core]="core_kernel jst-config ppx_jane sexplib timezone spawn"
+	[core]="base base_bigstring base_quickcheck bin_prot fieldslib jane-street-headers jst-config ppx_assert ppx_base
+ppx_hash ppx_inline_test ppx_jane ppx_sexp_conv ppx_sexp_message sexplib splittable_random stdio time_now typerep
+variantslib"
 	[core_bench]="core core_kernel ppx_jane textutils re"
 	[core_extended]="core core_kernel ppx_jane re"
-	[core_kernel]="base base_bigstring base_quickcheck bin_prot fieldslib jane-street-headers jst-config ppx_assert
-ppx_base ppx_hash ppx_inline_test ppx_jane ppx_sexp_conv ppx_sexp_message sexplib splittable_random stdio time_now
-typerep variantslib"
+	[core_kernel]="base core int_repr ppx_jane"
 	[core_profiler]="core core_kernel ppx_jane re2 shell textutils textutils_kernel"
 	[core_unix]="core"
 	[cppo]=""
@@ -174,6 +174,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[hkdf]="cstruct mirage-crypto"
 	[hmap]=""
 	[incremental]="core_kernel ppx_jane"
+	[int_repr]="base ppx_jane"
 	[integers]="stdlib-shims"
 	[io-page]="cstruct bigarray-compat"
 	[io-page-unix]="io-page cstruct"
@@ -335,7 +336,7 @@ cohttp-lwt-unix ocamlnet re ocsigen-ppx-rpc"
 ppx_fixed_literal ppx_here ppx_inline_test ppx_let ppx_module_timer ppx_optcomp ppx_optional ppx_pipebang
 ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_variants_conv ppxlib"
 	[ppx_js_style]="base octavius ppxlib"
-	[ppx_let]="base ppxlib"
+	[ppx_let]="base ppxlib ppx_here"
 	[ppx_metaquot]="ppxlib"
 	[ppx_module_timer]="base ppx_base stdio time_now ppxlib"
 	[ppx_optcomp]="base stdio ppxlib"
@@ -350,7 +351,7 @@ ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_varia
 	[ppx_sexp_message]="base ppx_here ppx_sexp_conv ppxlib"
 	[ppx_sexp_value]="base ppx_here ppx_sexp_conv ppxlib"
 	[ppx_stable]="base ppxlib"
-	[ppx_string]="base ppx_base stdio ppxlib"
+	[ppx_string]="base ppx_base ppxlib"
 	[ppx_tools]=""
 	[ppx_tools_versioned]="ocaml-migrate-parsetree"
 	[ppx_typerep_conv]="base typerep ppxlib"
@@ -737,6 +738,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-which") -> ()
 	| String (_,"conf-zlib") -> ()
 	| String (_,"ctypes-foreign") -> ()
+	| String (_,"mirage-xen-ocaml") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
 	| String (_,"ctypes") -> if is_dep [] then Printf.printf "ocaml-ctypes\n" else ()
 	| String (_,"ocamlfind") -> if is_dep [] then Printf.printf "findlib\n" else ()
