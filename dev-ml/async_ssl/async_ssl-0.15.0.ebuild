@@ -16,4 +16,3 @@ IUSE=""
 
 RDEPEND="dev-libs/openssl:0="
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/ctypes.patch" )
