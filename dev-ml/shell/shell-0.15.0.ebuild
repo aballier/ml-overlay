@@ -16,3 +16,8 @@ IUSE=""
 
 DEPEND="!dev-ml/ocamlnet"
 RDEPEND="${DEPEND}"
+
+src_prepare() {
+	jbuilder_src_prepare
+	sed -e 's/oUnit/ounit2/' -i low_level_process/test-bin/dune || die
+}
