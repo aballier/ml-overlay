@@ -42,6 +42,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[base64]=""
 	[base_bigstring]="base ppx_jane int_repr"
 	[base_quickcheck]="base ppx_base ppx_fields_conv ppx_let ppx_sexp_message ppx_sexp_value splittable_random ppxlib"
+	[batteries]="num"
 	[benchmark]=""
 	[bigarray-compat]=""
 	[bignum]="core ppx_jane splittable_random typerep num zarith zarith_stubs_js"
