@@ -1,4 +1,4 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -6,8 +6,8 @@ EAPI=7
 inherit oasis
 
 DESCRIPTION="OCamlify creates OCaml code by including files into strings or string lists"
-HOMEPAGE="http://forge.ocamlcore.org/projects/ocamlify"
-SRC_URI="http://forge.ocamlcore.org/frs/download.php/1209/${P}.tar.gz"
+HOMEPAGE="https://github.com/gildor478/ocamlify"
+SRC_URI="https://github.com/gildor478/ocamlify/archive/refs/tags/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0"
