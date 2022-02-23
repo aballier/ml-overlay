@@ -19,4 +19,8 @@ DEPEND="${RDEPEND}"
 BDEPEND=""
 
 S="${WORKDIR}/${PN}-ocaml-${PV}"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
+
+src_prepare() {
+	jbuilder_src_prepare
+	sed -e 's/oUnit/ounit2/' -i src/tests/dune || die
+}
