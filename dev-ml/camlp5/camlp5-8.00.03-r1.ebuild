@@ -16,7 +16,9 @@ SLOT="0/${PV}"
 KEYWORDS="~alpha ~amd64 ~ppc ~x86"
 IUSE="doc +ocamlopt"
 
-DEPEND=">=dev-lang/ocaml-3.10:=[ocamlopt?]"
+DEPEND=">=dev-lang/ocaml-3.10:=[ocamlopt?]
+	dev-ml/camlp-streams:=
+"
 RDEPEND="${DEPEND}"
 
 PATCHLEVEL=${PV#*_p}
