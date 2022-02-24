@@ -1,0 +1,196 @@
+Index: labltk-8.06.11/browser/searchid.ml
+===================================================================
+--- labltk-8.06.11.orig/browser/searchid.ml
++++ labltk-8.06.11/browser/searchid.ml
+@@ -95,27 +95,26 @@ let rec arr p ~card:n =
+   if p = 0 then 1 else n * arr (p-1) ~card:(n-1)
+ 
+ let rec all_args ty =
+-  let ty = repr ty in
+-  match ty.desc with
++  match get_desc ty with
+     Tarrow(l, ty1, ty2, _) -> let (tl,ty) = all_args ty2 in ((l,ty1)::tl, ty)
+   | _ -> ([], ty)
+ 
+ let rec equal ~prefix t1 t2 =
+-  match (repr t1).desc, (repr t2).desc with
++  match get_desc t1, get_desc t2 with
+     Tvar _, Tvar _ -> true
+   | Tvariant row1, Tvariant row2 ->
+-      let row1 = row_repr row1 and row2 = row_repr row2 in
+-      let fields1 = filter_row_fields false row1.row_fields
+-      and fields2 = filter_row_fields false row1.row_fields
++      let Row row1 = row_repr row1 and Row row2 = row_repr row2 in
++      let fields1 = filter_row_fields false row1.fields
++      and fields2 = filter_row_fields false row1.fields
+       in
+       let r1, r2, pairs = merge_row_fields fields1 fields2 in
+-      row1.row_closed = row2.row_closed && r1 = [] && r2 = [] &&
++      row1.closed = row2.closed && r1 = [] && r2 = [] &&
+       List.for_all pairs ~f:
+            begin fun (_,f1,f2) ->
+              match row_field_repr f1, row_field_repr f2 with
+                Rpresent None, Rpresent None -> true
+              | Rpresent(Some t1), Rpresent (Some t2) -> equal t1 t2 ~prefix
+-             | Reither(c1, tl1, _, _), Reither(c2, tl2, _, _) ->
++             | Reither(c1, tl1, _), Reither(c2, tl2, _) ->
+                  c1 = c2 && List.length tl1 = List.length tl2 &&
+                  List.for_all2 tl1 tl2 ~f:(equal ~prefix)
+              | _ -> false
+@@ -143,12 +142,12 @@ let rec equal ~prefix t1 t2 =
+ let get_options = List.filter ~f:Btype.is_optional
+ 
+ let rec included ~prefix t1 t2 =
+-  match (repr t1).desc, (repr t2).desc with
++  match get_desc t1, get_desc t2 with
+     Tvar _, _ -> true
+   | Tvariant row1, Tvariant row2 ->
+-      let row1 = row_repr row1 and row2 = row_repr row2 in
+-      let fields1 = filter_row_fields false row1.row_fields
+-      and fields2 = filter_row_fields false row2.row_fields
++      let Row row1 = row_repr row1 and Row row2 = row_repr row2 in
++      let fields1 = filter_row_fields false row1.fields
++      and fields2 = filter_row_fields false row2.fields
+       in
+       let r1, r2, pairs = merge_row_fields fields1 fields2 in
+       r1 = [] &&
+@@ -157,7 +156,7 @@ let rec included ~prefix t1 t2 =
+              match row_field_repr f1, row_field_repr f2 with
+                Rpresent None, Rpresent None -> true
+              | Rpresent(Some t1), Rpresent (Some t2) -> included t1 t2 ~prefix
+-             | Reither(c1, tl1, _, _), Reither(c2, tl2, _, _) ->
++             | Reither(c1, tl1, _), Reither(c2, tl2, _) ->
+                  c1 = c2 && List.length tl1 = List.length tl2 &&
+                  List.for_all2 tl1 tl2 ~f:(included ~prefix)
+              | _ -> false
+@@ -207,7 +206,7 @@ let mkpath = function
+ let get_fields ~prefix ~sign self =
+   (*let env = open_signature Fresh (mkpath prefix) sign !start_env in*)
+   let env = add_signature sign !start_env in
+-  match (expand_head env self).desc with
++  match (Transient_expr.coerce (expand_head env self)).desc with
+     Tobject (ty_obj, _) ->
+       let l,_ = flatten_fields ty_obj in l
+   | _ -> []
+@@ -270,12 +269,12 @@ let rec search_type_in_signature t ~sign
+   end
+ 
+ let search_all_types t ~mode =
+-  let tl = match mode, t.desc with
++  let tl = match mode, (Transient_expr.coerce t).desc with
+       `Exact, _ -> [t]
+     | `Included, Tarrow _ -> [t]
+     | `Included, _ ->
+-      [t; newty(Tarrow(Nolabel,t,newvar(),Cok));
+-          newty(Tarrow(Nolabel,newvar(),t,Cok))]
++      [t; newty(Tarrow(Nolabel,t,newvar(),commu_ok));
++          newty(Tarrow(Nolabel,newvar(),t,commu_ok))]
+   in List2.flat_map !module_list ~f:
+     begin fun modname ->
+     let mlid = Lident modname in
+Index: labltk-8.06.11/browser/searchpos.ml
+===================================================================
+--- labltk-8.06.11.orig/browser/searchpos.ml
++++ labltk-8.06.11/browser/searchpos.ml
+@@ -195,7 +195,7 @@ let search_pos_type_decl td ~pos ~env =
+ 
+ let search_pos_extension ext ~pos ~env =
+   begin match ext.pext_kind with
+-    Pext_decl (l, _) -> search_pos_arguments l ~pos ~env
++    Pext_decl (_, l, _) -> search_pos_arguments l ~pos ~env
+   | Pext_rebind _ -> ()
+   end
+   
+@@ -502,16 +502,16 @@ and view_module_id id ~env =
+ and view_type_decl path ~env =
+   let td = find_type path env in
+   try match td.type_manifest with None -> raise Not_found
+-    | Some ty -> match (Ctype.repr ty).desc with
++    | Some ty -> match (Types.get_desc ty) with
+         Tobject _ ->
+           let clt = find_cltype path env in
+           view_signature_item ~path ~env
+             [Sig_class_type(ident_of_path path ~default:"ct", clt, Trec_first,
+                             Exported);
+              dummy_item; dummy_item]
+-      | Tvariant ({row_name = Some _} as row) ->
++      | Tvariant (row) ->
+           let td = {td with type_manifest = Some(
+-                    Btype.newgenty (Tvariant {row with row_name = None}))} in
++                    Btype.newgenty (Tvariant (set_row_name row None)))} in
+           view_signature_item ~path ~env
+             [Sig_type(ident_of_path path ~default:"t", td, Trec_first,
+                       Exported)]
+@@ -698,7 +698,6 @@ let view_type_menu kind ~env ~parent =
+       Format.set_margin 60;
+       Format.open_hbox ();
+       Printtyp.reset ();
+-      Printtyp.mark_loops ty;
+       Printtyp.wrap_printing_env ~error:false env
+         (fun () -> Printtyp.type_expr Format.std_formatter ty);
+       Format.close_box (); Format.print_flush ();
+@@ -712,13 +711,18 @@ let view_type_menu kind ~env ~parent =
+       in
+       (* Menu.add_separator menu; *)
+       List.iter l ~f:
+-        begin fun label -> match (Ctype.repr ty).desc with
++        begin fun label -> match (Types.get_desc ty) with
+           Tconstr (path,_,_) ->
+             Menu.add_command menu ~label ~font
+               ~command:(fun () -> view_type_decl path ~env)
+-        | Tvariant {row_name = Some (path, _)} ->
+-            Menu.add_command menu ~label ~font
+-              ~command:(fun () -> view_type_decl path ~env)
++        | Tvariant row ->
++		begin
++	    match row_repr row with
++	    Row {name = Some (path, _)} ->
++            	Menu.add_command menu ~label ~font
++              	~command:(fun () -> view_type_decl path ~env)
++	    | _ -> Menu.add_command menu ~label ~font ~state:`Disabled
++	    end
+         | _ ->
+             Menu.add_command menu ~label ~font ~state:`Disabled
+         end
+@@ -864,7 +868,7 @@ and search_pos_expr ~pos exp =
+       search_pos_expr a ~pos; search_pos_expr b ~pos
+   | Texp_for (_, _, a, b, _, c) ->
+       List.iter [a;b;c] ~f:(search_pos_expr ~pos)
+-  | Texp_send (exp, _, _) -> search_pos_expr exp ~pos
++  | Texp_send (exp, _) -> search_pos_expr exp ~pos
+   | Texp_new (path, _, _) ->
+       add_found_str (`Exp(`New path, exp.exp_type))
+         ~env:exp.exp_env ~loc:exp.exp_loc
+Index: labltk-8.06.11/browser/typecheck.ml
+===================================================================
+--- labltk-8.06.11.orig/browser/typecheck.ml
++++ labltk-8.06.11/browser/typecheck.ml
+@@ -116,7 +116,7 @@ let f txt =
+     List.iter psl ~f:
+     begin function
+       Ptop_def pstr ->
+-        let str, sign, _names, env' = Typemod.type_structure !env pstr in
++        let str, sign, _names, shape, env' = Typemod.type_structure !env pstr in
+         txt.structure <- txt.structure @ str.str_items;
+         txt.signature <- txt.signature @ sign;
+         env := env'
+Index: labltk-8.06.11/browser/viewer.ml
+===================================================================
+--- labltk-8.06.11.orig/browser/viewer.ml
++++ labltk-8.06.11/browser/viewer.ml
+@@ -65,13 +65,13 @@ let view_symbol ~kind ~env ?path id =
+         [Sig_value (Ident.create_local name, vd, Exported)]
+   | Ptype -> view_type_id id ~env
+   | Plabel -> let ld = find_label_by_name id env in
+-      begin match ld.lbl_res.desc with
++      begin match (Transient_expr.coerce ld.lbl_res).desc with
+         Tconstr (path, _, _) -> view_type_decl path ~env
+       | _ -> ()
+       end
+   | Pconstructor ->
+       let cd = find_constructor_by_name id env in
+-      begin match cd.cstr_tag, cd.cstr_res.desc with
++      begin match cd.cstr_tag, (Transient_expr.coerce cd.cstr_res).desc with
+ 	Cstr_extension _, Tconstr (cpath, args, _) ->
+           view_signature ~title:(string_of_longident id) ~env ?path
+             [Sig_typext (Ident.create_local name,

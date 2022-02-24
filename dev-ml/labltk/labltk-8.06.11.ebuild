@@ -1,4 +1,4 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -20,7 +20,7 @@ RDEPEND=">=dev-lang/tk-8.0.3:=
 DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.5.5-r1"
 
-PATCHES=( "${FILESDIR}/findlib.patch" )
+PATCHES=( "${FILESDIR}/findlib.patch" "${FILESDIR}/oc414.patch" )
 
 src_configure() {
 	./configure --use-findlib --verbose $(usex X "-tk-x11" "--tk-no-x11") || die "configure failed!"
