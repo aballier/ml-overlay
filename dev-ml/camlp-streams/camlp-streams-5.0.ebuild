@@ -11,7 +11,7 @@ SRC_URI="https://github.com/ocaml/camlp-streams/archive/refs/tags/v${PV}.tar.gz 
 
 LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
-KEYWORDS="~alpha ~amd64 ~ppc ~x86"
+KEYWORDS="~amd64 ~ppc ~x86"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
