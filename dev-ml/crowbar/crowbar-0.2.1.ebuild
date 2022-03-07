@@ -16,4 +16,4 @@ KEYWORDS="~amd64"
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-PATCHES=( "${FILESDIR}/tests.patch" "${FILESDIR}/cmdliner.patch" )
+PATCHES=( "${FILESDIR}/tests.patch" )
