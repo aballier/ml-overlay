@@ -18,4 +18,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/${PN}-$(ver_rs 2 '-')"
-PATCHES=( "${FILESDIR}/oc414.patch" )
