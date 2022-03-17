@@ -20,4 +20,3 @@ DEPEND="media-video/ffmpeg:0="
 RDEPEND="${DEPEND}"
 BDEPEND="virtual/pkgconfig"
 S="${WORKDIR}/${MY_P}"
-PATCHES=( "${FILESDIR}/pre.patch" "${FILESDIR}/ffmpeg5.patch" )
