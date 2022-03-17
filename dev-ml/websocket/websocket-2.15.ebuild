@@ -18,4 +18,3 @@ RDEPEND="!dev-ml/ocaml-websocket"
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-websocket-${PV}"
-PATCHES=( "${FILESDIR}/conduit3.patch" )
