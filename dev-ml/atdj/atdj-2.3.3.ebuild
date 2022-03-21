@@ -12,8 +12,11 @@ SRC_URI="https://github.com/ahrefs/atd/releases/download/${PV}/atdgen-codec-runt
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE=""
+IUSE="test"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
+DEPEND="${DEPEND}
+	test? ( virtual/jdk )
+"
 S="${WORKDIR}/atdgen-codec-runtime-${PV}"
