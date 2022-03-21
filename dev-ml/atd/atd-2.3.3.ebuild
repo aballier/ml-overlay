@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Syntax for cross-language type definitions"
 HOMEPAGE="https://github.com/ahrefs/atd"
-SRC_URI="https://github.com/ahrefs/atd/releases/download/${PV}/atd-${PV}.tbz"
+SRC_URI="https://github.com/ahrefs/atd/releases/download/${PV}/atdgen-codec-runtime-${PV}.tbz"
 
 LICENSE="BSD"
 SLOT="0/${PV}"
@@ -16,5 +16,5 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-S="${WORKDIR}/atd-${PV}"
+S="${WORKDIR}/atdgen-codec-runtime-${PV}"
 PATCHES=( "${FILESDIR}/menhir.patch" )
