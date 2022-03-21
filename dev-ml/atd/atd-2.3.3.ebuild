@@ -17,4 +17,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/atdgen-codec-runtime-${PV}"
-PATCHES=( "${FILESDIR}/menhir.patch" )
