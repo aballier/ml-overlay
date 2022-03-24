@@ -1,0 +1,12 @@
+Index: ppx_import-1.9.1/src/ppx_import.ml
+===================================================================
+--- ppx_import-1.9.1.orig/src/ppx_import.ml
++++ ppx_import-1.9.1/src/ppx_import.ml
+@@ -288,6 +288,7 @@ let ptype_decl_of_ttype_decl ~manifest ~
+                  in
+                  { pcd_name =
+                      {txt = Ocaml_common.Ident.name cd.cd_id; loc = cd.cd_loc}
++		 ; pcd_vars = []
+                  ; pcd_args = map_args cd.cd_args
+                  ; pcd_res
+                  ; pcd_loc = cd.cd_loc
