@@ -25,7 +25,6 @@ fi
 RDEPEND=""
 DEPEND="${RDEPEND}"
 OPAM_FILE=opam
-PATCHES=( "${FILESDIR}/eliom.patch" )
 
 src_install() {
 	findlib_src_preinst
