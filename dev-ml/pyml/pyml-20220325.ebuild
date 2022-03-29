@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit findlib
+inherit jbuilder
 
 DESCRIPTION="OCaml bindings for Python"
 HOMEPAGE="https://github.com/thierry-martinez/pyml"
@@ -15,14 +15,6 @@ KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 DEPEND="
-	dev-lang/ocaml:=
-	dev-ml/stdcompat:=
-	dev-ml/utop:=
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
-
-src_install() {
-	findlib_src_preinst
-	default
-}
