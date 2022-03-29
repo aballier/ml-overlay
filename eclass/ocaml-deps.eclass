@@ -372,6 +372,7 @@ ppx_ignore_instrumentation ppx_log"
 	[protocol_version_header]="core ppx_jane"
 	[psq]="seq"
 	[ptime]=""
+	[pyml]="stdcompat utop"
 	[qcheck]="qcheck-ounit qcheck-core"
 	[qcheck-alcotest]="qcheck-core alcotest"
 	[qcheck-core]=""
@@ -403,6 +404,7 @@ ppx_ignore_instrumentation ppx_log"
 	[spawn]=""
 	[splittable_random]="base ppx_assert ppx_bench ppx_inline_test ppx_sexp_message"
 	[sqlite3]="dune-configurator"
+	[stdcompat]="result uchar"
 	[ssl]="dune-configurator"
 	[stdint]=""
 	[stdio]="base"
@@ -489,6 +491,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[ppx_deriving_protobuf]="cppo ppx_tools ppxfind"
 	[ppx_tools]="cppo"
 	[ptime]="findlib topkg ocamlbuild"
+	[pyml]="findlib"
 	[react]="findlib topkg ocamlbuild"
 	[reason]="findlib"
 	[rresult]="findlib topkg ocamlbuild"
@@ -748,6 +751,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-pkg-config") -> ()
 	| String (_,"conf-postgresql") -> ()
 	| String (_,"conf-python-3") -> ()
+	| String (_,"conf-python-3-dev") -> ()
 	| String (_,"conf-python3-yaml") -> ()
 	| String (_,"conf-sqlite3") -> ()
 	| String (_,"conf-snappy") -> ()
