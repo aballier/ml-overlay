@@ -15,12 +15,12 @@ KEYWORDS="~amd64 ~arm ~arm64 ~mips ~x86 ~amd64-linux ~x86-linux"
 IUSE="+ocamlopt X"
 
 RDEPEND=">=dev-lang/tk-8.0.3:=
-	>=dev-lang/ocaml-4.13_beta:=[ocamlopt?]
+	>=dev-lang/ocaml-4.14_beta:=[ocamlopt?]
 	X? ( dev-ml/graphics:= x11-libs/libX11 )"
 DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.5.5-r1"
 
-PATCHES=( "${FILESDIR}/findlib.patch" "${FILESDIR}/oc414.patch" )
+PATCHES=( "${FILESDIR}/findlib.patch" )
 
 src_configure() {
 	./configure --use-findlib --verbose $(usex X "-tk-x11" "--tk-no-x11") || die "configure failed!"
