@@ -230,7 +230,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[menhir]="menhirLib menhirSdk"
 	[menhirLib]=""
 	[menhirSdk]=""
-	[merlin]="csexp dot-merlin-reader result yojson"
+	[merlin]="csexp dot-merlin-reader yojson"
 	[merlin-extend]=""
 	[metrics]="fmt"
 	[mew]="trie result"
