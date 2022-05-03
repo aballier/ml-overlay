@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Generates a Java interface from type definitions"
 HOMEPAGE="https://github.com/ahrefs/atd"
-SRC_URI="https://github.com/ahrefs/atd/releases/download/${PV}/atdgen-codec-runtime-${PV}.tbz"
+SRC_URI="https://github.com/ahrefs/atd/releases/download/${PV}/atdts-${PV}.tbz"
 
 LICENSE="BSD"
 SLOT="0/${PV}"
@@ -19,4 +19,4 @@ RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}
 	test? ( virtual/jdk )
 "
-S="${WORKDIR}/atdgen-codec-runtime-${PV}"
+S="${WORKDIR}/atdts-${PV}"
