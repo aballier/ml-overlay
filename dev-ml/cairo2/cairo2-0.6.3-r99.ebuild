@@ -14,7 +14,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND="x11-libs/cairo:="
+DEPEND="x11-libs/cairo:=
+	media-libs/freetype:2=
+"
 RDEPEND="${DEPEND}
 	!dev-ml/ocaml-cairo
 "
