@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit opam
+inherit jbuilder
 
 DESCRIPTION="Functional reactive programming with incremental changes in data structures"
 HOMEPAGE="https://github.com/ocsigen/reactiveData"
@@ -20,18 +20,7 @@ fi
 
 LICENSE="LGPL-3-with-linking-exception"
 SLOT="0/${PV}"
-IUSE="+ocamlopt"
+IUSE=""
 
 RDEPEND=""
-DEPEND="${RDEPEND}
-	dev-ml/findlib
-	dev-ml/ocamlbuild
-"
-OPAM_FILE=opam
-
-src_compile() {
-	ocaml pkg/build.ml \
-		native=$(usex ocamlopt true false) \
-		native-dynlink=$(usex ocamlopt true false) \
-		|| die
-}
+DEPEND="${RDEPEND}"
