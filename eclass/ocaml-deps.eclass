@@ -733,6 +733,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-capnproto") -> ()
 	| String (_,"conf-dpkg") -> ()
 	| String (_,"conf-ffmpeg") -> ()
+	| String (_,"conf-freetype") -> ()
 	| String (_,"conf-glib-2") -> ()
 	| String (_,"conf-gmp-powm-sec") -> ()
 	| String (_,"conf-gnomecanvas") -> ()
