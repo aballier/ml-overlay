@@ -17,3 +17,4 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/atdts-${PV}"
+PATCHES=( "${FILESDIR}/yojson.patch" )
