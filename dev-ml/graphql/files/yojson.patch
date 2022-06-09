@@ -1,0 +1,57 @@
+Index: ocaml-graphql-server-0.13.0/graphql/src/graphql_intf.ml
+===================================================================
+--- ocaml-graphql-server-0.13.0.orig/graphql/src/graphql_intf.ml
++++ ocaml-graphql-server-0.13.0/graphql/src/graphql_intf.ml
+@@ -19,7 +19,7 @@ end
+ module type Field_error = sig
+   type t
+   val message_of_field_error : t -> string
+-  val extensions_of_field_error : t -> (string * Yojson.Basic.json [@warning "-3"]) list option
++  val extensions_of_field_error : t -> (string * Yojson.Basic.t [@warning "-3"]) list option
+ end
+ 
+ (** GraphQL schema signature *)
+@@ -158,7 +158,7 @@ module type Schema = sig
+ 
+   val scalar : ?doc:string ->
+                string ->
+-               coerce:('a -> Yojson.Basic.json) ->
++               coerce:('a -> Yojson.Basic.t) ->
+                ('ctx, 'a option) typ
+     [@warning "-3"]
+ 
+@@ -200,10 +200,10 @@ module type Schema = sig
+ 
+   type variables = (string * Graphql_parser.const_value) list
+ 
+-  type 'a response = ('a, Yojson.Basic.json) result
++  type 'a response = ('a, Yojson.Basic.t) result
+     [@warning "-3"]
+ 
+-  val execute : 'ctx schema -> 'ctx -> ?variables:variables -> ?operation_name:string -> Graphql_parser.document -> [ `Response of Yojson.Basic.json | `Stream of Yojson.Basic.json response Io.Stream.t] response Io.t
++  val execute : 'ctx schema -> 'ctx -> ?variables:variables -> ?operation_name:string -> Graphql_parser.document -> [ `Response of Yojson.Basic.t | `Stream of Yojson.Basic.t response Io.Stream.t] response Io.t
+     [@warning "-3"]
+   (** [execute schema ctx variables doc] evaluates the [doc] against [schema]
+       with the given context [ctx] and [variables]. *)
+Index: ocaml-graphql-server-0.13.0/graphql/src/graphql_schema.ml
+===================================================================
+--- ocaml-graphql-server-0.13.0.orig/graphql/src/graphql_schema.ml
++++ ocaml-graphql-server-0.13.0/graphql/src/graphql_schema.ml
+@@ -43,7 +43,7 @@ end
+ module type Field_error = sig
+   type t
+   val message_of_field_error : t -> string
+-  val extensions_of_field_error : t -> (string * Yojson.Basic.json [@warning "-3"]) list option
++  val extensions_of_field_error : t -> (string * Yojson.Basic.t [@warning "-3"]) list option
+ end
+ 
+ (* Schema *)
+@@ -105,7 +105,7 @@ module Make (Io : IO) (Field_error: Fiel
+     value      : 'a;
+   }
+ 
+-  type json = Yojson.Basic.json [@warning "-3"]
++  type json = Yojson.Basic.t [@warning "-3"]
+ 
+   let enum_value ?doc ?(deprecated=NotDeprecated) name ~value =
+     { name; doc; deprecated; value; }
