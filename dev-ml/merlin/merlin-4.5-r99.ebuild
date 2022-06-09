@@ -18,3 +18,4 @@ DEPEND=""
 RDEPEND="${DEPEND}
 	|| ( app-editors/vim[python] app-editors/gvim[python] )"
 S="${WORKDIR}/${P}-414"
+PATCHES=("${FILESDIR}/yojson.patch")
