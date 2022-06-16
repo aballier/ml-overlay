@@ -1,0 +1,40 @@
+Index: ppx_deriving_yojson-3.6.1/src/ppx_deriving_yojson.ml
+===================================================================
+--- ppx_deriving_yojson-3.6.1.orig/src/ppx_deriving_yojson.ml
++++ ppx_deriving_yojson-3.6.1/src/ppx_deriving_yojson.ml
+@@ -439,7 +439,7 @@ let ser_str_of_type ~options ~path ({ pt
+         ~attrs:[disable_warning_39 ()]
+         (Pat.constraint_ var poly_type)
+         (polymorphize [%expr ([%e wrap_runtime serializer])])],
+-     [Str.value Nonrecursive [Vb.mk [%expr [%e pvar "_"]] [%expr [%e evar var_s]]] ]
++     [Str.value Nonrecursive [Vb.mk (pvar "_") [%expr [%e evar var_s]]] ]
+      )
+ 
+ let ser_str_of_type_ext ~options ~path:_ ({ ptyext_path = { loc }} as type_ext) =
+@@ -657,12 +657,12 @@ let desu_str_of_type ~options ~path ({ p
+      [Vb.mk ~attrs:[disable_warning_39 ()]
+             (Pat.constraint_ var poly_type)
+             (polymorphize [%expr ([%e wrap_runtime desurializer])]) ],
+-     [Str.value Nonrecursive [Vb.mk [%expr [%e pvar "_"]] [%expr [%e evar var_s]]]]
++     [Str.value Nonrecursive [Vb.mk (pvar "_") [%expr [%e evar var_s]]]]
+      @
+      (if not want_exn then []
+       else
+-        [Str.value Nonrecursive [Vb.mk [%expr [%e pvar var_s_exn]] var_s_exn_fun]
+-        ;Str.value Nonrecursive [Vb.mk [%expr [%e pvar "_"]] [%expr [%e evar var_s_exn]]]])
++        [Str.value Nonrecursive [Vb.mk (pvar var_s_exn) var_s_exn_fun]
++        ;Str.value Nonrecursive [Vb.mk (pvar "_") [%expr [%e evar var_s_exn]]]])
+      )
+ 
+ let desu_str_of_type_ext ~options ~path ({ ptyext_path = { loc } } as type_ext) =
+@@ -808,8 +808,8 @@ let yojson_str_fields ~options ~path:_ t
+         [
+           Str.module_ (Mb.mk (mod_mknoloc (Ppx_deriving.mangle_type_decl (`Prefix "Yojson_meta") type_decl))
+                       (Mod.structure [
+-            Str.value Nonrecursive [Vb.mk [%expr [%e pvar "keys"]] [%expr [%e flist]]]
+-          ; Str.value Nonrecursive [Vb.mk [%expr [%e pvar "_"]] [%expr [%e evar "keys"]]]
++            Str.value Nonrecursive [Vb.mk (pvar "keys") [%expr [%e flist]]]
++          ; Str.value Nonrecursive [Vb.mk (pvar "_") [%expr [%e evar "keys"]]]
+           ]))
+         ]
+     | _ -> []
