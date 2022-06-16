@@ -16,7 +16,6 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/ppxlib.patch" )
 
 src_prepare() {
 	jbuilder_src_prepare
