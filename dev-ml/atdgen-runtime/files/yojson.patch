@@ -27,7 +27,7 @@ index 1f31eec1..f6dcc9ad 100644
  depends: [
    "dune" {>= "2.8"}
    "ocaml" {>= "4.08"}
--  "yojson" {>= "1.7.0"}
+-  "yojson" {>= "1.7.0" & < "2.0.0"}
 +  "yojson" {>= "2.0.0"}
    "biniou" {>= "1.0.6"}
 -  "camlp-streams"
@@ -602,7 +602,7 @@ index 5b816d8d..fb37580e 100644
  generator")
   (depends
    (ocaml (>= 4.08))
--  (yojson (>= 1.7.0))
+-  (yojson (and (>= 1.7.0) (< 2.0.0)))
 +  (yojson (>= 2.0.0))
    (biniou (>= 1.0.6))
 -  camlp-streams
