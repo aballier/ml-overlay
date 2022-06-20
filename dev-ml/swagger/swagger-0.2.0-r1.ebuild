@@ -17,4 +17,4 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/ocaml-${P}"
-PATCHES=( "${FILESDIR}/atd.patch" )
+PATCHES=( "${FILESDIR}/atd.patch" "${FILESDIR}/yojson.patch" )
