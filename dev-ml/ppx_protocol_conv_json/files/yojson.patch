@@ -1,0 +1,28 @@
+Index: ppx_protocol_conv-5.2.0/drivers/json/json.ml
+===================================================================
+--- ppx_protocol_conv-5.2.0.orig/drivers/json/json.ml
++++ ppx_protocol_conv-5.2.0/drivers/json/json.ml
+@@ -1,5 +1,5 @@
+-module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.json [@warning "-3"] = struct
+-  type t = Yojson.Safe.json [@warning "-3"]
++module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.t [@warning "-3"] = struct
++  type t = Yojson.Safe.t [@warning "-3"]
+ 
+   let to_string_hum t =
+     Yojson.Safe.pretty_to_string t
+Index: ppx_protocol_conv-5.2.0/drivers/json/json.mli
+===================================================================
+--- ppx_protocol_conv-5.2.0.orig/drivers/json/json.mli
++++ ppx_protocol_conv-5.2.0/drivers/json/json.mli
+@@ -1,8 +1,8 @@
+ (* Json Protocol *)
+-include Protocol_conv.Runtime.Driver with type t = Yojson.Safe.json [@@warning "-3"]
+-module Make(P: Ppx_protocol_driver.Parameters) : (Protocol_conv.Runtime.Driver with type t = Yojson.Safe.json) [@@warning "-3"]
++include Protocol_conv.Runtime.Driver with type t = Yojson.Safe.t [@@warning "-3"]
++module Make(P: Ppx_protocol_driver.Parameters) : (Protocol_conv.Runtime.Driver with type t = Yojson.Safe.t) [@@warning "-3"]
+ module Yojson : sig
+-  include Protocol_conv.Runtime.Driver with type t = Yojson.Safe.json [@@warning "-3"]
++  include Protocol_conv.Runtime.Driver with type t = Yojson.Safe.t [@@warning "-3"]
+   val of_yojson_exn: t -> t
+   val of_yojson: t -> (t, error) Protocol_conv.Runtime.result
+   val to_yojson: t -> t
