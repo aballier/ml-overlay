@@ -1,4 +1,4 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -7,17 +7,16 @@ inherit jbuilder
 
 DESCRIPTION="Redis bindings for OCaml"
 HOMEPAGE="http://0xffea.github.io/ocaml-redis/ https://github.com/0xffea/ocaml-redis/"
-SRC_URI="https://github.com/0xffea/ocaml-redis/archive/${PV}.tar.gz -> ocaml-${P}.tar.gz"
+SRC_URI="https://github.com/0xffea/ocaml-redis/archive/refs/tags/v${PV}.tar.gz -> ocaml-${P}.tar.gz"
 
 LICENSE="BSD"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE="test"
+IUSE=""
 
-RDEPEND="!dev-ml/ocaml-redis"
-DEPEND="${RDEPEND}
-	test? ( dev-ml/ounit2 dev-db/redis dev-ml/lwt )"
-S="${WORKDIR}/ocaml-${P}"
+RDEPEND=""
+DEPEND="${RDEPEND}"
+S="${WORKDIR}/ocaml-redis-${PV}"
 
 src_test() {
 	einfo "Starting test redis server"
