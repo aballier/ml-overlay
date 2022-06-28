@@ -20,7 +20,7 @@ S="${WORKDIR}/ocaml-redis-${PV}"
 
 src_test() {
 	einfo "Starting test redis server"
-	local port=4567
+	local port=63791
 	/usr/sbin/redis-server --port ${port} &
 	local rpid=$!
 	export OCAML_REDIS_TEST_PORT=${port}
