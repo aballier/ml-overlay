@@ -16,4 +16,3 @@ IUSE="+ocamlopt"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-S=( "${WORKDIR}/package" )
