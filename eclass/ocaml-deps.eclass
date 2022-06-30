@@ -453,7 +453,7 @@ pbkdf fmt gmap domain-name logs ipaddr"
 	[yojson]="seq"
 	[zarith]=""
 	[zarith_stubs_js]=""
-	[zed]="camomile charInfo_width react"
+	[zed]="result uucp uuseg uutf react"
 )
 
 declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
