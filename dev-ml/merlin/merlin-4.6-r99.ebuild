@@ -12,10 +12,11 @@ SRC_URI="https://github.com/ocaml/merlin/releases/download/v${PV}-414/${P}-414.t
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64"
-IUSE=""
+IUSE="test"
 
 DEPEND=""
 RDEPEND="${DEPEND}
 	|| ( app-editors/vim[python] app-editors/gvim[python] )"
+BDEPEND="
+	test? ( app-misc/jq )"
 S="${WORKDIR}/${P}-414"
-PATCHES=("${FILESDIR}/yojson.patch")
