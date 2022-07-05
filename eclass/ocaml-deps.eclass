@@ -183,7 +183,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[integers]="stdlib-shims"
 	[io-page]="cstruct"
 	[io-page-unix]="io-page cstruct"
-	[ipaddr]="stdlib-shims macaddr domain-name"
+	[ipaddr]="macaddr domain-name"
 	[ipaddr-cstruct]="ipaddr cstruct"
 	[ipaddr-sexp]="ipaddr ppx_sexp_conv sexplib0"
 	[iter]="result dune-configurator"
