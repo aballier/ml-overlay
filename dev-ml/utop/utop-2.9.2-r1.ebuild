@@ -10,10 +10,11 @@ HOMEPAGE="https://github.com/diml/utop"
 SRC_URI="https://github.com/diml/utop/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="BSD"
-SLOT="0/${PV}"
+SLOT="0/${PV}-zed"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
 BDEPEND=""
+PATCHES=( "${FILESDIR}/zed.patch" )
