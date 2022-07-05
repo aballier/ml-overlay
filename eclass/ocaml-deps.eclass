@@ -207,7 +207,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[lablgtk3-gtkspell3]="lablgtk3"
 	[lablgtk3-sourceview3]="lablgtk3"
 	[lambdasoup]="markup"
-	[lambda-term]="lwt_react lwt lwt_log zed camomile react mew_vi"
+	[lambda-term]="lwt_react lwt lwt_log zed react mew_vi"
 	[ldap]="pcre ssl ocamlnet"
 	[logs]=""
 	[logs-async]="logs async_kernel"
