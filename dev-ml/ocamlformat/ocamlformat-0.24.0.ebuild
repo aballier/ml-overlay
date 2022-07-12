@@ -17,4 +17,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-PATCHES=( "${FILESDIR}/odoc.patch" )
