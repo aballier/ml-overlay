@@ -1,9 +1,7 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
-
-inherit eutils multilib
+EAPI=8
 
 DESCRIPTION="Minimal Xml parser and printer for OCaml"
 HOMEPAGE="https://github.com/ncannasse/xml-light http://tech.motion-twin.com/xmllight.html"
