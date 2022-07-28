@@ -5,10 +5,9 @@ EAPI=7
 
 inherit jbuilder
 
-MY_P=${PN}-v${PV}
 DESCRIPTION="Constant time equal function to avoid timing attacks in OCaml"
 HOMEPAGE="https://github.com/mirage/eqaf"
-SRC_URI="https://github.com/mirage/eqaf/releases/download/v${PV}/${MY_P}.tbz"
+SRC_URI="https://github.com/mirage/eqaf/releases/download/v${PV}/${P}.tbz"
 
 LICENSE="MIT"
 SLOT="0/${PV}"
@@ -18,4 +17,3 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 BDEPEND=""
-S="${WORKDIR}/${MY_P}"
