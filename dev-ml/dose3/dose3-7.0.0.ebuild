@@ -17,7 +17,7 @@ IUSE=""
 RDEPEND=""
 BDEPEND="
 	test? (
-		dev-python/pyyaml[libyaml]
+		dev-python/pyyaml
 		app-arch/dpkg
 	)
 "
