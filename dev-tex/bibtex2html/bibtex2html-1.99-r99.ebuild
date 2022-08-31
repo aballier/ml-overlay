@@ -51,6 +51,7 @@ src_install() {
 	dodoc README CHANGES
 	if use doc; then
 		dodoc manual.pdf
-		dohtml manual.html
+		docinto html
+		dodoc manual.html
 	fi
 }
