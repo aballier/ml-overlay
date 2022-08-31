@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit eutils toolchain-funcs
+inherit toolchain-funcs
 
 MY_P="${PN}${PV/./}"
 DESCRIPTION="CamlIDL is a stub code generator for using C/C++ libraries from O'Caml"
@@ -17,9 +17,7 @@ DEPEND=">=dev-lang/ocaml-3.10.2:=[ocamlopt]"
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/${PN}-${MY_P}"
 
-src_prepare() {
-	epatch "${FILESDIR}/nowarn.patch"
-}
+PATCHES=( "${FILESDIR}/nowarn.patch" )
 
 src_compile() {
 	# Use the UNIX makefile
