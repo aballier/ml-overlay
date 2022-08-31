@@ -1,9 +1,7 @@
 # Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
-
-inherit eutils
+EAPI=8
 
 IUSE="doc +ocamlopt"
 
@@ -28,11 +26,12 @@ DEPEND=">=dev-lang/ocaml-3.10:=[ocamlopt?]
 RDEPEND="virtual/latex-base"
 
 src_prepare() {
-	epatch "${FILESDIR}/${PN}-1.88-destdir.patch"
+	eapply "${FILESDIR}/${PN}-1.88-destdir.patch"
 	# Avoid pre-stripped files
 	sed -i -e "s/strip/true/" Makefile.in
 	# For make install
 	use ocamlopt || sed -i 's/= opt /= noopt /' Makefile.in
+	default
 }
 
 src_compile() {
