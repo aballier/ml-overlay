@@ -1,0 +1,10 @@
+Index: coq-8.16.0/user-contrib/Ltac2/dune
+===================================================================
+--- coq-8.16.0.orig/user-contrib/Ltac2/dune
++++ coq-8.16.0/user-contrib/Ltac2/dune
+@@ -3,4 +3,4 @@
+  (package coq-stdlib)
+  (synopsis "Ltac2 tactic language")
+  (flags -w -deprecated-native-compiler-option)
+- (libraries coq-core.plugins.ltac2))
++ (libraries coq-core.plugins.ltac2 coq-core.plugins.number_string_notation coq-core.plugins.tauto coq-core.plugins.cc coq-core.plugins.firstorder))
