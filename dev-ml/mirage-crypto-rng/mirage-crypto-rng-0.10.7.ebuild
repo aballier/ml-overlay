@@ -5,7 +5,7 @@ EAPI=7
 
 inherit jbuilder
 
-MY_P="mirage-crypto-v${PV}"
+MY_P="mirage-crypto-${PV}"
 DESCRIPTION="Simple symmetric cryptography for the modern age"
 HOMEPAGE="https://github.com/mirage/mirage-crypto"
 SRC_URI="https://github.com/mirage/mirage-crypto/releases/download/v${PV}/${MY_P}.tbz"
