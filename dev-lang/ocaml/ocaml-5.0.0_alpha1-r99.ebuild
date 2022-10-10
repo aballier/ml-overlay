@@ -26,6 +26,8 @@ DEPEND="${RDEPEND}
 
 PDEPEND="emacs? ( app-emacs/ocaml-mode )
 	xemacs? ( app-xemacs/ocaml )"
+RDEPEND="${RDEPEND}
+	!<dev-ml/findlib-1.9.6-r100"
 
 S="${WORKDIR}/${MY_P}"
 
