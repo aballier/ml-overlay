@@ -3,8 +3,6 @@
 
 EAPI=7
 
-inherit multilib
-
 DESCRIPTION="OCaml tool to find/use non-standard packages"
 HOMEPAGE="http://projects.camlcity.org/projects/findlib.html"
 SRC_URI="http://download.camlcity.org/download/${P}.tar.gz"
@@ -15,7 +13,7 @@ LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linux ~ppc-macos"
 
-DEPEND=">=dev-lang/ocaml-4.08.1-r1:=[ocamlopt?]
+DEPEND=">=dev-lang/ocaml-5.0.0_alpha1:=[ocamlopt?]
 	tk? ( dev-ml/labltk:= )"
 RDEPEND="${DEPEND}"
 
@@ -50,7 +48,10 @@ src_install() {
 
 	cd "${S}/doc"
 	dodoc QUICKSTART README DOCINFO
-	use doc && dohtml -r ref-html guide-html
+	if use doc ; then
+		docinto html
+		dodoc -r ref-html guide-html
+	fi
 }
 
 check_stublibs() {
