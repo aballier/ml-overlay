@@ -16,7 +16,10 @@ IUSE="doc"
 
 DEPEND=">=dev-lang/ocaml-3.12:=[ocamlopt]"
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/oc50.patch" )
+PATCHES=(
+	"${FILESDIR}/oc50.patch"
+	"${FILESDIR}/dynlink.patch"
+)
 
 src_prepare() {
 	default
