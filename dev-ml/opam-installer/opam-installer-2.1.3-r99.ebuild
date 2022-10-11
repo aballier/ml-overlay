@@ -24,9 +24,19 @@ DEPEND="
 	!<dev-ml/opam-2.0.0_beta
 "
 RDEPEND="${DEPEND}"
+PATCHES=(
+	"${FILESDIR}/oc50.patch"
+)
 
 S="${WORKDIR}/opam-full-${MY_PV}"
 OPAM_INSTALLER="${S}/opam-installer"
+
+src_prepare() {
+	cd src_ext
+	emake lib-ext
+	cd ..
+	default
+}
 
 src_compile() {
 	sed -e 's/DUNE = .*$/DUNE = /' -i Makefile.config
