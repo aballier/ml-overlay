@@ -20,6 +20,9 @@ RDEPEND="${DEPEND}
 "
 BDEPEND=""
 S="${WORKDIR}/coq-${PV}"
+PATCHES=(
+	"${FILESDIR}/oc50.patch"
+)
 
 src_configure() {
 	ocaml_lib=$(ocamlc -where)
