@@ -17,7 +17,10 @@ DEPEND=">=dev-lang/ocaml-3.10.2:=[ocamlopt]"
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/${PN}-${MY_P}"
 
-PATCHES=( "${FILESDIR}/nowarn.patch" )
+PATCHES=(
+	"${FILESDIR}/nowarn.patch"
+	"${FILESDIR}/oc50.patch"
+)
 
 src_compile() {
 	# Use the UNIX makefile

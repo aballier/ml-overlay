@@ -1,0 +1,32 @@
+From 83afe55db9818f15e0404171d66aabfe8b9fe4e6 Mon Sep 17 00:00:00 2001
+From: Antonio Nuno Monteiro <anmonteiro@gmail.com>
+Date: Thu, 10 Feb 2022 09:59:55 -0800
+Subject: [PATCH] Change `stat_free` to `caml_stat_free` (#21)
+
+For OCaml 5.00 compatibility.
+---
+ runtime/idlalloc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/runtime/idlalloc.c b/runtime/idlalloc.c
+index 7c500b2..b3cbcd2 100644
+--- a/runtime/idlalloc.c
++++ b/runtime/idlalloc.c
+@@ -93,7 +93,7 @@ void * camlidl_malloc(size_t sz, camlidl_ctx ctx)
+   camlidl_register_allocation(camlidl_task_mem_free, res, ctx);
+ #else
+   void * res = stat_alloc(sz);
+-  camlidl_register_allocation(stat_free, res, ctx);
++  camlidl_register_allocation(caml_stat_free, res, ctx);
+ #endif
+   return res;
+ }
+@@ -105,7 +105,7 @@ void camlidl_free(camlidl_ctx ctx)
+     arena->free_fn(arena->block);
+     tmp = arena;
+     arena = arena->next;
+-    stat_free(tmp);
++    caml_stat_free(tmp);
+   }
+ }
+ 
