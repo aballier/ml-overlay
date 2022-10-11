@@ -1,0 +1,100 @@
+Index: xml-light-2.4/dtd.ml
+===================================================================
+--- xml-light-2.4.orig/dtd.ml
++++ xml-light-2.4/dtd.ml
+@@ -230,18 +230,18 @@ let check dtd =
+ 	in
+ 	let check_item = function
+ 		| DTDAttribute (tag,aname,atype,adef) ->
+-			let utag = String.uppercase tag in
++			let utag = String.uppercase_ascii tag in
+ 			ftodo utag None;
+-			fattrib utag (String.uppercase aname) (atype,adef)
++			fattrib utag (String.uppercase_ascii aname) (atype,adef)
+ 		| DTDElement (tag,etype) ->
+-			let utag = String.uppercase tag in
++			let utag = String.uppercase_ascii tag in
+ 			fdone utag etype;
+ 			let check_type = function
+ 				| DTDEmpty -> ()
+ 				| DTDAny -> ()
+ 				| DTDChild x ->
+ 					let rec check_child = function
+-						| DTDTag s -> ftodo (String.uppercase s) (Some utag)
++						| DTDTag s -> ftodo (String.uppercase_ascii s) (Some utag)
+ 						| DTDPCData -> ()
+ 						| DTDOptional c
+ 						| DTDZeroOrMore c
+@@ -278,7 +278,7 @@ let start_prove dtd root =
+ 		curtag = "_root";
+ 	} in
+ 	try
+-		ignore(find_map d.elements (String.uppercase root));
++		ignore(find_map d.elements (String.uppercase_ascii root));
+ 		d
+ 	with
+ 		Not_found -> raise (Check_error (ElementNotDeclared root))
+@@ -305,7 +305,7 @@ let prove_child dtd tag =
+ 		| DTDTag s ->
+ 			(match tag with
+ 			| None -> DTDNotMatched
+-			| Some t when t = String.uppercase s -> DTDMatched
++			| Some t when t = String.uppercase_ascii s -> DTDMatched
+ 			| Some _ -> DTDNotMatched)
+ 		| DTDPCData ->
+ 			(match tag with
+@@ -410,8 +410,8 @@ let rec do_prove hid hidref dtd = functi
+ 		prove_child dtd None;
+ 		PCData s
+ 	| Element (tag,attr,childs) ->
+-		let utag = String.uppercase tag in
+-		let uattr = List.map (fun (aname,aval) -> String.uppercase aname , aval) attr in
++		let utag = String.uppercase_ascii tag in
++		let uattr = List.map (fun (aname,aval) -> String.uppercase_ascii aname , aval) attr in
+ 		prove_child dtd (Some utag);
+ 		Stack.push (dtd.curtag,dtd.current) dtd.state;
+ 		let elt = (try find_map dtd.elements utag with Not_found -> raise (Prove_error (UnexpectedTag tag))) in
+Index: xml-light-2.4/xml.ml
+===================================================================
+--- xml-light-2.4.orig/xml.ml
++++ xml-light-2.4/xml.ml
+@@ -124,8 +124,8 @@ let attrib x att =
+ 	match x with
+ 	| Element (_,attr,_) ->
+ 		(try
+-			let att = String.lowercase att in
+-			snd (List.find (fun (n,_) -> String.lowercase n = att) attr)
++			let att = String.lowercase_ascii att in
++			snd (List.find (fun (n,_) -> String.lowercase_ascii n = att) attr)
+ 		with
+ 			Not_found ->
+ 				raise (No_attribute att))
+@@ -265,4 +265,4 @@ XmlParser._raises (fun x p ->
+ 	(fun x p -> Dtd.Parse_error (x,
+ 	(* local cast : Xml.error_pos -> error_pos *)
+ 		(Obj.magic (pos p))));
+-Dtd._raises (fun f -> File_not_found f);
+\ No newline at end of file
++Dtd._raises (fun f -> File_not_found f);
+Index: xml-light-2.4/xml_lexer.mll
+===================================================================
+--- xml-light-2.4.orig/xml_lexer.mll
++++ xml-light-2.4/xml_lexer.mll
+@@ -276,7 +276,7 @@ and entity = parse
+ 		{
+ 			let ident = lexeme lexbuf in
+ 			try
+-				Hashtbl.find idents (String.lowercase ident)
++				Hashtbl.find idents (String.lowercase_ascii ident)
+ 			with
+ 				Not_found -> "&" ^ ident
+ 		}
+@@ -284,7 +284,7 @@ and entity = parse
+     {
+ 			let ident = lexeme lexbuf in
+ 			try
+-				Hashtbl.find idents (String.lowercase ident)
++				Hashtbl.find idents (String.lowercase_ascii ident)
+ 			with
+ 				Not_found -> "&" ^ ident
+     }

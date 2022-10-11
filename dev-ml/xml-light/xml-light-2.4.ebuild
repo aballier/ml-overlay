@@ -14,6 +14,7 @@ IUSE="doc +ocamlopt"
 
 RDEPEND="dev-lang/ocaml:=[ocamlopt?]"
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/oc50.patch" )
 
 src_compile() {
 	emake -j1
