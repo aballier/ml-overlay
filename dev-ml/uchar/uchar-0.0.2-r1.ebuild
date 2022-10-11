@@ -30,7 +30,8 @@ src_prepare() {
 src_compile() {
 	ocaml pkg/build.ml \
 		"native=$(usex ocamlopt true false)" \
-		"native-dynlink=$(usex ocamlopt true false)" || die
+		"native-dynlink=$(usex ocamlopt true false)" \
+		"native=$(usex ocamlopt true false)" || die
 }
 
 src_test() {
