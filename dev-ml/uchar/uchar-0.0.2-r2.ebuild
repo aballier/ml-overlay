@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=8
 
 inherit findlib
 
@@ -15,23 +15,21 @@ KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE="+ocamlopt"
 
 RDEPEND=">=dev-lang/ocaml-4.03:="
-DEPEND="${RDEPEND} dev-ml/ocamlbuild"
+DEPEND="${RDEPEND}"
+BDEPEND="
+	dev-lang/ocaml
+	dev-ml/ocamlbuild
+	dev-ml/topkg"
 
 # This is mostly a compat wrapper for older ocaml versions we don't support. No
 # need to test it, plus it fails when installing for the first time:
 # https://bugs.gentoo.org/show_bug.cgi?id=624144
 RESTRICT="test"
-
-src_prepare() {
-	has_version '>=dev-lang/ocaml-4.07' && eapply "${FILESDIR}/oc407.patch"
-	default
-}
+PATCHES=( "${FILESDIR}/topkg.patch" )
 
 src_compile() {
 	ocaml pkg/build.ml \
-		"native=$(usex ocamlopt true false)" \
-		"native-dynlink=$(usex ocamlopt true false)" \
-		"native=$(usex ocamlopt true false)" || die
+		build || die
 }
 
 src_test() {

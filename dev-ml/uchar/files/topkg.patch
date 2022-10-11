@@ -1,0 +1,44 @@
+Index: uchar-0.0.2/pkg/build.ml
+===================================================================
+--- uchar-0.0.2.orig/pkg/build.ml
++++ uchar-0.0.2/pkg/build.ml
+@@ -1,34 +1,10 @@
+ #!/usr/bin/env ocaml
+-#directory "pkg";;
+-#use "topkg.ml";;
+-
+-let builder = `OCamlbuild_no_ocamlfind []
++#use "topfind"
++#require "topkg"
++open Topkg
+ 
+ let pkg_after_4_03 () =
+-  Pkg.describe "uchar" ~builder [
+-    Pkg.lib "pkg/META.empty" ~dst:"META" ]
+-
+-let pkg_before_4_03 () =
+-  Pkg.describe "uchar" ~builder [
+-    Pkg.lib "pkg/META";
+-    Pkg.lib ~exts:Exts.module_library "src/uchar";
+-    Pkg.doc "README.md";
+-    Pkg.doc "CHANGES.md"; ]
+-
+-let is_before_4_03 () =
+-  try
+-    let config = OCaml_config.read ~ocamlc:(Pkg.find_ocamlc builder) in
+-    let version = List.assoc "version" config in
+-    let version = Scanf.sscanf version "%d.%d" (fun maj min -> (maj, min)) in
+-    version < (4, 03)
+-  with
+-  | Not_found
+-  | Scanf.Scan_failure _
+-  | Failure _
+-  | End_of_file ->
+-      Printf.eprintf "Warning: could not determine the OCaml version, \
+-                      assuming before 4.03\n";
+-      true
++  Pkg.describe "uchar" ~metas:[ Pkg.meta_file "pkg/META.empty"; ] ~licenses:[Pkg.std_file "LICENSE"] @@ fun c -> Ok [ ]
+ 
+ let () =
+-  if is_before_4_03 () then pkg_before_4_03 () else pkg_after_4_03 ()
++  pkg_after_4_03 ()
