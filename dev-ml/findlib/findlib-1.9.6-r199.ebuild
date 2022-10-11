@@ -27,7 +27,7 @@ src_prepare() {
 src_configure() {
 	local myconf
 	use tk && myconf="-with-toolbox"
-	./configure -bindir "${EPREFIX}"/usr/bin -mandir "${EPREFIX}"/usr/share/man \
+	dynlink_subdir=dynlink ./configure -bindir "${EPREFIX}"/usr/bin -mandir "${EPREFIX}"/usr/share/man \
 		-sitelib ${ocamlfind_destdir} \
 		-config ${ocamlfind_destdir}/findlib/findlib.conf \
 		-no-custom \
