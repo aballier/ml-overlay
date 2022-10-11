@@ -1,7 +1,7 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=8
 
 inherit findlib
 
@@ -19,6 +19,7 @@ RDEPEND="dev-ml/result:=
 	dev-ml/findlib:=
 	dev-lang/ocaml:="
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/dynlink.patch" )
 
 src_compile() {
 	ocaml pkg/pkg.ml build --pkg-name ${PN} || die

@@ -1,0 +1,13 @@
+Index: topkg-1.0.5/src/topkg_conf.ml
+===================================================================
+--- topkg-1.0.5.orig/src/topkg_conf.ml
++++ topkg-1.0.5/src/topkg_conf.ml
+@@ -560,7 +560,7 @@ module OCaml = struct
+     get_bool_stdlib_file_exists_discovery "native" c ~file ~on_error:false
+ 
+   let native_dynlink c =
+-    let file _ = "dynlink.cmxa" in
++    let file _ = "dynlink/dynlink.cmxa" in
+     get_bool_stdlib_file_exists_discovery "natdynlink" c ~file ~on_error:false
+ 
+   let supports_shared_libraries c =
