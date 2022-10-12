@@ -17,3 +17,4 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/merlin-${PV}-414"
+PATCHES=( "${FILESDIR}/oc50.patch" )
