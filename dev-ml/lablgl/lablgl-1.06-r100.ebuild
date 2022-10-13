@@ -3,7 +3,7 @@
 
 EAPI="8"
 
-inherit multilib toolchain-funcs
+inherit toolchain-funcs
 
 IUSE="doc glut +ocamlopt tk"
 
@@ -18,6 +18,7 @@ RDEPEND="
 	x11-libs/libX11
 	virtual/opengl
 	virtual/glu
+	dev-ml/camlp-streams:=
 	glut? ( media-libs/freeglut )
 	tk? (
 		>=dev-lang/tcl-8.3:0=
@@ -27,10 +28,12 @@ RDEPEND="
 	"
 
 DEPEND="${RDEPEND}"
+BDEPEND="dev-ml/findlib"
 
 SRC_URI="https://github.com/garrigue/lablgl/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 SLOT="0/${PV}"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linux"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linux"
+PATCHES=( "${FILESDIR}/oc50.patch" )
 
 src_configure() {
 	# make configuration file
