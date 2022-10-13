@@ -203,7 +203,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[junit_alcotest]="junit alcotest"
 	[junit_ounit]="junit ounit2"
 	[ke]="fmt bigarray-compat"
-	[lablgtk]=""
+	[lablgtk]="camlp-streams"
 	[lablgtk3]="cairo2"
 	[lablgtk3-gtkspell3]="lablgtk3"
 	[lablgtk3-sourceview3]="lablgtk3"
