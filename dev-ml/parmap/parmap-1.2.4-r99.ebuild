@@ -18,3 +18,4 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/${PN}-${MY_PV/+/-}"
+PATCHES=( "${FILESDIR}/oc50.patch" )
