@@ -1,0 +1,26 @@
+Index: camlimages-5.0.4/core/images.ml
+===================================================================
+--- camlimages-5.0.4.orig/core/images.ml
++++ camlimages-5.0.4/core/images.ml
+@@ -102,7 +102,7 @@ let get_extension s =
+   | _ -> s, ""
+ 
+ let guess_extension s =
+-  let s = String.lowercase s in
++  let s = String.lowercase_ascii s in
+   match s with
+   | "gif" -> Gif
+   | "bmp" -> Bmp
+Index: camlimages-5.0.4/core/units.ml
+===================================================================
+--- camlimages-5.0.4.orig/core/units.ml
++++ camlimages-5.0.4/core/units.ml
+@@ -30,7 +30,7 @@ let parse_length s = (* return in pt *)
+     let digit,unit =
+       if l > 2 then String.sub s 0 2, String.sub s (l-2) 2 else "", "" in
+     try
+-      (List.assoc (String.lowercase unit) units) *. float_of_string digit
++      (List.assoc (String.lowercase_ascii unit) units) *. float_of_string digit
+     with
+     | Not_found -> (* think it is in "pt" *)
+       float_of_string s in

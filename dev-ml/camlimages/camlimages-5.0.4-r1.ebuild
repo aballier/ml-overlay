@@ -28,3 +28,7 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}"
 BDEPEND="virtual/pkgconfig"
+PATCHES=(
+	"${FILESDIR}/oc50.patch"
+	"${FILESDIR}/oc50-1.patch"
+)
