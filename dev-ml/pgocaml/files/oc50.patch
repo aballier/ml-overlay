@@ -1,0 +1,23 @@
+Index: pgocaml-4.3.0/pgocaml.opam
+===================================================================
+--- pgocaml-4.3.0.orig/pgocaml.opam
++++ pgocaml-4.3.0/pgocaml.opam
+@@ -27,4 +27,5 @@ depends: [
+   "ppx_deriving" {>= "4.0"}
+   "rresult"
+   "sexplib"
++  "camlp-streams"
+ ]
+Index: pgocaml-4.3.0/src/dune
+===================================================================
+--- pgocaml-4.3.0.orig/src/dune
++++ pgocaml-4.3.0/src/dune
+@@ -19,7 +19,7 @@
+ (library
+   (name PGOCaml)
+   (public_name pgocaml)
+-  (libraries calendar csv hex re rresult sexplib unix)
++  (libraries calendar csv hex re rresult sexplib unix camlp-streams)
+   (preprocess
+     (pps ppx_sexp_conv ppx_deriving.show))
+   (wrapped false)
