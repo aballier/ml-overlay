@@ -1,0 +1,106 @@
+Index: core_unix-0.15.1/core_unix/src/core_unix_stubs.c
+===================================================================
+--- core_unix-0.15.1.orig/core_unix/src/core_unix_stubs.c
++++ core_unix-0.15.1/core_unix/src/core_unix_stubs.c
+@@ -1097,6 +1097,11 @@ CAMLprim value core_unix_if_indextoname(
+ #define VAL_MCAST_ACTION_ADD  (Val_int(0))
+ #define VAL_MCAST_ACTION_DROP (Val_int(1))
+ 
++extern void caml_unix_get_sockaddr (value mladdr,
++                               union sock_addr_union * addr /*out*/,
++                               socklen_param_type * addr_len /*out*/);
++	
++
+ CAMLprim value core_unix_mcast_modify (value v_action,
+                                        value v_ifname_opt,
+                                        value v_source_opt,
+@@ -1108,7 +1113,7 @@ CAMLprim value core_unix_mcast_modify (v
+   struct sockaddr *sa = &sau.s_gen;
+   socklen_param_type sa_len;
+ 
+-  get_sockaddr(v_sa, &sau, &sa_len);
++  caml_unix_get_sockaddr(v_sa, &sau, &sa_len);
+ 
+   switch (sa->sa_family) {
+     case AF_INET: {
+@@ -1206,11 +1211,11 @@ enum option_type {
+   TYPE_UNIX_ERROR = 4
+ };
+ 
+-extern value unix_getsockopt_aux(
++extern value caml_unix_getsockopt_aux(
+   char *name,
+   enum option_type ty, int level, int option,
+   value v_socket);
+-extern value unix_setsockopt_aux(
++extern value caml_unix_setsockopt_aux(
+   char *name,
+   enum option_type ty, int level, int option,
+   value v_socket, value v_status);
+@@ -1218,13 +1223,13 @@ extern value unix_setsockopt_aux(
+ CAMLprim value core_unix_mcast_get_ttl(value v_socket)
+ {
+   return
+-    unix_getsockopt_aux("getsockopt", TYPE_INT, IPPROTO_IP, IP_MULTICAST_TTL, v_socket);
++    caml_unix_getsockopt_aux("getsockopt", TYPE_INT, IPPROTO_IP, IP_MULTICAST_TTL, v_socket);
+ }
+ 
+ CAMLprim value core_unix_mcast_set_ttl(value v_socket, value v_ttl)
+ {
+   return
+-    unix_setsockopt_aux( "setsockopt", TYPE_INT, IPPROTO_IP, IP_MULTICAST_TTL, v_socket, v_ttl);
++    caml_unix_setsockopt_aux( "setsockopt", TYPE_INT, IPPROTO_IP, IP_MULTICAST_TTL, v_socket, v_ttl);
+ }
+ 
+ CAMLprim value core_unix_mcast_set_ifname(value v_socket, value v_ifname)
+@@ -1238,7 +1243,7 @@ CAMLprim value core_unix_mcast_set_ifnam
+ 
+   /* Now setsockopt to publish on the interface using the address. */
+   return
+-    unix_setsockopt_aux("setsockopt",
++    caml_unix_setsockopt_aux("setsockopt",
+                         TYPE_INT,
+                         IPPROTO_IP, IP_MULTICAST_IF,
+                         v_socket,
+@@ -1248,13 +1253,13 @@ CAMLprim value core_unix_mcast_set_ifnam
+ CAMLprim value core_unix_mcast_get_loop(value v_socket)
+ {
+   return
+-    unix_getsockopt_aux("getsockopt", TYPE_BOOL, IPPROTO_IP, IP_MULTICAST_LOOP, v_socket);
++    caml_unix_getsockopt_aux("getsockopt", TYPE_BOOL, IPPROTO_IP, IP_MULTICAST_LOOP, v_socket);
+ }
+ 
+ CAMLprim value core_unix_mcast_set_loop(value v_socket, value v_loop)
+ {
+   return
+-    unix_setsockopt_aux( "setsockopt", TYPE_BOOL, IPPROTO_IP, IP_MULTICAST_LOOP, v_socket, v_loop);
++    caml_unix_setsockopt_aux( "setsockopt", TYPE_BOOL, IPPROTO_IP, IP_MULTICAST_LOOP, v_socket, v_loop);
+ }
+ 
+ /* Scheduling */
+@@ -1601,13 +1606,15 @@ core_unix_getifaddrs(value v_unit)
+ 
+ #include <arpa/inet.h>
+ 
++extern value caml_unix_alloc_inet_addr (struct in_addr * inaddr);
++
+ CAMLprim value core_unix_inet4_addr_of_int32(value v) {
+   CAMLparam1(v);
+ 
+   struct in_addr addr;
+   addr.s_addr = ntohl(Int32_val(v));
+ 
+-  CAMLreturn(alloc_inet_addr(&addr));
++  CAMLreturn(caml_unix_alloc_inet_addr(&addr));
+ }
+ 
+ CAMLprim value core_unix_inet4_addr_to_int32_exn(value v) {
+@@ -1628,7 +1635,7 @@ CAMLprim value core_unix_inet4_addr_of_i
+   struct in_addr addr;
+   addr.s_addr = ntohl(Int63_val(v));
+ 
+-  CAMLreturn(alloc_inet_addr(&addr));
++  CAMLreturn(caml_unix_alloc_inet_addr(&addr));
+ }
+ 
+ CAMLprim value core_unix_inet4_addr_to_int63_exn(value v) {
