@@ -20,6 +20,7 @@ RESTRICT="installsources"
 # ocaml-cryptgps, which is not available.
 
 RDEPEND=">=dev-ml/findlib-1.0
+		dev-ml/camlp-streams:=
 		pcre? ( >=dev-ml/pcre-5:= )
 		>=dev-lang/ocaml-3.10.2:=[ocamlopt?]
 		tk? ( dev-ml/labltk:= )
@@ -32,6 +33,10 @@ DEPEND="${RDEPEND}"
 BDEPEND="
 	virtual/pkgconfig
 "
+PATCHES=(
+	"${FILESDIR}/oc50.patch"
+	"${FILESDIR}/oc50-1.patch"
+)
 
 S=${WORKDIR}/${MY_P}
 
