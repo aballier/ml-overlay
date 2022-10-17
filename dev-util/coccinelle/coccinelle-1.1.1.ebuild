@@ -1,10 +1,10 @@
 # Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
-PYTHON_COMPAT=( python3_{7,8} )
+EAPI=8
+PYTHON_COMPAT=( python3_{7,8,9,10} )
 
-inherit multilib eutils python-single-r1 bash-completion-r1 elisp-common autotools
+inherit python-single-r1 bash-completion-r1 elisp-common autotools
 
 MY_P="${P/_/-}"
 DESCRIPTION="Program matching and transformation engine"
@@ -44,6 +44,10 @@ DEPEND="${CDEPEND}
 DOCS=( authors.txt bugs.txt changes.txt credits.txt readme.txt )
 
 S=${WORKDIR}/${MY_P}
+PATCHES=(
+	"${FILESDIR}/pcre.patch"
+	"${FILESDIR}/oc50.patch"
+)
 
 SITEFILE=50coccinelle-gentoo.el
 
@@ -52,7 +56,6 @@ pkg_setup() {
 }
 
 src_prepare() {
-	epatch "${FILESDIR}/pcre.patch"
 	default
 
 	# See: https://github.com/coccinelle/coccinelle/pull/199
