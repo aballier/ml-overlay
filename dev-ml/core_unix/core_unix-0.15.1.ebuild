@@ -17,4 +17,7 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 RDEPEND="${RDEPEND}"
-PATCHES=("${FILESDIR}/oc50.patch" )
+PATCHES=(
+	"${FILESDIR}/oc50.patch"
+	"${FILESDIR}/oc50-2.patch"
+)
