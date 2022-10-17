@@ -1,9 +1,9 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit findlib eutils
+inherit findlib toolchain-funcs
 
 DESCRIPTION="OCaml interface to the Tcl/Tk GUI framework"
 HOMEPAGE="https://forge.ocamlcore.org/projects/labltk/ https://github.com/garrigue/labltk"
@@ -20,9 +20,13 @@ RDEPEND=">=dev-lang/tk-8.0.3:=
 DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.5.5-r1"
 
-PATCHES=( "${FILESDIR}/findlib.patch" )
+PATCHES=(
+	"${FILESDIR}/findlib.patch"
+	"${FILESDIR}/oc50.patch"
+)
 
 src_configure() {
+	tc-export RANLIB
 	./configure --use-findlib --verbose $(usex X "-tk-x11" "--tk-no-x11") || die "configure failed!"
 }
 
