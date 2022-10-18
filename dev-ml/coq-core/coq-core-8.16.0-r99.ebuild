@@ -22,6 +22,7 @@ BDEPEND=""
 S="${WORKDIR}/coq-${PV}"
 PATCHES=(
 	"${FILESDIR}/oc50.patch"
+	"${FILESDIR}/oc50-1.patch"
 )
 
 src_configure() {
