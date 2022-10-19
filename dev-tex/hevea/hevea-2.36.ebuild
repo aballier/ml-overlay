@@ -20,7 +20,7 @@ RDEPEND="${DEPEND}
 	dev-texlive/texlive-latexextra"
 DEPEND="${DEPEND} dev-ml/ocamlbuild"
 
-PATCHES=( "${FILESDIR}/ocaml407.patch" )
+PATCHES=( "${FILESDIR}/ocaml407.patch" "${FILESDIR}/oc50.patch" )
 
 src_compile() {
 	rm -f config.sh

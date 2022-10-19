@@ -1,0 +1,9 @@
+Index: hevea-2.36/check402.ml
+===================================================================
+--- hevea-2.36.orig/check402.ml
++++ hevea-2.36/check402.ml
+@@ -1,4 +1,3 @@
+-#load "stdlib.cma";;
+ 
+ let () =
+   if compare Sys.ocaml_version "4.02.0" >= 0  then
