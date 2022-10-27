@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Scalable LRU caches for OCaml"
 HOMEPAGE="https://github.com/pqwy/lru"
-SRC_URI="https://github.com/pqwy/lru/releases/download/v${PV}/${PN}-v${PV}.tbz"
+SRC_URI="https://github.com/pqwy/lru/releases/download/v${PV}/${P}.tbz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
@@ -17,5 +17,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-S="${WORKDIR}/${PN}-v${PV}"
-PATCHES=( "${FILESDIR}/oc50.patch" )
