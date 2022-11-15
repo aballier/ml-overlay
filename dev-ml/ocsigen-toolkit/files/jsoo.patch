@@ -1,0 +1,79 @@
+Index: ocsigen-toolkit-3.2.0/src/widgets/ot_carousel.eliom
+===================================================================
+--- ocsigen-toolkit-3.2.0.orig/src/widgets/ot_carousel.eliom
++++ ocsigen-toolkit-3.2.0/src/widgets/ot_carousel.eliom
+@@ -293,7 +293,7 @@ let%shared make ?(a = []) ?(vertical = f
+          set_active ();
+          Lwt.async (fun () ->
+              let%lwt () =
+-               if move then Lwt_js_events.transitionend d2' else Lwt.return_unit
++               if move then (fun _ -> Lwt.return_unit) (Lwt_js_events.transitionend d2') else Lwt.return_unit
+              in
+              Eliom_lib.Option.iter (fun f -> f ()) transitionend;
+              Manip.Class.remove ~%d2 ot_swiping;
+Index: ocsigen-toolkit-3.2.0/src/widgets/ot_drawer.eliom
+===================================================================
+--- ocsigen-toolkit-3.2.0.orig/src/widgets/ot_drawer.eliom
++++ ocsigen-toolkit-3.2.0/src/widgets/ot_drawer.eliom
+@@ -130,7 +130,7 @@ let%shared drawer ?(a = []) ?(position =
+          add_class ~%bckgrnd "closing";
+          Lwt.cancel !(~%touch_thread);
+          Lwt_js_events.async (fun () ->
+-             let%lwt () = Lwt_js_events.transitionend (To_dom.of_element ~%d) in
++             let%lwt _ = Lwt_js_events.transitionend (To_dom.of_element ~%d) in
+              remove_class ~%bckgrnd "closing";
+              Eliom_lib.Option.iter (fun f -> f ()) ~%onclose;
+              Lwt.return_unit)
+@@ -154,7 +154,7 @@ let%shared drawer ?(a = []) ?(position =
+          Eliom_client.Page_status.onactive ~stop:(fst ~%stop_open_event)
+            (fun () -> html_ManipClass_add "ot-drawer-open");
+          Lwt_js_events.async (fun () ->
+-             let%lwt () = Lwt_js_events.transitionend (To_dom.of_element ~%d) in
++             let%lwt _ = Lwt_js_events.transitionend (To_dom.of_element ~%d) in
+              remove_class ~%bckgrnd "opening";
+              Lwt.return_unit)
+         : unit -> unit)]
+@@ -225,7 +225,7 @@ let%shared drawer ?(a = []) ?(position =
+                    (Js.Unsafe.coerce dr##.style)##.webkitTransform
+                    := Js.string "";
+                    Lwt.async (fun () ->
+-                       let%lwt () = Lwt_js_events.transitionend dr in
++                       let%lwt _ = Lwt_js_events.transitionend dr in
+                        Manip.Class.remove ~%bckgrnd "ot-swiping";
+                        Lwt.return_unit);
+                    cl ()
+@@ -234,7 +234,7 @@ let%shared drawer ?(a = []) ?(position =
+                    (Js.Unsafe.coerce dr##.style)##.webkitTransform
+                    := Js.string "";
+                    Lwt.async (fun () ->
+-                       let%lwt () = Lwt_js_events.transitionend dr in
++                       let%lwt _ = Lwt_js_events.transitionend dr in
+                        Manip.Class.remove ~%bckgrnd "ot-swiping";
+                        Lwt.return_unit)
+                | `Abort ->
+Index: ocsigen-toolkit-3.2.0/src/widgets/ot_swipe.eliom
+===================================================================
+--- ocsigen-toolkit-3.2.0.orig/src/widgets/ot_swipe.eliom
++++ ocsigen-toolkit-3.2.0/src/widgets/ot_swipe.eliom
+@@ -119,7 +119,7 @@ let%shared bind ?(transition_duration =
+            elt'##.style##.left := px_of_int left;
+            Eliom_lib.Option.iter (fun f -> f ev left) ~%onend;
+            Lwt.async (fun () ->
+-               let%lwt () = Lwt_js_events.transitionend elt' in
++               let%lwt _ = Lwt_js_events.transitionend elt' in
+                Manip.Class.remove elt "ot-swiping";
+                Lwt.return_unit));
+          status := Stopped;
+Index: ocsigen-toolkit-3.2.0/src/widgets/ot_tongue.eliom
+===================================================================
+--- ocsigen-toolkit-3.2.0.orig/src/widgets/ot_tongue.eliom
++++ ocsigen-toolkit-3.2.0/src/widgets/ot_tongue.eliom
+@@ -242,7 +242,7 @@ let%client bind side stops init handle u
+     Lwt.async (fun () ->
+         let%lwt () =
+           if stop <> previousstop
+-          then Lwt_js_events.transitionend elt'
++          then (fun _ -> Lwt.return_unit) (Lwt_js_events.transitionend elt')
+           else Lwt.return_unit
+         in
+         set_after_signal stop; Lwt.return_unit);
