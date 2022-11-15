@@ -15,9 +15,7 @@ KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 DEPEND="x11-libs/cairo:="
-RDEPEND="${DEPEND}
-	!dev-ml/ocaml-cairo
-"
+RDEPEND="${DEPEND}"
 BDEPEND=""
 
 S="${WORKDIR}/cairo2-${PV}"
