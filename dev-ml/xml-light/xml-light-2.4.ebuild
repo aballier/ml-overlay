@@ -48,6 +48,7 @@ EOF
 	dodoc README
 	if use doc; then
 		emake doc
-		dohtml doc/*
+		docinto html
+		dodoc doc/*
 	fi
 }
