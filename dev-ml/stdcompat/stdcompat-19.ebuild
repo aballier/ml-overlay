@@ -1,9 +1,9 @@
 # Copyright 2019-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit findlib autotools
+inherit autotools
 
 DESCRIPTION="Stdcompat: compatibility module for OCaml standard library"
 HOMEPAGE="https://github.com/thierry-martinez/stdcompat"
