@@ -5,4 +5,7 @@
 	<email>maksbotan@gentoo.org</email>
 	<name>Maxim Koltsov</name>
 </maintainer>
+<upstream>
+	<remote-id type="github">ncannasse/xml-light</remote-id>
+</upstream>
 </pkgmetadata>
