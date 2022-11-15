@@ -16,6 +16,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="!dev-ml/ocaml-containers"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${PN}-${PV/_/-}"
