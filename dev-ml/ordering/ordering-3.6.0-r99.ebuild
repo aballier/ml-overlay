@@ -20,7 +20,7 @@ DEPEND="${DEPEND}"
 S=${WORKDIR}/dune-${PV}
 
 src_configure() {
-	ocaml configure.ml \
+	./configure \
 		--libdir "${EPREFIX}/usr/$(get_libdir)/ocaml" \
 		--mandir "${EPREFIX}/usr/share/man" \
 		--docdir "${EPREFIX}/usr/share/doc" \
