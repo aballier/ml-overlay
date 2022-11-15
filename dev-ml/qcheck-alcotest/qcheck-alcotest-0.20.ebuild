@@ -14,6 +14,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE=""
 
-RDEPEND="!<dev-ml/iTeML-2.5"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/qcheck-${PV}"
