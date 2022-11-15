@@ -19,7 +19,6 @@ RDEPEND="dev-ml/result:=
 	dev-ml/findlib:=
 	dev-lang/ocaml:="
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/dynlink.patch" )
 
 src_compile() {
 	ocaml pkg/pkg.ml build --pkg-name ${PN} || die
