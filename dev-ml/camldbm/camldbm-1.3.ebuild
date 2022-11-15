@@ -15,7 +15,7 @@ IUSE=""
 DEPEND=">=sys-libs/gdbm-1.9.1-r2[berkdb]
 	>=dev-lang/ocaml-3.12:=[ocamlopt]
 	!<dev-ml/findlib-1.8.0
-	!<dev-lang/ocaml-4[gdbm]"
+"
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/dbm-${P}"
 
