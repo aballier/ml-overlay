@@ -17,7 +17,6 @@ IUSE="+lwt +ocamlopt test"
 RDEPEND="
 	dev-libs/nanomsg:=
 	lwt? ( dev-ml/lwt:=[ocamlopt(+)?] dev-ml/lwt_ppx:= )
-	!dev-ml/onanomsg
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 )
