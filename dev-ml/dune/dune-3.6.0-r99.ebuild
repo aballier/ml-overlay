@@ -23,7 +23,7 @@ OPAMSWITCH="system"
 OPAMROOT="${D}"
 
 src_configure() {
-	ocaml configure.ml \
+	./configure \
 		--libdir "${EPREFIX}/usr/$(get_libdir)/ocaml" \
 		--mandir "${EPREFIX}/usr/share/man" \
 		--docdir "${EPREFIX}/usr/share/doc" \
@@ -32,6 +32,6 @@ src_configure() {
 }
 
 src_compile() {
-	ocaml bootstrap.ml || die
+	ocaml boot/bootstrap.ml || die
 	./dune.exe build -p "${PN}" --profile dune-bootstrap -j $(makeopts_jobs) || die
 }
