@@ -17,9 +17,7 @@ IUSE=""
 DEPEND="x11-libs/cairo:=
 	media-libs/freetype:2=
 "
-RDEPEND="${DEPEND}
-	!dev-ml/ocaml-cairo
-"
+RDEPEND="${DEPEND}"
 BDEPEND=""
 
 S="${WORKDIR}/cairo2-${PV}"
