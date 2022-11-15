@@ -18,7 +18,7 @@ RDEPEND=""
 DEPEND="${RDEPEND}"
 
 src_install() {
-	opam_src_install
+	jbuilder_src_install
 
 	if use examples ; then
 		dodoc -r examples
