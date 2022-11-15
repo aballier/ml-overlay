@@ -14,6 +14,6 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-RDEPEND="!dev-ml/odns"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-${P}"
