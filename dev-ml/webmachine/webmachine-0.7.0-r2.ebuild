@@ -14,7 +14,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND="!dev-ml/ocaml-webmachine"
+DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/ocaml-${P}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
