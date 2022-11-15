@@ -14,7 +14,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE="test"
 
-RDEPEND="!dev-ml/ocaml-pcap"
+RDEPEND=""
 DEPEND="${RDEPEND}"
 PATCHES=( "${FILESDIR}/ounit2.patch" )
 
