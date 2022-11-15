@@ -1,7 +1,7 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit jbuilder
 
@@ -20,7 +20,7 @@ DEPEND="${DEPEND}"
 S=${WORKDIR}/dune-${PV}
 
 src_configure() {
-	ocaml configure.ml \
+	./configure \
 		--libdir "${EPREFIX}/usr/$(get_libdir)/ocaml" \
 		--mandir "${EPREFIX}/usr/share/man" \
 		--docdir "${EPREFIX}/usr/share/doc" \
