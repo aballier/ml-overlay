@@ -15,6 +15,5 @@ KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND=""
-RDEPEND="${DEPEND}
-	!dev-ml/ocaml-safepass"
+RDEPEND="${DEPEND}"
 S=${WORKDIR}/ocaml-${P}
