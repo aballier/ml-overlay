@@ -1,9 +1,9 @@
 # Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit findlib eutils toolchain-funcs
+inherit findlib toolchain-funcs
 
 DESCRIPTION="Arithmetic and logic operations over arbitrary-precision integers"
 HOMEPAGE="https://github.com/ocaml/Zarith"
@@ -27,7 +27,7 @@ src_configure() {
 	tc-export CC
 	./configure \
 		-ocamllibdir "$(ocamlc -where)" \
-		-installdir "${D}/$(ocamlc -where)" \
+		-installdir "$(ocamlc -where)" \
 		$(usex mpir "-mpir" "-gmp") || die
 }
 
@@ -46,7 +46,14 @@ src_test() {
 
 src_install() {
 	findlib_src_preinst
-	emake HASOCAMLOPT=$(usex ocamlopt yes no) HASDYNLINK=$(usex ocamlopt yes no) install
+	emake \
+		INSTALLDIR="${D}/$(ocamlc -where)" \
+		HASOCAMLOPT=$(usex ocamlopt yes no) \
+		HASDYNLINK=$(usex ocamlopt yes no) \
+		install
 	dodoc Changes README.md
-	use doc && dohtml html/*
+	if use doc; then
+		docinto html
+		dodoc html/*
+	fi
 }
