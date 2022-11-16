@@ -1,9 +1,9 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit eutils opam
+inherit opam
 
 DESCRIPTION="OCaml module to access monotonic wall-clock time"
 HOMEPAGE="http://erratique.ch/software/mtime https://github.com/dbuenzli/mtime"
