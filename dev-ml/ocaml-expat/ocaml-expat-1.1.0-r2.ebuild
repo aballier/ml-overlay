@@ -1,7 +1,7 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit findlib
 
@@ -20,13 +20,20 @@ DEPEND="${RDEPEND}
 SLOT="0/${PV}"
 LICENSE="MIT"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-PATCHES=( "${FILESDIR}/ounit2.patch" )
+RESTRICT="!test? ( test )"
+PATCHES=(
+	"${FILESDIR}/ounit2.patch"
+	"${FILESDIR}/oc414.patch"
+)
 
 src_compile() {
 	emake depend
 	emake all
 	if use ocamlopt; then
 		emake allopt
+	fi
+	if use doc; then
+		emake doc
 	fi
 }
 
@@ -41,7 +48,8 @@ src_install() {
 	emake install
 
 	if use doc ; then
-		dohtml -r doc/html/*
+		docinto html
+		dodoc -r doc/*
 	fi
 	dodoc README
 }
