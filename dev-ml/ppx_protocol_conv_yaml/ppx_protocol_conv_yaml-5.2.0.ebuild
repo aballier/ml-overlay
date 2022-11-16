@@ -6,7 +6,7 @@ EAPI=7
 inherit jbuilder
 
 MY_P="ppx_protocol_conv-${PV}"
-DESCRIPTION="Pluggable serialization and deserialization of ocaml data strucures based on type_conv"
+DESCRIPTION="Pluggable serialization of ocaml data strucures based on type_conv"
 HOMEPAGE="https://github.com/andersfugmann/ppx_protocol_conv"
 SRC_URI="https://github.com/andersfugmann/ppx_protocol_conv/archive/${PV}.tar.gz -> ${MY_P}.tar.gz"
 
