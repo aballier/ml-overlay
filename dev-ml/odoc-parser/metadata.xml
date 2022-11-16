@@ -5,7 +5,7 @@
 	<email>ml@gentoo.org</email>
 	<name>Gentoo ML Project</name>
 </maintainer>
-  <upstream>
-	  <remote-id type="github">ocaml-doc/odoc-parser</remote-id>
-  </upstream>
+<upstream>
+	<remote-id type="github">ocaml-doc/odoc-parser</remote-id>
+</upstream>
 </pkgmetadata>
