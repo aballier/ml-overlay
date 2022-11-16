@@ -10,7 +10,6 @@ HOMEPAGE="https://github.com/ocsigen/ocsigen-toolkit"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
-KEYWORDS="~amd64"
 IUSE="+ocamlopt debug"
 
 if [ "${PV#9999}" != "${PV}" ] ; then
