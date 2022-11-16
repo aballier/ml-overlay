@@ -1,11 +1,11 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit multilib findlib
+inherit findlib
 
-IUSE="examples glade gnomecanvas sourceview +ocamlopt spell svg"
+IUSE="examples sourceview +ocamlopt spell svg"
 
 DESCRIPTION="Objective CAML interface for Gtk+2"
 HOMEPAGE="http://lablgtk.forge.ocamlcore.org/"
@@ -16,8 +16,6 @@ RDEPEND=">=x11-libs/gtk+-2.10:2
 	>=dev-lang/ocaml-4.06_beta:=[ocamlopt?]
 	dev-ml/camlp-streams:=
 	svg? ( >=gnome-base/librsvg-2.2:2 )
-	glade? ( >=gnome-base/libglade-2.0.1 )
-	gnomecanvas? ( >=gnome-base/libgnomecanvas-2.2 )
 	spell? ( app-text/gtkspell:2 )
 	sourceview? ( x11-libs/gtksourceview:2.0 )
 	"
@@ -31,14 +29,14 @@ src_configure() {
 	export ac_cv_prog_CAMLP4O="no" # Avoid automagic
 	econf \
 		$(use_with svg rsvg) \
-		$(use_with glade) \
+		--without-glade \
 		--without-gnomeui \
 		--without-panel \
 		--without-gl \
 		$(use_with spell gtkspell) \
 		--without-gtksourceview \
 		$(use_with sourceview gtksourceview2) \
-		$(use_with gnomecanvas)
+		--without-gnomecanvas
 }
 
 src_compile() {
@@ -49,16 +47,20 @@ src_compile() {
 }
 
 install_examples() {
-	insinto /usr/share/doc/${P}/examples
-	doins examples/*.ml examples/*.rgb examples/*.png examples/*.xpm
+	docompress -x /usr/share/doc/${PF}/examples
+
+	docinto examples
+	dodoc examples/*.ml examples/*.rgb examples/*.png examples/*.xpm
 
 	# Install examples for optional components
-	use gnomecanvas && insinto /usr/share/doc/${PF}/examples/canvas && doins examples/canvas/*.ml examples/canvas/*.png
-	use svg && insinto /usr/share/doc/${PF}/examples/rsvg && doins examples/rsvg/*.ml examples/rsvg/*.svg
-	use glade && insinto /usr/share/doc/${PF}/examples/glade && doins examples/glade/*.ml examples/glade/*.glade*
-	use sourceview && insinto /usr/share/doc/${PF}/examples/sourceview && doins examples/sourceview/*.ml examples/sourceview/*.lang
-
-	docompress -x /usr/share/doc/${PF}/examples
+	if use svg ; then
+		docinto rsvg
+		dodoc examples/rsvg/*.ml examples/rsvg/*.svg
+	fi
+	if use sourceview ; then
+		docinto sourceview
+		dodoc examples/sourceview/*.ml examples/sourceview/*.lang
+	fi
 }
 
 src_install () {
