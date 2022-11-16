@@ -1,0 +1,52 @@
+Index: ocaml-ctypes-0.20.1/tests/test-arrays/test_array.ml
+===================================================================
+--- ocaml-ctypes-0.20.1.orig/tests/test-arrays/test_array.ml
++++ ocaml-ctypes-0.20.1/tests/test-arrays/test_array.ml
+@@ -47,7 +47,7 @@ let test_multidimensional_arrays _ =
+ 
+   (* three dimensions *)
+   let three = Array.make (array 2 (array 5 float)) 10 in
+-  let float = Pervasives.float in
++  let float = Stdlib.float in
+ 
+   for i = 0 to 9 do
+     for j = 0 to 1 do
+Index: ocaml-ctypes-0.20.1/tests/test-cstdlib/test_cstdlib.ml
+===================================================================
+--- ocaml-ctypes-0.20.1.orig/tests/test-cstdlib/test_cstdlib.ml
++++ ocaml-ctypes-0.20.1/tests/test-cstdlib/test_cstdlib.ml
+@@ -180,7 +180,7 @@ struct
+     let cmpi m1 m2 =
+       let mi1 = from_voidp mi m1 in
+       let mi2 = from_voidp mi m2 in
+-      Pervasives.compare
++      Stdlib.compare
+         (as_string (!@(mi1 |-> name)))
+         (as_string (!@(mi2 |-> name)))
+ 
+Index: ocaml-ctypes-0.20.1/tests/test-pointers/test_pointers.ml
+===================================================================
+--- ocaml-ctypes-0.20.1.orig/tests/test-pointers/test_pointers.ml
++++ ocaml-ctypes-0.20.1/tests/test-pointers/test_pointers.ml
+@@ -63,7 +63,7 @@ struct
+       (allocate (ptr (ptr int)) (allocate (ptr int) (allocate int 4))) in
+ 
+     assert_equal ~msg:"Passing pointers to pointers"
+-      Pervasives.(1 + 2 + 3 + 4)
++      Stdlib.(1 + 2 + 3 + 4)
+       (accept_pointers_to_pointers p pp ppp pppp)
+ 
+ 
+Index: ocaml-ctypes-0.20.1/tests/test-views/test_views.ml
+===================================================================
+--- ocaml-ctypes-0.20.1.orig/tests/test-views/test_views.ml
++++ ocaml-ctypes-0.20.1/tests/test-views/test_views.ml
+@@ -79,7 +79,7 @@ struct
+         (-1) (accepting_possibly_null_funptr None 2 3);
+ 
+       assert_equal ~msg:"passing non-null function pointer"
+-        5 (accepting_possibly_null_funptr (Some Pervasives.(+)) 2 3);
++        5 (accepting_possibly_null_funptr (Some Stdlib.(+)) 2 3);
+ 
+       assert_equal ~msg:"passing non-null function pointer obtained from C"
+         6 (accepting_possibly_null_funptr (returning_funptr 1) 2 3);

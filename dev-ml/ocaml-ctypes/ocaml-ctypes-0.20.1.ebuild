@@ -1,7 +1,7 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit findlib
 
@@ -21,6 +21,8 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 dev-ml/lwt )"
+RESTRICT="!test? ( test )"
+PATCHES=( "${FILESDIR}/tests.patch" )
 
 src_prepare() {
 	sed -e 's/oUnit/ounit2/g' -i Makefile.tests || die
