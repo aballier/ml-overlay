@@ -1,0 +1,12 @@
+Index: batteries-included-3.5.1/src/dune
+===================================================================
+--- batteries-included-3.5.1.orig/src/dune
++++ batteries-included-3.5.1/src/dune
+@@ -6,6 +6,7 @@
+   (action (run build/prefilter.exe %{input-file})))
+  (flags (:standard -w -3-32-52))
+  (libraries num threads)
++ (modules_without_implementation batSplay)
+  (inline_tests
+    (backend qtest_batteries)
+    (deps %{project_root}/qtest/qtest_preamble.ml)
