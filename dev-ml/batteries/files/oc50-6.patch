@@ -1,0 +1,21 @@
+From a3d50458bccd39e933d36d6a5e470c95217338f9 Mon Sep 17 00:00:00 2001
+From: Simmo Saan <simmo.saan@gmail.com>
+Date: Thu, 27 Oct 2022 10:25:19 +0300
+Subject: [PATCH 16/16] Fix Pervasives in make doc (closes #1096) (#1097)
+
+---
+ src/batteries.mllib | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/batteries.mllib b/src/batteries.mllib
+index e97c44d2..2eca0067 100644
+--- a/src/batteries.mllib
++++ b/src/batteries.mllib
+@@ -92,4 +92,3 @@ BatInnerPervasives
+   Batteries
+   BatteriesExceptionless
+   Extlib
+-  Pervasives
+-- 
+2.38.1
+

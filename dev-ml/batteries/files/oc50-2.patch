@@ -1,0 +1,1417 @@
+From b00de06d750bfa79f887738f83102a20516ac3d1 Mon Sep 17 00:00:00 2001
+From: Francois Berenger <unixjunkie@sdf.org>
+Date: Mon, 29 Aug 2022 11:54:09 +0900
+Subject: [PATCH 07/16] compatibility with Ocaml5 (#1086)
+
+* updated myocamlbuild packs for ocaml5
+
+* BatArray.mliv: ocaml5 compat
+
+* BatChar: ocaml5 compat
+
+* added pervasives.mlv for ocaml5 compat
+
+* BatBytes.mliv: ocaml5 compat
+
+* BatFilename.mliv: ocaml5 compat
+
+* BatFormat.mliv: ocaml5 compat
+
+* BatFormat.mlv: ocaml5 compat
+
+some code taken from the PR of Simmo Saan
+https://github.com/ocaml-batteries-team/batteries-included/pull/1085
+
+* BatGc.mliv: ocaml5 compat
+
+* BatGenLex: use BatString.lowercase instead of String.lowercase
+
+because of ocaml5
+
+* BatPervasives.ml -> mlv for ocaml5 compat
+
+Obj.final_tag disappeared apparently
+
+* Batteries.mlv: ocaml5 compat
+
+* BatScanf.ml -> mlf; for ocaml5 compat
+
+fscanf disappeared
+
+* batScanf.mli -> mliv; for ocaml5 compat
+
+fscanf disappeared
+
+* BatCharParser: several uppercase/lowercase become ..._ascii for ocaml5 compat
+
+* BatGenLex: String.lowercase -> String.lowercase_ascii for ocaml5 compat
+
+* BatString.mliv: preprocessing for ocaml5 compat
+
+* BatString: things become ..._ascii for ocaml5 compat
+
+* batLazyList.ml -> mlv; lazy_from_val added for ocaml5 compat
+
+* BatOptParse: String.capitalize -> String.capitalize_ascii for ocaml5 compat
+
+* batUTF8.ml -> mlv; for ocaml5 compat
+
+* myocamlbuild: ocaml >= 4 needs the compiler-libs flag
+
+* BatEnum, BatString: repaired compilation of some unit tests
+
+* myocamlbuild: the unit tests need the num library in the packs
+
+* src/batteries.mllib: add the new Pervasives module
+
+* META.in: make the requires line reflect the packs line of myocamlbuild.ml
+
+* BatList: update unit test of shuffle for ocaml5
+
+* BatArray: update unit test for shuffle for ocaml5
+
+apparently, the random sequence for a given seed has changed
+
+* BatRandom: fixes for ocaml5
+
+* opam depends: starting from ocaml5, depend on camlp-streams
+
+* myocamlbuild fixes for ocaml5
+
+* BatGc: revert change for get_minor_free
+
+this one is not impacted by ocaml5
+
+* batGenlex.ml -> batGenlex.mlv; plus fixes for ocaml5
+
+only ocaml>=5 will use BatString.lowercase_ascii instead of the old
+BatString.lowercase
+
+* batOptParse.ml -> mlv; only ocaml>=5 will use String.capitalize_ascii
+
+instead of the old String.capitalize
+
+* BatString: more conservative fix concerning *_ascii for ocaml>=5
+
+ocaml < 5 should not be impacted by this change
+
+* batCharParser.ml -> mlv; ocaml5 compat regarding *_ascii functions
+
+more conservative change: ocaml<=5 should not be impacted
+
+* BatGc: get_minor_free also exists in ocaml5
+
+fix some interface compat test
+
+* BatRandom: fix compat test for ocaml5
+
+* BatRandom: fix compat test for ocaml5
+
+* BatString: fix interface compat test for ocaml5
+
+* opam: only depend on camlp-streams if ocaml >= 5
+
+syntax suggested by @sim642
+
+* opam: depend on camlp-streams; bumped ocaml lbound because of it
+
+now ocaml at least 4.02.3 instead of 4.00.0 previously
+
+* myocamlbuild: always depend on camlp-streams
+
+in packs; the list of required packages/dependencies
+
+* BatString, BatRandom: more precise since 5.0.0 ocamldoc comments
+
+* BatString.mliv: simpler pp directive
+---
+ META.in                                     |   2 +-
+ batteries.opam                              |   3 +-
+ myocamlbuild.ml                             |  14 +-
+ src/batArray.mliv                           |   8 +-
+ src/batArray.mlv                            |   4 +-
+ src/batBytes.mliv                           |  34 ++--
+ src/{batChar.mli => batChar.mliv}           |   8 +-
+ src/{batCharParser.ml => batCharParser.mlv} |  10 +-
+ src/batEnum.ml                              |   2 +-
+ src/batFilename.mliv                        |  20 +-
+ src/batFormat.mliv                          | 199 ++++++++++----------
+ src/batFormat.mlv                           |  48 +++--
+ src/batGc.mliv                              |  34 ++--
+ src/{batGenlex.ml => batGenlex.mlv}         |   9 +-
+ src/{batLazyList.ml => batLazyList.mlv}     |  19 +-
+ src/batList.mlv                             |   5 +-
+ src/{batOptParse.ml => batOptParse.mlv}     |   6 +-
+ src/{batPervasives.ml => batPervasives.mlv} |   4 +-
+ src/batRandom.mliv                          |  16 ++
+ src/batRandom.mlv                           |  16 +-
+ src/{batScanf.mli => batScanf.mliv}         |  24 +--
+ src/{batScanf.ml => batScanf.mlv}           |   2 +-
+ src/batString.mliv                          | 103 +++++-----
+ src/batString.mlv                           |  26 ++-
+ src/{batUTF8.ml => batUTF8.mlv}             |   3 +-
+ src/batteries.mllib                         |   1 +
+ src/batteries.mlv                           |  30 +--
+ src/pervasives.mlv                          |   3 +
+ 28 files changed, 382 insertions(+), 271 deletions(-)
+ rename src/{batChar.mli => batChar.mliv} (95%)
+ rename src/{batCharParser.ml => batCharParser.mlv} (93%)
+ rename src/{batGenlex.ml => batGenlex.mlv} (98%)
+ rename src/{batLazyList.ml => batLazyList.mlv} (97%)
+ rename src/{batOptParse.ml => batOptParse.mlv} (99%)
+ rename src/{batPervasives.ml => batPervasives.mlv} (99%)
+ rename src/{batScanf.mli => batScanf.mliv} (96%)
+ rename src/{batScanf.ml => batScanf.mlv} (98%)
+ rename src/{batUTF8.ml => batUTF8.mlv} (99%)
+ create mode 100644 src/pervasives.mlv
+
+diff --git a/META.in b/META.in
+index ee34e72f..fa0c05a1 100644
+--- a/META.in
++++ b/META.in
+@@ -12,7 +12,7 @@ plugin(native,mt)  ="batteriesThread.cmxs"
+ package "unthreaded" (
+  version="@VERSION@"
+  description="Batteries Included (for use in unthreaded programs)"
+- requires    ="unix,num,bigarray,str,bytes"
++ requires    ="num,camlp-streams,str,unix"
+  archive(toploop)   ="batteries.cma batteriesConfig.cmo batteriesHelp.cmo batteriesPrint.cmo"
+  archive(byte)      ="batteries.cma"
+  archive(native)    ="batteries.cmxa"
+diff --git a/batteries.opam b/batteries.opam
+index 07e3643d..e96c6a90 100644
+--- a/batteries.opam
++++ b/batteries.opam
+@@ -19,7 +19,8 @@ build: [
+ install: [make "install"]
+ run-test: [make "test"]
+ depends: [
+-  "ocaml" {>= "4.00.0" & < "4.15.0"}
++  "ocaml" {>= "4.02.3"}
++  "camlp-streams"
+   "ocamlfind" {build & >= "1.5.3"}
+   "ocamlbuild" {build}
+   "qtest" {with-test & >= "2.5"}
+diff --git a/myocamlbuild.ml b/myocamlbuild.ml
+index 6bd6eede..83cbb91f 100644
+--- a/myocamlbuild.ml
++++ b/myocamlbuild.ml
+@@ -9,7 +9,14 @@ module Pack = Ocamlbuild_pack
+ 
+ let ocamlfind x = S[A"ocamlfind"; A x]
+ 
+-let packs = "bigarray,num,str"
++let ocaml_major_version =
++  int_of_char Sys.ocaml_version.[0]
++
++let packs =
++  if ocaml_major_version <= 4 then
++    "num,str,camlp-streams,bigarray"
++  else
++    "num,str,camlp-streams,unix"
+ 
+ let doc_intro = "build/intro.text"
+ let mkconf = "build/mkconf.byte"
+@@ -17,7 +24,10 @@ let mkconf_command src dst =
+   let oasis_path = Filename.concat Filename.parent_dir_name "_oasis" in
+   Cmd(S[A"ocamlrun"; P mkconf; P oasis_path; P src; P dst])
+ 
+-let compiler_libs = if Sys.ocaml_version.[0] = '4' then [A"-I"; A"+compiler-libs"] else []
++let compiler_libs =
++  if ocaml_major_version < 4 then []
++  else if ocaml_major_version >= 5 then [A"-I"; A"+compiler-libs";A"-I"; A"+unix"]
++  else [A"-I"; A"+compiler-libs"]
+ 
+ let _ = dispatch begin function
+   | Before_options ->
+diff --git a/src/batArray.mliv b/src/batArray.mliv
+index 32bfee1e..cd9541f8 100644
+--- a/src/batArray.mliv
++++ b/src/batArray.mliv
+@@ -100,8 +100,8 @@ external make : int -> 'a -> 'a array = "caml_make_vect"
+ ##V>=4.07##val to_seq: 'a array -> 'a Seq.t
+ ##V>=4.07##val to_seqi: 'a array -> (int * 'a) Seq.t
+ 
+-external create : int -> 'a -> 'a array = "caml_make_vect"
+-(** @deprecated [Array.create] is an alias for {!Array.make}. *)
++##V<5##external create : int -> 'a -> 'a array = "caml_make_vect"
++##V<5##(** @deprecated [Array.create] is an alias for {!Array.make}. *)
+ 
+ val init : int -> (int -> 'a) -> 'a array
+ (** [Array.init n f] returns a fresh array of length [n],
+@@ -126,8 +126,8 @@ val make_matrix : int -> int -> 'a -> 'a array array
+     If the value of [e] is a floating-point number, then the maximum
+     size is only [Sys.max_array_length / 2]. *)
+ 
+-val create_matrix : int -> int -> 'a -> 'a array array
+-(** @deprecated [Array.create_matrix] is an alias for {!Array.make_matrix}. *)
++##V<5##val create_matrix : int -> int -> 'a -> 'a array array
++##V<5##(** @deprecated [Array.create_matrix] is an alias for {!Array.make_matrix}. *)
+ 
+ val append : 'a array -> 'a array -> 'a array
+ (** [Array.append v1 v2] returns a fresh array containing the
+diff --git a/src/batArray.mlv b/src/batArray.mlv
+index 6a2292a5..2d9ff265 100644
+--- a/src/batArray.mlv
++++ b/src/batArray.mlv
+@@ -934,7 +934,9 @@ let shuffle ?state a =
+   let s = Random.State.make [|11|] in \
+   let a = [|1;2;3;4;5;6;7;8;9|] in \
+   shuffle ~state:s a; \
+-  a = [|7; 2; 9; 5; 3; 6; 4; 1; 8|]
++  a = if Sys.ocaml_release.major < 5 then \
++    [|7; 2; 9; 5; 3; 6; 4; 1; 8|] else \
++    [|1; 7; 4; 9; 5; 2; 8; 6; 3|]
+   let b = [||] in \
+   shuffle b; \
+   b = [||]
+diff --git a/src/batBytes.mliv b/src/batBytes.mliv
+index f81b0279..c9881e14 100644
+--- a/src/batBytes.mliv
++++ b/src/batBytes.mliv
+@@ -293,23 +293,23 @@ val rcontains_from : t -> int -> char -> bool
+     Raise [Invalid_argument] if [stop < 0] or [stop+1] is not a valid
+     position in [s]. *)
+ 
+-val uppercase : t -> t
+-(** Return a copy of the argument, with all lowercase letters
+-    translated to uppercase, including accented letters of the ISO
+-    Latin-1 (8859-1) character set. *)
+-
+-val lowercase : t -> t
+-(** Return a copy of the argument, with all uppercase letters
+-    translated to lowercase, including accented letters of the ISO
+-    Latin-1 (8859-1) character set. *)
+-
+-val capitalize : t -> t
+-(** Return a copy of the argument, with the first byte set to
+-    uppercase. *)
+-
+-val uncapitalize : t -> t
+-(** Return a copy of the argument, with the first byte set to
+-    lowercase. *)
++##V<5##val uppercase : t -> t
++##V<5##(** Return a copy of the argument, with all lowercase letters
++##V<5##    translated to uppercase, including accented letters of the ISO
++##V<5##    Latin-1 (8859-1) character set. *)
++
++##V<5##val lowercase : t -> t
++##V<5##(** Return a copy of the argument, with all uppercase letters
++##V<5##    translated to lowercase, including accented letters of the ISO
++##V<5##    Latin-1 (8859-1) character set. *)
++
++##V<5##val capitalize : t -> t
++##V<5##(** Return a copy of the argument, with the first byte set to
++##V<5##    uppercase. *)
++
++##V<5##val uncapitalize : t -> t
++##V<5##(** Return a copy of the argument, with the first byte set to
++##V<5##    lowercase. *)
+ 
+ val uppercase_ascii : t -> t
+ (** Return a copy of the argument, with all lowercase letters
+diff --git a/src/batChar.mli b/src/batChar.mliv
+similarity index 95%
+rename from src/batChar.mli
+rename to src/batChar.mliv
+index 2f0bae03..f71fbf17 100644
+--- a/src/batChar.mli
++++ b/src/batChar.mliv
+@@ -42,11 +42,11 @@ val escaped : char -> string
+     with special characters escaped following the lexical conventions
+     of OCaml. *)
+ 
+-val lowercase : char -> char
+-(** Convert the given character to its equivalent lowercase character. *)
++##V<5##val lowercase : char -> char
++##V<5##(** Convert the given character to its equivalent lowercase character. *)
+ 
+-val uppercase : char -> char
+-(** Convert the given character to its equivalent uppercase character. *)
++##V<5##val uppercase : char -> char
++##V<5##(** Convert the given character to its equivalent uppercase character. *)
+ 
+ val lowercase_ascii : char -> char
+ (** Convert the given character to its equivalent lowercase character,
+diff --git a/src/batCharParser.ml b/src/batCharParser.mlv
+similarity index 93%
+rename from src/batCharParser.ml
+rename to src/batCharParser.mlv
+index a0faebe8..85c441a2 100644
+--- a/src/batCharParser.ml
++++ b/src/batCharParser.mlv
+@@ -66,11 +66,17 @@ let string s = label ("\"" ^ s ^ "\"") (
+   )
+ 
+ let case_char c =
+-  if BatChar.is_letter c then one_of [Char.uppercase c; Char.lowercase c]
++  if BatChar.is_letter c then
++    one_of
++##V<5##  [Char.uppercase c;       Char.lowercase c]
++##V>=5## [Char.uppercase_ascii c; Char.lowercase_ascii c]
+   else char c
+ 
+ let case_string s = label ("case insensitive \"" ^ s ^ "\"") (
+-    let s'  = String.lowercase s in
++    let s'  =
++##V<5##  String.lowercase
++##V>=5## String.lowercase_ascii
++        s in
+     let len = String.length s'   in
+     let rec aux i =
+       if i < len then case_char s'.[i] >>= fun _ -> aux (i+1)
+diff --git a/src/batEnum.ml b/src/batEnum.ml
+index 1240e9df..e20a2fd8 100644
+--- a/src/batEnum.ml
++++ b/src/batEnum.ml
+@@ -850,7 +850,7 @@ let uniqq e =
+   List.enum [1;1;2;3;3;2] |> uniqq |> List.of_enum = [1;2;3;2]
+   List.enum ["a";"a";"b";"c";"c";"b"] |> uniq |> List.of_enum = ["a";"b";"c";"b"]
+   List.enum ["a";"A";"b";"c";"C";"b"] \
+-    |> uniq_by (fun a b -> String.lowercase a = String.lowercase b) \
++    |> uniq_by (fun a b -> String.lowercase_ascii a = String.lowercase_ascii b) \
+     |> List.of_enum = ["a";"b";"c";"b"]
+ *)
+ 
+diff --git a/src/batFilename.mliv b/src/batFilename.mliv
+index 7c0477cc..2b03f39d 100644
+--- a/src/batFilename.mliv
++++ b/src/batFilename.mliv
+@@ -189,16 +189,16 @@ val open_temp_file :
+ ##V>=4.0##    @since 2.11.0 and OCaml 4.00.0
+ ##V>=4.0##*)
+ 
+-val temp_dir_name : string
+-##V>=4.2##  [@@ocaml.deprecated "Use Filename.get_temp_dir_name instead"]
+-(** The name of the initial temporary directory:
+-    Under Unix, the value of the [TMPDIR] environment variable, or "/tmp"
+-    if the variable is not set.
+-    Under Windows, the value of the [TEMP] environment variable, or "."
+-    if the variable is not set.
+-    @deprecated You should use {!Filename.get_temp_dir_name} instead.
+-    @since 2.11.0 and OCaml 3.09.1
+-*)
++##V<5##val temp_dir_name : string
++##V<5####V>=4.2##  [@@ocaml.deprecated "Use Filename.get_temp_dir_name instead"]
++##V<5##(** The name of the initial temporary directory:
++##V<5##    Under Unix, the value of the [TMPDIR] environment variable, or "/tmp"
++##V<5##    if the variable is not set.
++##V<5##    Under Windows, the value of the [TEMP] environment variable, or "."
++##V<5##    if the variable is not set.
++##V<5##    @deprecated You should use {!Filename.get_temp_dir_name} instead.
++##V<5##    @since 2.11.0 and OCaml 3.09.1
++##V<5##*)
+ 
+ val quote : string -> string
+ (** Return a quoted version of a file name, suitable for use as
+diff --git a/src/batFormat.mliv b/src/batFormat.mliv
+index 21400956..78b0f6fb 100644
+--- a/src/batFormat.mliv
++++ b/src/batFormat.mliv
+@@ -328,17 +328,17 @@ type tag = string
+     Tag marking and tag printing functions are user definable and can
+     be set by calling [set_formatter_tag_functions]. *)
+ 
+-val open_tag : tag -> unit
+-(** [open_tag t] opens the tag named [t]; the [print_open_tag]
+-    function of the formatter is called with [t] as argument;
+-    the tag marker [mark_open_tag t] will be flushed into the output
+-    device of the formatter. *)
+-
+-val close_tag : unit -> unit
+-(** [close_tag ()] closes the most recently opened tag [t].
+-    In addition, the [print_close_tag] function of the formatter is called
+-    with [t] as argument. The marker [mark_close_tag t] will be flushed
+-    into the output device of the formatter. *)
++##V<5##val open_tag : tag -> unit
++##V<5##(** [open_tag t] opens the tag named [t]; the [print_open_tag]
++##V<5##    function of the formatter is called with [t] as argument;
++##V<5##    the tag marker [mark_open_tag t] will be flushed into the output
++##V<5##    device of the formatter. *)
++
++##V<5##val close_tag : unit -> unit
++##V<5##(** [close_tag ()] closes the most recently opened tag [t].
++##V<5##    In addition, the [print_close_tag] function of the formatter is called
++##V<5##    with [t] as argument. The marker [mark_close_tag t] will be flushed
++##V<5##    into the output device of the formatter. *)
+ 
+ val set_tags : bool -> unit
+ (** [set_tags b] turns on or off the treatment of tags (default is off). *)
+@@ -385,76 +385,76 @@ val get_formatter_output_functions :
+     how to handle indentation, line breaking, and even printing of all the
+     characters that have to be printed! *)
+ 
+-val set_all_formatter_output_functions :
+-  out:(string -> int -> int -> unit) ->
+-  flush:(unit -> unit) ->
+-  newline:(unit -> unit) ->
+-  spaces:(int -> unit) ->
+-  unit
+-
+-(** [set_all_formatter_output_functions out flush outnewline outspace]
+-    redirects the pretty-printer output to the functions [out] and
+-    [flush] as described in [set_formatter_output_functions]. In
+-    addition, the pretty-printer function that outputs a newline is set
+-    to the function [outnewline] and the function that outputs
+-    indentation spaces is set to the function [outspace].
+-
+-    This way, you can change the meaning of indentation (which can be
+-    something else than just printing space characters) and the
+-    meaning of new lines opening (which can be connected to any other
+-    action needed by the application at hand). The two functions
+-    [outspace] and [outnewline] are normally connected to [out] and
+-    [flush]: respective default values for [outspace] and [outnewline]
+-    are [out (String.make n ' ') 0 n] and [out "\n" 0 1]. *)
+-
+-val get_all_formatter_output_functions :
+-  unit ->
+-  (string -> int -> int -> unit) *
+-    (unit -> unit) *
+-    (unit -> unit) *
+-    (int -> unit)
+-
+-(** Return the current output functions of the pretty-printer,
+-    including line breaking and indentation functions. Useful to record the
+-    current setting and restore it afterwards. *)
++##V<5##val set_all_formatter_output_functions :
++##V<5##  out:(string -> int -> int -> unit) ->
++##V<5##  flush:(unit -> unit) ->
++##V<5##  newline:(unit -> unit) ->
++##V<5##  spaces:(int -> unit) ->
++##V<5##  unit
++
++##V<5##(** [set_all_formatter_output_functions out flush outnewline outspace]
++##V<5##    redirects the pretty-printer output to the functions [out] and
++##V<5##    [flush] as described in [set_formatter_output_functions]. In
++##V<5##    addition, the pretty-printer function that outputs a newline is set
++##V<5##    to the function [outnewline] and the function that outputs
++##V<5##    indentation spaces is set to the function [outspace].
++##V<5##
++##V<5##    This way, you can change the meaning of indentation (which can be
++##V<5##    something else than just printing space characters) and the
++##V<5##    meaning of new lines opening (which can be connected to any other
++##V<5##    action needed by the application at hand). The two functions
++##V<5##    [outspace] and [outnewline] are normally connected to [out] and
++##V<5##    [flush]: respective default values for [outspace] and [outnewline]
++##V<5##    are [out (String.make n ' ') 0 n] and [out "\n" 0 1]. *)
++
++##V<5##val get_all_formatter_output_functions :
++##V<5##  unit ->
++##V<5##  (string -> int -> int -> unit) *
++##V<5##    (unit -> unit) *
++##V<5##    (unit -> unit) *
++##V<5##    (int -> unit)
++##V<5##
++##V<5##(** Return the current output functions of the pretty-printer,
++##V<5##    including line breaking and indentation functions. Useful to record the
++##V<5##    current setting and restore it afterwards. *)
+ 
+ (** {6:tags Changing the meaning of printing semantics tags} *)
+ 
+-type formatter_tag_functions = {
+-  mark_open_tag : tag -> string;
+-  mark_close_tag : tag -> string;
+-  print_open_tag : tag -> unit;
+-  print_close_tag : tag -> unit;
+-}
+-
+-(** The tag handling functions specific to a formatter:
+-    [mark] versions are the ``tag marking'' functions that associate a string
+-    marker to a tag in order for the pretty-printing engine to flush
+-    those markers as 0 length tokens in the output device of the formatter.
+-    [print] versions are the ``tag printing'' functions that can perform
+-    regular printing when a tag is closed or opened. *)
+-
+-val set_formatter_tag_functions :
+-  formatter_tag_functions -> unit
+-
+-
+-(** [set_formatter_tag_functions tag_funs] changes the meaning of
+-    opening and closing tags to use the functions in [tag_funs].
+-
+-    When opening a tag name [t], the string [t] is passed to the
+-    opening tag marking function (the [mark_open_tag] field of the
+-    record [tag_funs]), that must return the opening tag marker for
+-    that name. When the next call to [close_tag ()] happens, the tag
+-    name [t] is sent back to the closing tag marking function (the
+-    [mark_close_tag] field of record [tag_funs]), that must return a
+-    closing tag marker for that name.
+-
+-    The [print_] field of the record contains the functions that are
+-    called at tag opening and tag closing time, to output regular
+-    material in the pretty-printer queue. *)
+-
+-val get_formatter_tag_functions :
+-  unit -> formatter_tag_functions
++##V<5##type formatter_tag_functions = {
++##V<5##  mark_open_tag : tag -> string;
++##V<5##  mark_close_tag : tag -> string;
++##V<5##  print_open_tag : tag -> unit;
++##V<5##  print_close_tag : tag -> unit;
++##V<5##}
++
++##V<5##(** The tag handling functions specific to a formatter:
++##V<5##    [mark] versions are the ``tag marking'' functions that associate a string
++##V<5##    marker to a tag in order for the pretty-printing engine to flush
++##V<5##    those markers as 0 length tokens in the output device of the formatter.
++##V<5##    [print] versions are the ``tag printing'' functions that can perform
++##V<5##    regular printing when a tag is closed or opened. *)
++##V<5##
++##V<5##val set_formatter_tag_functions :
++##V<5##  formatter_tag_functions -> unit
++##V<5##
++##V<5##
++##V<5##(** [set_formatter_tag_functions tag_funs] changes the meaning of
++##V<5##    opening and closing tags to use the functions in [tag_funs].
++##V<5##
++##V<5##    When opening a tag name [t], the string [t] is passed to the
++##V<5##    opening tag marking function (the [mark_open_tag] field of the
++##V<5##    record [tag_funs]), that must return the opening tag marker for
++##V<5##    that name. When the next call to [close_tag ()] happens, the tag
++##V<5##    name [t] is sent back to the closing tag marking function (the
++##V<5##    [mark_close_tag] field of record [tag_funs]), that must return a
++##V<5##    closing tag marker for that name.
++##V<5##
++##V<5##    The [print_] field of the record contains the functions that are
++##V<5##    called at tag opening and tag closing time, to output regular
++##V<5##    material in the pretty-printer queue. *)
++##V<5##
++##V<5##val get_formatter_tag_functions :
++##V<5##  unit -> formatter_tag_functions
+ 
+ (** Return the current tag functions of the pretty-printer. *)
+ 
+@@ -525,8 +525,8 @@ val pp_open_hvbox : formatter -> int -> unit
+ val pp_open_hovbox : formatter -> int -> unit
+ val pp_open_box : formatter -> int -> unit
+ val pp_close_box : formatter -> unit -> unit
+-val pp_open_tag : formatter -> string -> unit
+-val pp_close_tag : formatter -> unit -> unit
++##V<5##val pp_open_tag : formatter -> string -> unit
++##V<5##val pp_close_tag : formatter -> unit -> unit
+ val pp_print_string : formatter -> string -> unit
+ val pp_print_as : formatter -> int -> string -> unit
+ val pp_print_int : formatter -> int -> unit
+@@ -566,20 +566,20 @@ val pp_set_formatter_output_functions :
+ val pp_get_formatter_output_functions :
+   formatter -> unit -> (string -> int -> int -> unit) * (unit -> unit)
+ 
+-val pp_set_all_formatter_output_functions :
+-  formatter -> out:(string -> int -> int -> unit) -> flush:(unit -> unit) ->
+-  newline:(unit -> unit) -> spaces:(int -> unit) -> unit
++##V<5##val pp_set_all_formatter_output_functions :
++##V<5##  formatter -> out:(string -> int -> int -> unit) -> flush:(unit -> unit) ->
++##V<5##  newline:(unit -> unit) -> spaces:(int -> unit) -> unit
+ 
+-val pp_get_all_formatter_output_functions :
+-  formatter -> unit ->
+-  (string -> int -> int -> unit) * (unit -> unit) * (unit -> unit) *
+-    (int -> unit)
++##V<5##val pp_get_all_formatter_output_functions :
++##V<5##  formatter -> unit ->
++##V<5##  (string -> int -> int -> unit) * (unit -> unit) * (unit -> unit) *
++##V<5##    (int -> unit)
+ 
+-val pp_set_formatter_tag_functions :
+-  formatter -> formatter_tag_functions -> unit
++##V<5##val pp_set_formatter_tag_functions :
++##V<5##  formatter -> formatter_tag_functions -> unit
+ 
+-val pp_get_formatter_tag_functions :
+-  formatter -> unit -> formatter_tag_functions
++##V<5##val pp_get_formatter_tag_functions :
++##V<5##  formatter -> unit -> formatter_tag_functions
+ 
+ (** These functions are the basic ones: usual functions
+     operating on the standard formatter are defined via partial
+@@ -728,16 +728,15 @@ val ksprintf : (string -> 'a) -> ('b, unit, string, 'a) format4 -> 'b
+ 
+ (** {6 Deprecated} *)
+ 
+-val bprintf : Buffer.t -> ('a, formatter, unit) format -> 'a
+-(** A deprecated and error prone function. Do not use it.
+-
+-    If you need to print to some buffer [b], you must first define a
+-    formatter writing to [b], using [let to_b = formatter_of_buffer b]; then
+-    use regular calls to [Format.fprintf] on formatter [to_b]. *)
+-
+-val kprintf : (string -> 'a) -> ('b, unit, string, 'a) format4 -> 'b
+-(** A deprecated synonym for [ksprintf]. *)
++##V<5##val bprintf : Buffer.t -> ('a, formatter, unit) format -> 'a
++##V<5##(** A deprecated and error prone function. Do not use it.
++##V<5##
++##V<5##    If you need to print to some buffer [b], you must first define a
++##V<5##    formatter writing to [b], using [let to_b = formatter_of_buffer b]; then
++##V<5##    use regular calls to [Format.fprintf] on formatter [to_b]. *)
+ 
++##V<5##val kprintf : (string -> 'a) -> ('b, unit, string, 'a) format4 -> 'b
++##V<5##(** A deprecated synonym for [ksprintf]. *)
+ 
+ (** {6 Basic functions to use with formatters} *)
+ 
+diff --git a/src/batFormat.mlv b/src/batFormat.mlv
+index 43e88db7..75cb7888 100644
+--- a/src/batFormat.mlv
++++ b/src/batFormat.mlv
+@@ -49,28 +49,46 @@ let formatter_of_output out =
+   in
+   let f = make_formatter output flush in
+   BatInnerIO.on_close_out out (fun _ -> pp_print_flush f ()); (*Note: we can't just use [flush] as [f] contains a cache.*)
+-  pp_set_all_formatter_output_functions f
+-    ~out:output
+-    ~flush
+-    ~newline:(newline_of out)
+-    ~spaces:(spaces_of out);
++##V<5## pp_set_all_formatter_output_functions f
++##V<5## ~out:output
++##V<5## ~flush
++##V<5## ~newline:(newline_of out)
++##V<5## ~spaces:(spaces_of out);
++##V>=5## pp_set_formatter_out_functions f
++##V>=5## { out_string = output;
++##V>=5##   out_flush = flush;
++##V>=5##   out_newline = newline_of out;
++##V>=5##   out_spaces = spaces_of out;
++##V>=5##   out_indent = spaces_of out };
+   f
+ 
+ let set_formatter_output out =
+   BatInnerIO.on_close_out out (fun _ -> pp_print_flush Format.std_formatter ());
+-  set_all_formatter_output_functions
+-    ~out:(output_of out)
+-    ~flush:(flush_of out)
+-    ~newline:(newline_of out)
+-    ~spaces:(spaces_of out)
++##V<5##  set_all_formatter_output_functions
++##V<5##    ~out:(output_of out)
++##V<5##    ~flush:(flush_of out)
++##V<5##    ~newline:(newline_of out)
++##V<5##    ~spaces:(spaces_of out)
++##V>=5##  set_formatter_out_functions {
++##V>=5##    out_string = output_of out;
++##V>=5##    out_flush = flush_of out;
++##V>=5##    out_newline = newline_of out;
++##V>=5##    out_spaces = spaces_of out;
++##V>=5##    out_indent = spaces_of out }
+ 
+ let pp_set_formatter_output f out =
+   BatInnerIO.on_close_out out (fun _ -> pp_print_flush f ());
+-  pp_set_all_formatter_output_functions f
+-    ~out:(output_of out)
+-    ~flush:(flush_of out)
+-    ~newline:(newline_of out)
+-    ~spaces:(spaces_of out)
++##V<5##  pp_set_all_formatter_output_functions f
++##V<5##    ~out:(output_of out)
++##V<5##    ~flush:(flush_of out)
++##V<5##    ~newline:(newline_of out)
++##V<5##    ~spaces:(spaces_of out)
++##V>=5##  pp_set_formatter_out_functions f {
++##V>=5##    out_string = output_of out;
++##V>=5##    out_flush = flush_of out;
++##V>=5##    out_newline = newline_of out;
++##V>=5##    out_spaces = spaces_of out;
++##V>=5##    out_indent = spaces_of out }
+ 
+ (**{6 Old values, new semantics}*)
+ 
+diff --git a/src/batGc.mliv b/src/batGc.mliv
+index ef9c5fb1..95efe174 100644
+--- a/src/batGc.mliv
++++ b/src/batGc.mliv
+@@ -103,15 +103,19 @@ type stat = Gc.stat =
+ *)
+ 
+ type control = Gc.control =
+-  { mutable minor_heap_size : int;
++  {
++##V<5.0## mutable
++      minor_heap_size : int;
+     (** The size (in words) of the minor heap.  Changing
+         this parameter will trigger a minor collection.  Default: 32k. *)
+ 
+-    mutable major_heap_increment : int;
++##V<5.0## mutable
++      major_heap_increment : int;
+     (** The minimum number of words to add to the
+         major heap when increasing it.  Default: 124k. *)
+ 
+-    mutable space_overhead : int;
++##V<5.0## mutable
++      space_overhead : int;
+     (** The major GC speed is computed from this parameter.
+         This is the memory that will be "wasted" because the GC does not
+         immediately collect unreachable blocks.  It is expressed as a
+@@ -120,7 +124,8 @@ type control = Gc.control =
+         blocks more eagerly) if [space_overhead] is smaller.
+         Default: 80. *)
+ 
+-    mutable verbose : int;
++##V<5.0## mutable
++      verbose : int;
+     (** This value controls the GC messages on standard error output.
+         It is a sum of some of the following flags, to print messages
+         on the corresponding events:
+@@ -136,7 +141,8 @@ type control = Gc.control =
+         - [0x200] Computation of compaction triggering condition.
+         Default: 0. *)
+ 
+-    mutable max_overhead : int;
++##V<5.0## mutable
++      max_overhead : int;
+     (** Heap compaction is triggered when the estimated amount
+         of "wasted" memory is more than [max_overhead] percent of the
+         amount of live data.  If [max_overhead] is set to 0, heap
+@@ -145,12 +151,14 @@ type control = Gc.control =
+         If [max_overhead >= 1000000], compaction is never triggered.
+         Default: 500. *)
+ 
+-    mutable stack_limit : int;
++##V<5.0## mutable
++      stack_limit : int;
+     (** The maximum size of the stack (in words).  This is only
+         relevant to the byte-code runtime, as the native code runtime
+         uses the operating system's stack.  Default: 256k. *)
+ 
+-    mutable allocation_policy : int;
++##V<5.0## mutable
++      allocation_policy : int;
+     (** The policy used for allocating in the heap.  Possible
+         values are 0 and 1.  0 is the next-fit policy, which is
+         quite fast but can result in fragmentation.  1 is the
+@@ -267,11 +275,11 @@ val allocated_bytes : unit -> float
+     started.  It is returned as a [float] to avoid overflow problems
+     with [int] on 32-bit machines. *)
+ 
+-##V>=4.3####V<multicore##external get_minor_free : unit -> int = "caml_get_minor_free"
++##V>=4.3##external get_minor_free : unit -> int = "caml_get_minor_free"
+ ##V=4.3##          [@@noalloc]
+ ##V=4.4##          [@@noalloc]
+-##V>=4.3####V<multicore##(** Return the current size of the free space inside the minor heap.
+-##V>=4.3####V<multicore##    @since 2.5.0 and OCaml 4.03.0 *)
++##V>=4.3##(** Return the current size of the free space inside the minor heap.
++##V>=4.3##    @since 2.5.0 and OCaml 4.03.0 *)
+ 
+ ##V>=4.3####V<multicore##external get_bucket : int -> int = "caml_get_major_bucket" [@@noalloc]
+ ##V>=4.3####V<multicore##(** [get_bucket n] returns the current size of the [n]-th future bucket
+@@ -383,7 +391,8 @@ val delete_alarm : alarm -> unit
+   (** [delete_alarm a] will stop the calls to the function associated
+       to [a].  Calling [delete_alarm a] again has no effect. *)
+ 
+-##V>=4.11##external eventlog_pause : unit -> unit = "caml_eventlog_pause"
++##V>=4.11####V<5.0##external eventlog_pause : unit -> unit = "caml_eventlog_pause"
++##V>=5.0##val                eventlog_pause : unit -> unit
+ ##V>=4.11##(** [eventlog_pause ()] will pause the collection of traces in the
+ ##V>=4.11##   runtime.
+ ##V>=4.11##   Traces are collected if the program is linked to the instrumented runtime
+@@ -391,7 +400,8 @@ val delete_alarm : alarm -> unit
+ ##V>=4.11##   Events are flushed to disk after pausing, and no new events will be
+ ##V>=4.11##   recorded until [eventlog_resume] is called. *)
+ ##V>=4.11##
+-##V>=4.11##external eventlog_resume : unit -> unit = "caml_eventlog_resume"
++##V>=4.11####V<5.0##external eventlog_resume : unit -> unit = "caml_eventlog_resume"
++##V>=5.0##val                eventlog_resume : unit -> unit
+ ##V>=4.11##(** [eventlog_resume ()] will resume the collection of traces in the
+ ##V>=4.11##   runtime.
+ ##V>=4.11##   Traces are collected if the program is linked to the instrumented runtime
+diff --git a/src/batGenlex.ml b/src/batGenlex.mlv
+similarity index 98%
+rename from src/batGenlex.ml
+rename to src/batGenlex.mlv
+index 5b1eeb88..e548e38b 100644
+--- a/src/batGenlex.ml
++++ b/src/batGenlex.mlv
+@@ -320,7 +320,9 @@ struct
+ 
+     let adapt_case =
+       if case_sensitive then identity
+-      else String.lowercase
++      else
++##V<5## BatString.lowercase
++##V>=5## BatString.lowercase_ascii
+ 
+     let string_compare =
+       if case_sensitive then String.compare
+@@ -511,7 +513,10 @@ struct
+           if is_reserved x then (Kwd x)
+           else                  (Ident x)
+       else
+-        fun x -> let x = String.lowercase x in
++        fun x -> let x =
++##V<5## BatString.lowercase
++##V>=5## BatString.lowercase_ascii
++                     x in
+           if is_reserved x then (Kwd x)
+           else                  (Ident x)
+ 
+diff --git a/src/batLazyList.ml b/src/batLazyList.mlv
+similarity index 97%
+rename from src/batLazyList.ml
+rename to src/batLazyList.mlv
+index 538ded29..d1481245 100644
+--- a/src/batLazyList.ml
++++ b/src/batLazyList.mlv
+@@ -38,11 +38,16 @@ type 'a mappable = 'a t
+ 
+ (** {6 Access} *)
+ 
+-let nil    = Lazy.lazy_from_val Nil
++let lazy_from_val v =
++##V<5##  Lazy.lazy_from_val v
++##V>=5## Lazy.from_val v
++
++let nil    =
++  lazy_from_val Nil
+ 
+ let next l = Lazy.force l
+ 
+-let cons h t = Lazy.lazy_from_val (Cons(h, t))
++let cons h t = lazy_from_val (Cons(h, t))
+ 
+ let ( ^:^ ) = cons
+ 
+@@ -266,11 +271,11 @@ let at list n =
+ 
+ let nth = at
+ 
+-let rev list = fold_left (fun acc x -> Lazy.lazy_from_val (Cons (x, acc))) nil list
++let rev list = fold_left (fun acc x -> lazy_from_val (Cons (x, acc))) nil list
+ 
+ (**Revert a list, convert it to a lazy list.
+    Used as an optimisation.*)
+-let rev_of_list (list:'a list) = List.fold_left (fun acc x -> Lazy.lazy_from_val (Cons (x, acc))) nil list
++let rev_of_list (list:'a list) = List.fold_left (fun acc x -> lazy_from_val (Cons (x, acc))) nil list
+ 
+ let eager_append (l1 : 'a t) (l2 : 'a t) =
+   let rec aux list =
+@@ -282,7 +287,7 @@ let eager_append (l1 : 'a t) (l2 : 'a t) =
+ let rev_append (l1 : 'a t) (l2 : 'a t) =
+   let rec aux list acc =
+     match next list with
+-    | Cons (x, t) -> aux t (Lazy.lazy_from_val (Cons (x, acc)))
++    | Cons (x, t) -> aux t (lazy_from_val (Cons (x, acc)))
+     | Nil -> acc
+   in aux l1 l2
+ 
+@@ -421,13 +426,13 @@ let of_stream s =
+    Eager conversion from lists
+ *)
+ let eager_of_list l =
+-  ListLabels.fold_right ~init: nil ~f: (fun x acc -> Lazy.lazy_from_val (Cons (x, acc))) l
++  ListLabels.fold_right ~init: nil ~f: (fun x acc -> lazy_from_val (Cons (x, acc))) l
+ 
+ (**
+    Eager conversion from array
+ *)
+ let of_array l =
+-  ArrayLabels.fold_right ~init: nil ~f: (fun x acc -> Lazy.lazy_from_val (Cons (x, acc))) l
++  ArrayLabels.fold_right ~init: nil ~f: (fun x acc -> lazy_from_val (Cons (x, acc))) l
+ 
+ (**
+    Lazy conversion from enum
+diff --git a/src/batList.mlv b/src/batList.mlv
+index 53be6326..929bc980 100644
+--- a/src/batList.mlv
++++ b/src/batList.mlv
+@@ -1545,7 +1545,10 @@ let shuffle ?state l =
+   Array.to_list arr
+ (*$T shuffle
+   let s = Random.State.make [|11|] in \
+-  shuffle ~state:s [1;2;3;4;5;6;7;8;9] = [7; 2; 9; 5; 3; 6; 4; 1; 8]
++  shuffle ~state:s [1;2;3;4;5;6;7;8;9] = \
++  if Sys.ocaml_release.major < 5 then \
++    [7; 2; 9; 5; 3; 6; 4; 1; 8] else \
++    [1; 7; 4; 9; 5; 2; 8; 6; 3]
+   shuffle [] = []
+ *)
+ 
+diff --git a/src/batOptParse.ml b/src/batOptParse.mlv
+similarity index 99%
+rename from src/batOptParse.ml
+rename to src/batOptParse.mlv
+index 7dcb244a..2bae9b53 100644
+--- a/src/batOptParse.ml
++++ b/src/batOptParse.mlv
+@@ -512,7 +512,11 @@ struct
+         | 1 -> '-'
+         | _ -> failwith "titled_formatter: Too much indentation"
+       in
+-      sprintf "%*s%s\n%*s%s\n\n" !indent "" (String.capitalize h) !indent ""
++      sprintf "%*s%s\n%*s%s\n\n" !indent "" (
++##V<5## String.capitalize
++##V>=5## String.capitalize_ascii
++          h)
++        !indent ""
+         (String.make (String.length h) c)
+     in
+     let format_usage usage =
+diff --git a/src/batPervasives.ml b/src/batPervasives.mlv
+similarity index 99%
+rename from src/batPervasives.ml
+rename to src/batPervasives.mlv
+index c2a82945..caf416ce 100644
+--- a/src/batPervasives.ml
++++ b/src/batPervasives.mlv
+@@ -163,8 +163,8 @@ let rec dump r =
+       opaque "abstract"
+     | x when x = Obj.custom_tag ->
+       opaque "custom"
+-    | x when x = Obj.final_tag ->
+-      opaque "final"
++##V<5##    | x when x = Obj.final_tag ->
++##V<5##      opaque "final"
+     | x when x = Obj.double_array_tag ->
+       BatIO.to_string (BatArray.print BatFloat.print) (Obj.magic r : float array)
+     | _ ->
+diff --git a/src/batRandom.mliv b/src/batRandom.mliv
+index 8d5d3506..42963626 100644
+--- a/src/batRandom.mliv
++++ b/src/batRandom.mliv
+@@ -206,6 +206,15 @@ module State : sig
+ ##V>=4.14##val bits32 : t -> Int32.t
+ ##V>=4.14##val bits64 : t -> Int64.t
+ ##V>=4.14##val nativebits : t -> Nativeint.t
++
++##V>=5##val split : t -> t
++##V>=5##(** Draw a fresh PRNG state from the given PRNG state.
++##V>=5##    (The given PRNG state is modified.)
++##V>=5##    The new PRNG is statistically independent from the given PRNG.
++##V>=5##    Data can be drawn from both PRNGs, in any order, without risk of
++##V>=5##    correlation.  Both PRNGs can be split later, arbitrarily many times.
++##V>=5##    @since NEXT_RELEASE and OCaml 5.0.0 *)
++
+ end
+ 
+ 
+@@ -215,6 +224,13 @@ val get_state : unit -> State.t
+ val set_state : State.t -> unit
+ (** Set the state of the generator used by the basic functions. *)
+ 
++##V>=5##val split : unit -> State.t
++##V>=5##(** Draw a fresh PRNG state from the current state of the domain-local
++##V>=5##    generator used by the default functions.
++##V>=5##    (The state of the domain-local generator is modified.)
++##V>=5##    See {!Random.State.split}.
++##V>=5##    @since NEXT_RELEASE and OCaml 5.0.0 *)
++
+ module Incubator : sig
+   module Private_state_enums : sig
+     module State : sig (** same as BatRandom.State *)
+diff --git a/src/batRandom.mlv b/src/batRandom.mlv
+index 27c71a94..9ecbeb0c 100644
+--- a/src/batRandom.mlv
++++ b/src/batRandom.mlv
+@@ -39,6 +39,8 @@ let char ()   = Char.chr (int 256)
+ ##V>=4.14##let bits64 = Random.bits64
+ ##V>=4.14##let nativebits = Random.nativebits
+ 
++##V>=5##let split = Random.split
++
+ let full_range_int =
+   if Sys.word_size = 32 then (* need 31-bits of entropy, bits() gives 30 *)
+     fun () -> if bool () then - (bits ())-1 else bits ()
+@@ -66,6 +68,9 @@ struct
+   let enum_bool state () = BatEnum.from (fun () -> bool state)
+   let enum_char state () = BatEnum.from (fun () -> char state)
+ 
++##V>=5##  external next: t -> (int64[@unboxed]) 
++##V>=5##    = "caml_lxm_next" "caml_lxm_next_unboxed" [@@noalloc]
++  
+ end
+ 
+ let enum_bits () = BatEnum.from bits
+@@ -160,13 +165,18 @@ module Incubator = struct
+       let enum_char state () =
+         random_enum state char
+ 
+-      type implementation = { st : int array; mutable idx : int };;
++##V<5##  type implementation = { st: int array; mutable idx: int }
++##V>=5## open Bigarray
++##V>=5## type implementation = (int64, int64_elt, c_layout) Array1.t
++
+       (*      external t_of_impl: implementation -> t = "%identity" *)
+       external impl_of_t: t -> implementation = "%identity"
+ 
+       let perturb state =
+-        let impl = impl_of_t state in
+-        make (Array.append impl.st [|impl.idx|])
++##V<5## let impl = impl_of_t state in
++##V<5## make (Array.append impl.st [|impl.idx|])
++##V>=5## let _ = State.next state in
++##V>=5## state
+ 
+     end
+ 
+diff --git a/src/batScanf.mli b/src/batScanf.mliv
+similarity index 96%
+rename from src/batScanf.mli
+rename to src/batScanf.mliv
+index e213b937..ab78cd26 100644
+--- a/src/batScanf.mli
++++ b/src/batScanf.mliv
+@@ -381,18 +381,18 @@ val bscanf : Scanning.scanbuf -> ('a, 'b, 'c, 'd) scanner
+ 
+ (** {6 Specialized formatted input functions} *)
+ 
+-val fscanf : in_channel -> ('a, 'b, 'c, 'd) scanner
+-(** Same as {!Scanf.bscanf}, but reads from the given channel.
+-
+-    Warning: since all formatted input functions operate from a scanning
+-    buffer, be aware that each [fscanf] invocation will operate with a
+-    scanning buffer reading from the given channel. This extra level of
+-    bufferization can lead to strange scanning behaviour if you use low level
+-    primitives on the channel (reading characters, seeking the reading
+-    position, and so on).
+-
+-    As a consequence, never mixt direct low level reading and high level
+-    scanning from the same input channel. *)
++##V<5##val fscanf : in_channel -> ('a, 'b, 'c, 'd) scanner
++##V<5##(** Same as {!Scanf.bscanf}, but reads from the given channel.
++##V<5##
++##V<5##    Warning: since all formatted input functions operate from a scanning
++##V<5##    buffer, be aware that each [fscanf] invocation will operate with a
++##V<5##    scanning buffer reading from the given channel. This extra level of
++##V<5##    bufferization can lead to strange scanning behaviour if you use low level
++##V<5##    primitives on the channel (reading characters, seeking the reading
++##V<5##    position, and so on).
++##V<5##
++##V<5##    As a consequence, never mixt direct low level reading and high level
++##V<5##    scanning from the same input channel. *)
+ 
+ val sscanf : string -> ('a, 'b, 'c, 'd) scanner
+ (** Same as {!Scanf.bscanf}, but reads from the given string. *)
+diff --git a/src/batScanf.ml b/src/batScanf.mlv
+similarity index 98%
+rename from src/batScanf.ml
+rename to src/batScanf.mlv
+index 2486321b..f6af07f9 100644
+--- a/src/batScanf.ml
++++ b/src/batScanf.mlv
+@@ -39,7 +39,7 @@ type ('a, 'b, 'c, 'd) scanner =
+ 
+ 
+ open Scanf
+-let fscanf = fscanf
++##V<5##let fscanf = fscanf
+ let sscanf = sscanf
+ let scanf = scanf
+ let kscanf = kscanf
+diff --git a/src/batString.mliv b/src/batString.mliv
+index 16b5b41d..4bd78224 100644
+--- a/src/batString.mliv
++++ b/src/batString.mliv
+@@ -100,18 +100,18 @@ external get : string -> int -> char = "%string_safe_get"
+     @raise Invalid_argument if [n] not a valid character number in [s]. *)
+ 
+ 
+-external set : Bytes.t -> int -> char -> unit = "%string_safe_set"
+-(** [String.set s n c] modifies string [s] in place,
+-    replacing the character number [n] by [c].
+-    You can also write [s.[n] <- c] instead of [String.set s n c].
+-
+-    @raise Invalid_argument if [n] is not a valid character number in [s]. *)
+-
+-external create : int -> Bytes.t = "caml_create_string"
+-(** [String.create n] returns a fresh string of length [n].
+-    The string initially contains arbitrary characters.
+-
+-    @raise Invalid_argument if [n < 0] or [n > ]{!Sys.max_string_length}. *)
++##V<5##external set : Bytes.t -> int -> char -> unit = "%string_safe_set"
++##V<5##(** [String.set s n c] modifies string [s] in place,
++##V<5##    replacing the character number [n] by [c].
++##V<5##    You can also write [s.[n] <- c] instead of [String.set s n c].
++##V<5##
++##V<5##    @raise Invalid_argument if [n] is not a valid character number in [s]. *)
++
++##V<5##external create : int -> Bytes.t = "caml_create_string"
++##V<5##(** [String.create n] returns a fresh string of length [n].
++##V<5##    The string initially contains arbitrary characters.
++##V<5##
++##V<5##    @raise Invalid_argument if [n < 0] or [n > ]{!Sys.max_string_length}. *)
+ 
+ val make : int -> char -> string
+ (** [String.make n c] returns a fresh string of length [n],
+@@ -119,8 +119,8 @@ val make : int -> char -> string
+ 
+     @raise Invalid_argument if [n < 0] or [n > ]{!Sys.max_string_length}.*)
+ 
+-val copy : string -> string
+-(** Return a copy of the given string. *)
++##V<5##val copy : string -> string
++##V<5##(** Return a copy of the given string. *)
+ 
+ val sub : string -> int -> int -> string
+ (** [String.sub s start len] returns a fresh string of length [len],
+@@ -130,12 +130,12 @@ val sub : string -> int -> int -> string
+     @raise Invalid_argument if [start] and [len] do not
+     designate a valid substring of [s]. *)
+ 
+-val fill : Bytes.t -> int -> int -> char -> unit
+-(** [String.fill s start len c] modifies the byte sequence [s] in
+-    place, replacing [len] characters by [c], starting at [start].
+-
+-    @raise Invalid_argument if [start] and [len] do not
+-    designate a valid substring of [s]. *)
++##V<5##val fill : Bytes.t -> int -> int -> char -> unit
++##V<5##(** [String.fill s start len c] modifies the byte sequence [s] in
++##V<5##    place, replacing [len] characters by [c], starting at [start].
++##V<5##
++##V<5##    @raise Invalid_argument if [start] and [len] do not
++##V<5##    designate a valid substring of [s]. *)
+ 
+ val blit : string -> int -> Bytes.t -> int -> int -> unit
+ (** [String.blit src srcoff dst dstoff len] copies [len] characters
+@@ -291,21 +291,21 @@ val rcontains_from : string -> int -> char -> bool
+     @raise Invalid_argument if [stop < 0] or [stop+1] is not a valid
+     position in [s]. *)
+ 
+-val uppercase : string -> string
+-(** Return a copy of the argument, with all lowercase letters
+-    translated to uppercase, including accented letters of the ISO
+-    Latin-1 (8859-1) character set. *)
+-
+-val lowercase : string -> string
+-(** Return a copy of the argument, with all uppercase letters
+-    translated to lowercase, including accented letters of the ISO
+-    Latin-1 (8859-1) character set. *)
++##V<5##val uppercase : string -> string
++##V<5##(** Return a copy of the argument, with all lowercase letters
++##V<5##    translated to uppercase, including accented letters of the ISO
++##V<5##    Latin-1 (8859-1) character set. *)
+ 
+-val capitalize : string -> string
+-(** Return a copy of the argument, with the first character set to uppercase. *)
++##V<5##val lowercase : string -> string
++##V<5##(** Return a copy of the argument, with all uppercase letters
++##V<5##    translated to lowercase, including accented letters of the ISO
++##V<5##    Latin-1 (8859-1) character set. *)
+ 
+-val uncapitalize : string -> string
+-(** Return a copy of the argument, with the first character set to lowercase. *)
++##V<5##val capitalize : string -> string
++##V<5##(** Return a copy of the argument, with the first character set to uppercase. *)
++##V<5##
++##V<5##val uncapitalize : string -> string
++##V<5##(** Return a copy of the argument, with the first character set to lowercase. *)
+ 
+ val uppercase_ascii : string -> string
+ (** Return a copy of the argument, with all lowercase letters
+@@ -591,7 +591,7 @@ val exists_stdlib : (char -> bool) -> string -> bool
+ (** [exists_stdlib p str] check if at least one char of [str] satisfies
+     the predicate [p].
+     @since 3.4.0 *)
+-  
++
+ val count_char : string -> char -> int
+ (** [count_char str c] returns the number of times [c] is used in [str].
+  *)
+@@ -794,7 +794,7 @@ val split_on_string : by:string -> string -> string list
+     Note: [split_on_string sep s] is identical to [nsplit s sep] but for empty strings.
+ 
+     Example: [String.split_on_string "bc" "abcabcabc" = ["a"; "a"; "a"; ""]]
+-    
++
+     @since 2.11.0
+ *)
+ 
+@@ -954,6 +954,20 @@ val get_uint8 : string -> int -> int
+ ##V>=4.08##    starting at character index [i].
+ ##V>=4.08##    @since 3.4.0 and OCaml 4.08 *)
+ 
++##V>=5##val hash : t -> int
++##V>=5##(** An unseeded hash function for strings, with the same output value as
++##V>=5##    {!Hashtbl.hash}. This function allows this module to be passed as argument
++##V>=5##    to the functor {!Hashtbl.Make}.
++##V>=5##
++##V>=5##    @since NEXT_RELEASE and OCaml 5.0.0 *)
++
++##V>=5##val seeded_hash : int -> t -> int
++##V>=5##(** A seeded hash function for strings, with the same output value as
++##V>=5##    {!Hashtbl.seeded_hash}. This function allows this module to be passed as
++##V>=5##    argument to the functor {!Hashtbl.MakeSeeded}.
++##V>=5##
++##V>=5##    @since NEXT_RELEASE and OCaml 5.0.0 *)
++
+ ##V>=4.08##val get_int32_be : string -> int -> int32
+ ##V>=4.08##(** [get_int32_be b i] is [b]'s big-endian 32-bit integer
+ ##V>=4.08##    starting at character index [i].
+@@ -1372,13 +1386,10 @@ sig
+ 
+   val strip : ?chars:[> `Read] t -> [> `Read] t -> _ t
+ 
+-  val uppercase : [> `Read] t -> _ t
+-
+-  val lowercase : [> `Read] t -> _ t
+-
+-  val capitalize : [> `Read] t -> _ t
+-
+-  val uncapitalize : [> `Read] t -> _ t
++##V<5## val uppercase : [> `Read] t -> _ t
++##V<5## val lowercase : [> `Read] t -> _ t
++##V<5## val capitalize : [> `Read] t -> _ t
++##V<5## val uncapitalize : [> `Read] t -> _ t
+ 
+   val copy : [> `Read] t -> _ t
+ 
+@@ -1485,14 +1496,14 @@ end
+ (* The following is for system use only. Do not call directly. *)
+ 
+ external unsafe_get : string -> int -> char = "%string_unsafe_get"
+-external unsafe_set : Bytes.t -> int -> char -> unit = "%string_unsafe_set"
++##V<5##external unsafe_set : Bytes.t -> int -> char -> unit = "%string_unsafe_set"
+ external unsafe_blit :
+   string -> int -> Bytes.t -> int -> int -> unit = "caml_blit_string"
+ ##V<4.3##  "noalloc"
+ ##V>=4.3##  [@@noalloc]
+-external unsafe_fill :
+-  Bytes.t -> int -> int -> char -> unit = "caml_fill_string"
++##V<5##external unsafe_fill :
++##V<5##  Bytes.t -> int -> int -> char -> unit = "caml_fill_string"
+ ##V<4.3##  "noalloc"
+-##V>=4.3##  [@@noalloc]
++##V<5####V>=4.3##  [@@noalloc]
+ 
+   (**/**)
+diff --git a/src/batString.mlv b/src/batString.mlv
+index 3798aea5..1d6d96ce 100644
+--- a/src/batString.mlv
++++ b/src/batString.mlv
+@@ -659,8 +659,8 @@ let map f s =
+   done;
+   Bytes.unsafe_to_string sc
+ (*$T map
+-   map Char.uppercase "Five" = "FIVE"
+-   map Char.uppercase "" = ""
++   map Char.uppercase_ascii "Five" = "FIVE"
++   map Char.uppercase_ascii "" = ""
+    map (String.of_char %> failwith) "" = ""
+ *)
+ 
+@@ -672,8 +672,8 @@ let mapi f s =
+   done;
+   Bytes.unsafe_to_string sc
+ (*$T mapi
+-   mapi (fun _ -> Char.uppercase) "Five" = "FIVE"
+-   mapi (fun _ -> Char.uppercase) "" = ""
++   mapi (fun _ -> Char.uppercase_ascii) "Five" = "FIVE"
++   mapi (fun _ -> Char.uppercase_ascii) "" = ""
+    mapi (fun _ -> String.of_char %> failwith) "" = ""
+    mapi (fun i _c -> "0123456789".[9-i]) "0123456789" = "9876543210"
+    ignore (let last = ref (-1) in mapi (fun i _c -> assert (i > !last); last := i; '0') "012345"); true
+@@ -689,7 +689,7 @@ let filter_map f s =
+   done;
+   Buffer.contents sc
+ (*$T filter_map
+-   filter_map (function 'a'..'z' as c -> Some (Char.uppercase c) | _ -> None) "a b c" = "ABC"
++   filter_map (function 'a'..'z' as c -> Some (Char.uppercase_ascii c) | _ -> None) "a b c" = "ABC"
+ *)
+ 
+ let filter f s =
+@@ -1010,7 +1010,9 @@ let is_empty s = length s = 0
+    is_empty (String.make 0 'a')
+ *)
+ 
+-let icompare s1 s2 = compare (String.lowercase s1) (String.lowercase s2)
++let icompare s1 s2 = compare
++##V<5## (String.lowercase s1) (String.lowercase s2)
++##V>=5## (String.lowercase_ascii s1) (String.lowercase_ascii s2)
+ (*$T icompare
+    icompare "FOO" "bar" = 1
+ *)
+@@ -1293,10 +1295,14 @@ struct
+   let chop ?l ?r b  = ubos (chop ?l ?r (usob b))
+   let strip ?(chars = ubos strip_default) b =
+     ubos (strip ~chars:(usob chars) (usob b))
+-  let uppercase b   = ubos (uppercase (usob b))
+-  let lowercase b   = ubos (lowercase (usob b))
+-  let capitalize b  = ubos (capitalize (usob b))
+-  let uncapitalize b = ubos (uncapitalize (usob b))
++##V<5## let uppercase b   = ubos (uppercase (usob b))
++##V<5## let lowercase b   = ubos (lowercase (usob b))
++##V<5## let capitalize b  = ubos (capitalize (usob b))
++##V<5## let uncapitalize b = ubos (uncapitalize (usob b))
++##V>=5##  let uppercase_ascii b    = ubos (uppercase_ascii (usob b))
++##V>=5##  let lowercase_ascii b    = ubos (lowercase_ascii (usob b))
++##V>=5##  let capitalize_ascii b   = ubos (capitalize_ascii (usob b))
++##V>=5##  let uncapitalize_ascii b = ubos (uncapitalize_ascii (usob b))
+   let copy          = Bytes.copy
+   let sub           = Bytes.sub
+   let fill          = Bytes.fill
+diff --git a/src/batUTF8.ml b/src/batUTF8.mlv
+similarity index 99%
+rename from src/batUTF8.ml
+rename to src/batUTF8.mlv
+index 9ee6a52e..d4bc8d76 100644
+--- a/src/batUTF8.ml
++++ b/src/batUTF8.mlv
+@@ -206,7 +206,8 @@ let of_ascii s =
+   for i = 0 to String.length s - 1 do
+     if Char.code s.[i] >= 0x80 then raise Malformed_code;
+   done;
+-  String.copy s
++##V<5## String.copy s
++##V>=5## s
+ 
+ let of_latin1 s = init (String.length s) (fun i -> BatUChar.of_char s.[i])
+ 
+diff --git a/src/batteries.mllib b/src/batteries.mllib
+index 2eca0067..e97c44d2 100644
+--- a/src/batteries.mllib
++++ b/src/batteries.mllib
+@@ -92,3 +92,4 @@ BatInnerPervasives
+   Batteries
+   BatteriesExceptionless
+   Extlib
++  Pervasives
+diff --git a/src/batteries.mlv b/src/batteries.mlv
+index 8a4b4f5b..eda5dfa0 100644
+--- a/src/batteries.mlv
++++ b/src/batteries.mlv
+@@ -176,20 +176,20 @@ end
+ 
+ (* Pervasives last *)
+ ##V<4.3##include Pervasives
+-##V>=4.3##include (Pervasives :
+-##V>=4.3##  module type of Pervasives
+-##V>=4.3##  with type ('a, 'b) result := ('a, 'b) Pervasives.result
+-##V>=4.3##  and  type 'a ref = 'a Pervasives.ref
+-##V>=4.3##  and  type fpclass = Pervasives.fpclass
+-##V>=4.3##  and  type in_channel = Pervasives.in_channel
+-##V>=4.3##  and  type out_channel = Pervasives.out_channel
+-##V>=4.3##  and  type open_flag = Pervasives.open_flag
+-##V>=4.3##  and  type ('a, 'b, 'c, 'd, 'e, 'f) format6 =
+-##V>=4.3##    ('a, 'b, 'c, 'd, 'e, 'f) Pervasives.format6
+-##V>=4.3##  and  type ('a, 'b, 'c, 'd) format4 =
+-##V>=4.3##    ('a, 'b, 'c, 'd) Pervasives.format4
+-##V>=4.3##  and  type ('a, 'b, 'c) format =
+-##V>=4.3##    ('a, 'b, 'c) Pervasives.format
+-##V>=4.3##)
++##V<5####V>=4.3##include (Pervasives :
++##V<5####V>=4.3##  module type of Pervasives
++##V<5####V>=4.3##  with type ('a, 'b) result := ('a, 'b) Pervasives.result
++##V<5####V>=4.3##  and  type 'a ref = 'a Pervasives.ref
++##V<5####V>=4.3##  and  type fpclass = Pervasives.fpclass
++##V<5####V>=4.3##  and  type in_channel = Pervasives.in_channel
++##V<5####V>=4.3##  and  type out_channel = Pervasives.out_channel
++##V<5####V>=4.3##  and  type open_flag = Pervasives.open_flag
++##V<5####V>=4.3##  and  type ('a, 'b, 'c, 'd, 'e, 'f) format6 =
++##V<5####V>=4.3##    ('a, 'b, 'c, 'd, 'e, 'f) Pervasives.format6
++##V<5####V>=4.3##  and  type ('a, 'b, 'c, 'd) format4 =
++##V<5####V>=4.3##    ('a, 'b, 'c, 'd) Pervasives.format4
++##V<5####V>=4.3##  and  type ('a, 'b, 'c) format =
++##V<5####V>=4.3##    ('a, 'b, 'c) Pervasives.format
++##V<5####V>=4.3##)
+ 
+ include BatPervasives
+diff --git a/src/pervasives.mlv b/src/pervasives.mlv
+new file mode 100644
+index 00000000..ff55039c
+--- /dev/null
++++ b/src/pervasives.mlv
+@@ -0,0 +1,3 @@
++
++##V<5## include Pervasives
++##V>=5## include Stdlib
+-- 
+2.38.1
+

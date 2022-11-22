@@ -1,0 +1,26 @@
+From 06a261302d3d5960bab72bc5e610ef28256f082c Mon Sep 17 00:00:00 2001
+From: David Allsopp <david.allsopp@metastack.com>
+Date: Mon, 13 Jun 2022 14:02:41 +0100
+Subject: [PATCH 04/16] Support new OCaml 5 unix primitive names (#1082)
+
+---
+ src/batUnix.mlv | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/batUnix.mlv b/src/batUnix.mlv
+index 03f8463c..4e19fa88 100644
+--- a/src/batUnix.mlv
++++ b/src/batUnix.mlv
+@@ -23,7 +23,8 @@
+ include Unix
+ 
+ ##V<4.8##external link : string -> string -> unit = "unix_link"
+-##V>=4.8##external link : ?follow:bool -> string -> string -> unit = "unix_link"
++##V>=4.8####V<5.0##external link : ?follow:bool -> string -> string -> unit = "unix_link"
++##V>=5.0##external link : ?follow:bool -> string -> string -> unit = "caml_unix_link"
+ 
+ ##V<4.2##let write_substring = write
+ ##V<4.2##let single_write_substring = single_write
+-- 
+2.38.1
+
