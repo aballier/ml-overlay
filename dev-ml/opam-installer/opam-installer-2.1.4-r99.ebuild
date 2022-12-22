@@ -24,9 +24,6 @@ DEPEND="
 	!<dev-ml/opam-2.0.0_beta
 "
 RDEPEND="${DEPEND}"
-PATCHES=(
-	"${FILESDIR}/oc50.patch"
-)
 
 S="${WORKDIR}/opam-full-${MY_PV}"
 OPAM_INSTALLER="${S}/opam-installer"
