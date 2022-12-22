@@ -11,7 +11,7 @@ SRC_URI="https://github.com/Chris00/ocaml-benchmark/releases/download/${PV}/${P}
 
 LICENSE="LGPL-3"
 SLOT="0/${PV}"
-KEYWORDS="~amd64 ~arm ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
