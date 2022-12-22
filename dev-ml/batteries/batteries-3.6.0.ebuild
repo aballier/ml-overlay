@@ -17,12 +17,6 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 PATCHES=(
-	"${FILESDIR}/oc50-1.patch"
-	"${FILESDIR}/oc50-2.patch"
-	"${FILESDIR}/oc50-3.patch"
-	"${FILESDIR}/oc50-4.patch"
-	"${FILESDIR}/oc50-5.patch"
-	"${FILESDIR}/oc50-6.patch"
 	"${FILESDIR}/dune.patch"
 	"${FILESDIR}/dune2.patch"
 )
