@@ -19,7 +19,6 @@ DEPEND="${RDEPEND}
 	test? ( dev-ml/opam-client )"
 
 S="${WORKDIR}/opam-${PV/_/-}"
-PATCHES=( "${FILESDIR}/dose61.patch" )
 
 src_prepare() {
 	sed -e 's/Algo/Dose_algo/g' \
