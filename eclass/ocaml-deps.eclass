@@ -444,7 +444,7 @@ domain-name fmt lwt ptime mirage-crypto-ec hkdf logs ipaddr ipaddr-sexp"
 	[visitors]="ppxlib ppx_deriving result"
 	[webmachine]="ptime cohttp dispatch re"
 	[websocket]="base64 conduit cohttp ocplib-endian astring"
-	[websocket-async]="websocket async cohttp-async core logs-async logs-async-reporter"
+	[websocket-async]="websocket async cohttp-async core logs-async logs-async-reporter core_unix"
 	[websocket-lwt-unix]="websocket lwt_log cohttp-lwt-unix"
 	[wtf8]=""
 	[x509]="cstruct asn1-combinators ptime base64 mirage-crypto mirage-crypto-pk mirage-crypto-ec mirage-crypto-rng
