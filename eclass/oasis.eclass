@@ -69,7 +69,10 @@ if [[ -n ${OASIS_BUILD_TESTS} ]]; then
 	RESTRICT+=" !test? ( test )"
 fi
 
-DEPEND="${RDEPEND}
+DEPEND="${RDEPEND}"
+BDEPEND="
+	dev-ml/camlp-streams
+	dev-ml/findlib
 	dev-ml/ocamlbuild"
 
 # @FUNCTION: oasis_use_enable
@@ -92,7 +95,7 @@ oasis_src_configure() {
 	local confargs=""
 	[ -n "${OASIS_BUILD_TESTS}" ] && confargs="${confargs} $(use_enable test tests)"
 	[ -n "${OASIS_NO_DEBUG}"    ] || confargs="${confargs} $(oasis_use_enable debug debug)"
-	${OASIS_SETUP_COMMAND:-ocaml setup.ml} -configure \
+	${OASIS_SETUP_COMMAND:-ocaml -I $(ocamlfind query camlp-streams) $(ocamlfind query camlp-streams)/camlp_streams.cma setup.ml} -configure \
 		--prefix "${ED}/usr" \
 		--libdir "${ED}/usr/$(get_libdir)" \
 		--docdir "${ED}${OASIS_DOC_DIR}" \
@@ -108,7 +111,7 @@ oasis_src_configure() {
 # Will build documentation if OASIS_BUILD_DOCS is defined and the doc useflag is
 # enabled.
 oasis_src_compile() {
-	${OASIS_SETUP_COMMAND:-ocaml setup.ml} -build || die
+	${OASIS_SETUP_COMMAND:-ocaml -I $(ocamlfind query camlp-streams) $(ocamlfind query camlp-streams)/camlp_streams.cma setup.ml} -build || die
 	if [ -n "${OASIS_BUILD_DOCS}" ] && use doc; then
 		ocaml setup.ml -doc || die
 	fi
@@ -118,7 +121,7 @@ oasis_src_compile() {
 # @DESCRIPTION:
 # Runs the testsuite of an oasis-based package.
 oasis_src_test() {
-	 LD_LIBRARY_PATH="${S}/_build/lib" ${OASIS_SETUP_COMMAND:-ocaml setup.ml} -test || die
+	LD_LIBRARY_PATH="${S}/_build/lib" ${OASIS_SETUP_COMMAND:-ocaml -I $(ocamlfind query camlp-streams) $(ocamlfind query camlp-streams)/camlp_streams.cma setup.ml} -test || die
 }
 
 # @FUNCTION: oasis_src_install
@@ -128,7 +131,7 @@ oasis_src_test() {
 # DOCS variable.
 oasis_src_install() {
 	findlib_src_preinst
-	${OASIS_SETUP_COMMAND:-ocaml setup.ml} -install || die
+	${OASIS_SETUP_COMMAND:-ocaml -I $(ocamlfind query camlp-streams) $(ocamlfind query camlp-streams)/camlp_streams.cma setup.ml} -install || die
 	einstalldocs
 }
 
