@@ -1,0 +1,189 @@
+Index: kaputt-1.2/myocamlbuild.ml
+===================================================================
+--- kaputt-1.2.orig/myocamlbuild.ml
++++ kaputt-1.2/myocamlbuild.ml
+@@ -35,7 +35,7 @@ let () =
+       if Pathname.check_extension filename "mli" then begin
+         let modulename = Pathname.remove_extension filename in
+         let modulename = Pathname.basename modulename in
+-        let modulename = String.capitalize modulename in
++        let modulename = String.capitalize_ascii modulename in
+         output_string odocl_chan modulename;
+         output_char odocl_chan '\n';
+         if not (List.mem modulename ignore_modules) then begin
+@@ -61,7 +61,7 @@ let () =
+     cp src dst in
+   dispatch begin function
+     | After_rules ->
+-        if String.uppercase (try Sys.getenv "WARNINGS" with _ -> "") = "TRUE" then
++        if String.uppercase_ascii (try Sys.getenv "WARNINGS" with _ -> "") = "TRUE" then
+           flag ["ocaml"; "compile"; "warnings"] (S[A"-w"; A"Ae"; A"-warn-error"; A"A"]);
+         dep [version_tag] [version_ml];
+         rule ("generation of " ^ version_ml)
+Index: kaputt-1.2/src/library/enumerator.ml
+===================================================================
+--- kaputt-1.2.orig/src/library/enumerator.ml
++++ kaputt-1.2/src/library/enumerator.ml
+@@ -135,9 +135,9 @@ let string ch len =
+   create_state_based
+     (fun () -> (Array.init len (fun _ -> ch)))
+     (fun s ->
+-      let res = String.create len in
++      let res = Bytes.create len in
+       for i = 0 to pred len do
+-        res.[i] <- match s.State.curr.(i) with Cons (hd, _) -> hd | _ -> assert false
++        Bytes.set res i (match s.State.curr.(i) with Cons (hd, _) -> hd | _ -> assert false)
+       done;
+       Bytes.to_string res)
+     Utils.string_of_string
+@@ -277,9 +277,9 @@ let file_values fn p =
+ (* Combinators over enumerators *)
+ 
+ let lift x s =
+-  let s = String.copy s in
++  let s = String.to_bytes s in
+   (fun () -> Cons (x, lazy Nil)),
+-  (fun _ -> String.copy s)
++  (fun _ -> String.of_bytes s)
+ 
+ let lift_list x prn =
+   let rec l rem =
+Index: kaputt-1.2/src/library/generator.ml
+===================================================================
+--- kaputt-1.2.orig/src/library/generator.ml
++++ kaputt-1.2/src/library/generator.ml
+@@ -152,7 +152,7 @@ let letter =
+     let c = Random.State.bool r in
+     let l = Random.State.int r 26 in
+     let x = Char.chr (l + (Char.code 'a')) in
+-    if c then Char.uppercase x else x),
++    if c then Char.uppercase_ascii x else x),
+   Char.escaped
+ 
+ let alphanum =
+@@ -171,9 +171,9 @@ let alphanum =
+ let string (gen_l, _) (gen_c, _) =
+   (fun r ->
+     let len = gen_l r in
+-    let res = String.create len in
++    let res = Bytes.create len in
+     for i = 0 to pred len do
+-      res.[i] <- gen_c r
++      Bytes.set res i (gen_c r)
+     done;
+     Bytes.to_string res),
+   Utils.string_of_string
+@@ -243,7 +243,7 @@ let total_function (gen, _) =
+         Hashtbl.add memo x y;
+         y in
+     func),
+-  (fun _ -> String.copy "<fun>")
++  (fun _ -> "<fun>")
+ 
+ let partial_function (gen, _) =
+   let return = function
+@@ -259,7 +259,7 @@ let partial_function (gen, _) =
+         Hashtbl.add memo x y;
+         return y in
+     func),
+-  (fun _ -> String.copy "<fun>")
++  (fun _ -> "<fun>")
+ 
+ 
+ (* Generators for containers *)
+@@ -310,8 +310,8 @@ module Map (M : Map.S) (G : Gen with typ
+     let (gen_k, prn_k) = G.g in
+     (fun r ->
+       let len = gen_l r in
+-      let res = Pervasives.ref M.empty in
+-      let size = Pervasives.ref 0 in
++      let res = Stdlib.ref M.empty in
++      let size = Stdlib.ref 0 in
+       while !size < len do
+         let k = gen_k r in
+         if not (M.mem k !res) then begin
+@@ -334,8 +334,8 @@ module Set (S : Set.S) (G : Gen with typ
+     let (gen_e, prn_e) = G.g in
+     (fun r ->
+       let len = gen_l r in
+-      let res = Pervasives.ref S.empty in
+-      let size = Pervasives.ref 0 in
++      let res = Stdlib.ref S.empty in
++      let size = Stdlib.ref 0 in
+       while !size < len do
+         let e = gen_e r in
+         if not (S.mem e !res) then begin
+@@ -353,7 +353,7 @@ let hashtbl (gen_l, _) (gen_k, prn_k) (g
+   (fun r ->
+     let len = gen_l r in
+     let res = Hashtbl.create len in
+-    let size = Pervasives.ref 0 in
++    let size = Stdlib.ref 0 in
+     while !size < len do
+       let k = gen_k r in
+       if not (Hashtbl.mem res k) then begin
+@@ -404,7 +404,7 @@ module Weak (W : Weak.S) (G : Gen with t
+     (fun r ->
+       let len = gen_l r in
+       let res = W.create len in
+-      let size = Pervasives.ref 0 in
++      let size = Stdlib.ref 0 in
+       while !size < len do
+         let e = gen_e r in
+         if not (W.mem res e) then begin
+@@ -438,9 +438,9 @@ let sum_array = Array.fold_left
+     0
+ 
+ let lift x s =
+-  let s' = String.copy s in
++  let s' = String.to_bytes s in
+   (fun _ -> x),
+-  (fun _ -> String.copy s')
++  (fun _ -> String.of_bytes s')
+ 
+ let select_list l f =
+   if l = [] then invalid_arg "Kaputt.Generator.select_list";
+Index: kaputt-1.2/src/library/mock.ml
+===================================================================
+--- kaputt-1.2.orig/src/library/mock.ml
++++ kaputt-1.2/src/library/mock.ml
+@@ -35,7 +35,7 @@ type ('a, 'b) t = {
+ 
+ let default_printer _ = ""
+ 
+-let from_mapping (type s) ?(cmp=Pervasives.compare) ?(prn=default_printer) l =
++let from_mapping (type s) ?(cmp=Stdlib.compare) ?(prn=default_printer) l =
+   let module M = Map.Make (struct type t = s let compare = cmp end) in
+   let map =
+     List.fold_right
+@@ -62,7 +62,7 @@ let from_mapping (type s) ?(cmp=Pervasiv
+   let get_calls () = List.rev !calls in
+   { implementation ; get_count ; get_total ; get_calls }
+ 
+-let from_sequence (type s) ?(cmp=Pervasives.compare) ?(prn=default_printer) l =
++let from_sequence (type s) ?(cmp=Stdlib.compare) ?(prn=default_printer) l =
+   let module M = Map.Make (struct type t = s let compare = cmp end) in
+   let map = ref M.empty in
+   let remaining = ref l in
+@@ -89,7 +89,7 @@ let from_sequence (type s) ?(cmp=Pervasi
+   let get_calls () = List.rev !calls in
+   { implementation ; get_count ; get_total ; get_calls }
+ 
+-let from_function (type s) ?(cmp=Pervasives.compare) f =
++let from_function (type s) ?(cmp=Stdlib.compare) f =
+   let module M = Map.Make (struct type t = s let compare = cmp end) in
+   let map = ref M.empty in
+   let total = ref 0 in
+Index: kaputt-1.2/src/library/utils.ml
+===================================================================
+--- kaputt-1.2.orig/src/library/utils.ml
++++ kaputt-1.2/src/library/utils.ml
+@@ -22,7 +22,7 @@
+ let buffer_size = 256
+ 
+ let string_of_unit () =
+-  String.copy "()"
++  "()"
+ 
+ let string_of_char c =
+   Printf.sprintf "%C" c

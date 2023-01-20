@@ -20,8 +20,9 @@ DEPEND="${RDEPEND}
 	dev-ml/ocamlbuild"
 
 src_prepare() {
-	has_version '>=dev-lang/ocaml-4.06_beta' && eapply "${FILESDIR}/ocaml406.patch"
+	eapply "${FILESDIR}/ocaml406.patch"
 	eapply "${FILESDIR}/numf.patch"
+	eapply "${FILESDIR}/oc5.patch"
 	default
 }
 
