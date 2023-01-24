@@ -18,4 +18,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/${MY_P}"
-PATCHES=( "${FILESDIR}/yojson.patch" )
