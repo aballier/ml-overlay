@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="A binding for SHA interface code in OCaml"
 HOMEPAGE="https://github.com/vincenthz/ocaml-sha"
-SRC_URI="https://github.com/djs55/ocaml-sha/releases/download/${PV}/${P}.tbz"
+SRC_URI="https://github.com/djs55/ocaml-sha/releases/download/v${PV}/${P}.tbz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
