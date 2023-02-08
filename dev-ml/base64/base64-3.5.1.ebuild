@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Library for radix-64 representation (de)coding"
 HOMEPAGE="https://github.com/mirage/ocaml-base64"
-SRC_URI="https://github.com/mirage/ocaml-base64/releases/download/v${PV}/${PN}-v${PV}.tbz"
+SRC_URI="https://github.com/mirage/ocaml-base64/releases/download/v${PV}/${P}.tbz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
@@ -16,4 +16,3 @@ IUSE="test"
 
 RDEPEND="!dev-ml/ocaml-base64"
 DEPEND="${RDEPEND}"
-S="${WORKDIR}/${PN}-v${PV}"
