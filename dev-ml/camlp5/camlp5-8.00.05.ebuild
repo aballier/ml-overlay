@@ -1,15 +1,14 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="7"
+EAPI=8
 
 inherit multilib findlib
 
 MY_P=${P%_p*}
 DESCRIPTION="A preprocessor-pretty-printer of ocaml"
 HOMEPAGE="https://camlp5.github.io/"
-SRC_URI="https://github.com/camlp5/camlp5/archive/rel${PV}.tar.gz -> ${P}.tar.gz"
-S="${WORKDIR}/${PN}-rel${PV}"
+SRC_URI="https://github.com/camlp5/camlp5/archive/refs/tags/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="BSD"
 SLOT="0/${PV}"
