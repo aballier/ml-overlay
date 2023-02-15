@@ -23,7 +23,6 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 RESTRICT="!test? ( test )"
 PATCHES=(
 	"${FILESDIR}/ounit2.patch"
-	"${FILESDIR}/oc414.patch"
 )
 
 src_compile() {
