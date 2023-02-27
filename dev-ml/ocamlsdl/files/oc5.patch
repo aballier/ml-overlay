@@ -1,0 +1,1061 @@
+Index: ocamlsdl-0.9.1/src/common.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/common.c
++++ ocamlsdl-0.9.1/src/common.c
+@@ -38,7 +38,7 @@ value mlsdl_cons(value x,value l)
+ {
+   CAMLparam2(x,l);
+   CAMLlocal1(m);
+-  m=alloc_small(2,Tag_cons);
++  m=caml_alloc_small(2,Tag_cons);
+   Field(m, 0)=x;
+   Field(m, 1)=l;
+   CAMLreturn (m);
+@@ -64,7 +64,7 @@ value mlsdl_lookup_from_c (lookup_info *
+     int i;
+     for (i = table[0].data; i > 0; i--)
+ 	if (table[i].data == data) return table[i].key;
+-    invalid_argument ("ml_lookup_from_c");
++    caml_invalid_argument ("ml_lookup_from_c");
+ }
+     
+ int mlsdl_lookup_to_c (lookup_info *table, value key)
+@@ -77,7 +77,7 @@ int mlsdl_lookup_to_c (lookup_info *tabl
+ 	else first = current + 1;
+     }
+     if (table[first].key == key) return table[first].data;
+-    invalid_argument ("ml_lookup_to_c");
++    caml_invalid_argument ("ml_lookup_to_c");
+ }
+ 
+ 
+@@ -86,7 +86,7 @@ int mlsdl_lookup_to_c (lookup_info *tabl
+ */
+ value abstract_ptr(void *p)
+ {
+-  value v = alloc_small(1, Abstract_tag);
++  value v = caml_alloc_small(1, Abstract_tag);
+   Field(v, 0) = Val_bp(p);
+   return v;
+ }
+@@ -101,7 +101,7 @@ value Val_some(value v)
+ {
+   CAMLparam1(v);
+   CAMLlocal1(r);
+-  r = alloc_small(1, 0);
++  r = caml_alloc_small(1, 0);
+   Field(r, 0) = v;
+   CAMLreturn(r);
+ }
+Index: ocamlsdl-0.9.1/src/common.h
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/common.h
++++ ocamlsdl-0.9.1/src/common.h
+@@ -69,7 +69,7 @@ extern void nullify_abstract(value);
+ /*
+    Optional arguments
+ */
+-#define Val_none Val_unit
++//#define Val_none Val_unit
+ extern value Val_some(value v);
+ #define Unopt(v) Field((v), 0)
+ #define Opt_arg(v, conv, def) (Is_block(v) ? conv(Field((v),0)) : (def))
+Index: ocamlsdl-0.9.1/src/sdl_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdl_stub.c
++++ ocamlsdl-0.9.1/src/sdl_stub.c
+@@ -75,7 +75,7 @@ sdl_init(value auto_clean, value vf)
+   int clean = Opt_arg(auto_clean, Bool_val, 0);
+ 
+   if (SDL_Init(flags) < 0) 
+-    raise_with_string(*caml_named_value("SDL_init_exception"),
++    caml_raise_with_string(*caml_named_value("SDL_init_exception"),
+ 		      SDL_GetError());
+ 
+   if(clean)
+@@ -96,7 +96,7 @@ sdl_init_subsystem (value vf)
+ {
+   int flags = init_flag_val(vf);
+   if (SDL_Init(flags) < 0) 
+-    raise_with_string(*caml_named_value("SDL_init_exception"),
++    caml_raise_with_string(*caml_named_value("SDL_init_exception"),
+ 		      SDL_GetError());
+   return Val_unit;
+ }
+@@ -128,7 +128,7 @@ sdl_version (value unit)
+   const SDL_version *v;
+   value r;
+   v = SDL_Linked_Version();
+-  r = alloc_small(3, 0);
++  r = caml_alloc_small(3, 0);
+   Field(r, 0) = Val_int(v->major);
+   Field(r, 1) = Val_int(v->minor);
+   Field(r, 2) = Val_int(v->patch);
+@@ -139,9 +139,9 @@ sdl_version (value unit)
+    sources ... */
+ CAMLprim value sdl_putenv(value name, value val)
+ {
+-  mlsize_t namelen = string_length(name);
+-  mlsize_t vallen = string_length(val);
+-  char * s = stat_alloc(namelen + 1 + vallen + 1);
++  mlsize_t namelen = caml_string_length(name);
++  mlsize_t vallen = caml_string_length(val);
++  char * s = caml_stat_alloc(namelen + 1 + vallen + 1);
+ 
+   memmove (s, String_val(name), namelen);
+   if(vallen > 0) {
+@@ -151,7 +151,7 @@ CAMLprim value sdl_putenv(value name, va
+   }
+   else
+     s[namelen] = 0;
+-  if (putenv(s) == -1) raise_out_of_memory();
++  if (putenv(s) == -1) caml_raise_out_of_memory();
+   return Val_unit;
+ }
+ 
+Index: ocamlsdl-0.9.1/src/sdlcdrom_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlcdrom_stub.c
++++ ocamlsdl-0.9.1/src/sdlcdrom_stub.c
+@@ -40,10 +40,10 @@ sdlcdrom_raise_exception (char *msg) Nor
+ static void
+ sdlcdrom_raise_exception (char *msg)
+ {
+-  static value *cdrom_exn = NULL;
++  static const value *cdrom_exn = NULL;
+   if(! cdrom_exn)
+     cdrom_exn = caml_named_value("SDLcdrom_exception");
+-  raise_with_string(*cdrom_exn, msg);
++  caml_raise_with_string(*cdrom_exn, msg);
+ }
+ 
+ static void
+@@ -51,10 +51,10 @@ sdlcdrom_raise_nocd () Noreturn;
+ static void
+ sdlcdrom_raise_nocd ()
+ {
+-  static value *cdrom_exn = NULL;
++  static const value *cdrom_exn = NULL;
+   if(! cdrom_exn)
+     cdrom_exn = caml_named_value("SDLcdrom_nocd");
+-  raise_constant(*cdrom_exn);
++  caml_raise_constant(*cdrom_exn);
+ }
+ 
+ /*
+@@ -80,7 +80,7 @@ sdlcdrom_drive_name (value num_drive)
+   if (name == NULL)
+     sdlcdrom_raise_exception(SDL_GetError());
+   
+-  return copy_string((char *)name);
++  return caml_copy_string((char *)name);
+ }
+ 
+ CAMLprim value
+@@ -188,10 +188,10 @@ sdlcdrom_info(value cdrom)
+     CAMLparam0();
+     CAMLlocal3(v, a, t);
+     int i;
+-    a = alloc(cd->numtracks, 0);
++    a = caml_alloc(cd->numtracks, 0);
+     for(i=0; i<cd->numtracks; i++) {
+       SDL_CDtrack tr = cd->track[i];
+-      t = alloc_small(4, 0);
++      t = caml_alloc_small(4, 0);
+       Field(t, 0) = Val_int(tr.id) ;
+       if(tr.type == SDL_AUDIO_TRACK)
+ 	Field(t, 1) = Val_int(0) ;
+@@ -201,7 +201,7 @@ sdlcdrom_info(value cdrom)
+       Field(t, 3) = Val_int(tr.offset);
+       Store_field(a, i, t);
+     }
+-    v = alloc_small(4, 0);
++    v = caml_alloc_small(4, 0);
+     Field(v, 0) = Val_int(cd->numtracks);
+     Field(v, 1) = Val_int(cd->cur_track);
+     Field(v, 2) = Val_int(cd->cur_frame);
+Index: ocamlsdl-0.9.1/src/sdlevent_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlevent_stub.c
++++ ocamlsdl-0.9.1/src/sdlevent_stub.c
+@@ -29,7 +29,7 @@ ML_0(SDL_PumpEvents, Unit)
+ static void raise_event_exn(char *msg) Noreturn;
+ static void raise_event_exn(char *msg)
+ {
+-  static value *exn = NULL;
++  static const value *exn = NULL;
+   if(! exn){
+     exn = caml_named_value("sdlevent_exn");
+     if(! exn) {
+@@ -37,7 +37,7 @@ static void raise_event_exn(char *msg)
+       abort();
+     }
+   }
+-  raise_with_string(*exn, msg);
++  caml_raise_with_string(*exn, msg);
+ }
+ 
+ static value value_of_active_state(Uint8 state)
+@@ -70,7 +70,7 @@ static Uint8 state_of_value(value l)
+ 
+ static value find_mlsdl_keysym(SDLKey key)
+ {
+-  static value *table = NULL;
++  static const value *table = NULL;
+   if(! table){
+     table = caml_named_value("rev_keycode_table");
+     if(! table)
+@@ -81,7 +81,7 @@ static value find_mlsdl_keysym(SDLKey ke
+ 
+ static SDLKey find_sdl_keysym(value mlkey)
+ {
+-  static value *table = NULL;
++  static const value *table = NULL;
+   if(! table){
+     table = caml_named_value("keycode_table");
+     if(! table)
+@@ -96,7 +96,7 @@ static value value_of_keyevent(SDL_Keybo
+   CAMLlocal2(v, r);
+   Uint8 char_code = 0;
+   tag_t tag;
+-  r = alloc_small(6, 0);
++  r = caml_alloc_small(6, 0);
+   Field(r, 0) = Val_int(keyevt.which) ;
+   Field(r, 1) = keyevt.state == SDL_RELEASED ? Val_int(0) : Val_int(1);
+   Field(r, 2) = find_mlsdl_keysym(keyevt.keysym.sym) ;
+@@ -106,7 +106,7 @@ static value value_of_keyevent(SDL_Keybo
+   Field(r, 4) = Val_int(char_code);
+   Field(r, 5) = Val_long(keyevt.keysym.unicode);
+   tag = keyevt.state == SDL_PRESSED ? 1 : 2 ;
+-  v = alloc_small(1, tag);
++  v = caml_alloc_small(1, tag);
+   Field(v, 0) = r;
+   CAMLreturn(v);
+ } 
+@@ -131,10 +131,10 @@ static value value_of_SDLEvent(SDL_Event
+   switch(evt.type){
+   case SDL_ACTIVEEVENT :
+     t = value_of_active_state(evt.active.state);
+-    r = alloc_small(2, 0);
++    r = caml_alloc_small(2, 0);
+     Field(r, 0) = Val_bool(evt.active.gain);
+     Field(r, 1) = t;
+-    v = alloc_small(1, 0);
++    v = caml_alloc_small(1, 0);
+     Field(v, 0) = r;
+     break ;
+   case SDL_KEYDOWN :
+@@ -143,62 +143,62 @@ static value value_of_SDLEvent(SDL_Event
+     break ;
+   case SDL_MOUSEMOTION :
+     t = value_of_mousebutton_state(evt.motion.state);
+-    r = alloc_small(6, 0);
++    r = caml_alloc_small(6, 0);
+     Field(r, 0) = Val_int(evt.motion.which);
+     Field(r, 1) = t;
+     Field(r, 2) = Val_int(evt.motion.x);
+     Field(r, 3) = Val_int(evt.motion.y);
+     Field(r, 4) = Val_int(evt.motion.xrel);
+     Field(r, 5) = Val_int(evt.motion.yrel);
+-    v = alloc_small(1, 3);
++    v = caml_alloc_small(1, 3);
+     Field(v, 0) = r;
+     break ;
+   case SDL_MOUSEBUTTONDOWN :
+   case SDL_MOUSEBUTTONUP :
+     t = value_of_mouse_button(evt.button.button);
+-    r = alloc_small(5, 0);
++    r = caml_alloc_small(5, 0);
+     Field(r, 0) = Val_int(evt.button.which);
+     Field(r, 1) = t;
+     Field(r, 2) = evt.button.state == SDL_RELEASED ? Val_int(0) : Val_int(1);
+     Field(r, 3) = Val_int(evt.button.x);
+     Field(r, 4) = Val_int(evt.button.y);
+     tag = evt.button.state == SDL_PRESSED ? 4 : 5;
+-    v = alloc_small(1, tag);
++    v = caml_alloc_small(1, tag);
+     Field(v, 0) = r ;
+     break ;
+   case SDL_JOYAXISMOTION :
+-    r = alloc_small(3, 0);
++    r = caml_alloc_small(3, 0);
+     Field(r, 0) = Val_int(evt.jaxis.which);
+     Field(r, 1) = Val_int(evt.jaxis.axis);
+     Field(r, 2) = Val_int(evt.jaxis.value);
+-    v = alloc_small(1, 6);
++    v = caml_alloc_small(1, 6);
+     Field(v, 0) = r;
+     break ;
+   case SDL_JOYBALLMOTION :
+-    r = alloc_small(4, 0);
++    r = caml_alloc_small(4, 0);
+     Field(r, 0) = Val_int(evt.jball.which);
+     Field(r, 1) = Val_int(evt.jball.ball);
+     Field(r, 2) = Val_int(evt.jball.xrel);
+     Field(r, 3) = Val_int(evt.jball.yrel);
+-    v = alloc_small(1, 7);
++    v = caml_alloc_small(1, 7);
+     Field(v, 0) = r;
+     break ;
+   case SDL_JOYHATMOTION :
+-    r = alloc_small(3, 0);
++    r = caml_alloc_small(3, 0);
+     Field(r, 0) = Val_int(evt.jhat.which);
+     Field(r, 1) = Val_int(evt.jhat.hat);
+     Field(r, 2) = Val_int(evt.jhat.value);
+-    v = alloc_small(1, 8);
++    v = caml_alloc_small(1, 8);
+     Field(v, 0) = r;
+     break ;
+   case SDL_JOYBUTTONDOWN :
+   case SDL_JOYBUTTONUP :
+-    r = alloc_small(3, 0);
++    r = caml_alloc_small(3, 0);
+     Field(r, 0) = Val_int(evt.jbutton.which);
+     Field(r, 1) = Val_int(evt.jbutton.button);
+     Field(r, 2) = evt.jbutton.state == SDL_RELEASED ? Val_int(0) : Val_int(1);
+     tag = evt.jbutton.state == SDL_PRESSED ? 9 : 10 ;
+-    v = alloc_small(1, tag);
++    v = caml_alloc_small(1, tag);
+     Field(v, 0) = r;
+     break ;
+   case SDL_QUIT :
+@@ -208,7 +208,7 @@ static value value_of_SDLEvent(SDL_Event
+     v = Val_int(1);
+     break;
+   case SDL_VIDEORESIZE :
+-    v = alloc_small(2, 11);
++    v = caml_alloc_small(2, 11);
+     Field(v, 0) = Val_int(evt.resize.w);
+     Field(v, 1) = Val_int(evt.resize.h);
+     break;
+@@ -216,7 +216,7 @@ static value value_of_SDLEvent(SDL_Event
+     v = Val_int(2);
+     break;
+   case SDL_USEREVENT :
+-    v = alloc_small(1, 12);
++    v = caml_alloc_small(1, 12);
+     Field(v, 0) = Val_int(evt.user.code);
+     break;
+   default : 
+@@ -320,7 +320,7 @@ static SDL_Event SDLEvent_of_value(value
+   return evt;
+ 
+  invalid:
+-  invalid_argument("SDLEvent_of_value"); 
++  caml_invalid_argument("SDLEvent_of_value"); 
+ 
+   return evt;  /* silence compiler */
+ }
+Index: ocamlsdl-0.9.1/src/sdlgl_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlgl_stub.c
++++ ocamlsdl-0.9.1/src/sdlgl_stub.c
+@@ -50,7 +50,7 @@ CAMLprim value ml_SDL_GL_GetAttribute(va
+     if( SDL_GL_GetAttribute( GL_attr_map[i], &val) < 0)
+       CAMLreturn( ( sdlvideo_raise_exception(SDL_GetError()) ,
+ 		   Val_unit ) ) ;
+-    a = alloc_small(1, i);
++    a = caml_alloc_small(1, i);
+     Field(a, 0) = Val_int(val);
+     v = mlsdl_cons(a, v);
+   }
+@@ -72,7 +72,7 @@ CAMLprim value ml_SDL_GL_to_raw(value s)
+   void *pixels = surf->pixels;
+   size_t size  = surf->h * surf->pitch;
+   value raw;
+-  raw = alloc_small (SIZE_RAW+1, 0);
++  raw = caml_alloc_small (SIZE_RAW+1, 0);
+   Kind_raw(raw) = MLTAG_ubyte;
+   Size_raw(raw) = Val_int(size);
+   Base_raw(raw) = Val_bp(pixels);
+Index: ocamlsdl-0.9.1/src/sdljoystick_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdljoystick_stub.c
++++ ocamlsdl-0.9.1/src/sdljoystick_stub.c
+@@ -34,14 +34,14 @@
+ static void mlsdljoystick_raise_exception (char *msg) Noreturn;
+ static void mlsdljoystick_raise_exception (char *msg)
+ {
+-  static value *joystick_exn = NULL;
++  static const value *joystick_exn = NULL;
+   if(! joystick_exn)
+     joystick_exn = caml_named_value("SDLjoystick_exception");
+-  raise_with_string(*joystick_exn, msg);
++  caml_raise_with_string(*joystick_exn, msg);
+ }
+ 
+ ML_0(SDL_NumJoysticks, Val_int)
+-ML_1(SDL_JoystickName, Int_val, copy_string)
++ML_1(SDL_JoystickName, Int_val, caml_copy_string)
+ 
+ CAMLprim value
+ ml_SDL_JoystickOpen(value index)
+@@ -76,7 +76,7 @@ CAMLprim value ml_SDL_JoystickGetBall(va
+   int dx, dy;
+   value v;
+   SDL_JoystickGetBall(SDLJoystick_val(j), Int_val(ball), &dx, &dy);
+-  v = alloc_small(2, 0);
++  v = caml_alloc_small(2, 0);
+   Field(v, 0) = Val_int(dx);
+   Field(v, 1) = Val_int(dy);
+   return v;
+Index: ocamlsdl-0.9.1/src/sdlkey_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlkey_stub.c
++++ ocamlsdl-0.9.1/src/sdlkey_stub.c
+@@ -6,7 +6,7 @@
+ 
+ CAMLprim value ml_SDL_GetKeyName(value key)
+ {
+-  return copy_string(SDL_GetKeyName(Int_val(key)));
++  return caml_copy_string(SDL_GetKeyName(Int_val(key)));
+ }
+ 
+ CAMLprim value ml_SDL_DisableKeyRepeat(value unit)
+@@ -28,9 +28,9 @@ CAMLprim value ml_SDL_GetKeyState(value
+   int len;
+   Uint8 *data = SDL_GetKeyState(&len);
+   long llen = len;
+-  value v = alloc_bigarray(BIGARRAY_UINT8 | 
+-			   BIGARRAY_C_LAYOUT | 
+-			   BIGARRAY_EXTERNAL, 1, data, &llen);
++  value v = caml_ba_alloc(CAML_BA_UINT8 | 
++			   CAML_BA_C_LAYOUT | 
++			   CAML_BA_EXTERNAL, 1, data, &llen);
+   return v;
+ }
+ 
+Index: ocamlsdl-0.9.1/src/sdlloader_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlloader_stub.c
++++ ocamlsdl-0.9.1/src/sdlloader_stub.c
+@@ -33,7 +33,7 @@ sdlloader_raise_exception (char *msg) No
+ static void
+ sdlloader_raise_exception (char *msg)
+ {
+-  static value *loader_exn = NULL;
++  static const value *loader_exn = NULL;
+   if(! loader_exn){
+     loader_exn = caml_named_value("SDLloader_exception");
+     if(! loader_exn) {
+@@ -41,7 +41,7 @@ sdlloader_raise_exception (char *msg)
+       abort();
+     }
+   }
+-  raise_with_string(*loader_exn, msg);
++  caml_raise_with_string(*loader_exn, msg);
+ }
+ 
+ CAMLprim value ml_IMG_Load(value file)
+Index: ocamlsdl-0.9.1/src/sdlmixer_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlmixer_stub.c
++++ ocamlsdl-0.9.1/src/sdlmixer_stub.c
+@@ -57,7 +57,7 @@ sdlmixer_raise_exception (char *msg) Nor
+ static void
+ sdlmixer_raise_exception (char *msg)
+ {
+-  static value *mixer_exn = NULL;
++  static const value *mixer_exn = NULL;
+   if(! mixer_exn){
+     mixer_exn = caml_named_value("SDLmixer_exception");
+     if(! mixer_exn) {
+@@ -65,7 +65,7 @@ sdlmixer_raise_exception (char *msg)
+       abort();
+     }
+   }
+-  raise_with_string(*mixer_exn, msg);
++  caml_raise_with_string(*mixer_exn, msg);
+ }
+ 
+ /*
+@@ -115,7 +115,7 @@ sdlmixer_version(value unit)
+   const SDL_version *v;
+   value r;
+ 
+-  r = alloc_small(3, 0);
++  r = caml_alloc_small(3, 0);
+ 
+ #ifdef MIX_VERSION
+   v = Mix_Linked_Version();
+@@ -152,7 +152,7 @@ sdlmixer_query_specs(value unit)
+   default: 
+     abort();
+   }
+-  query  = alloc_small(3, 0);
++  query  = caml_alloc_small(3, 0);
+   Field(query, 0) = Val_int(freq);
+   Field(query, 1) = Val_int(ml_format);
+   Field(query, 2) = Val_int(chan-1);
+@@ -249,7 +249,7 @@ sdlmixer_set_music_cmd(value command)
+ {
+   int ret = Mix_SetMusicCMD(String_val(command));
+   if(ret == -1)
+-    raise_out_of_memory();
++    caml_raise_out_of_memory();
+   return Val_unit;
+ }
+ 
+@@ -309,7 +309,7 @@ sdlmixer_group_available(value grp)
+ {
+   int ret = Mix_GroupAvailable(Int_val(grp));
+   if(ret == -1)
+-    raise_not_found();
++    caml_raise_not_found();
+   return Val_int(ret);
+ }
+ 
+@@ -324,7 +324,7 @@ sdlmixer_group_oldest(value grp)
+ {
+   int ret = Mix_GroupOldest(Int_val(grp));
+   if(ret == -1)
+-    raise_not_found();
++    caml_raise_not_found();
+   return Val_int(ret);
+ }
+ 
+@@ -333,7 +333,7 @@ sdlmixer_group_newer(value grp)
+ {
+   int ret = Mix_GroupNewer(Int_val(grp));
+   if(ret == -1)
+-    raise_not_found();
++    caml_raise_not_found();
+   return Val_int(ret);
+ }
+ 
+@@ -397,19 +397,19 @@ sdlmixer_fadein_channel(value chn, value
+ CAMLprim value
+ sdlmixer_volume_channel(value chn)
+ {
+-  return copy_double(Mix_Volume(Int_val(chn), -1) / (double) MIX_MAX_VOLUME);
++  return caml_copy_double(Mix_Volume(Int_val(chn), -1) / (double) MIX_MAX_VOLUME);
+ }
+ 
+ CAMLprim value
+ sdlmixer_volume_chunk(value chunk)
+ {
+-  return copy_double(Mix_VolumeChunk(SDL_CHUNK(chunk), -1) / (double) MIX_MAX_VOLUME);
++  return caml_copy_double(Mix_VolumeChunk(SDL_CHUNK(chunk), -1) / (double) MIX_MAX_VOLUME);
+ }
+ 
+ CAMLprim value
+ sdlmixer_volume_music(value unit)
+ {
+-  return copy_double(Mix_VolumeMusic(-1) / (double) MIX_MAX_VOLUME);
++  return caml_copy_double(Mix_VolumeMusic(-1) / (double) MIX_MAX_VOLUME);
+ }
+ 
+ CAMLprim value
+@@ -521,7 +521,7 @@ sdlmixer_fading_channel(value chn)
+ {
+   Mix_Fading f;
+   if(Int_val(chn) < 0)
+-    invalid_argument("Sdlmixer.fading_channel");
++    caml_invalid_argument("Sdlmixer.fading_channel");
+   f = Mix_FadingChannel(Int_val(chn));
+   return convert_fading_status(f);
+ }
+@@ -550,7 +550,7 @@ CAMLprim value
+ sdlmixer_paused_channel(value chn)
+ {
+   if(Int_val(chn) < 0)
+-    invalid_argument("Sdlmixer.paused_channel");
++    caml_invalid_argument("Sdlmixer.paused_channel");
+   return Val_bool(Mix_Paused(Int_val(chn)));
+ }
+ 
+@@ -591,7 +591,7 @@ CAMLprim value
+ sdlmixer_playing(value chn)
+ {
+   if(Int_val(chn) < 0)
+-    invalid_argument("Sdlmixer.playing_channel");
++    caml_invalid_argument("Sdlmixer.playing_channel");
+   return Val_bool(Mix_Playing(Int_val(chn)));
+ }
+ 
+Index: ocamlsdl-0.9.1/src/sdlmouse.ml
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlmouse.ml
++++ ocamlsdl-0.9.1/src/sdlmouse.ml
+@@ -52,7 +52,7 @@ let string_of_bits x =
+   let s = Bytes.make 8 ' ' in
+   for i=0 to 7 do
+     if x land (1 lsl i) <> 0
+-    then s.[7-i] <- '@'
++    then Bytes.set s (7-i) '@'
+   done ;
+   Bytes.to_string s
+ 
+Index: ocamlsdl-0.9.1/src/sdlmouse_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlmouse_stub.c
++++ ocamlsdl-0.9.1/src/sdlmouse_stub.c
+@@ -36,7 +36,7 @@ CAMLprim value mlsdlevent_get_mouse_stat
+   else
+     state = SDL_GetMouseState(&x, &y);
+   s = value_of_mousebutton_state(state);
+-  v = alloc_small(3, 0);
++  v = caml_alloc_small(3, 0);
+   Field(v, 0) = Val_int(x);
+   Field(v, 1) = Val_int(y);
+   Field(v, 2) = s ;
+@@ -52,14 +52,14 @@ ML_2(SDL_WarpMouse, Int_val, Int_val, Un
+ 
+ CAMLprim value ml_SDL_CreateCursor(value data, value mask, value hot_x, value hot_y)
+ {
+-  struct caml_bigarray *b_data = Bigarray_val(data);
+-  struct caml_bigarray *b_mask = Bigarray_val(mask);
++  struct caml_ba_array *b_data = Caml_ba_array_val(data);
++  struct caml_ba_array *b_mask = Caml_ba_array_val(mask);
+   SDL_Cursor *c;
+   int h = b_data->dim[0];
+   int w = b_data->dim[1];
+   if(b_mask->dim[0] != h ||
+      b_mask->dim[1] != w)
+-    invalid_argument("Sdl_mouse.create_cursor: wrong data/mask format");
++    caml_invalid_argument("Sdl_mouse.create_cursor: wrong data/mask format");
+   
+   c = SDL_CreateCursor((Uint8 *)b_data->data, (Uint8 *)b_mask->data, 
+ 		       w*8, h, Int_val(hot_x), Int_val(hot_y));
+@@ -67,7 +67,7 @@ CAMLprim value ml_SDL_CreateCursor(value
+     CAMLparam2(data, mask);
+     CAMLlocal2(v, r);
+     v = abstract_ptr(c);
+-    r = alloc_small(3, 0);
++    r = caml_alloc_small(3, 0);
+     Field(r, 0) = v;
+     Field(r, 1) = data;
+     Field(r, 2) = mask;
+@@ -100,7 +100,7 @@ CAMLprim value ml_SDL_GetCursor(value un
+   CAMLlocal2(v, r);  
+   SDL_Cursor *c = SDL_GetCursor();
+   v = abstract_ptr(c);
+-  r = alloc_small(3, 0);
++  r = caml_alloc_small(3, 0);
+   Field(r, 0) = v;
+   Field(r, 1) = Val_unit;
+   Field(r, 2) = Val_unit;
+@@ -118,20 +118,20 @@ CAMLprim value ml_SDL_Cursor_data(value
+     b_mask = Field(cursor, 2);
+   }
+   else {
+-    b_data = alloc_bigarray_dims(BIGARRAY_UINT8 | 
+-				 BIGARRAY_C_LAYOUT | 
+-				 BIGARRAY_EXTERNAL, 
++    b_data = caml_ba_alloc_dims(CAML_BA_UINT8 | 
++				 CAML_BA_C_LAYOUT | 
++				 CAML_BA_EXTERNAL, 
+ 				 2, c->data, 
+ 				 c->area.h,
+ 				 c->area.w / 8);
+-    b_mask = alloc_bigarray_dims(BIGARRAY_UINT8 |
+-				 BIGARRAY_C_LAYOUT | 
+-				 BIGARRAY_EXTERNAL, 
++    b_mask = caml_ba_alloc_dims(CAML_BA_UINT8 |
++				 CAML_BA_C_LAYOUT | 
++				 CAML_BA_EXTERNAL, 
+ 				 2, c->mask, 
+ 				 c->area.h,
+ 				 c->area.w / 8);
+   }
+-  v = alloc_small(6, 0);
++  v = caml_alloc_small(6, 0);
+   Field(v, 0) = b_data;
+   Field(v, 1) = b_mask;
+   Field(v, 2) = Val_int(c->area.w);
+Index: ocamlsdl-0.9.1/src/sdlrwops_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlrwops_stub.c
++++ ocamlsdl-0.9.1/src/sdlrwops_stub.c
+@@ -12,7 +12,7 @@
+ } while(0)
+ 
+ struct mem_pos_data {
+-  void *base;
++  const void *base;
+   size_t off;
+   size_t max;
+ };
+@@ -72,8 +72,8 @@ static int mlsdl_mem_close(SDL_RWops *co
+   void *base;
+   if(! pdata) return 0;
+   base = &pdata->base;
+-  remove_global_root(base);
+-  stat_free(pdata);
++  caml_remove_global_root(base);
++  caml_stat_free(pdata);
+   RWmem_pos_data(context) = NULL;
+   return 0;
+ }
+@@ -83,7 +83,7 @@ CAMLprim value mlsdl_rwops_finalise(valu
+   SDL_RWops *rwops = SDLRWops_val(rw);
+   if(RWOPS_DATA(rwops))
+     rwops->close(rwops);
+-  stat_free(rwops);
++  caml_stat_free(rwops);
+   return Val_unit;
+ }
+ 
+@@ -92,8 +92,8 @@ CAMLprim value mlsdl_rw_from_mem(value b
+   SDL_RWops *rwops;
+   struct mem_pos_data *pdata;
+   void *base;
+-  rwops = stat_alloc(sizeof *rwops);
+-  pdata = stat_alloc(sizeof *pdata);
++  rwops = caml_stat_alloc(sizeof *rwops);
++  pdata = caml_stat_alloc(sizeof *pdata);
+   rwops->seek = mlsdl_mem_seek;
+   rwops->read = mlsdl_mem_read;
+   rwops->write = mlsdl_mem_write;
+@@ -102,9 +102,9 @@ CAMLprim value mlsdl_rw_from_mem(value b
+   RWmem_pos_data(rwops) = pdata;
+   pdata->base = String_val(buff);
+   base = &pdata->base;
+-  register_global_root(base);
++  caml_register_global_root(base);
+   pdata->off = 0;
+-  pdata->max = string_length(buff);
++  pdata->max = caml_string_length(buff);
+   return abstract_ptr(rwops);
+ }
+ 
+Index: ocamlsdl-0.9.1/src/sdlttf_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlttf_stub.c
++++ ocamlsdl-0.9.1/src/sdlttf_stub.c
+@@ -56,7 +56,7 @@ static value ML_FONT(TTF_Font *f)
+ {
+   value v;
+   TTF_Font **b;
+-  v = alloc_custom(&sdl_ttf_ops, sizeof(*b), 0, 1);
++  v = caml_alloc_custom(&sdl_ttf_ops, sizeof(*b), 0, 1);
+   b = Data_custom_val(v);
+   *b = f;
+   return v;
+@@ -71,10 +71,10 @@ sdlttf_raise_exception (char *msg) Noret
+ static void
+ sdlttf_raise_exception (char *msg)
+ {
+-  static value *ttf_exn = NULL;
++  static const value *ttf_exn = NULL;
+   if(! ttf_exn)
+     ttf_exn = caml_named_value("SDLttf_exception");
+-  raise_with_string(*ttf_exn, msg);
++  caml_raise_with_string(*ttf_exn, msg);
+ }
+ 
+ /*
+@@ -180,8 +180,8 @@ ML_1(TTF_FontLineSkip, SDL_FONT, Val_int
+ #if (OCAMLSDL_TTF_VERSION >= 204)
+ ML_1(TTF_FontFaces, SDL_FONT, Val_int)
+ ML_1(TTF_FontFaceIsFixedWidth, SDL_FONT, Val_bool)
+-ML_1(TTF_FontFaceFamilyName, SDL_FONT, copy_string)
+-ML_1(TTF_FontFaceStyleName, SDL_FONT, copy_string)
++ML_1(TTF_FontFaceFamilyName, SDL_FONT, caml_copy_string)
++ML_1(TTF_FontFaceStyleName, SDL_FONT, caml_copy_string)
+ #else
+ Unsupported (TTF_FontFaces)
+ Unsupported (TTF_FontFaceIsFixedWidth)
+@@ -196,7 +196,7 @@ sdlttf_size_text(value font, value text)
+   value v;
+   if(TTF_SizeText(SDL_FONT(font), String_val(text), &w, &h))
+     sdlttf_raise_exception(TTF_GetError());
+-  v = alloc_small(2, 0);
++  v = caml_alloc_small(2, 0);
+   Field(v, 0) = Val_int(w);
+   Field(v, 1) = Val_int(h);
+   return v;
+@@ -315,7 +315,7 @@ sdlttf_glyph_metrics(value fnt, value ch
+    value result;
+    TTF_Font *font = SDL_FONT(fnt);
+    TTF_GlyphMetrics(font, c, &minx, &maxx, &miny, &maxy, &advance);
+-   result = alloc(4, 0);
++   result = caml_alloc(4, 0);
+    Store_field(result, 0, Val_int(minx));
+    Store_field(result, 1, Val_int(maxx));
+    Store_field(result, 2, Val_int(miny));
+@@ -332,7 +332,7 @@ sdlttf_size_utf8(value font, value text)
+   value v;
+   if(TTF_SizeUTF8(SDL_FONT(font), String_val(text), &w, &h))
+     sdlttf_raise_exception(TTF_GetError());
+-  v = alloc_small(2, 0);
++  v = caml_alloc_small(2, 0);
+   Field(v, 0) = Val_int(w);
+   Field(v, 1) = Val_int(h);
+   return v;
+Index: ocamlsdl-0.9.1/src/sdlvideo_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlvideo_stub.c
++++ ocamlsdl-0.9.1/src/sdlvideo_stub.c
+@@ -67,7 +67,7 @@ extern value Val_SDLSurface(SDL_Surface
+   CAMLlocal2(s, v);
+   int used = surf->w * surf->h;
+   struct ml_sdl_surf_data *cb_data;
+-  s = alloc_custom(&sdl_surface_ops, 
++  s = caml_alloc_custom(&sdl_surface_ops, 
+ 		   sizeof (*cb_data),
+ 		   used, 1000000);
+   cb_data = Data_custom_val(s);
+@@ -78,7 +78,7 @@ extern value Val_SDLSurface(SDL_Surface
+   if(barr == Val_unit)
+     CAMLreturn(s);
+   else {
+-    v = alloc_small(2, 0);
++    v = caml_alloc_small(2, 0);
+     Field(v, 0) = s;
+     Field(v, 1) = barr;
+     CAMLreturn(v);
+@@ -92,7 +92,7 @@ extern value Val_SDLSurface(SDL_Surface
+  */
+ void sdlvideo_raise_exception (char *msg)
+ {
+-  static value *video_exn = NULL;
++  static const value *video_exn = NULL;
+   if(! video_exn) {
+     video_exn = caml_named_value("SDLvideo2_exception");
+     if(! video_exn){
+@@ -100,7 +100,7 @@ void sdlvideo_raise_exception (char *msg
+       abort();
+     }
+   }
+-  raise_with_string(*video_exn, msg);
++  caml_raise_with_string(*video_exn, msg);
+ }
+ 
+ /*
+@@ -108,7 +108,7 @@ void sdlvideo_raise_exception (char *msg
+  */
+ static value value_of_Rect(SDL_Rect r)
+ {
+-  value v = alloc_small(4, 0);
++  value v = caml_alloc_small(4, 0);
+   Field(v, 0) = Val_int(r.x);
+   Field(v, 1) = Val_int(r.y);
+   Field(v, 2) = Val_int(r.w);
+@@ -142,14 +142,14 @@ static value value_of_PixelFormat(SDL_Pi
+   CAMLlocal1(v);
+   if( !fmt)
+     abort();
+-  v = alloc(17, 0);
++  v = caml_alloc(17, 0);
+   Store_field(v, 0, fmt->palette ? Val_true : Val_false);
+   Store_field(v, 1, Val_int(fmt->BitsPerPixel));
+   Store_field(v, 2, Val_int(fmt->BytesPerPixel));
+-  Store_field(v, 3, copy_int32(fmt->Rmask));
+-  Store_field(v, 4, copy_int32(fmt->Gmask));
+-  Store_field(v, 5, copy_int32(fmt->Bmask));
+-  Store_field(v, 6, copy_int32(fmt->Amask));
++  Store_field(v, 3, caml_copy_int32(fmt->Rmask));
++  Store_field(v, 4, caml_copy_int32(fmt->Gmask));
++  Store_field(v, 5, caml_copy_int32(fmt->Bmask));
++  Store_field(v, 6, caml_copy_int32(fmt->Amask));
+   Store_field(v, 7, Val_int(fmt->Rshift));
+   Store_field(v, 8, Val_int(fmt->Gshift));
+   Store_field(v, 9, Val_int(fmt->Bshift));
+@@ -158,7 +158,7 @@ static value value_of_PixelFormat(SDL_Pi
+   Store_field(v,12, Val_int(fmt->Gloss));
+   Store_field(v,13, Val_int(fmt->Bloss));
+   Store_field(v,14, Val_int(fmt->Aloss));
+-  Store_field(v,15, copy_int32(fmt->colorkey));
++  Store_field(v,15, caml_copy_int32(fmt->colorkey));
+   Store_field(v,16, Val_int(fmt->alpha));
+   CAMLreturn(v);
+ }
+@@ -211,7 +211,7 @@ CAMLprim value ml_sdl_palette_ncolors(va
+   SDL_Surface *s = SDL_SURFACE(surf);
+   SDL_Palette *p = s->format->palette;
+   if(! p)
+-    invalid_argument("surface not palettized");
++    caml_invalid_argument("surface not palettized");
+   return Val_int(p->ncolors);
+ }
+ 
+@@ -223,11 +223,11 @@ CAMLprim value ml_sdl_palette_get_color(
+   int c_n = Int_val(n);
+   value v;
+   if(! p)
+-    invalid_argument("surface not palettized");
++    caml_invalid_argument("surface not palettized");
+   if(c_n < 0 || c_n >= p->ncolors)
+-    invalid_argument("out of bounds palette access");
++    caml_invalid_argument("out of bounds palette access");
+   c = p->colors[c_n];
+-  v = alloc_small(3, 0);
++  v = caml_alloc_small(3, 0);
+   Field(v, 0) = Val_int(c.r);
+   Field(v, 1) = Val_int(c.g);
+   Field(v, 2) = Val_int(c.b);
+@@ -246,9 +246,9 @@ CAMLprim value ml_SDL_SetPalette(value s
+   LOCALARRAY(SDL_Color, color, n);
+ 
+   if(! p)
+-    invalid_argument("surface not palettized");
++    caml_invalid_argument("surface not palettized");
+   if(firstcolor + n > p->ncolors || firstcolor < 0)
+-    invalid_argument("out of bounds palette access");
++    caml_invalid_argument("out of bounds palette access");
+ 
+   for(i=0; i< n; i++)
+     SDLColor_of_value(&color[i], Field(c_arr, i));
+@@ -270,7 +270,7 @@ CAMLprim value ml_SDL_GetVideoInfo(value
+ {
+   value result;
+   const SDL_VideoInfo *info = SDL_GetVideoInfo();
+-  result = alloc_small(10, 0);
++  result = caml_alloc_small(10, 0);
+   Field(result, 0) = Val_bool(info->hw_available);
+   Field(result, 1) = Val_bool(info->wm_available);
+   Field(result, 2) = Val_bool(info->blit_hw);
+@@ -295,7 +295,7 @@ CAMLprim value ml_SDL_VideoDriverName(va
+   char buff[64];
+   if(! SDL_VideoDriverName(buff, 64))
+     sdlvideo_raise_exception(SDL_GetError());
+-  return copy_string(buff);
++  return caml_copy_string(buff);
+ }
+ 
+ CAMLprim value ml_SDL_ListModes(value obpp, value flag_list)
+@@ -319,12 +319,12 @@ CAMLprim value ml_SDL_ListModes(value ob
+     register int i;
+     l = nil();
+     for(i=0; modes[i]; i++){
+-      r = alloc_small(2, 0);
++      r = caml_alloc_small(2, 0);
+       Field(r, 0) = Val_int(modes[i]->w);
+       Field(r, 1) = Val_int(modes[i]->h);
+       l = mlsdl_cons(r, l);
+     }
+-    v = alloc_small(1, 0);
++    v = caml_alloc_small(1, 0);
+     Field(v, 0) = l;
+     CAMLreturn(v);
+   }
+@@ -345,7 +345,7 @@ CAMLprim value ml_sdl_surface_info(value
+     sdlvideo_raise_exception("dead surface");
+   f = val_video_flag(surf->flags);
+   r = value_of_Rect(surf->clip_rect);
+-  v = alloc_small(6, 0);
++  v = caml_alloc_small(6, 0);
+   Field(v, 0) = f;
+   Field(v, 1) = Val_int(surf->w);
+   Field(v, 2) = Val_int(surf->h);
+@@ -435,7 +435,7 @@ CAMLprim value ml_SDL_MapRGB(value surf,
+     p = SDL_MapRGB(s->format, c.r, c.g, c.b);
+   else
+     p = SDL_MapRGBA(s->format, c.r, c.g, c.b, Int_val(Unopt(alpha)) );
+-  return copy_int32(p);
++  return caml_copy_int32(p);
+ }
+ 
+ CAMLprim value ml_SDL_GetRGB(value surf, value pixel)
+@@ -445,7 +445,7 @@ CAMLprim value ml_SDL_GetRGB(value surf,
+   Uint8 r,g,b;
+   value v;
+   SDL_GetRGB(p, s->format, &r, &g, &b);
+-  v = alloc_small(3, 0);
++  v = caml_alloc_small(3, 0);
+   Field(v, 0) = Val_int(r);
+   Field(v, 1) = Val_int(g);
+   Field(v, 2) = Val_int(b);
+@@ -461,11 +461,11 @@ CAMLprim value ml_SDL_GetRGBA(value surf
+   {
+     CAMLparam0();
+     CAMLlocal2(c, v);
+-    c = alloc_small(3, 0);
++    c = caml_alloc_small(3, 0);
+     Field(c, 0) = Val_int(r);
+     Field(c, 1) = Val_int(g);
+     Field(c, 2) = Val_int(b);
+-    v = alloc_small(2, 0);
++    v = caml_alloc_small(2, 0);
+     Field(v, 0) = c;
+     Field(v, 1) = Val_int(a);
+     CAMLreturn(v);
+@@ -515,7 +515,7 @@ CAMLprim value ml_SDL_CreateRGBSurfaceFr
+ 					   value rmask, value gmask,
+ 					   value bmask, value amask)
+ {
+-  struct caml_bigarray *barr = Bigarray_val(pixels);
++  struct caml_ba_array *barr = Caml_ba_array_val(pixels);
+   SDL_Surface *s = SDL_CreateRGBSurfaceFrom(barr->data, Int_val(w),
+ 					    Int_val(h), Int_val(depth),
+ 					    Int_val(pitch),
+@@ -596,7 +596,7 @@ CAMLprim value ml_SDL_SetColorKey(value
+ CAMLprim value ml_SDL_get_color_key(value s)
+ {
+   SDL_Surface *surf = SDL_SURFACE(s);
+-  return copy_int32(surf->format->colorkey);
++  return caml_copy_int32(surf->format->colorkey);
+ }
+ 
+ CAMLprim value ml_SDL_unset_alpha(value surf)
+@@ -712,26 +712,26 @@ CAMLprim value ml_bigarray_pixels(value
+   int b_flag = 0;
+   long dim = surf->h;
+   if(Bpp != 0 && Bpp != surf->format->BytesPerPixel)
+-    invalid_argument("wrong pixel format");
++    caml_invalid_argument("wrong pixel format");
+   switch (Bpp) {
+   case 0:
+   case 1:  /* 8 bpp */
+     dim *= surf->pitch;
+-    b_flag |= BIGARRAY_UINT8; break;
++    b_flag |= CAML_BA_UINT8; break;
+   case 2:  /* 16 bpp */
+     dim *= surf->pitch / 2;
+-    b_flag |= BIGARRAY_UINT16; break;
++    b_flag |= CAML_BA_UINT16; break;
+   case 3:  /* 24 bpp */
+     dim *= surf->pitch;
+-    b_flag |= BIGARRAY_UINT8; break;
++    b_flag |= CAML_BA_UINT8; break;
+   case 4:  /* 32 bpp */
+     dim *= surf->pitch / 4;
+-    b_flag |= BIGARRAY_INT32; break;
++    b_flag |= CAML_BA_INT32; break;
+   default:
+     sdlvideo_raise_exception("unsupported");
+   }
+-  b_flag |= BIGARRAY_C_LAYOUT | BIGARRAY_EXTERNAL ;
+-  return alloc_bigarray(b_flag, 1, surf->pixels, &dim);
++  b_flag |= CAML_BA_C_LAYOUT | CAML_BA_EXTERNAL ;
++  return caml_ba_alloc(b_flag, 1, surf->pixels, &dim);
+ }
+ 
+ 
+@@ -792,7 +792,7 @@ CAMLprim value ml_SDL_get_pixel(value su
+ {
+   SDL_Surface *s = SDL_SURFACE(surf);
+   Uint32 pixel = getpixel(s, Int_val(x), Int_val(y));
+-  return copy_int32(pixel);
++  return caml_copy_int32(pixel);
+ }
+ 
+ CAMLprim value ml_SDL_get_pixel_color(value surf, value x, value y)
+@@ -802,7 +802,7 @@ CAMLprim value ml_SDL_get_pixel_color(va
+   Uint8 r,g,b;
+   value v;
+   SDL_GetRGB(pixel, s->format, &r, &g, &b);
+-  v = alloc_small(3, 0);
++  v = caml_alloc_small(3, 0);
+   Field(v, 0) = Val_int(r);
+   Field(v, 1) = Val_int(g);
+   Field(v, 2) = Val_int(b);
+Index: ocamlsdl-0.9.1/src/sdlwm_stub.c
+===================================================================
+--- ocamlsdl-0.9.1.orig/src/sdlwm_stub.c
++++ ocamlsdl-0.9.1/src/sdlwm_stub.c
+@@ -13,9 +13,9 @@ CAMLprim value ml_SDL_WM_GetCaption(valu
+   SDL_WM_GetCaption(&title, &icon);
+   if(! title) title = "";
+   if(! icon) icon = "" ;
+-  s1 = copy_string(title);
+-  s2 = copy_string(icon);
+-  v = alloc_small(2, 0);
++  s1 = caml_copy_string(title);
++  s2 = caml_copy_string(icon);
++  v = caml_alloc_small(2, 0);
+   Field(v, 0) = s1;
+   Field(v, 1) = s2;
+   CAMLreturn(v);

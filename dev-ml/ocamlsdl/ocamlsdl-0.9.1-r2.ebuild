@@ -24,7 +24,11 @@ RDEPEND="
 	truetype? ( >=media-libs/sdl-ttf-2.0 )
 "
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/ocamlopt.patch" "${FILESDIR}/oc406.patch" )
+PATCHES=(
+	"${FILESDIR}/ocamlopt.patch"
+	"${FILESDIR}/oc406.patch"
+	"${FILESDIR}/oc5.patch"
+)
 
 src_configure() {
 	myconf=""
