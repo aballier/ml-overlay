@@ -16,3 +16,4 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocam${P}"
+PATCHES=( "${FILESDIR}/oc5.patch" )
