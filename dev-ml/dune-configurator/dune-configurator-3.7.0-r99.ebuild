@@ -19,6 +19,11 @@ RDEPEND="${DEPEND}"
 DEPEND="${DEPEND}"
 S=${WORKDIR}/dune-${PV}
 
+src_prepare() {
+	rm -rf vendor
+	jbuilder_src_prepare
+}
+
 src_configure() {
 	./configure \
 		--libdir "${EPREFIX}/usr/$(get_libdir)/ocaml" \
