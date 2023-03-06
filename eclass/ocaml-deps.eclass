@@ -420,8 +420,8 @@ ppx_ignore_instrumentation ppx_log"
 	[textutils_kernel]="core uutf ppx_jane"
 	[time_now]="base jane-street-headers jst-config ppx_base ppx_optcomp"
 	[timezone]="core ppx_jane"
-	[tls]="ppx_sexp_conv ppx_cstruct cstruct cstruct-sexp sexplib mirage-crypto mirage-crypto-pk mirage-crypto-rng x509
-domain-name fmt mirage-crypto-ec hkdf logs ipaddr ipaddr-sexp"
+	[tls]="cstruct mirage-crypto mirage-crypto-pk mirage-crypto-rng x509
+domain-name fmt mirage-crypto-ec hkdf logs ipaddr"
 	[tls-lwt]="tls cmdliner lwt mirage-crypto-rng-lwt x509"
 	[trie]=""
 	[typerep]="base"
