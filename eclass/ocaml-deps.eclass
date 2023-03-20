@@ -193,7 +193,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[jsonm]="uutf uchar"
 	[jst-config]="base ppx_assert dune-configurator"
 	[js_of_ocaml]="ppxlib js_of_ocaml-compiler"
-	[js_of_ocaml-compiler]="cmdliner yojson menhir ppxlib findlib menhirLib menhirSdk"
+	[js_of_ocaml-compiler]="cmdliner yojson menhir ppxlib findlib menhirLib menhirSdk sedlex"
 	[js_of_ocaml-lwt]="lwt js_of_ocaml js_of_ocaml-ppx lwt_log graphics"
 	[js_of_ocaml-ocamlbuild]="ocamlbuild"
 	[js_of_ocaml-ppx]="ppxlib js_of_ocaml"
