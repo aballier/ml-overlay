@@ -162,7 +162,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ffmpeg-swscale]="ffmpeg-avutil"
 	[fmt]="cmdliner"
 	[fpath]="astring"
-	[gen]="dune-configurator seq"
+	[gen]="seq"
 	[gen_js_api]="ojs ppxlib"
 	[gettext]="fileutils"
 	[gettext-camomile]="gettext camomile"
