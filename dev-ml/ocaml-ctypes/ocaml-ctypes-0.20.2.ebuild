@@ -22,7 +22,6 @@ RDEPEND="
 DEPEND="${RDEPEND}
 	test? ( dev-ml/ounit2 dev-ml/lwt )"
 RESTRICT="!test? ( test )"
-PATCHES=( "${FILESDIR}/tests.patch" )
 
 src_prepare() {
 	sed -e 's/oUnit/ounit2/g' -i Makefile.tests || die
