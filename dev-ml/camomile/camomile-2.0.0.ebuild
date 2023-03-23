@@ -6,8 +6,8 @@ EAPI=8
 inherit jbuilder
 
 DESCRIPTION="Camomile is a comprehensive Unicode library for ocaml"
-HOMEPAGE="https://github.com/yoriyuki/Camomile/wiki"
-SRC_URI="https://github.com/yoriyuki/Camomile/releases/download/${PV}/${P}.tbz"
+HOMEPAGE="https://github.com/savonet/Camomile https://github.com/yoriyuki/Camomile/wiki"
+SRC_URI="https://github.com/savonet/Camomile/archive/refs/tags/v${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="LGPL-2"
 SLOT="0/${PV}"
@@ -16,4 +16,4 @@ IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/oc50.patch" )
+S="${WORKDIR}/Camomile-${PV}"
