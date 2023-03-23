@@ -16,3 +16,4 @@ IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/camo2.patch" )
