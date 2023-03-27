@@ -20,13 +20,11 @@ RDEPEND="${DEPEND}
 "
 BDEPEND=""
 S="${WORKDIR}/coq-${PV}"
-PATCHES=(
-	"${FILESDIR}/oc50.patch"
-	"${FILESDIR}/oc50-1.patch"
-)
 
 src_configure() {
 	ocaml_lib=$(ocamlc -where)
+	# not compatible with ocaml 5
+	#	-native-compiler $(usex ocamlopt yes no)
 	local myconf=(
 		-prefix /usr
 		-libdir /usr/$(get_libdir)/ocaml/coq
