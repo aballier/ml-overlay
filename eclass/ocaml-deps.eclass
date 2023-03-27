@@ -88,10 +88,10 @@ magic-mime logs fmt sexplib0 uri ipaddr core_unix"
 	[conduit-lwt-tls]="conduit-lwt conduit-tls mirage-crypto-rng"
 	[conduit-tls]="conduit ke tls logs bigstringaf"
 	[containers]="dune-configurator seq either"
-	[coq]="coq-core coq-stdlib"
-	[coq-core]="zarith findlib camlp-streams"
+	[coq]="coq-core coq-stdlib coqide-server"
+	[coq-core]="zarith findlib"
 	[coq-stdlib]="coq-core"
-	[coqide]="coqide-server"
+	[coqide]="coqide-server lablgtk3-sourceview3"
 	[coqide-server]="coq-core"
 	[core]="base base_bigstring base_quickcheck bin_prot fieldslib jane-street-headers jst-config ppx_assert ppx_base
 ppx_hash ppx_inline_test ppx_jane ppx_sexp_conv ppx_sexp_message sexplib splittable_random stdio time_now typerep
@@ -776,6 +776,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-snappy") -> ()
 	| String (_,"conf-which") -> ()
 	| String (_,"conf-zlib") -> ()
+	| String (_,"coq-native") -> ()
 	| String (_,"ctypes-foreign") -> ()
 	| String (_,"mirage-xen-ocaml") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
