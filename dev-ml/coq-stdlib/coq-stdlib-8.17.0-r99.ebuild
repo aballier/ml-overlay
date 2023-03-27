@@ -20,7 +20,6 @@ RDEPEND="${DEPEND}
 "
 BDEPEND=""
 S="${WORKDIR}/coq-${PV}"
-PATCHES=( "${FILESDIR}/deps.patch" )
 
 src_configure() {
 	ocaml_lib=$(ocamlc -where)
@@ -33,4 +32,9 @@ src_configure() {
 		)
 
 	./configure ${myconf[@]} || die "configure failed"
+}
+
+src_compile() {
+	emake "dunestrap" "COQ_DUNE_EXTRA_OPT=-split"
+	jbuilder_src_compile
 }
