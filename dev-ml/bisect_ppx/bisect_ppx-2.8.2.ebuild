@@ -1,7 +1,7 @@
 # Copyright 2019-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit jbuilder
 
@@ -17,7 +17,4 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 BDEPEND=""
-PATCHES=(
-	"${FILESDIR}/ppxlib.patch"
-	"${FILESDIR}/ppxlib2.patch"
-)
+PATCHES=( "${FILESDIR}/ppxlib2.patch" )
