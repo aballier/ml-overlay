@@ -1,13 +1,13 @@
 # Copyright 2020-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit jbuilder
 
 DESCRIPTION="Facilities for memoization and fixed points"
 HOMEPAGE="https://gitlab.inria.fr/fpottier/fix"
-SRC_URI="https://gitlab.inria.fr/fpottier/fix/repository/${PV}/archive.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://gitlab.inria.fr/fpottier/fix/-/archive/${PV}/${P}.tar.bz2"
 
 LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
