@@ -1,0 +1,39 @@
+Index: ocaml-cohttp-5.0.0/cohttp-async/bin/cohttp_server_async.ml
+===================================================================
+--- ocaml-cohttp-5.0.0.orig/cohttp-async/bin/cohttp_server_async.ml
++++ ocaml-cohttp-5.0.0/cohttp-async/bin/cohttp_server_async.ml
+@@ -57,7 +57,7 @@ let serve ~info ~docroot ~index uri path
+                             (Some stat.Unix.Stats.kind, stat.Unix.Stats.size, f))
+                         >>| function
+                         | Ok v -> v
+-                        | Error _ -> (None, 0L, f))
++                        | Error _ -> (None, 0L, f)) ~how:`Sequential
+                 >>= fun listing ->
+                 html_of_listing uri path
+                   (sort ((Some `Directory, 0L, "..") :: listing))
+Index: ocaml-cohttp-5.0.0/cohttp-async/src/body_raw.ml
+===================================================================
+--- ocaml-cohttp-5.0.0.orig/cohttp-async/src/body_raw.ml
++++ ocaml-cohttp-5.0.0/cohttp-async/src/body_raw.ml
+@@ -67,7 +67,7 @@ let write_body write_body (body : t) wri
+   match body with
+   | `Empty -> return ()
+   | `String s -> write_body writer s
+-  | `Strings sl -> Deferred.List.iter sl ~f:(write_body writer)
++  | `Strings sl -> Deferred.List.iter sl ~f:(write_body writer) ~how:`Sequential
+   | `Pipe p -> Pipe.iter p ~f:(write_body writer)
+ 
+ let pipe_of_body read_chunk ic =
+Index: ocaml-cohttp-5.0.0/cohttp-async/src/client.ml
+===================================================================
+--- ocaml-cohttp-5.0.0.orig/cohttp-async/src/client.ml
++++ ocaml-cohttp-5.0.0/cohttp-async/src/client.ml
+@@ -124,7 +124,7 @@ let callv ?interrupt ?ssl_config uri req
+   let responses =
+     Pipe.map' ~max_queue_length:1 reqs ~f:(fun reqs ->
+         Deferred.Queue.map reqs ~f:(fun (req, body) ->
+-            Connection.request ~body connection req))
++            Connection.request ~body connection req) ~how:`Sequential )
+   in
+   Pipe.closed responses
+   >>= (fun () -> Connection.close connection)

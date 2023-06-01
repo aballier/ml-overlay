@@ -17,6 +17,7 @@ IUSE=""
 RDEPEND="dev-libs/openssl:0="
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-cohttp-${PV}"
+PATCHES=( "${FILESDIR}/async.patch" )
 
 src_prepare() {
 	jbuilder_src_prepare
