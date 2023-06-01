@@ -95,10 +95,10 @@ magic-mime logs fmt sexplib0 uri ipaddr core_unix"
 	[coqide-server]="coq-core"
 	[core]="base base_bigstring base_quickcheck bin_prot fieldslib jane-street-headers jst-config ppx_assert ppx_base
 ppx_hash ppx_inline_test ppx_jane ppx_sexp_conv ppx_sexp_message sexplib splittable_random stdio time_now typerep
-variantslib"
+variantslib ppx_optcomp"
 	[core_bench]="core core_kernel ppx_jane textutils re core_unix ppx_compare ppx_fields_conv ppx_let ppx_sexp_conv"
 	[core_extended]="core core_unix ppx_jane re record_builder"
-	[core_kernel]="base core int_repr ppx_jane"
+	[core_kernel]="base core int_repr ppx_jane ppx_optcomp"
 	[core_profiler]="core core_kernel ppx_jane re2 shell textutils textutils_kernel"
 	[core_unix]="core core_kernel expect_test_helpers_core jane-street-headers jst-config ocaml_intrinsics ppx_jane
 sexplib spawn timezone"
@@ -307,7 +307,7 @@ cohttp-lwt-unix ocamlnet re ocsigen-ppx-rpc"
 	[owl-base]=""
 	[owl-top]="owl ocaml-compiler-libs"
 	[parmap]="dune-configurator"
-	[parsexp]="sexplib0 base"
+	[parsexp]="sexplib0"
 	[parsexp_io]="base parsexp ppx_js_style stdio"
 	[patdiff]="core core_kernel patience_diff ppx_jane pcre re core_unix expect_test_helpers_core"
 	[patience_diff]="base core ppx_jane"
@@ -349,7 +349,7 @@ cohttp-lwt-unix ocamlnet re ocsigen-ppx-rpc"
 	[ppx_import]="ppxlib"
 	[ppx_inline_test]="base time_now ppxlib"
 	[ppx_jane]="base_quickcheck ppx_assert ppx_base ppx_bench ppx_bin_prot ppx_custom_printf ppx_expect ppx_fields_conv
-ppx_fixed_literal ppx_here ppx_inline_test ppx_let ppx_module_timer ppx_optcomp ppx_optional ppx_pipebang
+ppx_fixed_literal ppx_here ppx_inline_test ppx_let ppx_module_timer ppx_optional ppx_pipebang ppx_stable_witness ppx_tydi
 ppx_sexp_message ppx_sexp_value ppx_stable ppx_string ppx_typerep_conv ppx_variants_conv ppxlib ppx_disable_unused_warnings
 ppx_ignore_instrumentation ppx_log"
 	[ppx_js_style]="base octavius ppxlib"
@@ -373,6 +373,7 @@ ppx_ignore_instrumentation ppx_log"
 	[ppx_string]="base ppx_base ppxlib"
 	[ppx_tools]=""
 	[ppx_tools_versioned]="ocaml-migrate-parsetree"
+	[ppx_tydi]="base ppxlib"
 	[ppx_typerep_conv]="base typerep ppxlib"
 	[ppx_variants_conv]="base variantslib ppxlib"
 	[ppxlib]="ocaml-compiler-libs ppx_derivers sexplib0 stdlib-shims"
