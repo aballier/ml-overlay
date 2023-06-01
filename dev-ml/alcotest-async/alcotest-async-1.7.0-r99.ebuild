@@ -17,3 +17,4 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 S=${WORKDIR}/alcotest-${PV}
+PATCHES=( "${FILESDIR}/async.patch" )
