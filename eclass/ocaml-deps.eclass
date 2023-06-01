@@ -101,7 +101,7 @@ variantslib ppx_optcomp"
 	[core_kernel]="base core int_repr ppx_jane ppx_optcomp"
 	[core_profiler]="core core_kernel ppx_jane re2 shell textutils textutils_kernel"
 	[core_unix]="core core_kernel expect_test_helpers_core jane-street-headers jst-config ocaml_intrinsics ppx_jane
-sexplib spawn timezone"
+sexplib spawn timezone ppx_optcomp"
 	[cppo]=""
 	[cppo_ocamlbuild]="ocamlbuild findlib"
 	[craml]="fmt astring logs cmdliner"
