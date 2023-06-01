@@ -16,3 +16,4 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/ocaml-graphql-server-${PV}"
+PATCHES=( "${FILESDIR}/async.patch" )
