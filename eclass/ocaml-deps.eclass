@@ -644,6 +644,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[sha]="ounit2"
 	[spawn]="ppx_expect"
 	[sqlite3]="ppx_inline_test"
+	[ssl]="alcotest"
 	[stdint]="qcheck"
 	[stringext]="ounit2 qtest"
 	[tls]="alcotest cstruct-unix ounit2 randomconv"
