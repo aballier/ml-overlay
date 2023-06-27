@@ -622,7 +622,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[pbkdf]="alcotest"
 	[pcap-format]="ounit2 mmap"
 	[pp]="ppx_expect"
-	[ppxlib]="base cinaps findlib stdio re sexplib0"
+	[ppxlib]="cinaps findlib re sexplib0"
 	[ppx_blob]="alcotest"
 	[ppx_cstruct]="cppo cstruct-sexp cstruct-unix ounit2 ppx_sexp_conv lwt_ppx ocaml-migrate-parsetree"
 	[ppx_deriving]="ounit2"
@@ -659,6 +659,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[yaml]="alcotest ezjsonm junit_alcotest mdx crowbar fmt logs"
 	[yojson]="alcotest"
 	[webmachine]="ounit2"
+	[zed]="alcotest"
 )
 
 _ocaml_gen_tr_deps() {
