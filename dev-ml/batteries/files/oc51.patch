@@ -1,0 +1,272 @@
+Index: batteries-included-3.6.1/src/batArray.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batArray.mliv
++++ batteries-included-3.6.1/src/batArray.mliv
+@@ -500,6 +500,11 @@ val find_map : ('a -> 'b option) -> 'a a
+     first result of the form [Some v], or [None] if none exist.
+     @since 3.4.0 *)
+ 
++##V>=5.1##  val find_mapi : (int -> 'a -> 'b option) -> 'a array -> 'b option
++##V>=5.1##  val map_inplace : ('a -> 'a) -> 'a array -> unit
++##V>=5.1##  val mapi_inplace : (int -> 'a -> 'a) -> 'a array -> unit
++##V>=5.1##  val find_index : ('a -> bool) -> 'a array -> int option
++
+ val mem : 'a -> 'a array -> bool
+ (** [mem m a] is true if and only if [m] is equal to an element of [a]. *)
+ 
+Index: batteries-included-3.6.1/src/batMarshal.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batMarshal.mliv
++++ batteries-included-3.6.1/src/batMarshal.mliv
+@@ -60,6 +60,7 @@ type extern_flags = Marshal.extern_flags
+     No_sharing                          (** Don't preserve sharing *)
+   | Closures                            (** Send function closures *)
+ ##V>=4.1##  | Compat_32                           (** Ensure 32-bit compatibility *)
++##V>=5.1##  | Compression
+ (** The flags to the [Marshal.to_*] functions below. *)
+ 
+ 
+@@ -100,6 +101,8 @@ val output: _ BatInnerIO.output -> ?shar
+    @since 2.3.0
+ *)
+ 
++##V>=5.1##  val compression_supported : unit -> bool
++
+ external to_string :
+   'a -> extern_flags list -> string = "caml_output_value_to_string"
+ (** Same as [to_bytes] but return the result as a string instead of
+Index: batteries-included-3.6.1/src/batInt32.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batInt32.mliv
++++ batteries-included-3.6.1/src/batInt32.mliv
+@@ -221,6 +221,9 @@ val of_string_opt: string -> int32 optio
+ val to_string : int32 -> string
+ (** Return the string representation of its argument, in signed decimal. *)
+ 
++##V>=5.1## val seeded_hash : int -> int32 -> int
++##V>=5.1## val hash : int32 -> int
++
+ external bits_of_float : float -> int32 = "caml_int32_bits_of_float"
+ ##V>=4.3## "caml_int32_bits_of_float_unboxed" [@@unboxed] [@@noalloc]
+ (** Return the internal representation of the given float according
+Index: batteries-included-3.6.1/src/batInt32.mlv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batInt32.mlv
++++ batteries-included-3.6.1/src/batInt32.mlv
+@@ -179,6 +179,9 @@ external float_of_bits : int32 -> float
+ ##V>=4.3## "caml_int32_float_of_bits_unboxed" [@@unboxed] [@@noalloc]
+ external format : string -> int32 -> string = "caml_int32_format"
+ 
++##V>=5.1##let hash = Int32.hash
++##V>=5.1##let seeded_hash = Int32.seeded_hash
++
+ ##V>=4.08##let unsigned_div = Int32.unsigned_div
+ ##V>=4.08##let unsigned_rem = Int32.unsigned_rem
+ ##V>=4.08##let unsigned_to_int = Int32.unsigned_to_int
+Index: batteries-included-3.6.1/src/batInt64.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batInt64.mliv
++++ batteries-included-3.6.1/src/batInt64.mliv
+@@ -77,6 +77,9 @@ external div : int64 -> int64 -> int64 =
+     its arguments towards zero, as specified for {!Pervasives.(/)}.
+     @raise Division_by_zero if the second argument is zero. *)
+ 
++##V>=5.1## val seeded_hash : int -> int64 -> int
++##V>=5.1## val hash : int64 -> int
++
+ ##V>=4.08##val unsigned_div : int64 -> int64 -> int64
+ ##V>=4.08##(** Same as {!div}, except that arguments and result are interpreted as {e
+ ##V>=4.08##    unsigned} 64-bit integers.
+Index: batteries-included-3.6.1/src/batInt64.mlv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batInt64.mlv
++++ batteries-included-3.6.1/src/batInt64.mlv
+@@ -64,6 +64,9 @@ external float_of_bits : int64 -> float
+ ##V>=4.3## "caml_int64_float_of_bits_unboxed" [@@unboxed] [@@noalloc]
+ external format : string -> int64 -> string = "caml_int64_format"
+ 
++##V>=5.1##let hash = Int64.hash
++##V>=5.1##let seeded_hash = Int64.seeded_hash
++
+ ##V>=4.08##let unsigned_compare = Int64.unsigned_compare
+ ##V>=4.08##let unsigned_to_int = Int64.unsigned_to_int
+ ##V>=4.08##let unsigned_rem = Int64.unsigned_rem
+Index: batteries-included-3.6.1/src/batList.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batList.mliv
++++ batteries-included-3.6.1/src/batList.mliv
+@@ -492,6 +492,9 @@ val find_map : ('a -> 'b option) -> 'a l
+     once found or @raise Not_found if no element matches the
+     predicate.  See also {!filter_map}. *)
+ 
++##V>=5.1##  val find_mapi : (int -> 'a -> 'b option) -> 'a list -> 'b option
++##V>=5.1##  val find_index : ('a -> bool) -> 'a list -> int option
++
+ ##V>=4.10##val concat_map : ('a -> 'b list) -> 'a list -> 'b list
+ ##V>=4.10##(** [List.concat_map f l] gives the same result as
+ ##V>=4.10##    {!List.concat}[ (]{!List.map}[ f l)]. Tail-recursive.
+Index: batteries-included-3.6.1/src/batList.mlv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batList.mlv
++++ batteries-included-3.6.1/src/batList.mlv
+@@ -65,6 +65,9 @@ let rev_map2 = List.rev_map2
+ ##V>=4.10##let find_map_opt = List.find_map
+ ##V>=4.12##let equal = List.equal
+ 
++##V>=5.1##  let find_mapi = List.find_mapi
++##V>=5.1##  let find_index = List.find_index
++
+ (* ::VH:: END GLUE *)
+ 
+ let rec compare_lengths la lb = match la, lb with
+Index: batteries-included-3.6.1/src/batMap.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batMap.mliv
++++ batteries-included-3.6.1/src/batMap.mliv
+@@ -98,6 +98,8 @@ sig
+ 
+       @before 3.3.0 physical equality was not ensured. *)
+ 
++##V>=5.1## val add_to_list: key -> 'a -> 'a list t -> 'a list t
++
+   val update_stdlib : key -> ('a option -> 'a option) -> 'a t -> 'a t
+   (** [update_stdlib k f m] returns a map containing the same bindings as [m],
+       except [k] has a new binding as determined by [f]:
+@@ -446,6 +448,9 @@ sig
+     
+       @since 3.3.0 *)
+ 
++##V>=5.1## val to_list : 'a t -> (key * 'a) list
++##V>=5.1## val of_list : (key * 'a) list -> 'a t
++
+   (** {6 Boilerplate code}*)
+ 
+   (** {7 Printing}*)
+Index: batteries-included-3.6.1/src/batMap.mlv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batMap.mlv
++++ batteries-included-3.6.1/src/batMap.mlv
+@@ -954,6 +954,7 @@ sig
+   val is_empty: 'a t -> bool
+   val cardinal: 'a t -> int
+   val add: key -> 'a -> 'a t -> 'a t
++##V>=5.1## val add_to_list: key -> 'a -> 'a list t -> 'a list t
+   val update_stdlib: key -> ('a option -> 'a option) -> 'a t -> 'a t
+   val update: key -> key -> 'a -> 'a t -> 'a t
+   val find: key -> 'a t -> 'a
+@@ -1010,6 +1011,9 @@ sig
+   val add_seq : (key * 'a) BatSeq.t -> 'a t -> 'a t
+   val of_seq : (key * 'a) BatSeq.t -> 'a t
+ 
++##V>=5.1## val to_list : 'a t -> (key * 'a) list
++##V>=5.1## val of_list : (key * 'a) list -> 'a t
++
+   (** {7 Printing}*)
+ 
+   val print :  ?first:string -> ?last:string -> ?sep:string -> ?kvsep:string ->
+Index: batteries-included-3.6.1/src/batMarshal.mlv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batMarshal.mlv
++++ batteries-included-3.6.1/src/batMarshal.mlv
+@@ -52,3 +52,4 @@ let to_channel out v flags =
+   BatInnerIO.nwrite out (to_string v flags)
+ 
+ 
++##V>=5.1##  let compression_supported = Marshal.compression_supported
+Index: batteries-included-3.6.1/src/batNativeint.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batNativeint.mliv
++++ batteries-included-3.6.1/src/batNativeint.mliv
+@@ -252,6 +252,9 @@ val max: t -> t -> t
+ ##V>=4.08##
+ ##V>=4.08##    @since 2.10.0 and OCaml 4.08.0 *)
+ 
++##V>=5.1##  val hash : t -> int
++##V>=5.1##  val seeded_hash : int -> t -> int
++
+ val equal : t -> t -> bool
+ (** Equality function for 64-bit integers, useful for {!HashedType}. *)
+ 
+Index: batteries-included-3.6.1/src/batNativeint.mlv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batNativeint.mlv
++++ batteries-included-3.6.1/src/batNativeint.mlv
+@@ -82,6 +82,9 @@ external format : string -> nativeint ->
+ ##V>=4.08##let unsigned_rem = Nativeint.unsigned_rem
+ ##V>=4.08##let unsigned_div = Nativeint.unsigned_div
+ 
++##V>=5.1##  let hash = Nativeint.hash
++##V>=5.1##  let seeded_hash = Nativeint.seeded_hash
++
+ type bounded = t
+ let min_num, max_num = min_int, max_int
+ 
+Index: batteries-included-3.6.1/src/batRandom.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batRandom.mliv
++++ batteries-included-3.6.1/src/batRandom.mliv
+@@ -216,6 +216,9 @@ module State : sig
+ ##V>=5##    correlation.  Both PRNGs can be split later, arbitrarily many times.
+ ##V>=5##    @since 3.6.0 and OCaml 5.0.0 *)
+ 
++##V>=5.1##  val to_binary_string : t -> string
++##V>=5.1##  val of_binary_string : string -> t
++
+ end
+ 
+ 
+Index: batteries-included-3.6.1/src/batSeq.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batSeq.mliv
++++ batteries-included-3.6.1/src/batSeq.mliv
+@@ -249,6 +249,9 @@ val find_map : ('a -> 'b option) -> 'a t
+     returns [Some r], if any. Eager, short-cut.
+ *)
+ 
++##V>=5.1##  val find_mapi : (int -> 'a -> 'b option) -> 'a t -> 'b option
++##V>=5.1##  val find_index : ('a -> bool) -> 'a t -> int option
++
+ val filter : ('a -> bool) -> 'a t -> 'a t
+ (** [filter p s] returns the sequence of elements of [s] satisfying
+     [p]. Lazy.
+Index: batteries-included-3.6.1/src/batSeq.mlv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batSeq.mlv
++++ batteries-included-3.6.1/src/batSeq.mlv
+@@ -459,6 +459,9 @@ let of_string ?(first="[") ?(last="]") ?
+ ##V>=4.14##let ints                   = Stdlib.Seq.ints
+ ##V>=4.14##let equal_stdlib           = Stdlib.Seq.equal
+ 
++##V>=5.1##  let find_mapi = Seq.find_mapi
++##V>=5.1##  let find_index = Seq.find_index
++
+ module Infix = struct
+   (** Infix operators matching those provided by {!BatEnum.Infix} *)
+ 
+Index: batteries-included-3.6.1/src/batSplay.mlv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batSplay.mlv
++++ batteries-included-3.6.1/src/batSplay.mlv
+@@ -451,6 +451,9 @@ struct
+     | Some x -> add k x m
+     | None -> remove k m
+ 
++##V>=5.1## let add_to_list x data m =
++##V>=5.1##    let add = function None -> Some [data] | Some l -> Some (data :: l) in update_stdlib x add m
++
+   let mem k m =
+     try ignore (find k m) ; true with Not_found -> false
+ 
+Index: batteries-included-3.6.1/src/batSys.mliv
+===================================================================
+--- batteries-included-3.6.1.orig/src/batSys.mliv
++++ batteries-included-3.6.1/src/batSys.mliv
+@@ -49,6 +49,8 @@ external is_directory : string -> bool =
+     @since 3.10.0
+ *)
+ 
++##V>=5.1## external is_regular_file : string -> bool = "caml_sys_is_regular_file"
++
+ external remove : string -> unit = "caml_sys_remove"
+ (** Remove the given file name from the file system. *)
+ 

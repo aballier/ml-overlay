@@ -17,8 +17,7 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 PATCHES=(
-	"${FILESDIR}/dune.patch"
-	"${FILESDIR}/dune2.patch"
+	"${FILESDIR}/oc51.patch"
 )
 
 DOCS=( "ChangeLog" "FAQ" "README.folders" "README.md" )
