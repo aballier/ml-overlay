@@ -1,9 +1,9 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit eutils multilib findlib opam
+inherit findlib opam
 
 DESCRIPTION="A web framework to program client/server applications"
 HOMEPAGE="http://ocsigen.org/eliom/"
@@ -26,6 +26,11 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	ppx? ( >=dev-ml/ppx_tools-0.99.3:= )"
 DEPEND="${RDEPEND}"
 OPAM_FILE=opam
+
+src_prepare() {
+	has_version '>=dev-lang/ocaml-5.1.0_alpha' && eapply "${FILESDIR}/oc51.patch"
+	default
+}
 
 src_compile() {
 	if use ocamlopt ; then
