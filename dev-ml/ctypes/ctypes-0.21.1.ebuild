@@ -12,9 +12,9 @@ SRC_URI="https://github.com/ocamllabs/ocaml-ctypes/archive/${PV}.tar.gz -> ocaml
 LICENSE="MIT"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64"
-IUSE="test"
+IUSE=""
 
-RDEPEND="dev-libs/libffi:="
+RDEPEND=""
 DEPEND="${RDEPEND}"
 RDEPEND="${RDEPEND}
 	!dev-ml/ocaml-ctypes"
