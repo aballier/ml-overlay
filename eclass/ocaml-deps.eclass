@@ -32,7 +32,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[async_kernel]="core_kernel ppx_jane core"
 	[async_unix]="async_kernel core core_kernel ppx_jane core_unix"
 	[async_rpc_kernel]="async_kernel core protocol_version_header ppx_jane"
-	[async_ssl]="async base core ppx_jane stdio ctypes dune-configurator ppx_optcomp"
+	[async_ssl]="async base core ppx_jane stdio ctypes ctypes-foreign dune-configurator ppx_optcomp"
 	[atd]="easy-format menhir re yojson"
 	[atdgen]="atd atdgen-runtime biniou yojson re"
 	[atdgen-codec-runtime]=""
@@ -118,6 +118,7 @@ sexplib spawn timezone ppx_optcomp"
 	[csv-lwt]="csv lwt"
 	[csvtool]="csv uutf"
 	[ctypes]="integers bigarray-compat dune-configurator"
+	[ctypes-foreign]="ctypes dune-configurator"
 	[cudf]="extlib"
 	[digestif]="eqaf"
 	[dispatch]=""
@@ -556,6 +557,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[cstruct]="alcotest crowbar"
 	[cstruct-sexp]="alcotest"
 	[ctypes]="ounit2"
+	[ctypes-foreign]="ounit2 integers lwt stdlib-shims"
 	[cudf]="ounit2"
 	[digestif]="alcotest astring bos findlib fmt fpath rresult"
 	[dispatch]="alcotest"
@@ -771,10 +773,12 @@ let rec print_deps is_dep = function
 	| String (_,"conf-g++") -> ()
 	| String (_,"conf-jq") -> ()
 	| String (_,"conf-libev") -> ()
+	| String (_,"conf-libffi") -> ()
 	| String (_,"conf-libpcre") -> ()
 	| String (_,"conf-libssl") -> ()
 	| String (_,"conf-libX11") -> ()
 	| String (_,"conf-nanomsg") -> ()
+	| String (_,"conf-ncurses") -> ()
 	| String (_,"conf-npm") -> ()
 	| String (_,"conf-openblas") -> ()
 	| String (_,"conf-openssl") -> ()
@@ -788,7 +792,6 @@ let rec print_deps is_dep = function
 	| String (_,"conf-which") -> ()
 	| String (_,"conf-zlib") -> ()
 	| String (_,"coq-native") -> ()
-	| String (_,"ctypes-foreign") -> ()
 	| String (_,"mirage-xen-ocaml") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
 	| String (_,"ocamlfind") -> if is_dep [] then Printf.printf "findlib\n" else ()
