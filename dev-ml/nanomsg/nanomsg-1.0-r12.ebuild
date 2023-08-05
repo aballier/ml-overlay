@@ -1,9 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit opam eutils
+inherit opam
 
 DESCRIPTION="nanomsg bindings for OCaml"
 HOMEPAGE="https://github.com/rgrinberg/onanomsg"
@@ -33,6 +33,7 @@ PATCHES=(
 	"${FILESDIR}/ipaddr3.patch"
 	"${FILESDIR}/ounit2.patch"
 	"${FILESDIR}/opam.patch"
+	"${FILESDIR}/ctypes.patch"
 )
 
 src_compile() {

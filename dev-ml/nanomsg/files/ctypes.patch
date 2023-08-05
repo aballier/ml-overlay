@@ -1,0 +1,53 @@
+Index: onanomsg-1.0/_tags
+===================================================================
+--- onanomsg-1.0.orig/_tags
++++ onanomsg-1.0/_tags
+@@ -6,6 +6,7 @@ true: debug, bin_annot, safe_string
+ 
+ <lib/nanomsg*>: package(bigstring), \
+ 		package(ctypes), \
++		package(ctypes-foreign), \
+ 		package(ipaddr), \
+ 		package(ppx_deriving.std), \
+ 		package(containers)
+@@ -14,7 +15,7 @@ true: debug, bin_annot, safe_string
+ <lib/nanomsg_lwt.*>: thread, package(lwt.unix), package(lwt_ppx)
+ 
+ <lib_test/*>: package(bigstring), \
+-	      package(ctypes.foreign), \
++	      package(ctypes-foreign), \
+ 	      package(ipaddr), \
+ 	      package(lwt.unix), \
+ 	      package(lwt_ppx), \
+@@ -23,6 +24,6 @@ true: debug, bin_annot, safe_string
+ 	      package(containers)
+ 
+ <examples/*>: package(bigstring), \
+-	      package(ctypes.foreign), \
++	      package(ctypes-foreign), \
+ 	      package(ipaddr), \
+ 	      package(containers)
+Index: onanomsg-1.0/opam
+===================================================================
+--- onanomsg-1.0.orig/opam
++++ onanomsg-1.0/opam
+@@ -23,6 +23,7 @@ depends: [
+   "conf-nanomsg"
+   "ocamlfind" {build}
+   "ctypes" {>= "0.2"}
++  "ctypes-foreign"
+   "containers"
+   "ipaddr"
+   "ppx_deriving"
+Index: onanomsg-1.0/pkg/META
+===================================================================
+--- onanomsg-1.0.orig/pkg/META
++++ onanomsg-1.0/pkg/META
+@@ -1,6 +1,6 @@
+ version = "1.0"
+ description = "Bindings to nanomsg"
+-requires = "ctypes.foreign ipaddr ppx_deriving.std containers bigstring"
++requires = "ctypes ctypes-foreign ipaddr ppx_deriving.std containers bigstring"
+ archive(byte) = "nanomsg.cma"
+ archive(byte, plugin) = "nanomsg.cma"
+ archive(native) = "nanomsg.cmxa"
