@@ -259,7 +259,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[mmap]="bigarray-compat"
 	[msgpck]="ocplib-endian"
 	[mtime]=""
-	[nanomsg]="ctypes ipaddr ppx_deriving containers bigstring"
+	[nanomsg]="ctypes ctypes-foreign ipaddr ppx_deriving containers bigstring"
 	[npy]="camlzip"
 	[num]=""
 	[ocamlbuild]=""
