@@ -1,0 +1,74 @@
+Index: labltk-8.06.13/browser/searchid.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/searchid.ml
++++ labltk-8.06.13/browser/searchid.ml
+@@ -53,6 +53,7 @@ let rec longident_of_path = function
+     Pident id -> Lident (Ident.name id)
+   | Pdot (path, s) -> Ldot (longident_of_path path, s)
+   | Papply (p1, p2) -> Lapply (longident_of_path p1, longident_of_path p2)
++  | Pextra_ty (p, _ ) -> longident_of_path p
+ 
+ let rec remove_prefix lid ~prefix =
+   let rec remove_hd lid ~name =
+Index: labltk-8.06.13/browser/searchpos.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/searchpos.ml
++++ labltk-8.06.13/browser/searchpos.ml
+@@ -69,22 +69,22 @@ let string_of_path p = string_of_longide
+ 
+ let parent_path = function
+     Pdot (path, _) -> Some path
+-  | Pident _ | Papply _ -> None
++  | Pident _ | Papply _ | Pextra_ty _ -> None
+ 
+ let ident_of_path ~default = function
+     Pident i -> i
+   | Pdot (_, s) -> Ident.create_local s
+-  | Papply _ -> Ident.create_local default
++  | Papply _ | Pextra_ty _ -> Ident.create_local default
+ 
+ let rec head_id = function
+     Pident id -> id
+   | Pdot (path,_) -> head_id path
+-  | Papply (path,_) -> head_id path (* wrong, but ... *)
++  | Papply (path,_) | Pextra_ty (path, _ ) -> head_id path (* wrong, but ... *)
+ 
+ let rec list_of_path = function
+     Pident id -> [Ident.name id]
+   | Pdot (path, s) -> list_of_path path @ [s]
+-  | Papply (path, _) -> list_of_path path (* wrong, but ... *)
++  | Papply (path, _) | Pextra_ty (path, _) -> list_of_path path (* wrong, but ... *)
+ 
+ (* a simple wrapper *)
+ 
+@@ -882,7 +882,7 @@ and search_pos_expr ~pos exp =
+   | Texp_letmodule (id, _, _, modexp, exp) ->
+       search_pos_module_expr modexp ~pos;
+       search_pos_expr exp ~pos
+-  | Texp_assert exp ->
++  | Texp_assert (exp, _) ->
+       search_pos_expr exp ~pos
+   | Texp_lazy exp ->
+       search_pos_expr exp ~pos
+@@ -946,6 +946,7 @@ and search_pos_module_expr ~pos (m :modu
+     | Tmod_functor (_, m) -> search_pos_module_expr m ~pos
+     | Tmod_apply (a, b, _) ->
+         search_pos_module_expr a ~pos; search_pos_module_expr b ~pos
++    | Tmod_apply_unit a -> search_pos_module_expr a ~pos
+     | Tmod_constraint (m, _, _, _) -> search_pos_module_expr m ~pos
+     | Tmod_unpack (e, _) -> search_pos_expr e ~pos
+     end;
+Index: labltk-8.06.13/browser/typecheck.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/typecheck.ml
++++ labltk-8.06.13/browser/typecheck.ml
+@@ -123,8 +123,7 @@ let f txt =
+     | Ptop_dir _ -> ()
+     end;
+     let open Cmt2annot in
+-    let iter = iterator true ~scope:(Location.in_file txt.name) in
+-    List.iter ~f:(binary_part iter) (Cmt_format.get_saved_types ());
++    gen_annot None ~sourcefile:(Some txt.name) ~use_summaries:true (Cmt_format.read_cmt txt.name).cmt_annots;
+     txt.type_info <- Stypes.get_info ();
+ 
+   with

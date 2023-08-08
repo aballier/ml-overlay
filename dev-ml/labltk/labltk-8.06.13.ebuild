@@ -19,6 +19,7 @@ RDEPEND=">=dev-lang/tk-8.0.3:=
 	X? ( dev-ml/graphics:= x11-libs/libX11 )"
 DEPEND="${RDEPEND}
 	>=dev-ml/findlib-1.5.5-r1"
+PATCHES=( "${FILESDIR}/oc51.patch" )
 
 src_configure() {
 	tc-export RANLIB
