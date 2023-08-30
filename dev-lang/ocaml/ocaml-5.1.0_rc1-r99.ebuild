@@ -14,10 +14,11 @@ LICENSE="QPL-1.0 LGPL-2"
 # so here we go with the subslot.
 SLOT="0/${PV}"
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~amd64-linux ~x86-linux ~ppc-macos"
-IUSE="emacs flambda latex +ocamlopt xemacs"
+IUSE="emacs flambda latex +ocamlopt xemacs +zstd"
 
 RDEPEND="
 	sys-libs/binutils-libs:=
+	zstd? ( app-arch/zstd:= )
 "
 DEPEND="${RDEPEND}
 	virtual/pkgconfig"
@@ -32,7 +33,8 @@ S="${WORKDIR}/${MY_P}"
 src_configure() {
 	econf \
 		--libdir="${EPREFIX}/usr/$(get_libdir)/ocaml" \
-		$(use_enable flambda)
+		$(use_enable flambda) \
+		$(use_with zstd)
 }
 
 src_compile() {
