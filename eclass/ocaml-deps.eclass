@@ -618,6 +618,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[ocaml-version]="alcotest"
 	[ocamlformat]="ocamlformat-rpc-lib cmdliner"
 	[ocamlformat-lib]="alcotest ocamlformat-rpc-lib ocp-indent"
+	[ocamlgraph]="graphics"
 	[odoc]="bos findlib ppx_expect yojson crunch"
 	[odoc-parser]="ppx_expect"
 	[opam-file-format]="alcotest"
