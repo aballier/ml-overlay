@@ -91,7 +91,7 @@ magic-mime logs fmt sexplib0 uri ipaddr core_unix"
 	[coq]="coq-core coq-stdlib coqide-server"
 	[coq-core]="zarith findlib"
 	[coq-stdlib]="coq-core"
-	[coqide]="coqide-server lablgtk3-sourceview3"
+	[coqide]="coqide-server lablgtk3-sourceview3 cairo2"
 	[coqide-server]="coq-core"
 	[core]="base base_bigstring base_quickcheck bin_prot fieldslib jane-street-headers jst-config ppx_assert ppx_base
 ppx_hash ppx_inline_test ppx_jane ppx_sexp_conv ppx_sexp_message sexplib splittable_random stdio time_now typerep
@@ -477,6 +477,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[batteries]="findlib ocamlbuild"
 	[bos]="findlib topkg ocamlbuild"
 	[camlimages]="cppo dune-configurator findlib"
+	[coqide]="findlib"
 	[cohttp]="jsonm"
 	[eliom]="js_of_ocaml-ocamlbuild"
 	[extunix]="dune-configurator ppxlib"
@@ -761,10 +762,12 @@ let rec print_deps is_dep = function
 	| String (_,"base-bytes") -> ()
 	| String (_,"base-threads") -> ()
 	| String (_,"base-unix") -> ()
+	| String (_,"conf-adwaita-icon-theme") -> ()
 	| String (_,"conf-cairo") -> ()
 	| String (_,"conf-capnproto") -> ()
 	| String (_,"conf-dpkg") -> ()
 	| String (_,"conf-ffmpeg") -> ()
+	| String (_,"conf-findutils") -> ()
 	| String (_,"conf-freetype") -> ()
 	| String (_,"conf-fts") -> ()
 	| String (_,"conf-glib-2") -> ()
