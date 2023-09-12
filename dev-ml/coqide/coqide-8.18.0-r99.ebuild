@@ -17,6 +17,7 @@ IUSE=""
 DEPEND="dev-ml/lablgtk3-sourceview3:="
 RDEPEND="${DEPEND}
 	!<sci-mathematics/coq-8.14.1
+	x11-themes/adwaita-icon-theme
 "
 BDEPEND=""
 S="${WORKDIR}/coq-${PV}"
