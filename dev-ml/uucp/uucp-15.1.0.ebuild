@@ -21,7 +21,6 @@ OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build \
-		--with-uutf true \
 		--with-uunf false \
 		--with-cmdliner true \
 		|| die
