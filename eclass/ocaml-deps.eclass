@@ -277,7 +277,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ocaml_intrinsics]="dune-configurator"
 	[ocplib-endian]=""
 	[ocp-indent]="cmdliner findlib"
-	[ocsigenserver]="camlzip findlib react ssl lwt lwt_ssl lwt_react lwt_log pcre cryptokit ipaddr cohttp-lwt-unix hmap
+	[ocsigenserver]="camlzip findlib react ssl lwt lwt_ssl lwt_react lwt_log re cryptokit ipaddr cohttp-lwt-unix hmap
 xml-light conduit-lwt-unix"
 	[ocsigen-i18n]="ppxlib"
 	[ocsigen-ppx-rpc]="ppxlib"
