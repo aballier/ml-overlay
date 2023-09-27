@@ -11,7 +11,7 @@ if [ "${PV#9999}" != "${PV}" ] ; then
 	EGIT_REPO_URI="https://github.com/ocsigen/ocsigenserver"
 	KEYWORDS=""
 else
-	SRC_URI="https://github.com/ocsigen/ocsigenserver/archive/${PV}.tar.gz -> ${P}.tar.gz"
+	SRC_URI="https://github.com/ocsigen/ocsigenserver/archive/refs/tags/${PV}.tar.gz -> ${P}.tar.gz"
 	KEYWORDS="~amd64"
 fi
 
@@ -29,7 +29,6 @@ DEPEND="
 		dbm? ( dev-ml/camldbm:= )
 		sqlite? ( dev-ml/sqlite3:= )"
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/cohttp.patch" )
 
 pkg_setup() {
 	enewgroup ocsigenserver
