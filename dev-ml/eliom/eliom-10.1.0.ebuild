@@ -27,11 +27,6 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 DEPEND="${RDEPEND}"
 OPAM_FILE=opam
 
-src_prepare() {
-	has_version '>=dev-lang/ocaml-5.1.0_alpha' && eapply "${FILESDIR}/oc51.patch"
-	default
-}
-
 src_compile() {
 	if use ocamlopt ; then
 		emake PPX=$(usex ppx true false) all
