@@ -141,7 +141,7 @@ sexplib spawn timezone ppx_optcomp"
 	[eigen]="ctypes"
 	[either]=""
 	[eliom]="findlib ppx_deriving js_of_ocaml-compiler js_of_ocaml js_of_ocaml-lwt js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json
-js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib ocsipersist"
+js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib ocsipersist ppx_optcomp"
 	[expect_test_helpers]="async core expect_test_helpers_kernel ppx_jane sexp_pretty"
 	[expect_test_helpers_core]="base base_quickcheck core ppx_jane re sexp_pretty stdio"
 	[expect_test_helpers_kernel]="base base_quickcheck core_kernel ppx_jane sexp_pretty re stdio"
