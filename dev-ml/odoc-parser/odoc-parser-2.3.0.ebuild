@@ -6,8 +6,8 @@ EAPI=8
 inherit jbuilder
 
 DESCRIPTION="Parser for odoc markup"
-HOMEPAGE="https://github.com/ocaml-doc/odoc-parser"
-SRC_URI="https://github.com/ocaml-doc/odoc-parser/releases/download/${PV}/${P}.tbz"
+HOMEPAGE="https://github.com/ocaml/odoc"
+SRC_URI="https://github.com/ocaml/odoc/releases/download/v${PV}/odoc-${PV}.tbz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
@@ -16,3 +16,4 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
+S="${WORKDIR}/odoc-${PV}"
