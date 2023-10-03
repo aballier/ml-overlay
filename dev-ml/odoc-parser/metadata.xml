@@ -6,6 +6,6 @@
 	<name>Gentoo ML Project</name>
 </maintainer>
 <upstream>
-	<remote-id type="github">ocaml-doc/odoc-parser</remote-id>
+	<remote-id type="github">ocaml/odoc</remote-id>
 </upstream>
 </pkgmetadata>
