@@ -1,0 +1,40 @@
+From d7b348c87aaf318dbbe11e01cb88c644f9a2a01c Mon Sep 17 00:00:00 2001
+From: Julien SAGOT <1826552+sagotch@users.noreply.github.com>
+Date: Fri, 4 Mar 2022 21:06:29 +0100
+Subject: [PATCH] Fixed compilation with tyxml 4.6.0
+
+---
+ opam                               | 2 +-
+ src/lib/eliom_form.eliom           | 2 +-
+ src/lib/eliom_shared_content.eliom | 5 +++++
+ 3 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib/eliom_form.eliom b/src/lib/eliom_form.eliom
+index a2612523ea..15f406b8ff 100644
+--- a/src/lib/eliom_form.eliom
++++ b/src/lib/eliom_form.eliom
+@@ -148,7 +148,7 @@ module Make_links (Html : Html) = struct
+ 
+   let js_script ?(a = []) ~uri () =
+     let a =
+-      Html.a_mime_type "text/javascript"
++      Html.a_script_type `Javascript
+       :: Html.a_src uri
+       :: (a :> Html_types.script_attrib attrib list)
+     in
+diff --git a/src/lib/eliom_shared_content.eliom b/src/lib/eliom_shared_content.eliom
+index 184f0cebcd..b463dabb9c 100644
+--- a/src/lib/eliom_shared_content.eliom
++++ b/src/lib/eliom_shared_content.eliom
+@@ -324,6 +324,11 @@ module Html = struct
+         : (Html_types.input_type -> string) Eliom_shared.Value.t
+         :> ([< Html_types.input_type] -> string) Eliom_shared.Value.t)
+ 
++    let string_of_script_type () =
++      ([%shared Raw_wrapped_functions.string_of_script_type]
++       : (Html_types.script_type -> string) Eliom_shared.Value.t
++       :> ([< Html_types.script_type] -> string) Eliom_shared.Value.t)
++
+     let string_of_linktypes () =
+       ([%shared Raw_wrapped_functions.string_of_linktypes]
+         : (Html_types.linktype list -> string) Eliom_shared.Value.t

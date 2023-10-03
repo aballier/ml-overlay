@@ -26,6 +26,7 @@ RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
 	ppx? ( >=dev-ml/ppx_tools-0.99.3:= )"
 DEPEND="${RDEPEND}"
 OPAM_FILE=opam
+PATCHES=( "${FILESDIR}/tyxml.patch" )
 
 src_compile() {
 	if use ocamlopt ; then
