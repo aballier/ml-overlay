@@ -217,7 +217,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ldap]="pcre ssl ocamlnet camlp-streams"
 	[logs]=""
 	[logs-async]="logs async_kernel"
-	[logs-async-reporter]="logs fmt async"
+	[logs-async-reporter]="logs fmt async zstandard core yojson"
 	[lru]="psq"
 	[lru_cache]="core ppx_jane"
 	[lwt]="ocplib-endian dune-configurator"
@@ -469,6 +469,7 @@ pbkdf fmt gmap domain-name logs ipaddr"
 	[zarith]=""
 	[zarith_stubs_js]=""
 	[zed]="result uucp uuseg uutf react uchar"
+	[zstandard]="core core_kernel ppx_jane ctypes"
 )
 
 declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
@@ -796,6 +797,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-snappy") -> ()
 	| String (_,"conf-which") -> ()
 	| String (_,"conf-zlib") -> ()
+	| String (_,"conf-zstd") -> ()
 	| String (_,"coq-native") -> ()
 	| String (_,"mirage-xen-ocaml") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
