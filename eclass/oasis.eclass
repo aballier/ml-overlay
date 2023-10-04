@@ -14,7 +14,7 @@
 # Most of these packages will just have to inherit the eclass, set their
 # dependencies and the DOCS variable for base.eclass to install it and be done.
 #
-# It inherits multilib, findlib, eutils and base eclasses.
+# It inherits multilib, findlib and base eclasses.
 # Ebuilds using oasis.eclass must be EAPI>=3.
 
 # @ECLASS-VARIABLE: OASIS_BUILD_DOCS
@@ -54,7 +54,7 @@
 # EPREFIX is automatically prepended.
 : ${OASIS_DOC_DIR:="/usr/share/doc/${PF}/html"}
 
-inherit multilib findlib eutils
+inherit multilib findlib
 
 case ${EAPI:-0} in
 	0|1|2|3|4|5|6) die "You need at least EAPI-7 to use oasis.eclass";;
