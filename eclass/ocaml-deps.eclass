@@ -282,7 +282,7 @@ xml-light conduit-lwt-unix"
 	[ocsigen-i18n]="ppxlib"
 	[ocsigen-ppx-rpc]="ppxlib"
 	[ocsigen-start]="pgocaml pgocaml_ppx safepass ocsigen-i18n eliom ocsigen-toolkit yojson resource-pooling
-cohttp-lwt-unix ocamlnet re ocsigen-ppx-rpc"
+cohttp-lwt-unix re ocsigen-ppx-rpc"
 	[ocsigen-toolkit]="eliom calendar js_of_ocaml"
 	[ocsipersist]="lwt ocsigenserver ocsipersist-lib ocsipersist-dbm ocsipersist-pgsql ocsipersist-sqlite"
 	[ocsipersist-dbm]="ocsipersist-lib lwt lwt_log xml-light ocsigenserver ocsipersist-lib camldbm"
