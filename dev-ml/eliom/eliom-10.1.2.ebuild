@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit findlib opam
+inherit jbuilder
 
 DESCRIPTION="A web framework to program client/server applications"
 HOMEPAGE="http://ocsigen.org/eliom/"
@@ -20,31 +20,8 @@ fi
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
-IUSE="doc +ocamlopt +ppx"
+IUSE=""
 
-RDEPEND=">=dev-lang/ocaml-4.03:=[ocamlopt?]
-	ppx? ( >=dev-ml/ppx_tools-0.99.3:= )"
+RDEPEND=""
 DEPEND="${RDEPEND}"
-OPAM_FILE=opam
 PATCHES=( "${FILESDIR}/tyxml.patch" "${FILESDIR}/tyxml2.patch" )
-
-src_compile() {
-	if use ocamlopt ; then
-		emake PPX=$(usex ppx true false) all
-	else
-		emake PPX=$(usex ppx true false) byte
-	fi
-	use doc && emake doc
-	emake man
-}
-
-src_install() {
-	opam_src_install
-	dodoc CHANGES README.md
-	if use doc ; then
-		docinto client/html
-		dodoc -r _build/src/lib/client/api.docdir/*
-		docinto server/html
-		dodoc -r _build/src/lib/server/api.docdir/*
-	fi
-}
