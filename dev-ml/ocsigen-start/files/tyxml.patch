@@ -1,0 +1,20 @@
+Index: ocsigen-start-6.1.1/src/os_user_view.eliom
+===================================================================
+--- ocsigen-start-6.1.1.orig/src/os_user_view.eliom
++++ ocsigen-start-6.1.1/src/os_user_view.eliom
+@@ -231,7 +231,6 @@ let%shared password_form ?(a_placeholder
+          D.Form.input
+            ~a:
+              [ a_required ()
+-             ; a_autocomplete false
+              ; a_placeholder a_placeholder_pwd ]
+            ~input_type:`Password ~name:pwdn D.Form.string
+        in
+@@ -239,7 +238,6 @@ let%shared password_form ?(a_placeholder
+          D.Form.input
+            ~a:
+              [ a_required ()
+-             ; a_autocomplete false
+              ; a_placeholder a_placeholder_confirmation ]
+            ~input_type:`Password ~name:pwd2n D.Form.string
+        in
