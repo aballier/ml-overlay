@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Parser for odoc markup"
 HOMEPAGE="https://github.com/ocaml/odoc"
-SRC_URI="https://github.com/ocaml/odoc/releases/download/v${PV}/odoc-${PV}.tbz"
+SRC_URI="https://github.com/ocaml/odoc/releases/download/${PV}/odoc-${PV}.tbz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
