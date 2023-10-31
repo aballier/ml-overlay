@@ -537,6 +537,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[atdgen]="atdgen-codec-runtime alcotest"
 	[base64]="alcotest bos rresult fmt"
 	[batteries]="benchmark qcheck qtest"
+	[bechamel]="alcotest"
 	[bigstring]="alcotest bigstring-unix"
 	[bigstringaf]="alcotest"
 	[bisect_ppx]="ocamlformat"
