@@ -19,6 +19,7 @@ S="${WORKDIR}/${PN}-${MY_P}"
 
 PATCHES=(
 	"${FILESDIR}/nowarn.patch"
+	"${FILESDIR}/install.patch"
 )
 
 src_compile() {
