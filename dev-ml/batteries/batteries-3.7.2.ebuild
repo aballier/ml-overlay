@@ -16,9 +16,6 @@ IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
-PATCHES=(
-	"${FILESDIR}/oc51.patch"
-)
 
 DOCS=( "ChangeLog" "FAQ" "README.folders" "README.md" )
 
