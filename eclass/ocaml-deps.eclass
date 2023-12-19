@@ -60,7 +60,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[calendar]="re"
 	[camlbz2]=""
 	[camldbm]=""
-	[camlimages]="base stdio graphics lablgtk"
+	[camlimages]="graphics lablgtk"
 	[camlp-streams]=""
 	[camlzip]=""
 	[camomile]="camlp-streams dune-site"
@@ -476,7 +476,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[angstrom]="ocaml-syntax-shims"
 	[astring]="findlib topkg ocamlbuild"
 	[bos]="findlib topkg ocamlbuild"
-	[camlimages]="cppo dune-configurator findlib"
+	[camlimages]="cppo dune-configurator findlib base stdio"
 	[coqide]="findlib"
 	[cohttp]="jsonm"
 	[eliom]="js_of_ocaml-ocamlbuild"
@@ -772,6 +772,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-freetype") -> ()
 	| String (_,"conf-fts") -> ()
 	| String (_,"conf-glib-2") -> ()
+	| String (_,"conf-ghostscript") -> ()
 	| String (_,"conf-gmp-powm-sec") -> ()
 	| String (_,"conf-gnomecanvas") -> ()
 	| String (_,"conf-gtksourceview3") -> ()
@@ -780,7 +781,10 @@ let rec print_deps is_dep = function
 	| String (_,"conf-jq") -> ()
 	| String (_,"conf-libev") -> ()
 	| String (_,"conf-libffi") -> ()
+	| String (_,"conf-libgif") -> ()
+	| String (_,"conf-libjpeg") -> ()
 	| String (_,"conf-libpcre") -> ()
+	| String (_,"conf-libpng") -> ()
 	| String (_,"conf-libssl") -> ()
 	| String (_,"conf-libX11") -> ()
 	| String (_,"conf-nanomsg") -> ()
