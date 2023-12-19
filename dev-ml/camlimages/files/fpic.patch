@@ -1,0 +1,13 @@
+Index: camlimages-5.0.5/config/xConfigurator.ml
+===================================================================
+--- camlimages-5.0.5.orig/config/xConfigurator.ml
++++ camlimages-5.0.5/config/xConfigurator.ml
+@@ -67,7 +67,7 @@ module Configurator = struct
+     let merge c1 c2 =
+       { libs = c1.libs @ c2.libs; cflags = c1.cflags @ c2.cflags }
+ 
+-    let empty = { libs= []; cflags= [] }
++    let empty = { libs= []; cflags= [ "-fPIC" ] }
+   end
+ end
+ 
