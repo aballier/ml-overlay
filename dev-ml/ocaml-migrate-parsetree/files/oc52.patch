@@ -1,0 +1,12 @@
+Index: ocaml-migrate-parsetree-2.4.0/src/config/gen.ml
+===================================================================
+--- ocaml-migrate-parsetree-2.4.0.orig/src/config/gen.ml
++++ ocaml-migrate-parsetree-2.4.0/src/config/gen.ml
+@@ -25,6 +25,7 @@ let () =
+      | (4, 14) -> "414"
+      | (5, 0)  -> "500"
+      | (5, 1)  -> "510"
++     | (5, 2)  -> "520"
+      | _ ->
+        Printf.eprintf "Unknown OCaml version %s\n" ocaml_version_str;
+        exit 1)
