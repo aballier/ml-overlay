@@ -1,0 +1,11 @@
+Index: ocaml-compiler-libs-0.12.4/src/read_cma/read_cma.ml
+===================================================================
+--- ocaml-compiler-libs-0.12.4.orig/src/read_cma/read_cma.ml
++++ ocaml-compiler-libs-0.12.4/src/read_cma/read_cma.ml
+@@ -12,5 +12,5 @@ let units fn =
+   let toc = (input_value ic : Cmo_format.library) in
+   close_in ic;
+ 
+-  List.map toc.lib_units ~f:(fun cu -> cu.Cmo_format.cu_name)
++  List.map toc.lib_units ~f:(fun cu -> (function Cmo_format.Compunit x -> x) cu.Cmo_format.cu_name)
+   |> List.sort ~cmp:String.compare
