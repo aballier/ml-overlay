@@ -21,6 +21,7 @@ DEPEND="
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
+PATCHES=( "${FILESDIR}/oc52.patch" )
 
 src_prepare() {
 	default
