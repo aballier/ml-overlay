@@ -46,7 +46,6 @@ DOCS=( authors.txt bugs.txt changes.txt credits.txt readme.txt )
 S=${WORKDIR}/${MY_P}
 PATCHES=(
 	"${FILESDIR}/pcre.patch"
-	"${FILESDIR}/oc50.patch"
 )
 
 SITEFILE=50coccinelle-gentoo.el
