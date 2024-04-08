@@ -24,4 +24,4 @@ IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/tyxml.patch" "${FILESDIR}/tyxml2.patch" )
+PATCHES=( "${FILESDIR}/oc52.patch" )
