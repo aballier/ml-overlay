@@ -1,7 +1,7 @@
 # Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit jbuilder
 
@@ -16,4 +16,8 @@ IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/oc52.patch" )
+
+src_prepare() {
+	has_version '>=dev-lang/ocaml-5.2.0_alpha' && eapply "${FILESDIR}/oc52.patch"
+	jbuilder_src_prepare
+}
