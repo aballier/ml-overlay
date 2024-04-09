@@ -54,11 +54,11 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[bisect_ppx]="cmdliner ppxlib"
 	[biniou]="easy-format camlp-streams"
 	[bos]="rresult astring fpath fmt logs mtime"
+	[bz2]="stdlib-shims"
 	[cairo2]="dune-configurator"
 	[cairo2-gtk]="cairo2 lablgtk"
 	[cairo2-pango]="cairo2 lablgtk"
 	[calendar]="re"
-	[camlbz2]=""
 	[camldbm]=""
 	[camlimages]="graphics lablgtk"
 	[camlp-streams]=""
@@ -782,6 +782,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-gtk3") -> ()
 	| String (_,"conf-g++") -> ()
 	| String (_,"conf-jq") -> ()
+	| String (_,"conf-libbz2") -> ()
 	| String (_,"conf-libev") -> ()
 	| String (_,"conf-libffi") -> ()
 	| String (_,"conf-libgif") -> ()
