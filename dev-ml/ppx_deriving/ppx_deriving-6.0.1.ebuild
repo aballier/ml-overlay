@@ -1,7 +1,7 @@
 # Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit jbuilder
 
@@ -13,7 +13,7 @@ if [[ ${PV%_p*} != ${PV} ]] ; then
 	SRC_URI="https://github.com/ocaml-ppx/ppx_deriving/archive/${COMMIT_ID}.tar.gz -> ${P}.tar.gz"
 	S="${WORKDIR}/${PN}-${COMMIT_ID}"
 else
-	SRC_URI="https://github.com/ocaml-ppx/ppx_deriving/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+	SRC_URI="https://github.com/ocaml-ppx/ppx_deriving/releases/download/${PV}/${P}.tbz"
 fi
 
 LICENSE="MIT"
@@ -24,8 +24,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-
-src_prepare() {
-	jbuilder_src_prepare
-	sed -e 's/oUnit/ounit2/' -i src_test/*/dune || die
-}
