@@ -1,0 +1,159 @@
+Index: labltk-8.06.13/browser/fileselect.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/fileselect.ml
++++ labltk-8.06.13/browser/fileselect.ml
+@@ -83,7 +83,7 @@ let ls ~dir ~pattern =
+ (********************************************* Creation *)
+ let load_in_path = ref false
+ 
+-let search_in_path ~name = Misc.find_in_path (Load_path.get_paths ()) name
++let search_in_path ~name = Misc.find_in_path (Load_path.get_path_list ()) name
+ 
+ let f ~title ~action:proc ?(dir = Unix.getcwd ())
+     ?filter:(deffilter ="*") ?file:(deffile ="")
+@@ -129,7 +129,7 @@ let f ~title ~action:proc ?(dir = Unix.g
+           (get_files_in_directory dir) in
+     let matched_files = (* get matched file by subshell call. *)
+       if !load_in_path && usepath then
+-      List.fold_left (Load_path.get_paths ()) ~init:[] ~f:
++      List.fold_left (Load_path.get_path_list ()) ~init:[] ~f:
+       begin fun acc dir ->
+         let files = ls ~dir ~pattern in
+         List.merge ~cmp:compare files
+Index: labltk-8.06.13/browser/main.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/main.ml
++++ labltk-8.06.13/browser/main.ml
+@@ -95,9 +95,9 @@ let _ =
+     (fun name -> raise(Arg.Bad("don't know what to do with " ^ name)))
+     errmsg;
+   Load_path.init ~auto_include:Load_path.no_auto_include
+-    (Sys.getcwd ()
++    ~visible:(Sys.getcwd ()
+      :: List.rev_map ~f:(Misc.expand_directory Config.standard_library) !path
+-     @ [Config.standard_library]);
++     @ [Config.standard_library]) ~hidden:[];
+   ignore (Warnings.parse_options false !Shell.warnings);
+   Unix.putenv "TERM" "noterminal";
+   begin
+Index: labltk-8.06.13/browser/searchid.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/searchid.ml
++++ labltk-8.06.13/browser/searchid.ml
+@@ -231,7 +231,7 @@ let rec search_type_in_signature t ~sign
+           | Some t -> matches t
+           end ||
+           begin match td.type_kind with
+-            Type_abstract
++            Type_abstract _
+ 	  | Type_open -> false
+           | Type_variant (l, _) ->
+             List.exists l ~f:
+Index: labltk-8.06.13/browser/searchpos.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/searchpos.ml
++++ labltk-8.06.13/browser/searchpos.ml
+@@ -132,6 +132,9 @@ let rec search_pos_type t ~pos ~env =
+   | Ptyp_package (_, stl) ->
+      List.iter stl ~f:(fun (_, ty) -> search_pos_type ty ~pos ~env)
+   | Ptyp_extension _ -> ()
++  | Ptyp_open (lid, t) ->
++  	search_pos_type ~pos ~env t;
++        add_found_sig (`Type, lid.txt) ~env ~loc:t.ptyp_loc
+   end
+ 
+ let rec search_pos_class_type cl ~pos ~env =
+@@ -415,7 +418,7 @@ let rec view_signature ?title ?path ?(en
+                 | Some suff -> suff
+               in
+               let file =
+-                Misc.find_in_path_uncap (Load_path.get_paths ())
++                Misc.find_in_path_normalized (Load_path.get_path_list ())
+                   (name ^ ext) in
+               Button.configure button
+                 ~command:(fun () -> edit_source ~file ~path ~sign);
+@@ -831,8 +834,7 @@ and search_pos_expr ~pos exp =
+         search_pos_expr exp' ~pos
+       end;
+       search_pos_expr exp ~pos
+-  | Texp_function {cases=l; _} ->
+-      List.iter l ~f:(search_case ~pos)
++  | Texp_function (fpl, fb) -> ()
+   | Texp_apply (exp, l) ->
+       List.iter l
+         ~f:(fun (_, x) -> Stdlib.Option.iter (search_pos_expr ~pos) x);
+@@ -909,10 +911,10 @@ and search_pos_pat : type a. pos:_ -> en
+   if in_loc pat.pat_loc ~pos then begin
+   begin match pat.pat_desc with
+     Tpat_any -> ()
+-  | Tpat_var (id, _) ->
++  | Tpat_var (id, _, _) ->
+       add_found_str (`Exp(`Val (Pident id), pat.pat_type))
+         ~env ~loc:pat.pat_loc
+-  | Tpat_alias (pat, _, _)
++  | Tpat_alias (pat, _, _, _)
+   | Tpat_lazy pat
+   | Tpat_exception pat -> search_pos_pat pat ~pos ~env
+   | Tpat_value pat -> search_pos_pat (pat :> pattern) ~pos ~env
+Index: labltk-8.06.13/browser/setpath.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/setpath.ml
++++ labltk-8.06.13/browser/setpath.ml
+@@ -31,11 +31,11 @@ let exec_update_hooks () =
+       end
+ 
+ let set_load_path l =
+-  Load_path.init l ~auto_include:Load_path.no_auto_include;
++  Load_path.init ~visible:l ~hidden:[] ~auto_include:Load_path.no_auto_include;
+   exec_update_hooks ();
+   Env.reset_cache ()
+ 
+-let get_load_path () = Load_path.get_paths ()
++let get_load_path () = Load_path.get_path_list ()
+ 
+ let renew_dirs box ~var ~dir =
+   Textvariable.set var dir;
+@@ -47,7 +47,7 @@ let renew_dirs box ~var ~dir =
+ 
+ let renew_path box =
+   Listbox.delete box ~first:(`Num 0) ~last:`End;
+-  Listbox.insert box ~index:`End ~texts:(Load_path.get_paths ());
++  Listbox.insert box ~index:`End ~texts:(Load_path.get_path_list ());
+   Jg_box.recenter box ~index:(`Num 0)
+ 
+ let add_to_path ~dirs ?(base="") box =
+Index: labltk-8.06.13/browser/shell.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/shell.ml
++++ labltk-8.06.13/browser/shell.ml
+@@ -295,7 +295,7 @@ let f ~prog ~title =
+         if Str.string_match ~!"TERM=" s 0 then "TERM=dumb" else s
+       end in
+   let load_path =
+-    List2.flat_map (Load_path.get_paths ()) ~f:(fun dir -> ["-I"; dir]) in
++    List2.flat_map (Load_path.get_path_list ()) ~f:(fun dir -> ["-I"; dir]) in
+   let load_path =
+     if is_win32 then List.map ~f:protect_arg load_path else load_path in
+   let labels = if !Clflags.classic then ["-nolabels"] else [] in
+@@ -352,7 +352,7 @@ let f ~prog ~title =
+     end;
+   file_menu#add_command "Import path" ~command:
+     begin fun () ->
+-      List.iter (List.rev (Load_path.get_paths ())) ~f:
++      List.iter (List.rev (Load_path.get_path_list ())) ~f:
+         (fun dir ->
+           (!sh)#send ("#directory \"" ^ String.escaped dir ^ "\";;\n"))
+     end;
+Index: labltk-8.06.13/browser/viewer.ml
+===================================================================
+--- labltk-8.06.13.orig/browser/viewer.ml
++++ labltk-8.06.13/browser/viewer.ml
+@@ -27,7 +27,7 @@ open Searchid
+ 
+ (* Managing the module list *)
+ 
+-let list_modules ?(path=Load_path.get_paths ()) () =
++let list_modules ?(path=Load_path.get_path_list ()) () =
+   List.fold_left path ~init:[] ~f:
+   begin fun modules dir ->
+     let l =
