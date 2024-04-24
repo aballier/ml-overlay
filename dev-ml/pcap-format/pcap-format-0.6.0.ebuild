@@ -16,3 +16,8 @@ IUSE="test"
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
+
+src_prepare() {
+	jbuilder_src_prepare
+	sed -e 's/oUnit/ounit2/' -i lib_test/dune || die
+}
