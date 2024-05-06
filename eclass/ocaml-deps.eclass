@@ -38,7 +38,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[atdgen-codec-runtime]=""
 	[atdgen-runtime]="yojson biniou"
 	[atdj]="atd re"
-	[base]="sexplib0 dune-configurator"
+	[base]="sexplib0 dune-configurator ocaml_intrinsics_kernel"
 	[base64]=""
 	[base_bigstring]="base ppx_jane int_repr"
 	[base_quickcheck]="base ppx_base ppx_fields_conv ppx_let ppx_sexp_message ppx_sexp_value splittable_random ppxlib"
@@ -278,6 +278,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ocaml-syntax-shims]=""
 	[ocaml-version]=""
 	[ocaml_intrinsics]="dune-configurator"
+	[ocaml_intrinsics_kernel]=""
 	[ocplib-endian]=""
 	[ocp-indent]="cmdliner findlib"
 	[ocsigenserver]="camlzip findlib react ssl lwt lwt_ssl lwt_react lwt_log re cryptokit ipaddr cohttp-lwt-unix hmap
