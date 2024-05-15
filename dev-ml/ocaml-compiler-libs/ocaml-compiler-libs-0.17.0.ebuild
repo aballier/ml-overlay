@@ -16,8 +16,3 @@ IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
-
-src_prepare() {
-	has_version '>=dev-lang/ocaml-5.2.0_alpha' && eapply "${FILESDIR}/oc52.patch"
-	jbuilder_src_prepare
-}
