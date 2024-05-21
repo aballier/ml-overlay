@@ -16,3 +16,4 @@ KEYWORDS="~amd64"
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
+PATCHES=( "${FILESDIR}/asn.patch" )
