@@ -97,7 +97,7 @@ magic-mime logs fmt sexplib0 uri ipaddr core_unix"
 	[coqide-server]="coq-core"
 	[core]="base base_bigstring base_quickcheck bin_prot fieldslib jane-street-headers jst-config ppx_assert ppx_base
 ppx_hash ppx_inline_test ppx_jane ppx_sexp_conv ppx_sexp_message sexplib splittable_random stdio time_now typerep
-variantslib ppx_optcomp"
+variantslib ppx_optcomp ppx_diff"
 	[core_bench]="core core_kernel ppx_jane textutils re core_unix ppx_compare ppx_fields_conv ppx_let ppx_sexp_conv"
 	[core_extended]="core core_unix ppx_jane re record_builder"
 	[core_kernel]="base core int_repr ppx_jane ppx_optcomp uopt"
