@@ -17,3 +17,4 @@ DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
 S="${WORKDIR}/tls-${PV}"
+PATCHES=( "${FILESDIR}/asn.patch" )
