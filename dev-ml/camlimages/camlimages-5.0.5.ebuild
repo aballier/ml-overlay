@@ -28,4 +28,4 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}"
 BDEPEND="virtual/pkgconfig"
-PATCHES=( "${FILESDIR}/fpic.patch" )
+PATCHES=( "${FILESDIR}/fpic.patch" "${FILESDIR}/base.patch" )
