@@ -16,7 +16,9 @@ KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 DEPEND="x11-libs/gtk+:3="
-RDEPEND="${DEPEND}"
+RDEPEND="${DEPEND}
+	!dev-ml/lablgtk:3
+"
 BDEPEND=""
 
 S="${WORKDIR}/lablgtk-${MY_PV}"
