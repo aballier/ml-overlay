@@ -691,8 +691,10 @@ _ocaml_gen_tr_deps() {
 		if [[ -v _items[${pkg}:=] ]] ; then
 			continue
 		fi
+		local slot=""
+		[[ ${d} == lablgtk ]] && slot="2"
 
-		_items[${pkg}:=]=1
+		_items[${pkg}:${slot}=]=1
 		if [[ -v _GLOBAL_OCAML_DEPS[$d] ]]; then
 			_ocaml_gen_tr_deps ${_GLOBAL_OCAML_DEPS[$d]}
 		else
