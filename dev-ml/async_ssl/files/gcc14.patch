@@ -1,0 +1,38 @@
+Index: async_ssl-0.17.0/bindings/ffi_bindings.ml
+===================================================================
+--- async_ssl-0.17.0.orig/bindings/ffi_bindings.ml
++++ async_ssl-0.17.0/bindings/ffi_bindings.ml
+@@ -557,7 +557,7 @@ module Bindings (F : Cstubs.FOREIGN) = s
+     let new_ = foreign "BN_new" Ctypes.(void @-> returning t_opt)
+     let free = foreign "BN_free" Ctypes.(t @-> returning void)
+     let bin2bn = foreign "BN_bin2bn" Ctypes.(ptr char @-> int @-> t @-> returning t)
+-    let hex2bn = foreign "BN_hex2bn" Ctypes.(ptr t_opt @-> string @-> returning int)
++    let hex2bn = foreign "async_ssl__BN_hex2bn" Ctypes.(ptr t_opt @-> string @-> returning int)
+   end
+ 
+   module Progress_callback = Progress_callback
+@@ -668,7 +668,7 @@ module Bindings (F : Cstubs.FOREIGN) = s
+ 
+     let get_alpn_selected =
+       foreign
+-        "SSL_get0_alpn_selected"
++        "async_ssl__SSL_get0_alpn_selected"
+         Ctypes.(t @-> ptr (ptr char) @-> ptr int @-> returning void)
+     ;;
+   end
+Index: async_ssl-0.17.0/bindings/openssl_helpers.h
+===================================================================
+--- async_ssl-0.17.0.orig/bindings/openssl_helpers.h
++++ async_ssl-0.17.0/bindings/openssl_helpers.h
+@@ -4,3 +4,11 @@ char *async_ssl__pem_peer_certificate_ch
+ void async_ssl__free_pem_peer_certificate_chain(char *certs);
+ void* async_ssl__set_alpn_callback (SSL_CTX* ctx, char* protocols, size_t len);
+ void async_ssl__free_alpn_callback (void* alpn_ctx);
++static inline int async_ssl__BN_hex2bn(void **a, const char *str) {
++  return BN_hex2bn((BIGNUM**)a, str);
++}
++
++static inline void async_ssl__SSL_get0_alpn_selected(const SSL *ssl, char **data,
++                            unsigned int *len) {
++  return SSL_get0_alpn_selected(ssl, (const unsigned char **)data, len);
++}
