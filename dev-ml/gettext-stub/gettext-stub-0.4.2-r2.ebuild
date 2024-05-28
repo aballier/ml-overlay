@@ -18,4 +18,5 @@ RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/gettext-v${PV}"
 
-PATCHES=( "${FILESDIR}/ounit2.patch" )
+PATCHES=( "${FILESDIR}/ounit2.patch"
+	"${FILESDIR}/oc52.patch" )
