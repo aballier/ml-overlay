@@ -13,7 +13,7 @@ if [[ ${PV%_p*} != ${PV} ]] ; then
 	SRC_URI="https://github.com/ocaml-ppx/ppx_deriving/archive/${COMMIT_ID}.tar.gz -> ${P}.tar.gz"
 	S="${WORKDIR}/${PN}-${COMMIT_ID}"
 else
-	SRC_URI="https://github.com/ocaml-ppx/ppx_deriving/releases/download/${PV}/${P}.tbz"
+	SRC_URI="https://github.com/ocaml-ppx/ppx_deriving/releases/download/v${PV}/${P}.tbz"
 fi
 
 LICENSE="MIT"
