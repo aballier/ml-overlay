@@ -18,5 +18,3 @@ RDEPEND=""
 DEPEND="${RDEPEND}"
 RDEPEND="${RDEPEND}
 	!dev-ml/bigstring-unix"
-
-PATCHES=( "${FILESDIR}/oc52.patch" )
