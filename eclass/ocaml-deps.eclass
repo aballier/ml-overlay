@@ -536,7 +536,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[uuidm]="findlib topkg ocamlbuild"
 	[uuseg]="findlib topkg ocamlbuild"
 	[visitors]=""
-	[yojson]="cppo"
+	[yojson]=""
 	[xmlm]="findlib topkg ocamlbuild"
 )
 
