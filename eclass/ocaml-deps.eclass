@@ -823,6 +823,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-zstd") -> ()
 	| String (_,"coq-native") -> ()
 	| String (_,"mirage-xen-ocaml") -> ()
+	| String (_,"memprof-limits") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
 	| String (_,"ocamlfind") -> if is_dep [] then Printf.printf "findlib\n" else ()
 	| String (_,"dbm") -> if is_dep [] then Printf.printf "camldbm\n" else ()
