@@ -1,9 +1,7 @@
 # Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
-
-inherit eutils multilib
+EAPI=8
 
 IUSE="+ocamlopt"
 
@@ -54,7 +52,7 @@ pkg_postinst() {
 }
 
 pkg_postrm() {
-	if [ "$ROOT" = "/" ] && [ -x /usr/sbin/texmf-update ] ; then
+	if [ "$root" = "/" ] && [ -x /usr/sbin/texmf-update ] ; then
 		/usr/sbin/texmf-update
 	fi
 }
