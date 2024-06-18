@@ -22,4 +22,3 @@ RDEPEND="${DEPEND}
 BDEPEND=""
 
 S="${WORKDIR}/lablgtk-${MY_PV}"
-PATCHES=( "${FILESDIR}/gcc14.patch" )
