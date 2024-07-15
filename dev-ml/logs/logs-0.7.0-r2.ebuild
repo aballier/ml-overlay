@@ -12,7 +12,7 @@ SRC_URI="http://erratique.ch/software/logs/releases/${P}.tbz"
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
-IUSE="javascript +fmt cli +lwt test"
+IUSE="javascript +fmt +cli +lwt test"
 
 RDEPEND="
 	javascript? ( dev-ml/js_of_ocaml:= )
