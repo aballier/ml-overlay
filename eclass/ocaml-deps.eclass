@@ -15,6 +15,7 @@ _OCAML_DEPS_ECLASS=1
 # Keep it sorted
 # It is not readonly so that another eclass can append data here for overlays.
 declare -A -g _GLOBAL_OCAML_DEPS=(
+	[0install-solver]=""
 	[afl-persistent]="findlib"
 	[alcotest]="fmt astring cmdliner ocaml-syntax-shims stdlib-shims re uutf"
 	[alcotest-async]="alcotest async_unix async async_kernel base core core_unix"
@@ -306,14 +307,15 @@ cohttp-lwt-unix re ocsigen-ppx-rpc"
 	[ohex]=""
 	[ojs]="js_of_ocaml-compiler"
 	[opam]="opam-client cmdliner"
+	[opam-0install-cudf]="0install-solver cudf"
 	[opam-admin]="opam-client opam-file-format re"
-	[opam-client]="opam-state re opam-solver cmdliner extlib opam-repository"
-	[opam-core]="ocamlgraph re"
+	[opam-client]="opam-state re opam-solver cmdliner base64 opam-repository"
+	[opam-core]="sha jsonm uutf ocamlgraph re swhid_core"
 	[opam-format]="opam-core opam-file-format re"
 	[opam-installer]=""
 	[opam-repository]="opam-format"
-	[opam-solver]="opam-format mccs dose3 cudf"
-	[opam-state]="opam-repository"
+	[opam-solver]="opam-format mccs dose3 cudf opam-0install-cudf re"
+	[opam-state]="opam-repository re spdx_licenses"
 	[opam-file-format]=""
 	[ordering]=""
 	[ounit2]="stdlib-shims seq"
@@ -430,10 +432,11 @@ ppx_ignore_instrumentation ppx_log ppx_string_conv"
 	[shell]="core core_unix jst-config ppx_jane textutils spawn"
 	[snappy]=""
 	[spawn]=""
+	[spdx_licenses]=""
 	[splittable_random]="base ppx_assert ppx_bench ppx_inline_test ppx_sexp_message"
 	[sqlite3]="dune-configurator"
-	[stdcompat]="result uchar"
 	[ssl]="dune-configurator"
+	[stdcompat]="result uchar"
 	[stdint]=""
 	[stdio]="base"
 	[stdlib-random]="cppo"
@@ -441,6 +444,7 @@ ppx_ignore_instrumentation ppx_log ppx_string_conv"
 	[stdune]="csexp dyn ordering pp"
 	[stringext]=""
 	[swagger]="atdgen re yojson"
+	[swhid_core]=""
 	[textutils]="core ppx_jane core_kernel core_unix uutf"
 	[textutils_kernel]="core uutf ppx_jane"
 	[time_now]="base jane-street-headers jst-config ppx_base ppx_optcomp"
@@ -522,7 +526,6 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[ocplib-endian]="cppo"
 	[ocsigen-i18n]="findlib"
 	[odoc]="cppo"
-	[opam-core]="cppo"
 	[owl]="base stdio"
 	[ppx_deriving]="cppo"
 	[ppx_deriving_protobuf]="cppo"
@@ -544,6 +547,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 )
 
 declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
+	[0install-solver]="ounit2"
 	[alcotest-async]="cmdliner fmt re"
 	[alcotest-lwt]="cmdliner re"
 	[angstrom]="alcotest ppx_let"
@@ -667,6 +671,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[sedlex]="ppx_expect"
 	[sha]="ounit2"
 	[spawn]="ppx_expect"
+	[spdx_licenses]="alcotest"
 	[sqlite3]="ppx_inline_test"
 	[ssl]="alcotest"
 	[stdint]="qcheck"
@@ -828,6 +833,7 @@ let rec print_deps is_dep = function
 	| String (_,"coq-native") -> ()
 	| String (_,"mirage-xen-ocaml") -> ()
 	| String (_,"memprof-limits") -> ()
+	| String (_,"z3") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
 	| String (_,"ocamlfind") -> if is_dep [] then Printf.printf "findlib\n" else ()
 	| String (_,"dbm") -> if is_dep [] then Printf.printf "camldbm\n" else ()
