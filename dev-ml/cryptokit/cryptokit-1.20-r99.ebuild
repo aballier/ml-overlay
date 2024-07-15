@@ -1,7 +1,7 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit jbuilder
 
@@ -26,6 +26,11 @@ src_configure() {
 	./configure \
 		$(use_enable zlib) \
 		|| die
+}
+
+src_compile() {
+	dune build || die
+	jbuilder_src_compile
 }
 
 pkg_postinst() {
