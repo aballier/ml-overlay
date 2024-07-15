@@ -19,6 +19,7 @@ LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
+RESTRICT="network-sandbox"
 
 DEPEND="
 	!<dev-ml/opam-2.0.0_beta
@@ -28,11 +29,8 @@ RDEPEND="${DEPEND}"
 S="${WORKDIR}/opam-full-${MY_PV}"
 OPAM_INSTALLER="${S}/opam-installer"
 
-src_prepare() {
-	cd src_ext
-	emake lib-ext
-	cd ..
-	default
+src_configure() {
+	econf --with-vendored-deps
 }
 
 src_compile() {
