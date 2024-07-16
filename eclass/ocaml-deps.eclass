@@ -479,7 +479,7 @@ domain-name fmt mirage-crypto-ec hkdf logs ipaddr"
 	[websocket-lwt-unix]="websocket lwt_log cohttp-lwt-unix"
 	[wtf8]=""
 	[x509]="cstruct asn1-combinators ptime base64 mirage-crypto mirage-crypto-pk mirage-crypto-ec mirage-crypto-rng
-pbkdf fmt gmap domain-name logs ipaddr"
+pbkdf fmt gmap domain-name logs ipaddr digestif"
 	[xdg]=""
 	[xmldiff]="xmlm"
 	[xmlm]=""
