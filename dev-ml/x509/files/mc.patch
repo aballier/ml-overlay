@@ -1,0 +1,1250 @@
+Index: x509-0.16.5/lib/algorithm.ml
+===================================================================
+--- x509-0.16.5.orig/lib/algorithm.ml
++++ x509-0.16.5/lib/algorithm.ml
+@@ -12,10 +12,9 @@ open Asn_grammars
+  *)
+ 
+ type ec_curve =
+-  [ `SECP224R1 | `SECP256R1 | `SECP384R1 | `SECP521R1 ]
++  [ `SECP256R1 | `SECP384R1 | `SECP521R1 ]
+ 
+ let ec_curve_to_string = function
+-  | `SECP224R1 -> "SECP224R1"
+   | `SECP256R1 -> "SECP256R1"
+   | `SECP384R1 -> "SECP384R1"
+   | `SECP521R1 -> "SECP521R1"
+@@ -134,13 +133,14 @@ let to_hash = function
+   | SHA512 -> Some `SHA512
+   | _      -> None
+ 
+-and of_hash = function
++and of_hash (h : Digestif.hash') = match h with
+   | `MD5    -> MD5
+   | `SHA1   -> SHA1
+   | `SHA224 -> SHA224
+   | `SHA256 -> SHA256
+   | `SHA384 -> SHA384
+   | `SHA512 -> SHA512
++  | _ -> SHA512
+ 
+ and to_hmac = function
+   | HMAC_SHA1 -> Some `SHA1
+@@ -156,6 +156,7 @@ and of_hmac = function
+   | `SHA256 -> HMAC_SHA256
+   | `SHA384 -> HMAC_SHA384
+   | `SHA512 -> HMAC_SHA512
++  | _ -> HMAC_SHA512
+ 
+ and to_key_type = function
+   | RSA        -> Some `RSA
+@@ -218,13 +219,11 @@ let curve_of_oid, curve_to_oid =
+   let open Registry.ANSI_X9_62 in
+   (let default oid = Asn.(S.parse_error "Unknown algorithm %a" OID.pp oid) in
+    case_of_oid ~default [
+-     (secp224r1, `SECP224R1) ;
+      (secp256r1, `SECP256R1) ;
+      (secp384r1, `SECP384R1) ;
+      (secp521r1, `SECP521R1) ;
+    ]),
+   (function
+-    | `SECP224R1 -> secp224r1
+     | `SECP256R1 -> secp256r1
+     | `SECP384R1 -> secp384r1
+     | `SECP521R1 -> secp521r1)
+@@ -407,8 +406,8 @@ let identifier =
+ 
+ let ecdsa_sig =
+   let f (r', s') =
+-    let r = Mirage_crypto_pk.Z_extra.of_cstruct_be (Cstruct.of_string r') in
+-    let s = Mirage_crypto_pk.Z_extra.of_cstruct_be (Cstruct.of_string s') in
++    let r = (Z.of_string r') in
++    let s = (Z.of_string s') in
+     if Z.sign r < 0 then
+       Asn.S.parse_error "ECDSA signature: r < 0"
+     else if Z.sign s < 0 then
+Index: x509-0.16.5/lib/authenticator.ml
+===================================================================
+--- x509-0.16.5.orig/lib/authenticator.ml
++++ x509-0.16.5/lib/authenticator.ml
+@@ -37,7 +37,7 @@ let fingerprint_of_string s =
+          `Msg (Fmt.str "Invalid base64 encoding in fingerprint (%s): %S" m s))
+       (Base64.decode ~pad:false s)
+   in
+-  Ok (Cstruct.of_string d)
++  Ok (d)
+ 
+ let format =
+   {|
+Index: x509-0.16.5/lib/certificate.ml
+===================================================================
+--- x509-0.16.5.orig/lib/certificate.ml
++++ x509-0.16.5/lib/certificate.ml
+@@ -119,7 +119,7 @@ module Asn = struct
+       match to_hash algo with
+       | Some h -> (h, cs)
+       | None   -> parse_error "pkcs1 digest info: unknown hash"
+-    and g (h, cs) = (of_hash h, cs)
++    and g ((h, cs) : (Digestif.hash'*string)) = (of_hash h, cs)
+     in
+     map f g @@
+     sequence2
+@@ -166,7 +166,10 @@ let pp_version ppf v =
+ let pp_hash ppf hash =
+   Fmt.string ppf (match hash with
+       | `MD5 -> "MD5" | `SHA1 -> "SHA1" | `SHA224 -> "SHA224"
+-      | `SHA256 -> "SHA256" | `SHA384 -> "SHA384" | `SHA512 -> "SHA512")
++      | `SHA256 -> "SHA256" | `SHA384 -> "SHA384" | `SHA512 -> "SHA512"
++      | `RMD160 -> "RMD160" | `BLAKE2B -> "BLAKE2B" | `BLAKE2S -> "BLAKE2S"
++      | `KECCAK_256 -> "KECCAK_256" | `SHA3_224 -> "SHA3_224" | `SHA3_256 -> "SHA3_256"
++      | `SHA3_384 -> "SHA3_384" | `SHA3_512 -> "SHA3_512" | `WHIRLPOOL -> "WHIRLPOOL")
+ 
+ let pp_sigalg ppf (asym, hash) =
+   Fmt.pf ppf "%a-%a" Key_type.pp_signature_scheme asym pp_hash hash
+@@ -183,7 +186,9 @@ let pp ppf { asn ; _ } =
+     Distinguished_name.pp tbs.subject
+     Extension.pp tbs.extensions
+ 
+-let fingerprint hash cert = Mirage_crypto.Hash.digest hash (Cstruct.of_string cert.raw)
++let fingerprint hash cert =
++    let module H = (val (Digestif.module_of_hash' hash)) in
++        H.to_raw_string (H.digest_string cert.raw)
+ 
+ let issuer { asn ; _ } = asn.tbs_cert.issuer
+ 
+Index: x509-0.16.5/lib/crl.ml
+===================================================================
+--- x509-0.16.5.orig/lib/crl.ml
++++ x509-0.16.5/lib/crl.ml
+@@ -128,7 +128,7 @@ let signature_algorithm { asn ; _ } =
+ let validate { raw ; asn } ?(allowed_hashes = Validation.sha2) pub =
+   let tbs_raw = Validation.raw_cert_hack (Cstruct.of_string raw) in
+   Validation.validate_raw_signature asn.tbs_crl.issuer allowed_hashes
+-    tbs_raw asn.signature_algo (Cstruct.of_string asn.signature_val) pub
++    tbs_raw asn.signature_algo asn.signature_val pub
+ 
+ type verification_error = [
+   | Validation.signature_error
+@@ -209,7 +209,7 @@ let sign_tbs (tbs : tBS_CRL) key =
+   | None -> Error (`Msg "couldn't parse signature algorithm")
+   | Some (_, hash) ->
+     let scheme = Key_type.x509_default_scheme (Private_key.key_type key) in
+-    let* signature_val = Result.map Cstruct.to_string (Private_key.sign hash ~scheme key (`Message (Cstruct.of_string tbs_raw))) in
++    let* signature_val = (Private_key.sign hash ~scheme key (`Message (tbs_raw))) in
+     let asn = { tbs_crl = tbs ; signature_algo = tbs.signature ; signature_val } in
+     let raw = Asn.crl_to_cstruct asn in
+     Ok { asn ; raw }
+Index: x509-0.16.5/lib/dune
+===================================================================
+--- x509-0.16.5.orig/lib/dune
++++ x509-0.16.5/lib/dune
+@@ -7,4 +7,4 @@
+                   key_type)
+  (libraries asn1-combinators fmt ptime cstruct mirage-crypto mirage-crypto-pk
+             gmap domain-name base64 logs mirage-crypto-ec pbkdf
+-            mirage-crypto-rng ipaddr))
++            mirage-crypto-rng ipaddr digestif))
+Index: x509-0.16.5/lib/key_type.ml
+===================================================================
+--- x509-0.16.5.orig/lib/key_type.ml
++++ x509-0.16.5/lib/key_type.ml
+@@ -1,7 +1,7 @@
+-type t = [ `RSA | `ED25519 | `P224 | `P256 | `P384 | `P521  ]
++type t = [ `RSA | `ED25519 |  `P256 | `P384 | `P521  ]
+ 
+ let strings =
+-  [ ("rsa", `RSA) ; ("ed25519", `ED25519) ; ("p224", `P224) ;
++  [ ("rsa", `RSA) ; ("ed25519", `ED25519) ;
+     ("p256", `P256) ; ("p384", `P384) ; ("p521", `P521) ]
+ 
+ let to_string kt = fst (List.find (fun (_, k) -> kt = k) strings)
+@@ -29,7 +29,7 @@ let supports_signature_scheme key_typ sc
+   match key_typ, scheme with
+   | `RSA, (`RSA_PSS | `RSA_PKCS1) -> true
+   | `ED25519, `ED25519 -> true
+-  | (`P224 | `P256 | `P384 | `P521), `ECDSA -> true
++  | (`P256 | `P384 | `P521), `ECDSA -> true
+   | _ -> false
+ 
+ let opt_signature_scheme ?scheme kt =
+@@ -38,7 +38,7 @@ let opt_signature_scheme ?scheme kt =
+   | None -> match kt with
+     | `RSA -> `RSA_PSS
+     | `ED25519 -> `ED25519
+-    | `P224 | `P256 | `P384 | `P521 -> `ECDSA
++    | `P256 | `P384 | `P521 -> `ECDSA
+ 
+ (* the default of RSA keys should be PSS, but most deployed certificates still
+    use PKCS1 (and this library uses pkcs1 by default as well) *)
+Index: x509-0.16.5/lib/ocsp.ml
+===================================================================
+--- x509-0.16.5.orig/lib/ocsp.ml
++++ x509-0.16.5/lib/ocsp.ml
+@@ -19,16 +19,12 @@ type cert_id = {
+ let create_cert_id ?(hash=`SHA1) issuer serialNumber =
+   let hashAlgorithm = Algorithm.of_hash hash in
+   let issuerNameHash =
+-    Cstruct.to_string (
+     Certificate.subject issuer
+     |> Distinguished_name.encode_der
+-    |> Cstruct.of_string
+-    |> Mirage_crypto.Hash.digest hash)
++    |> (let module H = (val (Digestif.module_of_hash' hash)) in fun x -> H.to_raw_string (H.digest_string x))
+   in
+   let issuerKeyHash =
+-    Cstruct.to_string (
+     Public_key.fingerprint ~hash (Certificate.public_key issuer)
+-    )
+   in
+   {hashAlgorithm;issuerNameHash;issuerKeyHash;serialNumber}
+ 
+@@ -122,14 +118,14 @@ module Request = struct
+   *)
+   type signature = {
+     signatureAlgorithm: Algorithm.t;
+-    signature: Cstruct.t;
++    signature: string;
+     certs: Certificate.t list option;
+   }
+ 
+   let pp_signature ppf {signatureAlgorithm;signature;certs;} =
+     Fmt.pf ppf "Signature @[<1>{@ signatureAlgorithm=%a;@ signature=%a;@ certs=%a}@]"
+       Algorithm.pp signatureAlgorithm
+-      Cstruct.hexdump_pp signature
++      (Fmt.fmt "%S") signature
+       (Fmt.option ~none:(Fmt.any "None") @@
+        Fmt.brackets @@
+        Fmt.list ~sep:Fmt.semi Certificate.pp) certs
+@@ -204,7 +200,6 @@ module Request = struct
+ 
+     let signature =
+       let f (signatureAlgorithm,signature,certs) =
+-        let signature = Cstruct.of_string signature in
+         let certs = match certs with
+           | None -> None
+           | Some certs ->
+@@ -217,7 +212,6 @@ module Request = struct
+         {signatureAlgorithm;signature;certs}
+       in
+       let g {signatureAlgorithm;signature;certs} =
+-        let signature = Cstruct.to_string signature in
+         let certs = match certs with
+           | None -> None
+           | Some certs ->
+@@ -271,7 +265,7 @@ module Request = struct
+         let scheme = Key_type.x509_default_scheme (Private_key.key_type key) in
+         let signatureAlgorithm = Algorithm.of_signature_algorithm scheme digest in
+         let tbs_der = Asn.tbs_request_to_cs tbsRequest in
+-        let* signature = Private_key.sign digest ~scheme key (`Message (Cstruct.of_string tbs_der)) in
++        let* signature = (Private_key.sign digest ~scheme key (`Message (tbs_der))) in
+         Ok (Some { signature ; signatureAlgorithm ; certs; })
+     in
+     let asn = { tbsRequest ; optionalSignature } in
+@@ -409,7 +403,7 @@ module Response = struct
+ 
+   let create_responder_id pubkey =
+     let pubkey_fp = Public_key.fingerprint ~hash:`SHA1 pubkey in
+-    `ByKey (Cstruct.to_string pubkey_fp)
++    `ByKey (pubkey_fp)
+ 
+   let pp_responder_id ppf = function
+     | `ByName dn -> Fmt.pf ppf "ByName %a" Distinguished_name.pp dn
+@@ -443,7 +437,7 @@ module Response = struct
+   type basic_ocsp_response = {
+     tbsResponseData: response_data;
+     signatureAlgorithm: Algorithm.t;
+-    signature: Cstruct.t;
++    signature: string;
+     certs: Certificate.t list option;
+   }
+ 
+@@ -451,7 +445,7 @@ module Response = struct
+     Fmt.pf ppf "BasicOCSPResponse @[<1>{@ tbsResponseData=%a;@ signatureAlgorithm=%a;@ signature=%a;@ certs=%a@ }@]"
+       pp_response_data tbsResponseData
+       Algorithm.pp signatureAlgorithm
+-      Cstruct.hexdump_pp signature
++      (Fmt.fmt "%S") signature
+       (Fmt.option ~none:(Fmt.any "None") @@
+        Fmt.list ~sep:Fmt.semi @@ Certificate.pp) certs
+ 
+@@ -571,7 +565,6 @@ module Response = struct
+ 
+     let basic_ocsp_response =
+       let f (tbsResponseData,signatureAlgorithm,signature,certs) =
+-        let signature = Cstruct.of_string signature in
+         let certs = match certs with
+           | None -> None
+           | Some certs ->
+@@ -584,7 +577,6 @@ module Response = struct
+         {tbsResponseData;signatureAlgorithm;signature;certs}
+       in
+       let g {tbsResponseData;signatureAlgorithm;signature;certs} =
+-        let signature = Cstruct.to_string signature in
+         let certs = match certs with
+           | None -> None
+           | Some certs ->
+@@ -662,7 +654,7 @@ module Response = struct
+       responseExtensions;
+     } in
+     let resp_der = Asn.response_data_to_cs tbsResponseData in
+-    let* signature = Private_key.sign digest ~scheme key (`Message (Cstruct.of_string resp_der)) in
++    let* signature = Private_key.sign digest ~scheme key (`Message (resp_der)) in
+     Ok { tbsResponseData ; signatureAlgorithm ; signature;certs }
+ 
+   let create_success ?digest ?certs ?response_extensions
+Index: x509-0.16.5/lib/p12.ml
+===================================================================
+--- x509-0.16.5.orig/lib/p12.ml
++++ x509-0.16.5/lib/p12.ml
+@@ -207,7 +207,7 @@ let id len purpose =
+ 
+ let v = function
+   | `MD5 | `SHA1 | `SHA224 | `SHA256 -> 512 / 8
+-  | `SHA384 | `SHA512 -> 1024 / 8
++  | `SHA384 | `SHA512 | _ -> 1024 / 8
+ 
+ let fill ~data ~out =
+   let len = Cstruct.length out
+@@ -231,24 +231,25 @@ let fill_or_empty size data =
+     buf
+ 
+ let pbes algorithm purpose password salt iterations n =
++  let module H = (val (Digestif.module_of_hash' algorithm)) in
+   let pw = prepare_pw password
+   and v = v algorithm
+-  and u = Mirage_crypto.Hash.digest_size algorithm
++  and u = H.digest_size
+   in
+   let diversifier = id v purpose in
+   let salt = fill_or_empty v salt in
+   let pass = fill_or_empty v pw in
+   let out = Cstruct.create n in
+   let rec one off i =
+-    let ai = ref (Mirage_crypto.Hash.digest algorithm (Cstruct.append diversifier i)) in
++    let ai = ref (H.digest_string (Cstruct.to_string (Cstruct.append diversifier i))) in
+     for _j = 1 to pred iterations do
+-      ai := Mirage_crypto.Hash.digest algorithm !ai;
++      ai := H.digest_string (H.to_raw_string !ai);
+     done;
+-    Cstruct.blit !ai 0 out off (min (n - off) u);
++    Cstruct.blit (Cstruct.of_string (H.to_raw_string !ai)) 0 out off (min (n - off) u);
+     if u >= n - off then () else
+       (* 6B *)
+       let b = Cstruct.create v in
+-      fill ~data:!ai ~out:b;
++      fill ~data:(Cstruct.of_string (H.to_raw_string !ai)) ~out:b;
+       (* 6C *)
+       let i' = Cstruct.create (Cstruct.length i) in
+       for j = 0 to pred (Cstruct.length i / v) do
+@@ -264,7 +265,7 @@ let pbes algorithm purpose password salt
+   in
+   let i = Cstruct.append salt pass in
+   one 0 i;
+-  out
++  Cstruct.to_string out
+ 
+ (* TODO PKCS5/7 padding is "k - (l mod k)" i.e. always > 0!
+    (and rc4 being a stream cipher has no padding!) *)
+@@ -316,16 +317,14 @@ let pkcs12_decrypt algo password data =
+   let* data =
+     match algo with
+     | SHA_RC2_40_CBC _ | SHA_RC2_128_CBC _ ->
+-      Ok (Rc2.decrypt_cbc ~effective:(key_len * 8) ~key ~iv data)
++      Ok (Rc2.decrypt_cbc ~effective:(key_len * 8) ~key:(Cstruct.of_string key) ~iv data)
+     | SHA_RC4_40 _ | SHA_RC4_128 _ ->
+-      let open Mirage_crypto.Cipher_stream in
+-      let key = ARC4.of_secret key in
+-      let { ARC4.message ; _ } = ARC4.decrypt ~key data in
+-      Ok message
++      let key = Mirage_crypto.ARC4.of_secret key in
++      let { Mirage_crypto.ARC4.message ; _ } = Mirage_crypto.ARC4.decrypt ~key (Cstruct.to_string data) in
++      Ok (Cstruct.of_string message)
+     | SHA_3DES_CBC _ ->
+-      let open Mirage_crypto.Cipher_block in
+-      let key = DES.CBC.of_secret key in
+-      Ok (DES.CBC.decrypt ~key ~iv data)
++      let key = Mirage_crypto.DES.CBC.of_secret key in
++      Ok (Cstruct.of_string (Mirage_crypto.DES.CBC.decrypt ~key ~iv (Cstruct.to_string data)))
+     | _ -> Error (`Msg "encryption algorithm not supported")
+   in
+   Ok (unpad data)
+@@ -350,29 +349,30 @@ let pkcs5_2_decrypt kdf enc password dat
+     | _ -> Error (`Msg "expected kdf being pbkdf2")
+   in
+   let password = Cstruct.of_string password in
+-  let key = Pbkdf.pbkdf2 ~prf ~password ~salt:(Cstruct.of_string salt) ~count ~dk_len in
+-  let key = Mirage_crypto.Cipher_block.AES.CBC.of_secret key in
+-  let msg = Mirage_crypto.Cipher_block.AES.CBC.decrypt ~key ~iv:(Cstruct.of_string iv) data in
+-  Ok (unpad msg)
+-
+-let pkcs5_2_encrypt (mac : [ `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]) count algo password data =
+-  let bs = Mirage_crypto.Cipher_block.AES.CBC.block_size in
+-  let iv = Cstruct.to_string (Mirage_crypto_rng.generate bs) in
++  let key = Pbkdf.pbkdf2 ~prf ~password:(Cstruct.to_string password) ~salt ~count ~dk_len in
++  let key = Mirage_crypto.AES.CBC.of_secret key in
++  let msg = Mirage_crypto.AES.CBC.decrypt ~key ~iv data in
++  Ok (unpad (Cstruct.of_string msg))
++
++(*let pkcs5_2_encrypt ( mac : [ `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]) count algo password data =*)
++let pkcs5_2_encrypt ( mac : Digestif.hash') count algo password data =
++  let module H = (val (Digestif.module_of_hash' mac)) in
++  let bs = Mirage_crypto.AES.CBC.block_size in
++  let iv = (Mirage_crypto_rng.generate bs) in
+   let enc, dk_len =
+     match algo with
+     | `AES128_CBC -> Algorithm.AES128_CBC iv, 16l
+     | `AES192_CBC -> Algorithm.AES192_CBC iv, 24l
+     | `AES256_CBC -> Algorithm.AES256_CBC iv, 32l
+   in
+-  let password = Cstruct.of_string password in
+-  let salt = Mirage_crypto_rng.generate (Mirage_crypto.Hash.digest_size mac) in
+-  let key = Pbkdf.pbkdf2 ~prf:(mac :> Mirage_crypto.Hash.hash) ~password ~salt ~count ~dk_len in
+-  let key = Mirage_crypto.Cipher_block.AES.CBC.of_secret key in
++  let salt = Mirage_crypto_rng.generate (H.digest_size) in
++  let key = Pbkdf.pbkdf2 ~prf:mac ~password ~salt ~count ~dk_len in
++  let key = Mirage_crypto.AES.CBC.of_secret key in
+   let padded_data = pad bs data in
+   let enc_data =
+-    Mirage_crypto.Cipher_block.AES.CBC.encrypt ~key ~iv:(Cstruct.of_string iv) padded_data
++    Mirage_crypto.AES.CBC.encrypt ~key ~iv (Cstruct.to_string padded_data)
+   in
+-  let kdf = Algorithm.PBKDF2 (Cstruct.to_string salt, count, None, Algorithm.of_hmac mac) in
++  let kdf = Algorithm.PBKDF2 (salt, count, None, Algorithm.of_hmac mac) in
+   Algorithm.PBES2 (kdf, enc), enc_data
+ 
+ let decrypt algo password data =
+@@ -381,7 +381,7 @@ let decrypt algo password data =
+   | SHA_RC4_128 _ | SHA_RC4_40 _
+   | SHA_3DES_CBC _ | SHA_2DES_CBC _
+   | SHA_RC2_128_CBC _ | SHA_RC2_40_CBC _ -> pkcs12_decrypt algo password data
+-  | PBES2 (kdf, enc) -> pkcs5_2_decrypt kdf enc password data
++  | PBES2 (kdf, enc) -> pkcs5_2_decrypt kdf enc password (Cstruct.to_string data)
+   | _ -> Error (`Msg "unsupported encryption algorithm")
+ 
+ let password_decrypt password (algo, data) =
+@@ -395,11 +395,12 @@ let verify password (data, ((algorithm,
+       ~none:(`Msg "unsupported hash algorithm")
+       (Algorithm.to_hash algorithm)
+   in
++  let module H = (val (Digestif.module_of_hash' hash)) in
+   let key =
+-    pbes hash `Hmac password (Cstruct.of_string salt) iterations (Mirage_crypto.Hash.digest_size hash)
++    pbes hash `Hmac password (Cstruct.of_string salt) iterations (H.digest_size)
+   in
+-  let computed = Mirage_crypto.Hash.mac hash ~key (Cstruct.of_string data) in
+-  if Cstruct.equal computed (Cstruct.of_string digest) then begin
++  let computed = H.to_raw_string (H.hmac_string ~key data) in
++  if String.equal computed digest then begin
+     let* content = Asn_grammars.err_to_msg (Asn.auth_safe_of_cs data) in
+     let* safe_contents =
+       List.fold_left (fun acc c ->
+@@ -431,12 +432,13 @@ let verify password (data, ((algorithm,
+   end else
+     Error (`Msg "invalid signature")
+ 
+-let create ?(mac = `SHA256) ?(algorithm = `AES256_CBC) ?(iterations = 2048) password certificates private_key =
++let create ?(mac:Digestif.hash' = `SHA256) ?(algorithm = `AES256_CBC) ?(iterations = 2048) password certificates private_key =
++  let module H = (val (Digestif.module_of_hash' mac)) in
+   let key_fp pub = Public_key.fingerprint pub in
+   let priv_fp = key_fp (Private_key.public private_key) in
+-  let attributes = [ Registry.PKCS9.local_key_id, [ Cstruct.to_string priv_fp ]] in
++  let attributes = [ Registry.PKCS9.local_key_id, [ priv_fp ]] in
+   let maybe_attr c =
+-    if Cstruct.equal priv_fp (key_fp (Certificate.public_key c)) then
++    if String.equal priv_fp (key_fp (Certificate.public_key c)) then
+       Some attributes
+     else
+       None
+@@ -446,20 +448,20 @@ let create ?(mac = `SHA256) ?(algorithm
+   and priv_sc =
+     let data = Cstruct.of_string (Private_key.Asn.private_to_cstruct private_key) in
+     let algo, data = pkcs5_2_encrypt mac iterations algorithm password data in
+-    Asn.safe_contents_to_cs [ `Encrypted_private_key (algo, (Cstruct.to_string data)), Some attributes ]
++    Asn.safe_contents_to_cs [ `Encrypted_private_key (algo, (data)), Some attributes ]
+   in
+   let cert_sc_enc =
+     let algo, data = pkcs5_2_encrypt mac iterations algorithm password (Cstruct.of_string cert_sc) in
+-    algo, Some (Cstruct.to_string data)
++    algo, Some (data)
+   in
+   let auth_data =
+     Asn.auth_safe_to_cs [ `Encrypted cert_sc_enc ; `Data priv_sc ]
+   in
+-  let mac_size = Mirage_crypto.Hash.digest_size mac in
++  let mac_size = H.digest_size in
+   let salt = Mirage_crypto_rng.generate mac_size in
+-  let key = pbes mac `Hmac password salt iterations mac_size in
+-  let digest = Mirage_crypto.Hash.mac mac ~key (Cstruct.of_string auth_data) in
+-  auth_data, ((Algorithm.of_hash mac, (Cstruct.to_string digest)), (Cstruct.to_string salt), iterations)
++  let key = pbes mac `Hmac password (Cstruct.of_string salt) iterations mac_size in
++  let digest = H.to_raw_string (H.hmac_string ~key auth_data) in
++  auth_data, ((Algorithm.of_hash mac, (digest)), (salt), iterations)
+ 
+ let decode_der cs = Asn_grammars.err_to_msg (Asn.pfx_of_cs cs)
+ 
+Index: x509-0.16.5/lib/private_key.ml
+===================================================================
+--- x509-0.16.5.orig/lib/private_key.ml
++++ x509-0.16.5/lib/private_key.ml
+@@ -1,7 +1,6 @@
+ let ( let* ) = Result.bind
+ 
+ type ecdsa = [
+-  | `P224 of Mirage_crypto_ec.P224.Dsa.priv
+   | `P256 of Mirage_crypto_ec.P256.Dsa.priv
+   | `P384 of Mirage_crypto_ec.P384.Dsa.priv
+   | `P521 of Mirage_crypto_ec.P521.Dsa.priv
+@@ -16,7 +15,6 @@ type t = [
+ let key_type = function
+   | `RSA _ -> `RSA
+   | `ED25519 _ -> `ED25519
+-  | `P224 _ -> `P224
+   | `P256 _ -> `P256
+   | `P384 _ -> `P384
+   | `P521 _ -> `P521
+@@ -29,7 +27,6 @@ let generate ?seed ?(bits = 4096) typ =
+   match typ with
+   | `RSA -> `RSA (Mirage_crypto_pk.Rsa.generate ?g ~bits ())
+   | `ED25519 -> `ED25519 (fst (Mirage_crypto_ec.Ed25519.generate ?g ()))
+-  | `P224 -> `P224 (fst (Mirage_crypto_ec.P224.Dsa.generate ?g ()))
+   | `P256 -> `P256 (fst (Mirage_crypto_ec.P256.Dsa.generate ?g ()))
+   | `P384 -> `P384 (fst (Mirage_crypto_ec.P384.Dsa.generate ?g ()))
+   | `P521 -> `P521 (fst (Mirage_crypto_ec.P521.Dsa.generate ?g ()))
+@@ -44,40 +41,36 @@ let of_cstruct data =
+   function
+   | `RSA -> Error (`Msg "cannot decode an RSA key")
+   | `ED25519 ->
+-    let* k = ec_err (Ed25519.priv_of_cstruct data) in
++    let* k = ec_err (Ed25519.priv_of_octets data) in
+     Ok (`ED25519 k)
+-  | `P224 ->
+-    let* k = ec_err (P224.Dsa.priv_of_cstruct data) in
+-    Ok (`P224 k)
+   | `P256 ->
+-    let* k = ec_err (P256.Dsa.priv_of_cstruct data) in
++    let* k = ec_err (P256.Dsa.priv_of_octets data) in
+     Ok (`P256 k)
+   | `P384 ->
+-    let* k = ec_err (P384.Dsa.priv_of_cstruct data) in
++    let* k = ec_err (P384.Dsa.priv_of_octets data) in
+     Ok (`P384 k)
+   | `P521 ->
+-    let* k = ec_err (P521.Dsa.priv_of_cstruct data) in
++    let* k = ec_err (P521.Dsa.priv_of_octets data) in
+     Ok (`P521 k)
+ 
+ let of_string ?seed_or_data ?bits typ data =
+   match seed_or_data with
+   | None ->
+     begin match typ with
+-      | `RSA -> Ok (generate ~seed:(Cstruct.of_string data) ?bits `RSA)
++      | `RSA -> Ok (generate ~seed:data ?bits `RSA)
+       | _ ->
+         let* data = Base64.decode data in
+-        of_cstruct (Cstruct.of_string data) typ
++        of_cstruct data typ
+     end
+   | Some `Seed ->
+-    Ok (generate ~seed:(Cstruct.of_string data) ?bits typ)
++    Ok (generate ~seed:data ?bits typ)
+   | Some `Data ->
+     let* data = Base64.decode data in
+-    of_cstruct (Cstruct.of_string data) typ
++    of_cstruct data typ
+ 
+ let public = function
+   | `RSA priv -> `RSA (Mirage_crypto_pk.Rsa.pub_of_priv priv)
+   | `ED25519 priv -> `ED25519 (Mirage_crypto_ec.Ed25519.pub_of_priv priv)
+-  | `P224 priv -> `P224 (Mirage_crypto_ec.P224.Dsa.pub_of_priv priv)
+   | `P256 priv -> `P256 (Mirage_crypto_ec.P256.Dsa.pub_of_priv priv)
+   | `P384 priv -> `P384 (Mirage_crypto_ec.P384.Dsa.pub_of_priv priv)
+   | `P521 priv -> `P521 (Mirage_crypto_ec.P521.Dsa.pub_of_priv priv)
+@@ -85,13 +78,13 @@ let public = function
+ let sign hash ?scheme key data =
+   let open Mirage_crypto_ec in
+   let hashed () = Public_key.hashed hash data
+-  and ecdsa_to_cs s = Algorithm.ecdsa_sig_to_cstruct ((fun (a,b) -> (Cstruct.to_string a,Cstruct.to_string b)) s)
++  and ecdsa_to_cs s = Algorithm.ecdsa_sig_to_cstruct s
+   in
+   let scheme = Key_type.opt_signature_scheme ?scheme (key_type key) in
+   try
+     match key, scheme with
+     | `RSA key, `RSA_PSS ->
+-      let module H = (val (Mirage_crypto.Hash.module_of hash)) in
++      let module H = (val (Digestif.module_of_hash' hash)) in
+       let module PSS = Mirage_crypto_pk.Rsa.PSS(H) in
+       let* d = hashed () in
+       Ok (PSS.sign ~key (`Digest d))
+@@ -105,11 +98,10 @@ let sign hash ?scheme key data =
+       end
+     | #ecdsa as key, `ECDSA ->
+       let* d = hashed () in
+-      Ok (Cstruct.of_string (ecdsa_to_cs (match key with
+-          | `P224 key -> P224.Dsa.(sign ~key (Public_key.trunc byte_length d))
++      Ok (ecdsa_to_cs (match key with
+           | `P256 key -> P256.Dsa.(sign ~key (Public_key.trunc byte_length d))
+           | `P384 key -> P384.Dsa.(sign ~key (Public_key.trunc byte_length d))
+-          | `P521 key -> P521.Dsa.(sign ~key (Public_key.trunc byte_length d)))))
++          | `P521 key -> P521.Dsa.(sign ~key (Public_key.trunc byte_length d))))
+     | _ -> Error (`Msg "invalid key and signature scheme combination")
+   with
+   | Mirage_crypto_pk.Rsa.Insufficient_key ->
+@@ -197,10 +189,9 @@ module Asn = struct
+   let reparse_ec_private curve priv =
+     let open Mirage_crypto_ec in
+     match curve with
+-    | `SECP224R1 -> let* p = P224.Dsa.priv_of_cstruct priv in Ok (`P224 p)
+-    | `SECP256R1 -> let* p = P256.Dsa.priv_of_cstruct priv in Ok (`P256 p)
+-    | `SECP384R1 -> let* p = P384.Dsa.priv_of_cstruct priv in Ok (`P384 p)
+-    | `SECP521R1 -> let* p = P521.Dsa.priv_of_cstruct priv in Ok (`P521 p)
++    | `SECP256R1 -> let* p = P256.Dsa.priv_of_octets priv in Ok (`P256 p)
++    | `SECP384R1 -> let* p = P384.Dsa.priv_of_octets priv in Ok (`P384 p)
++    | `SECP521R1 -> let* p = P521.Dsa.priv_of_octets priv in Ok (`P521 p)
+ 
+   (* external use (result) *)
+   let ec_priv_of_cs =
+@@ -212,7 +203,7 @@ module Asn = struct
+       | Some c ->
+         Result.map_error
+           (fun e -> `Parse (Fmt.to_to_string Mirage_crypto_ec.pp_error e))
+-          (reparse_ec_private c (Cstruct.of_string priv))
++          (reparse_ec_private c priv)
+ 
+   let ec_of_cs ?curve cs =
+     let (priv, named_curve, _pub) = ec_of_cs cs in
+@@ -223,7 +214,7 @@ module Asn = struct
+       | Some c, Some c' -> if c = c' then c else parse_error "conflicting curve"
+       | None, None -> parse_error "unknown curve"
+     in
+-    ec_to_err (reparse_ec_private nc (Cstruct.of_string priv))
++    ec_to_err (reparse_ec_private nc priv)
+ 
+   let ec_to_cs ?curve ?pub key = ec_to_cs (key, curve, pub)
+ 
+@@ -232,7 +223,7 @@ module Asn = struct
+     | (0, Algorithm.RSA, cs) -> `RSA (rsa_priv_of_cs cs)
+     | (0, Algorithm.ED25519, cs) ->
+       let data = ed25519_of_cs cs in
+-      `ED25519 (ec_to_err (Mirage_crypto_ec.Ed25519.priv_of_cstruct (Cstruct.of_string data)))
++      `ED25519 (ec_to_err (Mirage_crypto_ec.Ed25519.priv_of_octets data))
+     | (0, Algorithm.EC_pub curve, cs) -> ec_of_cs ~curve cs
+     | _ -> parse_error "unknown private key info"
+ 
+@@ -242,11 +233,10 @@ module Asn = struct
+     let alg, cs =
+       match p with
+       | `RSA pk -> RSA, rsa_priv_to_cs pk
+-      | `ED25519 pk -> ED25519, ed25519_to_cs (Cstruct.to_string (Ed25519.priv_to_cstruct pk))
+-      | `P224 pk -> EC_pub `SECP224R1, ec_to_cs (Cstruct.to_string (P224.Dsa.priv_to_cstruct pk))
+-      | `P256 pk -> EC_pub `SECP256R1, ec_to_cs (Cstruct.to_string (P256.Dsa.priv_to_cstruct pk))
+-      | `P384 pk -> EC_pub `SECP384R1, ec_to_cs (Cstruct.to_string (P384.Dsa.priv_to_cstruct pk))
+-      | `P521 pk -> EC_pub `SECP521R1, ec_to_cs (Cstruct.to_string (P521.Dsa.priv_to_cstruct pk))
++      | `ED25519 pk -> ED25519, ed25519_to_cs (Ed25519.priv_to_octets pk)
++      | `P256 pk -> EC_pub `SECP256R1, ec_to_cs (P256.Dsa.priv_to_octets pk)
++      | `P384 pk -> EC_pub `SECP384R1, ec_to_cs (P384.Dsa.priv_to_octets pk)
++      | `P521 pk -> EC_pub `SECP521R1, ec_to_cs (P521.Dsa.priv_to_octets pk)
+     in
+     (0, alg, cs)
+ 
+Index: x509-0.16.5/lib/public_key.ml
+===================================================================
+--- x509-0.16.5.orig/lib/public_key.ml
++++ x509-0.16.5/lib/public_key.ml
+@@ -1,7 +1,6 @@
+ let ( let* ) = Result.bind
+ 
+ type ecdsa = [
+-  | `P224 of Mirage_crypto_ec.P224.Dsa.pub
+   | `P256 of Mirage_crypto_ec.P256.Dsa.pub
+   | `P384 of Mirage_crypto_ec.P384.Dsa.pub
+   | `P521 of Mirage_crypto_ec.P521.Dsa.pub
+@@ -22,12 +21,12 @@ module Asn = struct
+ 
+   let rsa_public_key =
+     let f (n', e') = 
+-    let n = Mirage_crypto_pk.Z_extra.of_cstruct_be (Cstruct.of_string n') in
+-    let e = Mirage_crypto_pk.Z_extra.of_cstruct_be (Cstruct.of_string e') in
++    let n = (Z.of_string n') in
++    let e = (Z.of_string e') in
+     match Rsa.pub ~e ~n with
+       | Ok p -> p
+       | Error (`Msg m) -> parse_error "bad RSA public key %s" m
+-    and g ({ Rsa.n; e } : Rsa.pub) = (Cstruct.to_string (Mirage_crypto_pk.Z_extra.to_cstruct_be n), Cstruct.to_string (Mirage_crypto_pk.Z_extra.to_cstruct_be e)) in
++    and g ({ Rsa.n; e } : Rsa.pub) = ((Z.to_string n), (Z.to_string e)) in
+     map f g @@
+     sequence2
+       (required ~label:"modulus"        integer)
+@@ -49,11 +48,10 @@ module Asn = struct
+     let open Algorithm in
+     function
+     | (RSA      , cs) -> `RSA (rsa_pub_of_cs cs)
+-    | (ED25519  , cs) -> `ED25519 (to_err (Ed25519.pub_of_cstruct (Cstruct.of_string cs)))
+-    | (EC_pub `SECP224R1, cs) -> `P224 (to_err (P224.Dsa.pub_of_cstruct (Cstruct.of_string cs)))
+-    | (EC_pub `SECP256R1, cs) -> `P256 (to_err (P256.Dsa.pub_of_cstruct (Cstruct.of_string cs)))
+-    | (EC_pub `SECP384R1, cs) -> `P384 (to_err (P384.Dsa.pub_of_cstruct (Cstruct.of_string cs)))
+-    | (EC_pub `SECP521R1, cs) -> `P521 (to_err (P521.Dsa.pub_of_cstruct (Cstruct.of_string cs)))
++    | (ED25519  , cs) -> `ED25519 (to_err (Ed25519.pub_of_octets cs))
++    | (EC_pub `SECP256R1, cs) -> `P256 (to_err (P256.Dsa.pub_of_octets cs))
++    | (EC_pub `SECP384R1, cs) -> `P384 (to_err (P384.Dsa.pub_of_octets cs))
++    | (EC_pub `SECP521R1, cs) -> `P521 (to_err (P521.Dsa.pub_of_octets cs))
+     | _ -> parse_error "unknown public key algorithm"
+ 
+   let unparse_pk =
+@@ -61,11 +59,10 @@ module Asn = struct
+     let open Algorithm in
+     function
+     | `RSA pk    -> (RSA, rsa_pub_to_cs pk)
+-    | `ED25519 pk -> (ED25519, Cstruct.to_string (Ed25519.pub_to_cstruct pk))
+-    | `P224 pk -> (EC_pub `SECP224R1, Cstruct.to_string (P224.Dsa.pub_to_cstruct pk))
+-    | `P256 pk -> (EC_pub `SECP256R1, Cstruct.to_string (P256.Dsa.pub_to_cstruct pk))
+-    | `P384 pk -> (EC_pub `SECP384R1, Cstruct.to_string (P384.Dsa.pub_to_cstruct pk))
+-    | `P521 pk -> (EC_pub `SECP521R1, Cstruct.to_string (P521.Dsa.pub_to_cstruct pk))
++    | `ED25519 pk -> (ED25519, (Ed25519.pub_to_octets pk))
++    | `P256 pk -> (EC_pub `SECP256R1, (P256.Dsa.pub_to_octets pk))
++    | `P384 pk -> (EC_pub `SECP384R1, (P384.Dsa.pub_to_octets pk))
++    | `P521 pk -> (EC_pub `SECP521R1, (P521.Dsa.pub_to_octets pk))
+ 
+   let pk_info_der =
+     map reparse_pk unparse_pk @@
+@@ -80,21 +77,20 @@ end
+ let id k =
+   let data = match k with
+     | `RSA p -> Asn.rsa_public_to_cstruct p
+-    | `ED25519 pk -> Cstruct.to_string (Mirage_crypto_ec.Ed25519.pub_to_cstruct pk)
+-    | `P224 pk -> Cstruct.to_string (Mirage_crypto_ec.P224.Dsa.pub_to_cstruct pk)
+-    | `P256 pk -> Cstruct.to_string (Mirage_crypto_ec.P256.Dsa.pub_to_cstruct pk)
+-    | `P384 pk -> Cstruct.to_string (Mirage_crypto_ec.P384.Dsa.pub_to_cstruct pk)
+-    | `P521 pk -> Cstruct.to_string (Mirage_crypto_ec.P521.Dsa.pub_to_cstruct pk)
++    | `ED25519 pk -> (Mirage_crypto_ec.Ed25519.pub_to_octets pk)
++    | `P256 pk -> (Mirage_crypto_ec.P256.Dsa.pub_to_octets pk)
++    | `P384 pk -> (Mirage_crypto_ec.P384.Dsa.pub_to_octets pk)
++    | `P521 pk -> (Mirage_crypto_ec.P521.Dsa.pub_to_octets pk)
+   in
+-  Mirage_crypto.Hash.digest `SHA1 (Cstruct.of_string data)
++  Digestif.to_raw_string Digestif.SHA1 (Digestif.digest_string Digestif.SHA1 data)
+ 
+ let fingerprint ?(hash = `SHA256) pub =
+-  Mirage_crypto.Hash.digest hash (Cstruct.of_string (Asn.pub_info_to_cstruct pub))
++  let module H = (val (Digestif.module_of_hash' hash)) in
++  H.to_raw_string (H.digest_string (Asn.pub_info_to_cstruct pub))
+ 
+ let key_type = function
+   | `RSA _ -> `RSA
+   | `ED25519 _ -> `ED25519
+-  | `P224 _ -> `P224
+   | `P256 _ -> `P256
+   | `P384 _ -> `P384
+   | `P521 _ -> `P521
+@@ -107,18 +103,19 @@ let sig_alg = function
+ let pp ppf k =
+   Fmt.string ppf (Key_type.to_string (key_type k));
+   Fmt.sp ppf ();
+-  Cstruct.hexdump_pp ppf (fingerprint k)
++  Cstruct.hexdump_pp ppf (Cstruct.of_string (fingerprint k))
+ 
+ let hashed hash data =
++  let module H = (val Digestif.module_of_hash' hash) in
+   match data with
+-  | `Message msg -> Ok (Mirage_crypto.Hash.digest hash msg)
++  | `Message msg -> Ok (H.to_raw_string (H.digest_string msg))
+   | `Digest d ->
+-    let n = Cstruct.length d and m = Mirage_crypto.Hash.digest_size hash in
++    let n = String.length d and m = H.digest_size in
+     if n = m then Ok d else Error (`Msg "digested data of invalid size")
+ 
+ let trunc len data =
+-  if Cstruct.length data > len then
+-    Cstruct.sub data 0 len
++  if String.length data > len then
++    String.sub data 0 len
+   else
+     data
+ 
+@@ -127,14 +124,14 @@ let verify hash ?scheme ~signature key d
+   let ok_if_true p = if p then Ok () else Error (`Msg "bad signature") in
+   let map_pair f (a,b) = (f a , f b) in
+   let ecdsa_of_cs cs =
+-    Result.map (map_pair Cstruct.of_string) (
++    Result.map (map_pair (fun x -> x)) (
+     Result.map_error (function `Parse s -> `Msg s)
+-      (Algorithm.ecdsa_sig_of_cstruct (Cstruct.to_string cs)))
++      (Algorithm.ecdsa_sig_of_cstruct cs))
+   in
+   let scheme = Key_type.opt_signature_scheme ?scheme (key_type key) in
+   match key, scheme with
+   | `RSA key, `RSA_PSS ->
+-    let module H = (val (Mirage_crypto.Hash.module_of hash)) in
++    let module H = (val (Digestif.module_of_hash' hash)) in
+     let module PSS = Mirage_crypto_pk.Rsa.PSS(H) in
+     let* d = hashed hash data in
+     ok_if_true (PSS.verify ~key ~signature (`Digest d))
+@@ -152,7 +149,6 @@ let verify hash ?scheme ~signature key d
+     let* s = ecdsa_of_cs signature in
+     ok_if_true
+       (match key with
+-       | `P224 key -> P224.Dsa.verify ~key s (trunc P224.Dsa.byte_length d)
+        | `P256 key -> P256.Dsa.verify ~key s (trunc P256.Dsa.byte_length d)
+        | `P384 key -> P384.Dsa.verify ~key s (trunc P384.Dsa.byte_length d)
+        | `P521 key -> P521.Dsa.verify ~key s (trunc P521.Dsa.byte_length d))
+Index: x509-0.16.5/lib/rc2.ml
+===================================================================
+--- x509-0.16.5.orig/lib/rc2.ml
++++ x509-0.16.5/lib/rc2.ml
+@@ -170,6 +170,6 @@ let decrypt_cbc ?(effective = 128) ~key
+   for i = 0 to pred ((l + pred block) / block) do
+     decrypt_one ~key ~data ~off:(i * block) dst
+   done;
+-  Mirage_crypto.Uncommon.Cs.xor_into iv dst block;
+-  Mirage_crypto.Uncommon.Cs.xor_into data (Cstruct.shift dst block) (l - block);
++  Mirage_crypto.Uncommon.unsafe_xor_into iv ~src_off:0 (Cstruct.to_bytes dst) ~dst_off:0 block;
++  Mirage_crypto.Uncommon.unsafe_xor_into (Cstruct.to_string data) ~src_off:0 (Cstruct.to_bytes (Cstruct.shift dst block)) ~dst_off:0 (l - block);
+   dst
+Index: x509-0.16.5/lib/signing_request.ml
+===================================================================
+--- x509-0.16.5.orig/lib/signing_request.ml
++++ x509-0.16.5/lib/signing_request.ml
+@@ -136,7 +136,7 @@ let hostnames csr =
+ let validate_signature allowed_hashes { asn ; raw } =
+   let raw_data = Validation.raw_cert_hack (Cstruct.of_string raw) in
+   Validation.validate_raw_signature asn.info.subject allowed_hashes raw_data
+-    asn.signature_algorithm (Cstruct.of_string asn.signature) asn.info.public_key
++    asn.signature_algorithm asn.signature asn.info.public_key
+ 
+ let decode_der ?(allowed_hashes = Validation.sha2) cs =
+   let* csr = Asn_grammars.err_to_msg (Asn.signing_request_of_cs cs) in
+@@ -178,7 +178,7 @@ let create subject ?digest ?(extensions
+   let info : request_info = { subject ; public_key ; extensions } in
+   let info_cs = Asn.request_info_to_cs info in
+   let scheme = Key_type.x509_default_scheme (Private_key.key_type key) in
+-  let* signature = Result.map Cstruct.to_string (Private_key.sign hash ~scheme key (`Message (Cstruct.of_string info_cs))) in
++  let* signature = (Private_key.sign hash ~scheme key (`Message (info_cs))) in
+   let signature_algorithm = Algorithm.of_signature_algorithm scheme hash in
+   let asn = { info ; signature_algorithm ; signature } in
+   let raw = Asn.signing_request_to_cs asn in
+@@ -213,7 +213,7 @@ let sign signing_request
+   } in
+   let tbs_raw = Certificate.Asn.tbs_certificate_to_cstruct tbs_cert in
+   let scheme = Key_type.x509_default_scheme (Private_key.key_type key) in
+-  let* signature_val = Result.map Cstruct.to_string (Private_key.sign hash ~scheme key (`Message (Cstruct.of_string tbs_raw))) in
++  let* signature_val = (Private_key.sign hash ~scheme key (`Message (tbs_raw))) in
+   let asn = {
+     Certificate.tbs_cert ;
+     signature_algo ;
+Index: x509-0.16.5/lib/validation.ml
+===================================================================
+--- x509-0.16.5.orig/lib/validation.ml
++++ x509-0.16.5/lib/validation.ml
+@@ -9,7 +9,7 @@ module Log = (val Logs.src_log src : Log
+ type signature_error = [
+   | `Bad_signature of Distinguished_name.t * string
+   | `Bad_encoding of Distinguished_name.t * string * Cstruct.t
+-  | `Hash_not_allowed of Distinguished_name.t * Mirage_crypto.Hash.hash
++  | `Hash_not_allowed of Distinguished_name.t * Digestif.hash'
+   | `Unsupported_keytype of Distinguished_name.t * Public_key.t
+   | `Unsupported_algorithm of Distinguished_name.t * string
+   | `Msg of string
+@@ -94,12 +94,12 @@ let raw_cert_hack raw =
+       let len_len = 2 + 0x7F land cert_len_byte in
+       len_len + (l 0 2 len_len)
+   in
+-  Cstruct.sub cert_buf 0 cert_len
++  Cstruct.to_string (Cstruct.sub cert_buf 0 cert_len)
+ 
+ let validate_signature allowed_hashes { Certificate.asn = trusted ; _ } { Certificate.asn ; raw } =
+   let tbs_raw = raw_cert_hack (Cstruct.of_string raw) in
+   validate_raw_signature asn.tbs_cert.subject allowed_hashes tbs_raw
+-    asn.signature_algo (Cstruct.of_string asn.signature_val) trusted.tbs_cert.pk_info
++    asn.signature_algo asn.signature_val trusted.tbs_cert.pk_info
+ 
+ let validate_time time { Certificate.asn = cert ; _ } =
+   match time with
+@@ -317,13 +317,13 @@ let pp_chain_error ppf = function
+   | #chain_validation_error as c -> pp_chain_validation_error ppf c
+ 
+ type fingerprint_validation_error = [
+-  | `InvalidFingerprint of Certificate.t * Cstruct.t * Cstruct.t
++  | `InvalidFingerprint of Certificate.t * string * string
+ ]
+ 
+ let pp_fingerprint_validation_error ppf = function
+   | `InvalidFingerprint (c, c_fp, fp) ->
+     Fmt.pf ppf "fingerprint for %a (computed %a) does not match, expected %a"
+-      Certificate.pp c Cstruct.hexdump_pp c_fp Cstruct.hexdump_pp fp
++      Certificate.pp c (Fmt.fmt "%S") c_fp (Fmt.fmt "%S") fp
+ 
+ type validation_error = [
+   | signature_error
+@@ -462,7 +462,7 @@ let fingerprint_verification ?ip host no
+   | [] -> Error `EmptyCertificateChain
+   | server::_ ->
+     let computed_fingerprint = fp server in
+-    if Cstruct.equal computed_fingerprint fingerprint then
++    if String.equal computed_fingerprint fingerprint then
+       match
+         validate_time now server,
+         maybe_validate_hostname server host,
+Index: x509-0.16.5/lib/x509.mli
+===================================================================
+--- x509-0.16.5.orig/lib/x509.mli
++++ x509-0.16.5/lib/x509.mli
+@@ -72,7 +72,7 @@ end
+ (** Types of keys *)
+ module Key_type : sig
+   (** The polymorphic variant of key types. *)
+-  type t = [ `RSA | `ED25519 | `P224 | `P256 | `P384 | `P521 ]
++  type t = [ `RSA | `ED25519 | `P256 | `P384 | `P521 ]
+ 
+   val strings : (string * t) list
+   (** [strings] is an associative list of string and key_type pairs. Useful for
+@@ -112,7 +112,6 @@ module Public_key : sig
+   type t = [
+     | `RSA of Mirage_crypto_pk.Rsa.pub
+     | `ED25519 of Mirage_crypto_ec.Ed25519.pub
+-    | `P224 of Mirage_crypto_ec.P224.Dsa.pub
+     | `P256 of Mirage_crypto_ec.P256.Dsa.pub
+     | `P384 of Mirage_crypto_ec.P384.Dsa.pub
+     | `P521 of Mirage_crypto_ec.P521.Dsa.pub
+@@ -128,12 +127,12 @@ module Public_key : sig
+       unused bits) for publicKeyInfo of [public_key].
+ 
+       {{:https://tools.ietf.org/html/rfc5280#section-4.2.1.2}RFC 5280, 4.2.1.2, variant (1)} *)
+-  val id : t -> Cstruct.t
++  val id : t -> string
+ 
+   (** [fingerprint ?hash public_key] is [digest], the hash (by
+       default SHA256) of the DER encoded public key (equivalent to
+       [openssl x509 -noout -pubkey | openssl pkey -pubin -outform DER | openssl dgst -HASH]).  *)
+-  val fingerprint : ?hash:Mirage_crypto.Hash.hash -> t -> Cstruct.t
++  val fingerprint : ?hash:Digestif.hash' -> t -> string
+ 
+   (** [key_type public_key] is its [key_type]. *)
+   val key_type : t -> Key_type.t
+@@ -144,10 +143,10 @@ module Public_key : sig
+       on [data] is valid using the [key], or not. The [signature] must be in
+       ASN.1 DER encoding. The [scheme] defaults to [`RSA_PSS] for RSA,
+       [`ED25519] for ED25519, and [`ECDSA] for other EC keys. *)
+-  val verify : Mirage_crypto.Hash.hash ->
++  val verify : Digestif.hash' ->
+     ?scheme:Key_type.signature_scheme ->
+-    signature:Cstruct.t -> t ->
+-    [ `Message of Cstruct.t | `Digest of Cstruct.t ] ->
++    signature:string -> t ->
++    [ `Message of string | `Digest of string ] ->
+     (unit, [> `Msg of string ]) result
+ 
+   (** {1 Decoding and encoding in ASN.1 DER and PEM format} *)
+@@ -177,7 +176,6 @@ module Private_key : sig
+   type t = [
+     | `RSA of Mirage_crypto_pk.Rsa.priv
+     | `ED25519 of Mirage_crypto_ec.Ed25519.priv
+-    | `P224 of Mirage_crypto_ec.P224.Dsa.priv
+     | `P256 of Mirage_crypto_ec.P256.Dsa.priv
+     | `P384 of Mirage_crypto_ec.P384.Dsa.priv
+     | `P521 of Mirage_crypto_ec.P521.Dsa.priv
+@@ -189,11 +187,11 @@ module Private_key : sig
+       key type. The argument [bits] is only used for the bit length of RSA keys.
+       If [seed] is provided, this is used to seed the random number generator.
+   *)
+-  val generate : ?seed:Cstruct.t -> ?bits:int -> Key_type.t -> t
++  val generate : ?seed:string -> ?bits:int -> Key_type.t -> t
+ 
+   (** [of_cstruct data type] decodes the buffer as private key. Only supported
+       for elliptic curve keys. *)
+-  val of_cstruct : Cstruct.t -> Key_type.t -> (t, [> `Msg of string ]) result
++  val of_cstruct : string -> Key_type.t -> (t, [> `Msg of string ]) result
+ 
+   (** [of_string ~seed_or_data ~bits type data] attempts to decode the data as a
+       private key. If [seed_or_data] is provided and [`Seed], the [data] is
+@@ -217,10 +215,10 @@ module Private_key : sig
+       [scheme]. If [data] is [`Message _], the [hash] will be applied before
+       the signature. The [scheme] defaults to [`RSA_PSS] for RSA keys,
+       [`ED25519] for ED25519, and [`ECDSA] for other EC keys. *)
+-  val sign : Mirage_crypto.Hash.hash ->
++  val sign : Digestif.hash' ->
+     ?scheme:Key_type.signature_scheme ->
+-    t -> [ `Digest of Cstruct.t | `Message of Cstruct.t ] ->
+-    (Cstruct.t, [> `Msg of string ]) result
++    t -> [ `Digest of string | `Message of string ] ->
++    (string, [> `Msg of string ]) result
+ 
+   (** {1 Decoding and encoding in ASN.1 DER and PEM format} *)
+ 
+@@ -478,11 +476,11 @@ module Certificate : sig
+   (** [decode_pkcs1_digest_info buffer] is [hash, signature], the hash and raw
+       signature of the given [buffer] in ASN.1 DER encoding, or an error. *)
+   val decode_pkcs1_digest_info : string ->
+-    (Mirage_crypto.Hash.hash * string, [> `Msg of string ]) result
++    (Digestif.hash' * string, [> `Msg of string ]) result
+ 
+   (** [encode_pkcs1_digest_info (hash, signature)] is [data], the ASN.1 DER
+       encoded hash and signature. *)
+-  val encode_pkcs1_digest_info : Mirage_crypto.Hash.hash * string -> string
++  val encode_pkcs1_digest_info : Digestif.hash' * string -> string
+ 
+   (** {1 Abstract certificate type} *)
+ 
+@@ -527,7 +525,7 @@ module Certificate : sig
+ 
+   (** [signature_algorithm certificate] is the algorithm used for the signature. *)
+   val signature_algorithm : t ->
+-    (Key_type.signature_scheme * Mirage_crypto.Hash.hash) option
++    (Key_type.signature_scheme * Digestif.hash') option
+ 
+   (** [hostnames certficate] is the set of domain names this
+       [certificate] is valid for.  Currently, these are the DNS names of the
+@@ -550,7 +548,7 @@ module Certificate : sig
+ 
+   (** [fingerprint hash cert] is [digest], the digest of [cert] using the
+       specified [hash] algorithm *)
+-  val fingerprint : Mirage_crypto.Hash.hash -> t -> Cstruct.t
++  val fingerprint : Digestif.hash' -> t -> string
+ 
+   (** [subject certificate] is [dn], the subject as distinguished name of
+       the [certificate]. *)
+@@ -593,7 +591,7 @@ module Validation : sig
+   type signature_error = [
+     | `Bad_signature of Distinguished_name.t * string
+     | `Bad_encoding of Distinguished_name.t * string * Cstruct.t
+-    | `Hash_not_allowed of Distinguished_name.t * Mirage_crypto.Hash.hash
++    | `Hash_not_allowed of Distinguished_name.t * Digestif.hash'
+     | `Unsupported_keytype of Distinguished_name.t * Public_key.t
+     | `Unsupported_algorithm of Distinguished_name.t * string
+     | `Msg of string
+@@ -623,12 +621,12 @@ module Validation : sig
+       extensions are not present (if X.509 version 1 certificate), or are
+       appropriate for a CA (BasicConstraints is present and true, KeyUsage
+       extension contains keyCertSign). *)
+-  val valid_ca : ?allowed_hashes:Mirage_crypto.Hash.hash list -> ?time:Ptime.t ->
++  val valid_ca : ?allowed_hashes:Digestif.hash' list -> ?time:Ptime.t ->
+     Certificate.t -> (unit, [> ca_error ]) result
+ 
+   (** [valid_cas ~allowed_hashes ~time certificates] is [valid_certificates],
+       only those certificates which pass the {!valid_ca} check. *)
+-  val valid_cas : ?allowed_hashes:Mirage_crypto.Hash.hash list -> ?time:Ptime.t ->
++  val valid_cas : ?allowed_hashes:Digestif.hash' list -> ?time:Ptime.t ->
+     Certificate.t list -> Certificate.t list
+ 
+   (** {1 Chain of trust verification} *)
+@@ -690,13 +688,13 @@ module Validation : sig
+   val verify_chain : ?ip:Ipaddr.t -> host:[`host] Domain_name.t option ->
+     time:(unit -> Ptime.t option) ->
+     ?revoked:(issuer:Certificate.t -> cert:Certificate.t -> bool) ->
+-    ?allowed_hashes:Mirage_crypto.Hash.hash list ->
++    ?allowed_hashes:Digestif.hash' list ->
+     anchors:(Certificate.t list) -> Certificate.t list ->
+     (Certificate.t, [> chain_error ]) result
+ 
+   (** The polymorphic variant of a fingerprint validation error. *)
+   type fingerprint_validation_error = [
+-    | `InvalidFingerprint of Certificate.t * Cstruct.t * Cstruct.t
++    | `InvalidFingerprint of Certificate.t * string * string
+   ]
+ 
+   (** The polymorphic variant of validation errors. *)
+@@ -726,7 +724,7 @@ module Validation : sig
+     ?ip:Ipaddr.t -> host:[`host] Domain_name.t option ->
+     time:(unit -> Ptime.t option) ->
+     ?revoked:(issuer:Certificate.t -> cert:Certificate.t -> bool) ->
+-    ?allowed_hashes:Mirage_crypto.Hash.hash list ->
++    ?allowed_hashes:Digestif.hash' list ->
+     anchors:(Certificate.t list) -> Certificate.t list -> r
+ 
+   (** {1 Fingerprint verification} *)
+@@ -740,8 +738,8 @@ module Validation : sig
+       checked to include this IP address (using {!Certificate.ips}). *)
+   val trust_key_fingerprint :
+     ?ip:Ipaddr.t -> host:[`host] Domain_name.t option ->
+-    time:(unit -> Ptime.t option) -> hash:Mirage_crypto.Hash.hash ->
+-    fingerprint:Cstruct.t -> Certificate.t list -> r
++    time:(unit -> Ptime.t option) -> hash:Digestif.hash' ->
++    fingerprint:string -> Certificate.t list -> r
+ 
+   (** [trust_cert_fingerprint host ~time ~hash ~fingerprint certificates] is
+       [result], the first element of [certificates] is verified to match the
+@@ -756,8 +754,8 @@ module Validation : sig
+       over certificate pinning. *)
+   val trust_cert_fingerprint :
+     ?ip:Ipaddr.t -> host:[`host] Domain_name.t option ->
+-    time:(unit -> Ptime.t option) -> hash:Mirage_crypto.Hash.hash ->
+-    fingerprint:Cstruct.t -> Certificate.t list -> r
++    time:(unit -> Ptime.t option) -> hash:Digestif.hash' ->
++    fingerprint:string -> Certificate.t list -> r
+ end
+ 
+ (** Certificate Signing request *)
+@@ -776,7 +774,7 @@ module Signing_request : sig
+       decoded [cstruct] or an error. The signature on the signing request
+       is validated, and its hash algorithm must be in [allowed_hashes] (by
+       default only SHA-2 is accepted). *)
+-  val decode_der : ?allowed_hashes:Mirage_crypto.Hash.hash list -> string ->
++  val decode_der : ?allowed_hashes:Digestif.hash' list -> string ->
+     (t, [> `Msg of string ]) result
+ 
+   (** [encode_der sr] is [cstruct], the ASN.1 encoded representation of the [sr]. *)
+@@ -817,7 +815,7 @@ module Signing_request : sig
+ 
+   (** [signature_algorithm signing_request] is the algorithm used for the signature. *)
+   val signature_algorithm : t ->
+-    (Key_type.signature_scheme * Mirage_crypto.Hash.hash) option
++    (Key_type.signature_scheme * Digestif.hash') option
+ 
+   (** [hostnames signing_request] is the set of domain names this
+       [signing_request] is requesting. This is either the content of the DNS
+@@ -828,7 +826,7 @@ module Signing_request : sig
+   (** [create subject ~digest ~extensions private] creates [signing_request],
+       a certification request using the given [subject], [digest] (defaults to
+       [`SHA256]) and list of [extensions]. *)
+-  val create : Distinguished_name.t -> ?digest:Mirage_crypto.Hash.hash ->
++  val create : Distinguished_name.t -> ?digest:Digestif.hash' ->
+     ?extensions:Ext.t -> Private_key.t -> (t, [> `Msg of string ]) result
+ 
+   (** {1 Provision a signing request to a certificate} *)
+@@ -850,8 +848,8 @@ module Signing_request : sig
+ | Error _ -> Extension.empty
+ ]} *)
+   val sign : t -> valid_from:Ptime.t -> valid_until:Ptime.t ->
+-    ?allowed_hashes:Mirage_crypto.Hash.hash list ->
+-    ?digest:Mirage_crypto.Hash.hash -> ?serial:Z.t -> ?extensions:Extension.t ->
++    ?allowed_hashes:Digestif.hash' list ->
++    ?digest:Digestif.hash' -> ?serial:Z.t -> ?extensions:Extension.t ->
+     ?subject:Distinguished_name.t ->
+     Private_key.t -> Distinguished_name.t ->
+     (Certificate.t, Validation.signature_error) result
+@@ -919,13 +917,13 @@ module CRL : sig
+ 
+   (** [signature_algorithm t] is the algorithm used for the signature. *)
+   val signature_algorithm : t ->
+-    (Key_type.signature_scheme * Mirage_crypto.Hash.hash) option
++    (Key_type.signature_scheme * Digestif.hash') option
+ 
+   (** {1 Validation and verification of CRLs} *)
+ 
+   (** [validate t ~allowed_hashes pk] validates the digital signature of the
+       revocation list. The [allowed_hashes] defaults to SHA-2. *)
+-  val validate : t -> ?allowed_hashes:Mirage_crypto.Hash.hash list ->
++  val validate : t -> ?allowed_hashes:Digestif.hash' list ->
+     Public_key.t -> (unit, [> Validation.signature_error ]) result
+ 
+   (** The type of CRL verification errors. *)
+@@ -945,21 +943,21 @@ module CRL : sig
+       revocation list.  The used hash algorithm must be in the [allowed_hashes]
+       (defaults to SHA-2). If [time] is provided, it must be after [this_update]
+       and before [next_update] of [t]. *)
+-  val verify : t -> ?allowed_hashes:Mirage_crypto.Hash.hash list ->
++  val verify : t -> ?allowed_hashes:Digestif.hash' list ->
+     ?time:Ptime.t -> Certificate.t -> (unit, [> verification_error ]) result
+ 
+   (** [is_revoked ~allowed_hashes ~issuer ~cert crls] is [true] if there exists
+       a revocation of [cert] in [crls] which is signed by the [issuer].  The
+       subject of [issuer] must match the issuer of the crl.  The hash algorithm
+       used for signing must be in the [allowed_hashes] (defaults to SHA-2).  *)
+-  val is_revoked : ?allowed_hashes:Mirage_crypto.Hash.hash list ->
++  val is_revoked : ?allowed_hashes:Digestif.hash' list ->
+     issuer:Certificate.t -> cert:Certificate.t -> t list -> bool
+ 
+   (** {1 Construction and signing of CRLs} *)
+ 
+   (** [revoked ~digest ~issuer ~this_update ~next_update ~extensions certs priv]
+       constructs a revocation list with the given parameters. *)
+-  val revoke : ?digest:Mirage_crypto.Hash.hash ->
++  val revoke : ?digest:Digestif.hash' ->
+     issuer:Distinguished_name.t ->
+     this_update:Ptime.t -> ?next_update:Ptime.t ->
+     ?extensions:Extension.t ->
+@@ -1000,14 +998,14 @@ module Authenticator : sig
+       {!Validation.verify_chain_of_trust}.  The given trust anchors are not
+       validated, you can filter them with {!Validation.valid_cas} if desired. *)
+   val chain_of_trust : time:(unit -> Ptime.t option) -> ?crls:CRL.t list ->
+-    ?allowed_hashes:Mirage_crypto.Hash.hash list -> Certificate.t list -> t
++    ?allowed_hashes:Digestif.hash' list -> Certificate.t list -> t
+ 
+   (** [server_key_fingerprint ~time hash fingerprint] is an [authenticator]
+       that uses the given [time] and [fingerprint] to verify that the
+       fingerprint of the first element of the certificate chain matches the
+       given fingerprint, using {!Validation.trust_key_fingerprint}. *)
+   val server_key_fingerprint : time:(unit -> Ptime.t option) ->
+-    hash:Mirage_crypto.Hash.hash -> fingerprint:Cstruct.t -> t
++    hash:Digestif.hash' -> fingerprint:string -> t
+ 
+   (** [server_cert_fingerprint ~time hash fingerprint] is an [authenticator]
+       that uses the given [time] and [fingerprint] to verify the first
+@@ -1017,7 +1015,7 @@ module Authenticator : sig
+       {{:https://www.imperialviolet.org/2011/05/04/pinning.html} advantages}
+       over certificate pinning. *)
+   val server_cert_fingerprint : time:(unit -> Ptime.t option) ->
+-    hash:Mirage_crypto.Hash.hash -> fingerprint:Cstruct.t -> t
++    hash:Digestif.hash' -> fingerprint:string -> t
+ 
+   (** [of_string str] tries to parse the given [str] to an
+       {!type:Authenticator.t}. The format of it is:
+@@ -1062,7 +1060,7 @@ module PKCS12 : sig
+       are encrypted with [algorithm] (using PBES2, PKCS5v2) and integrity
+       protected using [mac]. A [local key id] is always embedded in the private
+       key and matching certificate. *)
+-  val create : ?mac:[`SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] ->
++  val create : ?mac:Digestif.hash' ->
+     ?algorithm:[ `AES128_CBC | `AES192_CBC | `AES256_CBC ] ->
+     ?iterations:int ->
+     string -> Certificate.t list -> Private_key.t ->
+@@ -1078,7 +1076,7 @@ module OCSP : sig
+   type cert_id
+ 
+   (** [create_cert_id issuer serial] creates cert_id for this serial *)
+-  val create_cert_id : ?hash:Mirage_crypto.Hash.hash -> Certificate.t -> Z.t ->
++  val create_cert_id : ?hash:Digestif.hash' -> Certificate.t -> Z.t ->
+     cert_id
+ 
+   (** [cert_id_serial certid] is serial number of this certid *)
+@@ -1100,13 +1098,13 @@ module OCSP : sig
+         for given [certids] and, if [key] is provided, signs it using [digest].
+         [requestorName] may be used by responder to distinguish requesters.
+         [certs] may be used by responder to check requestor authority. *)
+-    val create : ?certs:Certificate.t list -> ?digest:Mirage_crypto.Hash.hash ->
++    val create : ?certs:Certificate.t list -> ?digest:Digestif.hash' ->
+       ?requestor_name:General_name.b -> ?key:Private_key.t -> cert_id list ->
+       (t, [> `Msg of string ]) result
+ 
+     (** [validate request key] validates the signature of [request]
+         with the pulic [key]. *)
+-    val validate : t -> ?allowed_hashes:Mirage_crypto.Hash.hash list ->
++    val validate : t -> ?allowed_hashes:Digestif.hash' list ->
+       Public_key.t ->
+       (unit, [> Validation.signature_error | `No_signature ]) result
+ 
+@@ -1189,7 +1187,7 @@ module OCSP : sig
+         responderID producedAt responses] creates response and signs it with
+         [priv_key]. [producedAt] should be current timestamp. *)
+     val create_success :
+-      ?digest:Mirage_crypto.Hash.hash ->
++      ?digest:Digestif.hash' ->
+       ?certs:Certificate.t list ->
+       ?response_extensions:Extension.t ->
+       Private_key.t ->
+@@ -1227,7 +1225,7 @@ module OCSP : sig
+ 
+     (** [validate response key] validates the signature of [response]
+         with the pulic [key]. *)
+-    val validate : t -> ?allowed_hashes:Mirage_crypto.Hash.hash list ->
++    val validate : t -> ?allowed_hashes:Digestif.hash' list ->
+       ?now:Ptime.t -> Public_key.t ->
+       (unit, [> Validation.signature_error | `No_signature | `Time_invalid ]) result
+   end
+Index: x509-0.16.5/x509.opam
+===================================================================
+--- x509-0.16.5.orig/x509.opam
++++ x509-0.16.5/x509.opam
+@@ -32,6 +32,7 @@ depends: [
+   "logs"
+   "pbkdf"
+   "ipaddr" {>= "5.2.0"}
++  "digestif"
+ ]
+ conflicts: [ "result" {< "1.5"} ]
+ build: [
+@@ -49,4 +50,4 @@ trust relationship. This library impleme
+ The Public Key Cryptography Standards (PKCS) defines encoding and decoding
+ (in ASN.1 DER and PEM format), which is also implemented by this library -
+ namely PKCS 1, PKCS 5, PKCS 7, PKCS 8, PKCS 9, PKCS 10, and PKCS 12.
+-"""
+\ No newline at end of file
++"""
