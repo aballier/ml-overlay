@@ -10,10 +10,10 @@ HOMEPAGE="https://github.com/mirleft/ocaml-tls"
 SRC_URI="https://github.com/mirleft/ocaml-tls/releases/download/v${PV}/${P}.tbz"
 
 LICENSE="BSD-2"
-SLOT="0/${PV}"
+SLOT="0/${PV}-nocstruct"
 KEYWORDS="~amd64"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-PATCHES=( "${FILESDIR}/asn.patch" )
+PATCHES=( "${FILESDIR}/cstruct.patch" )
