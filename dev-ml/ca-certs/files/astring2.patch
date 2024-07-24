@@ -1,0 +1,83 @@
+From fa4ff942f1ac980e2502a0783ef10ade5ba497f2 Mon Sep 17 00:00:00 2001
+From: Hannes Mehnert <hannes@mehnert.org>
+Date: Thu, 13 Apr 2023 21:53:28 +0200
+Subject: [PATCH] remove astring from opam and tests (#27)
+
+* remove astring from opam and tests
+
+* autoformat
+---
+ ca-certs.opam |  1 -
+ dune-project  |  2 +-
+ test/tests.ml | 32 +++++++++++++++++++++++---------
+ 3 files changed, 24 insertions(+), 11 deletions(-)
+
+diff --git a/ca-certs.opam b/ca-certs.opam
+index dcf1e3e..54a6d4b 100644
+--- a/ca-certs.opam
++++ b/ca-certs.opam
+@@ -16,7 +16,6 @@ doc: "https://mirage.github.io/ca-certs/doc"
+ bug-reports: "https://github.com/mirage/ca-certs/issues"
+ depends: [
+   "dune" {>= "2.0"}
+-  "astring"
+   "bos"
+   "fpath"
+   "ptime"
+diff --git a/dune-project b/dune-project
+index 91e633d..be59bf0 100644
+--- a/dune-project
++++ b/dune-project
+@@ -11,7 +11,7 @@
+ (package
+  (name ca-certs)
+  (depends
+-  astring bos fpath ptime logs mirage-crypto
++  bos fpath ptime logs mirage-crypto
+   (x509 (>= 0.13.0))
+   (ocaml (>= 4.08.0))
+   (alcotest :with-test)
+diff --git a/test/tests.ml b/test/tests.ml
+index 681ba84..f276ed9 100644
+--- a/test/tests.ml
++++ b/test/tests.ml
+@@ -994,16 +994,30 @@ let ta () =
+       (* we cannot use decode_pem_multiple since this fails on the first
+          undecodable certificate - while we'd like to stay operational, and
+          ignore some certificates *)
+-      let sep = "-----END CERTIFICATE-----" in
+-      let certs = Astring.String.cuts ~sep ~empty:false data in
+-      let cas =
++      let d = "-----" in
++      let new_cert = d ^ "BEGIN CERTIFICATE" ^ d
++      and end_of_cert = d ^ "END CERTIFICATE" ^ d in
++      let len_new = String.length new_cert
++      and len_end = String.length end_of_cert in
++      let lines = String.split_on_char '\n' data in
++      let _, cas =
+         List.fold_left
+-          (fun acc data ->
+-            let data = data ^ sep in
+-            match X509.Certificate.decode_pem (Cstruct.of_string data) with
+-            | Ok ca -> ca :: acc
+-            | Error _ -> acc)
+-          [] certs
++          (fun (acc, cas) line ->
++            match acc with
++            | None
++              when String.length line >= len_new
++                   && String.(equal (sub line 0 len_new) new_cert) ->
++                (Some [ line ], cas)
++            | None -> (None, cas)
++            | Some lines
++              when String.length line >= len_end
++                   && String.(equal (sub line 0 len_end) end_of_cert) -> (
++                let data = String.concat "\n" (List.rev (line :: lines)) in
++                match X509.Certificate.decode_pem (Cstruct.of_string data) with
++                | Ok ca -> (None, ca :: cas)
++                | Error (`Msg _) -> (None, cas))
++            | Some lines -> (Some (line :: lines), cas))
++          (None, []) lines
+       in
+       Ok (List.rev cas))
+ 

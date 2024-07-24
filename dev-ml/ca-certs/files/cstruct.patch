@@ -1,0 +1,109 @@
+From 7e4d5a96c24533f43e5d13f64a698cc2ad0ae4b2 Mon Sep 17 00:00:00 2001
+From: Hannes Mehnert <hannes@mehnert.org>
+Date: Wed, 3 Apr 2024 22:32:19 +0200
+Subject: [PATCH 1/4] remove cstruct
+
+---
+ lib/ca_certs.ml  | 6 +++---
+ lib/ca_certs.mli | 2 +-
+ test/tests.ml    | 6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/lib/ca_certs.ml b/lib/ca_certs.ml
+index 1585a9a..cd6cbb8 100644
+--- a/lib/ca_certs.ml
++++ b/lib/ca_certs.ml
+@@ -55,7 +55,7 @@ let get_anchors () =
+   let der_list = ref [] in
+   match
+     iter_on_anchors (fun der_cert ->
+-        der_list := Cstruct.of_string der_cert :: !der_list)
++        der_list := der_cert :: !der_list)
+   with
+   | () -> Ok !der_list
+   | exception Failure msg -> Error (`Msg msg)
+@@ -76,7 +76,7 @@ let rec map_m f l =
+ let windows_trust_anchors () =
+   let* anchors = get_anchors () in
+   let* cert_list = map_m X509.Certificate.decode_der anchors in
+-  Ok (X509.Certificate.encode_pem_multiple cert_list |> Cstruct.to_string)
++  Ok (X509.Certificate.encode_pem_multiple cert_list)
+ 
+ let trust_anchors () =
+   if Sys.win32 then windows_trust_anchors ()
+@@ -134,7 +134,7 @@ let authenticator ?crls ?allowed_hashes () =
+           when String.length line >= len_end
+                && String.(equal (sub line 0 len_end) end_of_cert) -> (
+             let data = String.concat "\n" (List.rev (line :: lines)) in
+-            match X509.Certificate.decode_pem (Cstruct.of_string data) with
++            match X509.Certificate.decode_pem data with
+             | Ok ca -> (None, ca :: cas)
+             | Error (`Msg msg) ->
+                 Log.warn (fun m -> m "Failed to decode a trust anchor %s." msg);
+diff --git a/lib/ca_certs.mli b/lib/ca_certs.mli
+index 41bbf9f..58f247b 100644
+--- a/lib/ca_certs.mli
++++ b/lib/ca_certs.mli
+@@ -1,6 +1,6 @@
+ val authenticator :
+   ?crls:X509.CRL.t list ->
+-  ?allowed_hashes:Mirage_crypto.Hash.hash list ->
++  ?allowed_hashes:Digestif.hash' list ->
+   unit ->
+   (X509.Authenticator.t, [> `Msg of string ]) result
+ (** [authenticator ~crls ~allowed_hashes ()] detects the root CAs (trust
+diff --git a/test/tests.ml b/test/tests.ml
+index f276ed9..25e4cb1 100644
+--- a/test/tests.ml
++++ b/test/tests.ml
+@@ -973,7 +973,7 @@ let tests tas =
+       let host = Domain_name.(of_string_exn name |> host_exn)
+       and chain =
+         Result.get_ok
+-          (X509.Certificate.decode_pem_multiple (Cstruct.of_string data))
++          (X509.Certificate.decode_pem_multiple data)
+       in
+       ( name,
+         `Quick,
+@@ -984,7 +984,7 @@ let tests tas =
+         let host = Domain_name.(of_string_exn name |> host_exn)
+         and chain =
+           Result.get_ok
+-            (X509.Certificate.decode_pem_multiple (Cstruct.of_string data))
++            (X509.Certificate.decode_pem_multiple data)
+         in
+         (name, `Quick, test_one ?time tas (Error (result host chain)) host chain))
+       err_tests
+@@ -1013,7 +1013,7 @@ let ta () =
+               when String.length line >= len_end
+                    && String.(equal (sub line 0 len_end) end_of_cert) -> (
+                 let data = String.concat "\n" (List.rev (line :: lines)) in
+-                match X509.Certificate.decode_pem (Cstruct.of_string data) with
++                match X509.Certificate.decode_pem data with
+                 | Ok ca -> (None, ca :: cas)
+                 | Error (`Msg _) -> (None, cas))
+             | Some lines -> (Some (line :: lines), cas))
+
+From d8b41cb95e15219f5faede8597fbe6a99ba7fdb9 Mon Sep 17 00:00:00 2001
+From: Calascibetta Romain <romain.calascibetta@gmail.com>
+Date: Mon, 22 Jul 2024 15:04:54 +0200
+Subject: [PATCH 2/4] Add a constraint about x509
+
+---
+ ca-certs.opam | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ca-certs.opam b/ca-certs.opam
+index 54a6d4b..ef2e7d8 100644
+--- a/ca-certs.opam
++++ b/ca-certs.opam
+@@ -21,7 +21,7 @@ depends: [
+   "ptime"
+   "logs"
+   "mirage-crypto"
+-  "x509" {>= "0.13.0"}
++  "x509" {>= "1.0.0"}
+   "ocaml" {>= "4.08.0"}
+   "alcotest" {with-test}
+   "fmt" {with-test & >= "0.8.7"}
+
