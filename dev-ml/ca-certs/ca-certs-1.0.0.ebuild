@@ -16,9 +16,3 @@ KEYWORDS="~amd64"
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-PATCHES=(
-	"${FILESDIR}/astring.patch"
-	"${FILESDIR}/fmt.patch"
-	"${FILESDIR}/astring2.patch"
-	"${FILESDIR}/cstruct.patch"
-)
