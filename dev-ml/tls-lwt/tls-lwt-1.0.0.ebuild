@@ -17,4 +17,3 @@ DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
 S="${WORKDIR}/tls-${PV}"
-PATCHES=( "${FILESDIR}/cstruct.patch" "${FILESDIR}/x509.patch" )
