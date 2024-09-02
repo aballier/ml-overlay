@@ -16,4 +16,3 @@ KEYWORDS="~amd64"
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-PATCHES=( "${FILESDIR}/cstruct.patch" )
