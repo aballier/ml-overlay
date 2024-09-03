@@ -1,7 +1,7 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit jbuilder
 
@@ -18,3 +18,4 @@ RDEPEND="!dev-ml/ocaml-conduit"
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/ocaml-conduit-${PV}"
+PATCHES=( "${FILESDIR}/tls.patch" )
