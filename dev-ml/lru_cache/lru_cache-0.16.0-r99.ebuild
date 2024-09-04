@@ -16,3 +16,4 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
+S="${WORKDIR}/janestreet_${P}"
