@@ -1,0 +1,18 @@
+Index: websocket-2.16/lwt/wscat.ml
+===================================================================
+--- websocket-2.16.orig/lwt/wscat.ml
++++ websocket-2.16/lwt/wscat.ml
+@@ -74,11 +74,11 @@ let server uri =
+   in
+   Resolver_lwt.resolve_uri ~uri Resolver_lwt_unix.system >>= fun endp ->
+   let open Conduit_lwt_unix in
+-  let endp_str = endp |> Conduit.sexp_of_endp |> Sexplib.Sexp.to_string_hum in
++  let endp_str = endp |> Conduit.sexp_of_endp |> Sexplib0.Sexp.to_string_hum in
+   Lwt_log.info_f ~section "endp = %s" endp_str >>= fun () ->
+   let ctx = Lazy.force default_ctx in
+   endp_to_server ~ctx endp >>= fun server ->
+-  let server_str = server |> sexp_of_server |> Sexplib.Sexp.to_string_hum in
++  let server_str = server |> sexp_of_server |> Sexplib0.Sexp.to_string_hum in
+   Lwt_log.info_f ~section "server = %s" server_str >>= fun () ->
+   establish_server ~ctx ~mode:server echo_fun
+ 
