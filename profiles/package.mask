@@ -1,3 +1,7 @@
+-dev-ml/stdune
+-dev-ml/ordering
+-dev-ml/dyn
+
 -=dev-ml/alcotest-1.6.0*
 
 ->=dev-lang/ocaml-5
