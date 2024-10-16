@@ -1,3 +1,10 @@
+-dev-ml/opam-client
+-dev-ml/opam-repository
+-dev-ml/opam-state
+-dev-ml/opam-format
+-dev-ml/opam-core
+-dev-ml/opam-solver
+
 -dev-ml/stdune
 -dev-ml/ordering
 -dev-ml/dyn
