@@ -795,6 +795,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-adwaita-icon-theme") -> ()
 	| String (_,"conf-cairo") -> ()
 	| String (_,"conf-capnproto") -> ()
+	| String (_,"conf-c++") -> ()
 	| String (_,"conf-dpkg") -> ()
 	| String (_,"conf-ffmpeg") -> ()
 	| String (_,"conf-findutils") -> ()
