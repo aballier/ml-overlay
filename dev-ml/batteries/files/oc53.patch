@@ -1,0 +1,207 @@
+From 7494280c2a31d5ced997090e5b2346d182fbd1f3 Mon Sep 17 00:00:00 2001
+From: Kate <kit-ty-kate@outlook.com>
+Date: Mon, 21 Oct 2024 22:12:00 +0100
+Subject: [PATCH 1/2] Add support for OCaml 5.3
+
+---
+ batteries.opam          |  2 +-
+ benchsuite/lib/bench.ml |  6 +++---
+ dune-project            |  1 -
+ src/batArray.ml         | 12 ++++++++----
+ src/batArray.mli        | 15 ++++++++++-----
+ src/batQueue.mli        |  5 +++++
+ src/batSys.mli          |  6 ++++++
+ 7 files changed, 33 insertions(+), 14 deletions(-)
+
+diff --git a/batteries.opam b/batteries.opam
+index fd834c981..233c61efd 100644
+--- a/batteries.opam
++++ b/batteries.opam
+@@ -25,7 +25,7 @@ depends: [
+   "num"
+   "odoc" {with-doc}
+ ]
+-conflicts: ["base-effects" "ocaml-option-no-flat-float-array"]
++conflicts: ["ocaml-option-no-flat-float-array"]
+ build: [
+   ["dune" "subst"] {dev}
+   [
+diff --git a/benchsuite/lib/bench.ml b/benchsuite/lib/bench.ml
+index eb91e6b7b..c77f04ffc 100644
+--- a/benchsuite/lib/bench.ml
++++ b/benchsuite/lib/bench.ml
+@@ -327,7 +327,7 @@ module Outliers = struct
+     (*note_outliers IO.stdout a;*)
+     mean a
+ 
+-  type effect =
++  type eff =
+     | Unaffected (* less then 1% effect *)
+     | Slight     (* between 1% and 10% *)
+     | Moderate   (* between 10% and 50% *)
+@@ -363,9 +363,9 @@ module Outliers = struct
+ 
+   let print_effect oc ov =
+     if ov > 0.00001 then (
+-      let effect = effect_of_var ov |> effect_to_string in
++      let eff = effect_of_var ov |> effect_to_string in
+       fprintf oc "variance introduced by outliers: %.5f%%\n" (ov *. 100.);
+-      fprintf oc "variance is %s by outliers\n" effect;
++      fprintf oc "variance is %s by outliers\n" eff;
+     )
+ 
+ end
+diff --git a/dune-project b/dune-project
+index 51e3f336b..e7538b223 100644
+--- a/dune-project
++++ b/dune-project
+@@ -28,5 +28,4 @@
+   (benchmark (and :with-test (>= 1.6)))
+   num)
+  (conflicts
+-  base-effects
+   ocaml-option-no-flat-float-array))
+diff --git a/src/batArray.ml b/src/batArray.ml
+index b0cab516b..a422cd7f9 100644
+--- a/src/batArray.ml
++++ b/src/batArray.ml
+@@ -38,7 +38,8 @@ type 'a mappable = 'a t
+ ##V=4.2##external make_float: int -> float array = "caml_make_float_vect"
+ ##V=4.2##external create_float: int -> float array = "caml_make_float_vect"
+ 
+-##V>=4.3##external create_float: int -> float array = "caml_make_float_vect"
++##V>=5.3##external create_float: int -> float array = "caml_array_create_float"
++##V>=4.3####V<5.3##external create_float: int -> float array = "caml_make_float_vect"
+ ##V>=4.3##let make_float = create_float
+ 
+ let singleton x = [|x|]
+@@ -1038,11 +1039,14 @@ struct
+   external length     : ('a, [> ]) t -> int                     = "%array_length"
+   external get        : ('a, [> `Read]) t -> int -> 'a          = "%array_safe_get"
+   external set        : ('a, [> `Write]) t -> int -> 'a -> unit = "%array_safe_set"
+-  external make       : int -> 'a -> ('a, _) t                  = "caml_make_vect"
+-  external create     : int -> 'a -> ('a, _) t                  = "caml_make_vect"
++##V>=5.3##  external make       : int -> 'a -> ('a, _) t                  = "caml_array_make"
++##V<5.3##  external make       : int -> 'a -> ('a, _) t                  = "caml_make_vect"
++##V>=5.3##  external create     : int -> 'a -> ('a, _) t                  = "caml_array_make"
++##V<5.3##  external create     : int -> 'a -> ('a, _) t                  = "caml_make_vect"
+ 
+ 
+-##V>=4.2##  external make_float: int -> (float, _) t = "caml_make_float_vect"
++##V>=5.3##  external make_float: int -> (float, _) t = "caml_array_create_float"
++##V>=4.2####V<5.3##  external make_float: int -> (float, _) t = "caml_make_float_vect"
+ ##V<4.2##  let make_float n = make n 0.
+ 
+   let init         = init
+diff --git a/src/batArray.mli b/src/batArray.mli
+index 224830277..59ede6fd6 100644
+--- a/src/batArray.mli
++++ b/src/batArray.mli
+@@ -69,7 +69,8 @@ external set : 'a array -> int -> 'a -> unit = "%array_safe_set"
+     @raise Invalid_argument
+     if [n] is outside the range 0 to [Array.length a - 1]. *)
+ 
+-external make : int -> 'a -> 'a array = "caml_make_vect"
++##V>=5.3##external make : int -> 'a -> 'a array = "caml_array_make"
++##V<5.3##external make : int -> 'a -> 'a array = "caml_make_vect"
+ (** [Array.make n x] returns a fresh array of length [n],
+     initialized with [x].
+     All the elements of this new array are initially
+@@ -88,7 +89,8 @@ external make : int -> 'a -> 'a array = "caml_make_vect"
+ ##V=4.2##external make_float: int -> float array = "caml_make_float_vect"
+ ##V=4.2##val create_float: int -> float array
+ 
+-##V>=4.3##external create_float: int -> float array = "caml_make_float_vect"
++##V>=5.3##external create_float : int -> float array = "caml_array_create_float"
++##V>=4.3####V<5.3##external create_float: int -> float array = "caml_make_float_vect"
+ ##V>=4.3##val make_float: int -> float array
+ (** [Array.make_float n] returns a fresh float array of length [n],
+    with uninitialized data.
+@@ -730,11 +732,14 @@ sig
+ 
+   (**{1 Constructors}*)
+ 
+-  external make : int -> 'a -> ('a, _) t = "caml_make_vect"
+-  external create : int -> 'a -> ('a, _) t = "caml_make_vect"
++##V>=5.3##  external make : int -> 'a -> ('a, _) t = "caml_array_make"
++##V<5.3##  external make : int -> 'a -> ('a, _) t = "caml_make_vect"
++##V>=5.3##  external create : int -> 'a -> ('a, _) t = "caml_array_make"
++##V<5.3##  external create : int -> 'a -> ('a, _) t = "caml_make_vect"
+ 
+ ##V<4.2##  val make_float : int -> (float, _) t
+-##V>=4.2##  external make_float : int -> (float, _) t = "caml_make_float_vect"
++##V>=5.3##  external make_float : int -> (float, _) t = "caml_array_create_float"
++##V>=4.2####V<5.3##  external make_float : int -> (float, _) t = "caml_make_float_vect"
+ (** [Array.make_float n] returns a fresh float array of length [n],
+     with uninitialized data.
+ 
+diff --git a/src/batQueue.mli b/src/batQueue.mli
+index a78fb45f0..6c4d094a7 100644
+--- a/src/batQueue.mli
++++ b/src/batQueue.mli
+@@ -68,6 +68,11 @@ val peek : 'a t -> 'a
+ val top : 'a t -> 'a
+ (** [top] is a synonym for [peek]. *)
+ 
++##V>=5.3##val drop : 'a t -> unit
++##V>=5.3##(** [drop q] removes the first element in queue [q], or raises {!Empty}
++##V>=5.3##   if the queue is empty.
++##V>=5.3##   @since 3.9.0 and OCaml 5.3 *)
++
+ val clear : 'a t -> unit
+ (** Discard all elements from a queue. *)
+ 
+diff --git a/src/batSys.mli b/src/batSys.mli
+index 0d5a9390b..6974ab8db 100644
+--- a/src/batSys.mli
++++ b/src/batSys.mli
+@@ -171,6 +171,12 @@ val max_array_length : int
+ ##V>=4.3##    as the contents of the [OCAMLRUNPARAM] environment variable.
+ ##V>=4.3##    @since 2.5.0 and OCaml 4.03.0 *)
+ 
++##V>=5.3##external poll_actions : unit -> unit = "%poll"
++##V>=5.3##(** Run any pending runtime actions, such as minor collections, major
++##V>=5.3##    GC slices, signal handlers, finalizers, or memprof callbacks.
++##V>=5.3##    @since 3.9.0 and OCaml 5.3 *)
++
++
+ ##V>=5.1##external is_regular_file : string -> bool = "caml_sys_is_regular_file"
+ 
+ (** {1 Signal handling} *)
+
+From 1a4e920ff4e639394ca2d7b84160c08679e4f654 Mon Sep 17 00:00:00 2001
+From: Kate <kit-ty-kate@outlook.com>
+Date: Mon, 21 Oct 2024 22:13:07 +0100
+Subject: [PATCH 2/2] Make the opam file pass the opam linter
+
+---
+ batteries.opam | 2 +-
+ dune-project   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/batteries.opam b/batteries.opam
+index 233c61efd..d3eccc2d1 100644
+--- a/batteries.opam
++++ b/batteries.opam
+@@ -9,7 +9,7 @@ maintainer: [
+   "Simmo Saan <simmo.saan@gmail.com>"
+ ]
+ authors: ["OCaml batteries-included team"]
+-license: "LGPL-2.1-or-later with OCaml-LGPL-linking-exception"
++license: "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception"
+ homepage: "https://github.com/ocaml-batteries-team/batteries-included"
+ doc: "http://ocaml-batteries-team.github.io/batteries-included/hdoc2/"
+ bug-reports:
+diff --git a/dune-project b/dune-project
+index e7538b223..ab6bdbb72 100644
+--- a/dune-project
++++ b/dune-project
+@@ -14,7 +14,7 @@
+  "Gabriel Scherer <gabriel.scherer@gmail.com>"
+  "Thibault Suzanne <thi.suzanne@gmail.com>"
+  "Simmo Saan <simmo.saan@gmail.com>")
+-(license "LGPL-2.1-or-later with OCaml-LGPL-linking-exception")
++(license "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception")
+ 
+ (package
+  (name batteries)
