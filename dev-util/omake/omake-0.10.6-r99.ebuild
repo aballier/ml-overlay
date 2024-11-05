@@ -21,6 +21,7 @@ RDEPEND="${DEPEND}"
 
 PATCHES=(
 	"${FILESDIR}/${PN}-0.10.2-cflags.patch"
+	"${FILESDIR}/oc53.patch"
 )
 
 src_configure() {
