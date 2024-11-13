@@ -21,7 +21,10 @@ DEPEND="
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
-PATCHES=( "${FILESDIR}/oc52.patch" )
+PATCHES=(
+	"${FILESDIR}/oc52.patch"
+	"${FILESDIR}/oc53.patch"
+)
 
 src_prepare() {
 	default
