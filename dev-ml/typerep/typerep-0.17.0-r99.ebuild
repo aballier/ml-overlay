@@ -16,3 +16,6 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
+PATCHES=(
+	"${FILESDIR}/oc53.patch"
+)
