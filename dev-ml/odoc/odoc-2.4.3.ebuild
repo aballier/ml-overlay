@@ -17,3 +17,6 @@ DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
 S="${WORKDIR}/odoc-${PV}"
+PATCHES=(
+	"${FILESDIR}/oc53.patch"
+)
