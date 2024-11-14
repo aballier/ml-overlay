@@ -19,3 +19,4 @@ DEPEND="${RDEPEND}
 	test? ( app-text/pandoc )
 "
 BDEPEND=""
+PATCHES=( "${FILESDIR}/oc53.patch" )
