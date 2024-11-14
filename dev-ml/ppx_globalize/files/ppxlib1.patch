@@ -1,0 +1,187 @@
+From fa80d72b1c85bf4cb4618d737bfe63b226cd064d Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Tue, 13 Aug 2024 20:53:44 +0100
+Subject: [PATCH] v0.17~preview.129.36+325
+
+---
+ ppx_globalize.ml | 114 +++++++++++++++++++++++++++--------------------
+ 1 file changed, 65 insertions(+), 49 deletions(-)
+
+diff --git a/ppx_globalize.ml b/ppx_globalize.ml
+index 9f01c47..32b3fda 100644
+--- a/ppx_globalize.ml
++++ b/ppx_globalize.ml
+@@ -101,20 +101,20 @@ end = struct
+         decl.ptype_params
+         ~init:{ vars; params }
+         ~f:(fun (typ, _) { vars; params } ->
+-        let vars, sym =
+-          match typ.ptyp_desc with
+-          | Ptyp_var name ->
+-            let prefix = "_globalize_" ^ name in
+-            let sym = gen_symbol ~prefix () in
+-            let vars = Map.add_exn vars ~key:name ~data:(Globalize (evar sym)) in
+-            vars, sym
+-          | _ ->
+-            let prefix = "_globalize_param" in
+-            let sym = gen_symbol ~prefix () in
+-            vars, sym
+-        in
+-        let params = sym :: params in
+-        { vars; params })
++          let vars, sym =
++            match typ.ptyp_desc with
++            | Ptyp_var name ->
++              let prefix = "_globalize_" ^ name in
++              let sym = gen_symbol ~prefix () in
++              let vars = Map.add_exn vars ~key:name ~data:(Globalize (evar sym)) in
++              vars, sym
++            | _ ->
++              let prefix = "_globalize_param" in
++              let sym = gen_symbol ~prefix () in
++              vars, sym
++          in
++          let params = sym :: params in
++          { vars; params })
+     in
+     t, t.params
+   ;;
+@@ -283,7 +283,12 @@ let rec generate_globalized_for_typ builder env exp name_opt typ =
+   | None ->
+     (match Ppxlib_jane.Jane_syntax.Core_type.of_ast typ with
+      | Some (Jtyp_tuple args, _attrs) ->
+-       let tpat, texp = generate_globalized_for_tuple_args builder env args in
++       let tpat, texp =
++         generate_globalized_for_tuple_args
++           builder
++           env
++           (List.map ~f:(fun (label, arg) -> label, arg, false) args)
++       in
+        pexp_let Nonrecursive [ value_binding ~pat:tpat ~expr:exp ] texp
+      | Some (Jtyp_layout _, _) | None ->
+        (match typ.ptyp_desc with
+@@ -305,7 +310,7 @@ let rec generate_globalized_for_typ builder env exp name_opt typ =
+             generate_globalized_for_tuple_args
+               builder
+               env
+-              (List.map ~f:(fun arg -> None, arg) args)
++              (List.map ~f:(fun arg -> None, arg, false) args)
+           in
+           pexp_let Nonrecursive [ value_binding ~pat:tpat ~expr:exp ] texp
+         | Ptyp_constr (lid, args) ->
+@@ -320,22 +325,22 @@ let rec generate_globalized_for_typ builder env exp name_opt typ =
+               fields
+               ~init:([], [], [])
+               ~f:(fun field (inherits, consts, nonconsts) ->
+-              match field.prf_desc with
+-              | Rtag (name, false, [ arg ]) ->
+-                inherits, consts, (name.txt, arg) :: nonconsts
+-              | Rtag (name, true, []) -> inherits, name.txt :: consts, nonconsts
+-              | Rtag (_, _, _) ->
+-                error
+-                  ~loc:typ.ptyp_loc
+-                  "Cannot generate globalize function for partial variant type"
+-              | Rinherit typ ->
+-                (match typ.ptyp_desc with
+-                 | Ptyp_constr (lid, _) -> (lid.txt, typ) :: inherits, consts, nonconsts
+-                 | _ ->
+-                   error
+-                     ~loc:typ.ptyp_loc
+-                     "Cannot generate globalize function for unnamed inherited variant \
+-                      constructors"))
++                match field.prf_desc with
++                | Rtag (name, false, [ arg ]) ->
++                  inherits, consts, (name.txt, arg) :: nonconsts
++                | Rtag (name, true, []) -> inherits, name.txt :: consts, nonconsts
++                | Rtag (_, _, _) ->
++                  error
++                    ~loc:typ.ptyp_loc
++                    "Cannot generate globalize function for partial variant type"
++                | Rinherit typ ->
++                  (match typ.ptyp_desc with
++                   | Ptyp_constr (lid, _) -> (lid.txt, typ) :: inherits, consts, nonconsts
++                   | _ ->
++                     error
++                       ~loc:typ.ptyp_loc
++                       "Cannot generate globalize function for unnamed inherited variant \
++                        constructors"))
+           in
+           let inherit_cases =
+             List.map inherits ~f:(fun (lid, inher) ->
+@@ -432,14 +437,14 @@ and generate_globalized_for_tuple_args builder env args =
+   let pats, exps =
+     List.fold_right
+       ~init:([], [])
+-      ~f:(fun (lbl, arg) (pats, exps) ->
++      ~f:(fun (lbl, arg, already_global) (pats, exps) ->
+         let vin = gen_symbol ~prefix:"arg" () in
+         let pat = pvar vin in
+         let local_exp = evar vin in
+         let exp =
+-          match Ppxlib_jane.Ast_builder.Default.get_tuple_field_modality arg with
+-          | Some Global, _ -> local_exp
+-          | None, _ -> generate_globalized_for_typ builder env local_exp None arg
++          match already_global with
++          | true -> local_exp
++          | false -> generate_globalized_for_typ builder env local_exp None arg
+         in
+         (lbl, pat) :: pats, (lbl, exp) :: exps)
+       args
+@@ -508,7 +513,7 @@ let generate_globalized_for_variant builder env exp cds =
+       cds
+       ~init:([], [])
+       ~f:(fun (cd : constructor_declaration) (consts, nonconsts) ->
+-      (* We differentiate between constant cases for GADTs vs normal variants
++        (* We differentiate between constant cases for GADTs vs normal variants
+            because currently, the type checker does not allow the use of as-pattern
+            to rename an or-pattern of GADTs when it does allow us to do so for normal
+            variants.
+@@ -517,17 +522,17 @@ let generate_globalized_for_variant builder env exp cds =
+ 
+            When this is merged we can collapse the constants case back into a singular
+            branch. *)
+-      match cd.pcd_res, cd.pcd_args with
+-      | None, Pcstr_tuple [] ->
+-        let name = cd.pcd_name.txt in
+-        let consts = name :: consts in
+-        consts, nonconsts
+-      | None, ((Pcstr_tuple _ | Pcstr_record _) as args)
+-      | Some _, ((Pcstr_tuple _ | Pcstr_record _) as args) ->
+-        let name = cd.pcd_name.txt in
+-        let env = Env.enter_constructor_declaration builder env cd in
+-        let nonconsts = (name, args, env) :: nonconsts in
+-        consts, nonconsts)
++        match cd.pcd_res, cd.pcd_args with
++        | None, Pcstr_tuple [] ->
++          let name = cd.pcd_name.txt in
++          let consts = name :: consts in
++          consts, nonconsts
++        | None, ((Pcstr_tuple _ | Pcstr_record _) as args)
++        | Some _, ((Pcstr_tuple _ | Pcstr_record _) as args) ->
++          let name = cd.pcd_name.txt in
++          let env = Env.enter_constructor_declaration builder env cd in
++          let nonconsts = (name, args, env) :: nonconsts in
++          consts, nonconsts)
+   in
+   let constants_case =
+     match constants with
+@@ -556,7 +561,18 @@ let generate_globalized_for_variant builder env exp cds =
+             generate_globalized_for_tuple_args
+               builder
+               env
+-              (List.map ~f:(fun arg -> None, arg) args)
++              (List.map
++                 ~f:(fun arg ->
++                   let already_global =
++                     match
++                       Ppxlib_jane.Ast_builder.Default.get_tuple_field_modality arg
++                     with
++                     | Some Global, _ -> true
++                     | _ -> false
++                   in
++                   let core_type = Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type arg in
++                   None, core_type, already_global)
++                 args)
+           in
+           Some pat, Some exp
+         | Pcstr_record lds ->

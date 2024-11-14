@@ -1,0 +1,127 @@
+From 351edfb5e91ac5b5e4cd1251acfa2892a29b63ed Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Thu, 26 Sep 2024 19:08:47 +0100
+Subject: [PATCH] v0.18~preview.129.42+498
+
+---
+ ppx_globalize.ml   | 53 ++++++++++++++++++++++++++++++++--------------
+ ppx_globalize.opam |  2 +-
+ 2 files changed, 38 insertions(+), 17 deletions(-)
+
+diff --git a/ppx_globalize.ml b/ppx_globalize.ml
+index 32b3fda..06fb0e4 100644
+--- a/ppx_globalize.ml
++++ b/ppx_globalize.ml
+@@ -13,13 +13,26 @@ let copy =
+ 
+ let error ~loc fmt = Location.raise_errorf ~loc (Stdlib.( ^^ ) "ppx_globalize: " fmt)
+ 
+-let is_global_field ld =
+-  match ld.pld_mutable with
+-  | Mutable -> true
+-  | Immutable ->
+-    (match Ppxlib_jane.Ast_builder.Default.get_label_declaration_modality ld with
+-     | Some Global, _ -> true
+-     | None, _ -> false)
++let is_no_mutable_implied_modalities attr =
++  match attr.attr_name.txt with
++  | "ocaml.no_mutable_implied_modalities" | "no_mutable_implied_modalities" -> true
++  | _ -> false
++;;
++
++let is_global_field =
++  let has_explicit_global_modality ld =
++    List.exists
++      (fst (Ppxlib_jane.Ast_builder.Default.get_label_declaration_modalities ld))
++      ~f:(function
++        | Modality "global" -> true
++        | Modality _ -> false)
++  in
++  let is_mutable_field_with_implied_modalities ld =
++    match ld.pld_mutable with
++    | Immutable -> false
++    | Mutable -> not (List.exists ld.pld_attributes ~f:is_no_mutable_implied_modalities)
++  in
++  fun ld -> has_explicit_global_modality ld || is_mutable_field_with_implied_modalities ld
+ ;;
+ 
+ (* Check if types are really recursive ignoring global and mutable
+@@ -200,11 +213,14 @@ let rec type_head builder typ =
+     let args = List.map ~f:(fun (lbl, _) -> lbl, ptyp_any) args in
+     Ppxlib_jane.Jane_syntax.Core_type.core_type_of ~loc ~attrs:[] (Jtyp_tuple args)
+   | Some (Jtyp_layout _, _) | None ->
+-    (match typ.ptyp_desc with
++    (match Ppxlib_jane.Shim.Core_type_desc.of_parsetree typ.ptyp_desc with
+      | Ptyp_any | Ptyp_var _ | Ptyp_extension _ -> ptyp_any
+      | Ptyp_tuple args ->
+        let args = List.map ~f:(fun _ -> ptyp_any) args in
+        ptyp_tuple args
++     | Ptyp_unboxed_tuple args ->
++       let args = List.map ~f:(fun (l, _) -> l, ptyp_any) args in
++       Ppxlib_jane.Ast_builder.Default.ptyp_unboxed_tuple ~loc:Location.none args
+      | Ptyp_constr (lid, []) -> ptyp_constr (Located.mk lid.txt) []
+      | Ptyp_constr (lid, _ :: _) -> ptyp_constr (Located.mk lid.txt) [ ptyp_any ]
+      | Ptyp_variant (fields, closed, labels) ->
+@@ -217,7 +233,7 @@ let rec type_head builder typ =
+        in
+        ptyp_variant fields closed labels
+      | Ptyp_alias (typ, _) -> type_head builder typ
+-     | Ptyp_arrow (lbl, _, _) -> ptyp_arrow lbl ptyp_any ptyp_any
++     | Ptyp_arrow (lbl, _, _, _, _) -> ptyp_arrow lbl ptyp_any ptyp_any
+      | Ptyp_package (mty, constrs) ->
+        let constrs = List.map ~f:(fun (lid, _) -> lid, ptyp_any) constrs in
+        ptyp_package (mty, constrs)
+@@ -291,7 +307,7 @@ let rec generate_globalized_for_typ builder env exp name_opt typ =
+        in
+        pexp_let Nonrecursive [ value_binding ~pat:tpat ~expr:exp ] texp
+      | Some (Jtyp_layout _, _) | None ->
+-       (match typ.ptyp_desc with
++       (match Ppxlib_jane.Shim.Core_type_desc.of_parsetree typ.ptyp_desc with
+         | Ptyp_var name ->
+           (match Env.lookup env name with
+            | Some (Globalize fn) -> eapply fn [ exp ]
+@@ -405,8 +421,12 @@ let rec generate_globalized_for_typ builder env exp name_opt typ =
+           generate_globalized_for_typ builder env exp None typ
+         | Ptyp_any ->
+           error ~loc:typ.ptyp_loc "Cannot generate globalize function for unknown type"
+-        | Ptyp_arrow (_, _, _) ->
++        | Ptyp_arrow (_, _, _, _, _) ->
+           error ~loc:typ.ptyp_loc "Cannot generate globalize function for function type"
++        | Ptyp_unboxed_tuple _ ->
++          error
++            ~loc:typ.ptyp_loc
++            "Cannot generate globalize function for unboxed tuple type"
+         | Ptyp_object (_, _) ->
+           error ~loc:typ.ptyp_loc "Cannot generate globalize function for object type"
+         | Ptyp_class (_, _) ->
+@@ -564,11 +584,12 @@ let generate_globalized_for_variant builder env exp cds =
+               (List.map
+                  ~f:(fun arg ->
+                    let already_global =
+-                     match
+-                       Ppxlib_jane.Ast_builder.Default.get_tuple_field_modality arg
+-                     with
+-                     | Some Global, _ -> true
+-                     | _ -> false
++                     List.exists
++                       (fst
++                          (Ppxlib_jane.Ast_builder.Default.get_tuple_field_modalities arg))
++                       ~f:(function
++                         | Modality "global" -> true
++                         | Modality _ -> false)
+                    in
+                    let core_type = Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type arg in
+                    None, core_type, already_global)
+diff --git a/ppx_globalize.opam b/ppx_globalize.opam
+index 50ad27e..e0b0d0c 100644
+--- a/ppx_globalize.opam
++++ b/ppx_globalize.opam
+@@ -14,7 +14,7 @@ depends: [
+   "base"
+   "ppxlib_jane"
+   "dune"        {>= "3.11.0"}
+-  "ppxlib"      {>= "0.28.0"}
++  "ppxlib"      {>= "0.33.0"}
+ ]
+ available: arch != "arm32" & arch != "x86_32"
+ synopsis: "A ppx rewriter that generates functions to copy local values to the global heap"
