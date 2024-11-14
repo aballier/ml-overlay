@@ -1,0 +1,1763 @@
+From b840d179c189054305c4220657aac6ee7c3441e3 Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Tue, 13 Aug 2024 20:53:44 +0100
+Subject: [PATCH] v0.17~preview.129.36+325
+
+---
+ shape/src/bin_shape_expand.ml                 |  17 +-
+ shape/src/dune                                |   2 +-
+ src/dune                                      |   3 +-
+ src/ppx_bin_prot.ml                           | 220 +++++-----
+ test/{ => allocation}/allocation_tests.ml     |  20 +-
+ test/{ => allocation}/allocation_tests.mli    |   0
+ test/allocation/dune                          |   5 +
+ test/compatibility.ml                         |  17 +-
+ test/deriving_inline.ml                       | 394 +++++++++++++++++-
+ test/dune                                     |   3 +-
+ test/edge_cases.mlt                           |  15 +
+ test/example.ml                               | 334 +++++++--------
+ test/extension_tests.ml                       |  17 +-
+ test/mutually_recursive.mlt                   |   5 +-
+ test/nopervasives/dune                        |   2 +-
+ .../nopervasives/ppx_bin_prot_nopervasives.ml |   3 +-
+ test/polymorphic_recursion.mlt                |   2 +-
+ 18 files changed, 720 insertions(+), 344 deletions(-)
+ rename test/{ => allocation}/allocation_tests.ml (62%)
+ rename test/{ => allocation}/allocation_tests.mli (100%)
+ create mode 100644 test/allocation/dune
+ create mode 100644 test/edge_cases.mlt
+
+diff --git a/shape/src/bin_shape_expand.ml b/shape/src/bin_shape_expand.ml
+index 70a29c1..03d11f7 100644
+--- a/shape/src/bin_shape_expand.ml
++++ b/shape/src/bin_shape_expand.ml
+@@ -209,7 +209,10 @@ end = struct
+            (List.map cds ~f:(fun cd ->
+               ( cd.pcd_name.txt
+               , match cd.pcd_args with
+-                | Pcstr_tuple args -> List.map args ~f:(of_type ~hide_loc ~context)
++                | Pcstr_tuple args ->
++                  List.map args ~f:(fun arg ->
++                    Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type arg
++                    |> of_type ~hide_loc ~context)
+                 | Pcstr_record lds -> [ of_label_decs ~loc ~hide_loc ~context lds ] ))))
+     | Ptype_abstract -> None
+     | Ptype_open -> Some (expr_errorf ~loc "open types not supported")
+@@ -246,12 +249,12 @@ end = struct
+              (map ~f:string_literal (estring __) ||| map ~f:other_expression __)
+         +> flag "hide_locations")
+       (fun ~loc
+-           ~path:_
+-           (rec_flag, tds)
+-           annotation_opt
+-           annotation_provisionally_opt
+-           basetype_opt
+-           hide_loc ->
++        ~path:_
++        (rec_flag, tds)
++        annotation_opt
++        annotation_provisionally_opt
++        basetype_opt
++        hide_loc ->
+         let tds = List.map tds ~f:name_type_params_in_td in
+         let context =
+           match rec_flag with
+diff --git a/shape/src/dune b/shape/src/dune
+index fe9850f..e0c5504 100644
+--- a/shape/src/dune
++++ b/shape/src/dune
+@@ -1,6 +1,6 @@
+ (library
+  (name bin_shape_expand)
+  (public_name ppx_bin_prot.shape-expander)
+- (libraries base ppxlib ppx_here.expander)
++ (libraries base ppxlib ppxlib_jane ppx_here.expander)
+  (preprocess
+   (pps ppxlib.metaquot)))
+diff --git a/src/dune b/src/dune
+index 9fc7d32..27999de 100644
+--- a/src/dune
++++ b/src/dune
+@@ -3,6 +3,7 @@
+  (public_name ppx_bin_prot)
+  (kind ppx_deriver)
+  (ppx_runtime_libraries bin_prot)
+- (libraries compiler-libs.common base ppxlib ppxlib_jane bin_shape_expand)
++ (libraries compiler-libs.common base ppxlib ppxlib_jane bin_shape_expand
++   ocaml-compiler-libs.common)
+  (preprocess
+   (pps ppxlib.metaquot)))
+diff --git a/src/ppx_bin_prot.ml b/src/ppx_bin_prot.ml
+index 7aa6204..cfdaf5b 100644
+--- a/src/ppx_bin_prot.ml
++++ b/src/ppx_bin_prot.ml
+@@ -74,19 +74,16 @@ let conv_name = value_name ~prefix:"_of__"
+ 
+ module Typ = struct
+   type t =
+-    { type_constr : string
+-    ; wrap_result : loc:Location.t -> core_type -> core_type
++    { arg_constr : string
++    ; result_constr : string
+     }
+ 
+-  let vtag_reader ~locality =
+-    { type_constr = type_name "Bin_prot.Read.reader" ~locality
+-    ; wrap_result = (fun ~loc t -> [%type: int -> [%t t]])
++  let create ?arg_constr result_constr ~locality =
++    let arg_constr = Option.value arg_constr ~default:result_constr in
++    { arg_constr = type_name arg_constr ~locality
++    ; result_constr = type_name result_constr ~locality
+     }
+   ;;
+-
+-  let create type_constr ~locality =
+-    { type_constr = type_name type_constr ~locality; wrap_result = (fun ~loc:_ x -> x) }
+-  ;;
+ end
+ (* +-----------------------------------------------------------------+
+    | Signature generators                                            |
+@@ -108,23 +105,21 @@ module Sig = struct
+       Deriving.Generator.V2.make flags (fun ~ctxt x -> mk_sig ~ctxt x false))
+   ;;
+ 
+-  let mk_typ ~hide_params { Typ.type_constr; wrap_result } td =
+-    let loc = td.ptype_loc in
+-    let id = Longident.parse type_constr in
+-    let wrap_type ~loc t =
++  let mk_typ ~hide_params { Typ.arg_constr; result_constr } td =
++    let arg = Longident.parse arg_constr in
++    let result = Longident.parse result_constr in
++    let wrap_type ~loc ~id t =
+       ptyp_constr
+         ~loc
+         (Located.mk ~loc id)
+         [ (if hide_params then ptyp_any ~loc:td.ptype_name.loc else t) ]
+     in
+     let result_type =
+-      wrap_type
+-        ~loc:td.ptype_name.loc
+-        (wrap_result ~loc (core_type_of_type_declaration td))
++      wrap_type ~loc:td.ptype_name.loc ~id:result (core_type_of_type_declaration td)
+     in
+     List.fold_right td.ptype_params ~init:result_type ~f:(fun (tp, _variance) acc ->
+       let loc = tp.ptyp_loc in
+-      ptyp_arrow ~loc Nolabel (wrap_type ~loc tp) acc)
++      ptyp_arrow ~loc Nolabel (wrap_type ~loc ~id:arg tp) acc)
+   ;;
+ 
+   let mk ~can_generate_local name_format type_constr =
+@@ -156,7 +151,10 @@ module Sig = struct
+     mk_sig_generator
+       ~with_localize:false
+       [ mk bin_read_name (Typ.create "Bin_prot.Read.reader") ~can_generate_local:false
+-      ; mk bin_vtag_read_name Typ.vtag_reader ~can_generate_local:false
++      ; mk
++          bin_vtag_read_name
++          (Typ.create "Bin_prot.Read.vtag_reader" ~arg_constr:"Bin_prot.Read.reader")
++          ~can_generate_local:false
+       ; mk
+           bin_reader_name
+           (Typ.create "Bin_prot.Type_class.reader")
+@@ -188,12 +186,12 @@ module Sig = struct
+         List.concat_map
+           [ Bin_shape_expand.sig_gen; bin_write; bin_read; bin_type_class ]
+           ~f:(fun gen ->
+-          Deriving.Generator.apply
+-            ~name:"unused"
+-            gen
+-            ~ctxt
+-            (rf, tds)
+-            (if localize then [ "localize", [%expr localize] ] else []))
++            Deriving.Generator.apply
++              ~name:"unused"
++              gen
++              ~ctxt
++              (rf, tds)
++              (if localize then [ "localize", [%expr localize] ] else []))
+     in
+     let flags = Deriving.Args.(empty +> flag "localize") in
+     Deriving.Generator.V2.make flags mk_named_sig
+@@ -438,6 +436,14 @@ module Generate_bin_size = struct
+     type_constr_conv ~loc id ~f:(bin_size_name ~locality) args
+   ;;
+ 
++  (* Empty types *)
++  let bin_size_nil full_type_name loc =
++    let full_type_name = Full_type_name.get_exn ~loc full_type_name in
++    `Fun
++      [%expr
++        fun _v -> raise (Bin_prot.Common.Empty_type [%e estring ~loc full_type_name])]
++  ;;
++
+   (* Conversion of types *)
+   let rec bin_size_type full_type_name _loc ty ~locality =
+     let loc = { ty.ptyp_loc with loc_ghost = true } in
+@@ -454,7 +460,8 @@ module Generate_bin_size = struct
+          Location.raise_errorf
+            ~loc
+            "bin_size_type: cannot convert functions to the binary protocol"
+-       | Ptyp_variant (row_fields, _, _) ->
++       | Ptyp_variant ([], _, _) -> bin_size_nil full_type_name loc
++       | Ptyp_variant ((_ :: _ as row_fields), _, _) ->
+          bin_size_variant full_type_name loc row_fields ~locality
+        | Ptyp_poly (parms, ty) -> bin_size_poly full_type_name loc parms ty ~locality
+        | _ -> Location.raise_errorf ~loc "bin_size_type: unknown type construct")
+@@ -471,16 +478,16 @@ module Generate_bin_size = struct
+     mk_abst_call ~loc id sizers ~locality
+ 
+   (* Conversion of tuples and records *)
+-  and bin_size_args :
+-        'a 'b.
+-        Full_type_name.t
+-        -> Location.t
+-        -> ('a -> core_type)
+-        -> ('a -> Locality_modality.t)
+-        -> (Location.t -> string -> 'a -> 'b)
+-        -> 'a list
+-        -> locality:Locality_mode.t
+-        -> 'b list * expression
++  and bin_size_args
++    : 'a 'b.
++    Full_type_name.t
++    -> Location.t
++    -> ('a -> core_type)
++    -> ('a -> Locality_modality.t)
++    -> (Location.t -> string -> 'a -> 'b)
++    -> 'a list
++    -> locality:Locality_mode.t
++    -> 'b list * expression
+     =
+     fun full_type_name loc get_tp get_locality_modality mk_patt tps ~locality ->
+     let rec loop i = function
+@@ -511,17 +518,17 @@ module Generate_bin_size = struct
+     in
+     loop 1 tps
+ 
+-  and bin_size_tup_rec :
+-        'a 'b.
+-        Full_type_name.t
+-        -> Location.t
+-        -> ('b list -> pattern)
+-        -> ('a -> core_type)
+-        -> ('a -> Locality_modality.t)
+-        -> (Location.t -> string -> 'a -> 'b)
+-        -> 'a list
+-        -> locality:Locality_mode.t
+-        -> _
++  and bin_size_tup_rec
++    : 'a 'b.
++    Full_type_name.t
++    -> Location.t
++    -> ('b list -> pattern)
++    -> ('a -> core_type)
++    -> ('a -> Locality_modality.t)
++    -> (Location.t -> string -> 'a -> 'b)
++    -> 'a list
++    -> locality:Locality_mode.t
++    -> _
+     =
+     fun full_type_name loc cnv_patts get_tp get_locality_modality mk_patt tp ~locality ->
+     let patts, expr =
+@@ -681,7 +688,7 @@ module Generate_bin_size = struct
+         match cd.pcd_args with
+         | Pcstr_tuple [] -> acc
+         | Pcstr_tuple args ->
+-          let get_tp tp = tp in
++          let get_tp = Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type in
+           let mk_patt loc v_name _ = pvar ~loc v_name in
+           let patts, size_args =
+             bin_size_args
+@@ -743,14 +750,6 @@ module Generate_bin_size = struct
+     `Match (List.rev matchings)
+   ;;
+ 
+-  (* Empty types *)
+-  let bin_size_nil full_type_name loc =
+-    let full_type_name = Full_type_name.get_exn ~loc full_type_name in
+-    `Fun
+-      [%expr
+-        fun _v -> raise (Bin_prot.Common.Empty_type [%e estring ~loc full_type_name])]
+-  ;;
+-
+   let make_fun ~loc ?(don't_expand = false) fun_or_match =
+     match fun_or_match with
+     | `Fun fun_expr when don't_expand -> fun_expr
+@@ -764,7 +763,8 @@ module Generate_bin_size = struct
+     let loc = td.ptype_loc in
+     let res =
+       match td.ptype_kind with
+-      | Ptype_variant alts -> bin_size_sum full_type_name loc alts ~locality
++      | Ptype_variant [] -> bin_size_nil full_type_name loc
++      | Ptype_variant (_ :: _ as alts) -> bin_size_sum full_type_name loc alts ~locality
+       | Ptype_record flds -> bin_size_record full_type_name loc flds ~locality
+       | Ptype_open ->
+         Location.raise_errorf ~loc "bin_size_td: open types not yet supported"
+@@ -826,6 +826,15 @@ module Generate_bin_write = struct
+     pexp_apply ~loc e args
+   ;;
+ 
++  (* Empty types *)
++  let bin_write_nil full_type_name loc =
++    let full_type_name = Full_type_name.get_exn ~loc full_type_name in
++    `Fun
++      [%expr
++        fun _buf ~pos:_ _v ->
++          raise (Bin_prot.Common.Empty_type [%e estring ~loc full_type_name])]
++  ;;
++
+   (* Conversion of types *)
+   let rec bin_write_type full_type_name _loc ty ~locality =
+     let loc = { ty.ptyp_loc with loc_ghost = true } in
+@@ -842,7 +851,8 @@ module Generate_bin_write = struct
+          Location.raise_errorf
+            ~loc
+            "bin_write_type: cannot convert functions to the binary protocol"
+-       | Ptyp_variant (row_fields, _, _) ->
++       | Ptyp_variant ([], _, _) -> bin_write_nil full_type_name loc
++       | Ptyp_variant ((_ :: _ as row_fields), _, _) ->
+          bin_write_variant full_type_name loc row_fields ~locality
+        | Ptyp_poly (parms, ty) -> bin_write_poly full_type_name loc parms ty ~locality
+        | _ -> Location.raise_errorf ~loc "bin_write_type: unknown type construct")
+@@ -860,16 +870,16 @@ module Generate_bin_write = struct
+     mk_abst_call ~loc id writers ~locality
+ 
+   (* Conversion of tuples and records *)
+-  and bin_write_args :
+-        'a 'b.
+-        Full_type_name.t
+-        -> Location.t
+-        -> ('a -> core_type)
+-        -> ('a -> Locality_modality.t)
+-        -> (Location.t -> string -> 'a -> 'b)
+-        -> 'a list
+-        -> locality:Locality_mode.t
+-        -> 'b list * expression
++  and bin_write_args
++    : 'a 'b.
++    Full_type_name.t
++    -> Location.t
++    -> ('a -> core_type)
++    -> ('a -> Locality_modality.t)
++    -> (Location.t -> string -> 'a -> 'b)
++    -> 'a list
++    -> locality:Locality_mode.t
++    -> 'b list * expression
+     =
+     fun full_type_name loc get_tp get_locality_modality mk_patt tp ~locality ->
+     let rec loop i = function
+@@ -897,17 +907,17 @@ module Generate_bin_write = struct
+     in
+     loop 1 tp
+ 
+-  and bin_write_tup_rec :
+-        'a 'b.
+-        Full_type_name.t
+-        -> Location.t
+-        -> ('b list -> pattern)
+-        -> ('a -> core_type)
+-        -> ('a -> Locality_modality.t)
+-        -> (Location.t -> string -> 'a -> 'b)
+-        -> 'a list
+-        -> locality:Locality_mode.t
+-        -> _
++  and bin_write_tup_rec
++    : 'a 'b.
++    Full_type_name.t
++    -> Location.t
++    -> ('b list -> pattern)
++    -> ('a -> core_type)
++    -> ('a -> Locality_modality.t)
++    -> (Location.t -> string -> 'a -> 'b)
++    -> 'a list
++    -> locality:Locality_mode.t
++    -> _
+     =
+     fun full_type_name loc cnv_patts get_tp get_locality_modality mk_patt tp ~locality ->
+     let patts, expr =
+@@ -1070,7 +1080,7 @@ module Generate_bin_write = struct
+             ~guard:None
+             ~rhs:(eapply ~loc write_tag [ eint ~loc i ])
+         | Pcstr_tuple args ->
+-          let get_tp tp = tp in
++          let get_tp = Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type in
+           let mk_patt loc v_name _ = pvar ~loc v_name in
+           let patts, write_args =
+             bin_write_args
+@@ -1119,15 +1129,6 @@ module Generate_bin_write = struct
+     `Match matchings
+   ;;
+ 
+-  (* Empty types *)
+-  let bin_write_nil full_type_name loc =
+-    let full_type_name = Full_type_name.get_exn ~loc full_type_name in
+-    `Fun
+-      [%expr
+-        fun _buf ~pos:_ _v ->
+-          raise (Bin_prot.Common.Empty_type [%e estring ~loc full_type_name])]
+-  ;;
+-
+   let make_fun ~loc ?(don't_expand = false) fun_or_match =
+     match fun_or_match with
+     | `Fun fun_expr when don't_expand -> fun_expr
+@@ -1147,7 +1148,8 @@ module Generate_bin_write = struct
+     let loc = td.ptype_loc in
+     let res =
+       match td.ptype_kind with
+-      | Ptype_variant alts -> bin_write_sum full_type_name loc alts ~locality
++      | Ptype_variant [] -> bin_write_nil full_type_name loc
++      | Ptype_variant (_ :: _ as alts) -> bin_write_sum full_type_name loc alts ~locality
+       | Ptype_record flds -> bin_write_record full_type_name loc flds ~locality
+       | Ptype_open ->
+         Location.raise_errorf ~loc "bin_size_td: open types not yet supported"
+@@ -1291,6 +1293,16 @@ module Generate_bin_read = struct
+     | `Closed expr -> [%expr [%e expr] buf ~pos_ref]
+   ;;
+ 
++  (* Empty polymorphic variant type *)
++  let bin_read_nil_variant full_type_name loc =
++    let full_type_name = Full_type_name.get_exn ~loc full_type_name in
++    `Open
++      [%expr
++        Bin_prot.Common.raise_read_error
++          (Bin_prot.Common.ReadError.Empty_type [%e estring ~loc full_type_name])
++          !pos_ref]
++  ;;
++
+   (* Conversion of arguments *)
+   let rec handle_arg_tp loc full_type_name arg_tp =
+     let args, bindings =
+@@ -1327,7 +1339,8 @@ module Generate_bin_read = struct
+        | Ptyp_var parm -> `Closed (evar ~loc (conv_name parm ~locality))
+        | Ptyp_arrow _ ->
+          Location.raise_errorf ~loc "bin_read_arrow: cannot convert functions"
+-       | Ptyp_variant (row_fields, _, _) ->
++       | Ptyp_variant ([], _, _) -> bin_read_nil_variant full_type_name loc
++       | Ptyp_variant ((_ :: _ as row_fields), _, _) ->
+          bin_read_variant full_type_name loc ?full_type row_fields
+        | Ptyp_poly (parms, poly_tp) -> bin_read_poly full_type_name loc parms poly_tp
+        | _ -> Location.raise_errorf ~loc "bin_read_type: unknown type construct")
+@@ -1501,6 +1514,7 @@ module Generate_bin_read = struct
+         let loc = cd.pcd_loc in
+         case ~lhs:(pint ~loc mi) ~guard:None ~rhs:(econstruct cd None)
+       | Pcstr_tuple args ->
++        let args = List.map args ~f:Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type in
+         let bindings, args_expr = handle_arg_tp loc full_type_name args in
+         let rhs = let_ins loc bindings (econstruct cd (Some args_expr)) in
+         case ~lhs:(pint ~loc mi) ~guard:None ~rhs
+@@ -1563,7 +1577,8 @@ module Generate_bin_read = struct
+   let reader_body_of_td td full_type_name =
+     let loc = td.ptype_loc in
+     match td.ptype_kind with
+-    | Ptype_variant cds -> bin_read_sum full_type_name loc cds
++    | Ptype_variant [] -> bin_read_nil full_type_name loc
++    | Ptype_variant (_ :: _ as cds) -> bin_read_sum full_type_name loc cds
+     | Ptype_record lds -> bin_read_record full_type_name loc lds
+     | Ptype_open -> Location.raise_errorf ~loc "bin_size_td: open types not yet supported"
+     | Ptype_abstract ->
+@@ -1592,7 +1607,10 @@ module Generate_bin_read = struct
+   ;;
+ 
+   module Td_class = struct
+-    type polymorphic_variant = { all_atoms : bool }
++    type polymorphic_variant =
++      { all_atoms : bool
++      ; empty : bool
++      }
+ 
+     type t =
+       | Polymorphic_variant of polymorphic_variant
+@@ -1608,7 +1626,7 @@ module Generate_bin_read = struct
+             | Rtag (_, is_constant, _) -> is_constant
+             | Rinherit _ -> false)
+         in
+-        Polymorphic_variant { all_atoms }
++        Polymorphic_variant { all_atoms; empty = List.is_empty row_fields }
+       | _ -> Alias_but_not_polymorphic_variant
+     ;;
+ 
+@@ -1660,8 +1678,9 @@ module Generate_bin_read = struct
+          in
+          rewrite_call (fun x -> x) (curry_applications call)
+        | _ -> variant_wrong_type ~loc full_type_name)
+-    | Polymorphic_variant { all_atoms } ->
++    | Polymorphic_variant { all_atoms; empty } ->
+       (match oc_body with
++       | `Open body when empty -> [%expr fun _buf ~pos_ref _vint -> [%e body]]
+        | `Open body when all_atoms -> [%expr fun _buf ~pos_ref:_ vint -> [%e body]]
+        | `Open body -> [%expr fun buf ~pos_ref vint -> [%e body]]
+        | _ -> assert false (* impossible *))
+@@ -1738,7 +1757,14 @@ module Generate_bin_read = struct
+       if should_omit_type_params
+       then None, None
+       else
+-        ( Some (generate_poly_type ~loc (Typ.vtag_reader ~locality) td)
++        ( Some
++            (generate_poly_type
++               ~loc
++               (Typ.create
++                  "Bin_prot.Read.vtag_reader"
++                  ~locality
++                  ~arg_constr:"Bin_prot.Read.reader")
++               td)
+         , Some (generate_poly_type ~loc (Typ.create "Bin_prot.Read.reader" ~locality) td)
+         )
+     in
+@@ -1868,7 +1894,7 @@ module Generate_bin_read = struct
+                 ~loc
+                 ~read:(evar ~loc read_name)
+                 ~vtag_read:(evar ~loc vtag_read_name)]
+-             : _ Bin_prot.Type_class.reader)])
++            : _ Bin_prot.Type_class.reader)])
+   ;;
+ end
+ 
+@@ -1934,7 +1960,7 @@ module Generate_tp_class = struct
+            ~writer:(Generate_bin_write.type_class_extension ~loc ~path ty)
+            ~reader:(Generate_bin_read.type_class_extension ~loc ~path ty)
+            ~shape:(Bin_shape_expand.shape_extension ~loc ~hide_loc ty)]
+-        : _ Bin_prot.Type_class.t)]
++       : _ Bin_prot.Type_class.t)]
+   ;;
+ end
+ 
+diff --git a/test/allocation_tests.ml b/test/allocation/allocation_tests.ml
+similarity index 62%
+rename from test/allocation_tests.ml
+rename to test/allocation/allocation_tests.ml
+index 4ada8ba..4501571 100644
+--- a/test/allocation_tests.ml
++++ b/test/allocation/allocation_tests.ml
+@@ -12,19 +12,13 @@ let%expect_test "No allocation when writing variants" =
+   in
+   let writer = Test.bin_writer_t in
+   let buf = Bigstring.create 1024 in
+-  let (_ : int) =
+-    require_no_allocation [%here] (fun () -> writer.write buf ~pos:0 No_arg)
+-  in
++  let (_ : int) = require_no_allocation (fun () -> writer.write buf ~pos:0 No_arg) in
+   let one_arg = Test.One_arg "foo" in
+   let () = [%expect {| |}] in
+-  let (_ : int) =
+-    require_no_allocation [%here] (fun () -> writer.write buf ~pos:0 one_arg)
+-  in
++  let (_ : int) = require_no_allocation (fun () -> writer.write buf ~pos:0 one_arg) in
+   let () = [%expect {| |}] in
+   let record_arg = Test.Record_arg { num = 5 } in
+-  let (_ : int) =
+-    require_no_allocation [%here] (fun () -> writer.write buf ~pos:0 record_arg)
+-  in
++  let (_ : int) = require_no_allocation (fun () -> writer.write buf ~pos:0 record_arg) in
+   [%expect {| |}]
+ ;;
+ 
+@@ -39,13 +33,9 @@ let%expect_test "No allocation when writing polymorphic variant" =
+   in
+   let writer = Test.bin_writer_t in
+   let buf = Bigstring.create 1024 in
+-  let (_ : int) =
+-    require_no_allocation [%here] (fun () -> writer.write buf ~pos:0 `No_arg)
+-  in
++  let (_ : int) = require_no_allocation (fun () -> writer.write buf ~pos:0 `No_arg) in
+   let one_arg = `One_arg "foo" in
+   let () = [%expect {| |}] in
+-  let (_ : int) =
+-    require_no_allocation [%here] (fun () -> writer.write buf ~pos:0 one_arg)
+-  in
++  let (_ : int) = require_no_allocation (fun () -> writer.write buf ~pos:0 one_arg) in
+   [%expect {| |}]
+ ;;
+diff --git a/test/allocation_tests.mli b/test/allocation/allocation_tests.mli
+similarity index 100%
+rename from test/allocation_tests.mli
+rename to test/allocation/allocation_tests.mli
+diff --git a/test/allocation/dune b/test/allocation/dune
+new file mode 100644
+index 0000000..00f2b93
+--- /dev/null
++++ b/test/allocation/dune
+@@ -0,0 +1,5 @@
++(library
++ (name ppx_bin_prot_tests_allocation)
++ (libraries core expect_test_helpers_core)
++ (preprocess
++  (pps ppx_jane)))
+diff --git a/test/compatibility.ml b/test/compatibility.ml
+index 4d81606..70c0851 100644
+--- a/test/compatibility.ml
++++ b/test/compatibility.ml
+@@ -1,7 +1,8 @@
+-open! Core
++open! Base
+ open Bigarray
+ open Bin_prot
+ open Common
++open Stdio
+ open Utils
+ open Type_class
+ open Bin_prot.Std
+@@ -105,20 +106,17 @@ module Common = struct
+     let pos_ref = ref 0 in
+     let els_len = Read.bin_read_int_64bit buf ~pos_ref in
+     Expect_test_helpers_base.require_equal
+-      [%here]
+       (module Int)
+       ~message:"pos_ref for length incorrect"
+       !pos_ref
+       8;
+     Expect_test_helpers_base.require_equal
+-      [%here]
+       (module Int)
+       ~message:"els_len disagrees with bin_size"
+       els_len
+       (bin_size_els els);
+     let new_els = bin_read_els buf ~pos_ref in
+     Expect_test_helpers_base.require_equal
+-      [%here]
+       (module struct
+         type t = float poly_id Array.t [@@deriving equal, sexp_of]
+       end)
+@@ -133,20 +131,17 @@ let%test_module "Inline" =
+     let check_compatible m xs derived_tc inline_writer inline_reader inline_tc =
+       List.iter xs ~f:(fun x ->
+         Expect_test_helpers_base.require_equal
+-          [%here]
+           (module Int)
+           ~message:"incorrect size from inline writer"
+           (derived_tc.writer.size x)
+           (inline_writer.size x);
+         Expect_test_helpers_base.require_equal
+-          [%here]
+           (module Int)
+           ~message:"incorrect size from inline type class"
+           (derived_tc.writer.size x)
+           (inline_tc.writer.size x);
+         let buf = bin_dump derived_tc.writer x in
+         Expect_test_helpers_base.require_equal
+-          [%here]
+           (module struct
+             type t = buf
+ 
+@@ -156,7 +151,6 @@ let%test_module "Inline" =
+           buf
+           (bin_dump inline_writer x);
+         Expect_test_helpers_base.require_equal
+-          [%here]
+           (module struct
+             type t = buf
+ 
+@@ -173,26 +167,22 @@ let%test_module "Inline" =
+         let _, len = val_and_len derived_tc.reader in
+         let x', len' = val_and_len inline_reader in
+         Expect_test_helpers_base.require_equal
+-          [%here]
+           m
+           ~message:"incorrect value from inline reader"
+           x
+           x';
+         Expect_test_helpers_base.require_equal
+-          [%here]
+           (module Int)
+           ~message:"incorrect length from inline reader"
+           len
+           len';
+         let x', len' = val_and_len inline_tc.reader in
+         Expect_test_helpers_base.require_equal
+-          [%here]
+           m
+           ~message:"incorrect value from inline type class"
+           x
+           x';
+         Expect_test_helpers_base.require_equal
+-          [%here]
+           (module Int)
+           ~message:"incorrect length from inline type class"
+           len
+@@ -325,14 +315,12 @@ let%test_module "Local" =
+         then print_endline "bin_write_t = bin_write_t__local"
+         else (
+           Expect_test_helpers_base.require_equal
+-            [%here]
+             (module Int)
+             ~message:"bin_size differs from bin_size_local"
+             (M.bin_size_t x)
+             (M.bin_size_t__local x);
+           let buf = bin_dump M.bin_writer_t x in
+           Expect_test_helpers_base.require_equal
+-            [%here]
+             (module struct
+               type t = buf
+ 
+@@ -347,7 +335,6 @@ let%test_module "Local" =
+             buf;
+           let x' = M.bin_read_t buf ~pos_ref:(ref 0) in
+           Expect_test_helpers_base.require_equal
+-            [%here]
+             (module M)
+             ~message:"bin_write_local -> bin_read roundtrip failed"
+             x
+diff --git a/test/deriving_inline.ml b/test/deriving_inline.ml
+index e6f06e1..b94de67 100644
+--- a/test/deriving_inline.ml
++++ b/test/deriving_inline.ml
+@@ -53,7 +53,7 @@ end = struct
+ 
+   let _ = bin_writer_t
+ 
+-  let (__bin_read_t__ : (int -> t) Bin_prot.Read.reader) =
++  let (__bin_read_t__ : t Bin_prot.Read.vtag_reader) =
+     fun _buf ~pos_ref _vint ->
+     Bin_prot.Common.raise_variant_wrong_type "deriving_inline.ml.T.t" !pos_ref
+   ;;
+@@ -80,7 +80,7 @@ end = struct
+ 
+   let bin_t =
+     ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
+-      : _ Bin_prot.Type_class.t)
++     : _ Bin_prot.Type_class.t)
+   ;;
+ 
+   let _ = bin_t
+@@ -125,8 +125,8 @@ end = struct
+ 
+   let _ = bin_shape_t
+ 
+-  let bin_size_t__local :
+-        'a. 'a Bin_prot.Size.sizer_local -> 'a t Bin_prot.Size.sizer_local
++  let bin_size_t__local
++    : 'a. 'a Bin_prot.Size.sizer_local -> 'a t Bin_prot.Size.sizer_local
+     =
+     fun _size_of_a__local -> function
+     | A v1 ->
+@@ -145,8 +145,8 @@ end = struct
+ 
+   let _ = bin_size_t
+ 
+-  let bin_write_t__local :
+-        'a. 'a Bin_prot.Write.writer_local -> 'a t Bin_prot.Write.writer_local
++  let bin_write_t__local
++    : 'a. 'a Bin_prot.Write.writer_local -> 'a t Bin_prot.Write.writer_local
+     =
+     fun _write_a__local buf ~pos -> function
+     | A v1 ->
+@@ -170,12 +170,12 @@ end = struct
+        { size = (fun v -> bin_size_t bin_writer_a.size v)
+        ; write = (fun v -> bin_write_t bin_writer_a.write v)
+        }
+-      : _ Bin_prot.Type_class.writer -> _ Bin_prot.Type_class.writer)
++     : _ Bin_prot.Type_class.writer -> _ Bin_prot.Type_class.writer)
+   ;;
+ 
+   let _ = bin_writer_t
+ 
+-  let __bin_read_t__ : 'a. 'a Bin_prot.Read.reader -> (int -> 'a t) Bin_prot.Read.reader =
++  let __bin_read_t__ : 'a. 'a Bin_prot.Read.reader -> 'a t Bin_prot.Read.vtag_reader =
+     fun _of__a _buf ~pos_ref _vint ->
+     Bin_prot.Common.raise_variant_wrong_type "deriving_inline.ml.T1.t" !pos_ref
+   ;;
+@@ -202,7 +202,7 @@ end = struct
+        ; vtag_read =
+            (fun buf ~pos_ref vtag -> (__bin_read_t__ bin_reader_a.read) buf ~pos_ref vtag)
+        }
+-      : _ Bin_prot.Type_class.reader -> _ Bin_prot.Type_class.reader)
++     : _ Bin_prot.Type_class.reader -> _ Bin_prot.Type_class.reader)
+   ;;
+ 
+   let _ = bin_reader_t
+@@ -213,7 +213,7 @@ end = struct
+        ; reader = bin_reader_t bin_a.reader
+        ; shape = bin_shape_t bin_a.shape
+        }
+-      : _ Bin_prot.Type_class.t -> _ Bin_prot.Type_class.t)
++     : _ Bin_prot.Type_class.t -> _ Bin_prot.Type_class.t)
+   ;;
+ 
+   let _ = bin_t
+@@ -250,7 +250,7 @@ module T_read : sig
+     [@@@ocaml.warning "-32"]
+ 
+     val bin_read_t : t Bin_prot.Read.reader
+-    val __bin_read_t__ : (int -> t) Bin_prot.Read.reader
++    val __bin_read_t__ : t Bin_prot.Read.vtag_reader
+     val bin_reader_t : t Bin_prot.Type_class.reader
+   end
+   [@@ocaml.doc "@inline"]
+@@ -275,6 +275,354 @@ end = struct
+   type t [@@deriving bin_io]
+ end
+ 
++module Empty_variant : sig
++  type t = | [@@deriving_inline bin_io, bin_io ~localize]
++
++  include sig
++    [@@@ocaml.warning "-32"]
++
++    include Bin_prot.Binable.S with type t := t
++    include Bin_prot.Binable.S_local with type t := t
++  end
++  [@@ocaml.doc "@inline"]
++
++  [@@@end]
++end = struct
++  type t = | [@@deriving_inline bin_io, bin_io ~localize]
++
++  let _ = fun (_ : t) -> ()
++
++  let bin_shape_t =
++    let _group =
++      Bin_prot.Shape.group
++        (Bin_prot.Shape.Location.of_string
++           "ppx/ppx_bin_prot/test/deriving_inline.ml:291:2")
++        [ Bin_prot.Shape.Tid.of_string "t", [], Bin_prot.Shape.variant [] ]
++    in
++    (Bin_prot.Shape.top_app _group (Bin_prot.Shape.Tid.of_string "t")) []
++  ;;
++
++  let _ = bin_shape_t
++
++  let bin_size_t : t Bin_prot.Size.sizer =
++    fun v ->
++    (fun _v -> raise (Bin_prot.Common.Empty_type "deriving_inline.ml.Empty_variant.t")) v
++  ;;
++
++  let _ = bin_size_t
++
++  let bin_write_t : t Bin_prot.Write.writer =
++    fun buf ~pos v ->
++    (fun _buf ~pos:_ _v ->
++      raise (Bin_prot.Common.Empty_type "deriving_inline.ml.Empty_variant.t"))
++      buf
++      ~pos
++      v
++  ;;
++
++  let _ = bin_write_t
++
++  let bin_writer_t =
++    ({ size = bin_size_t; write = bin_write_t } : _ Bin_prot.Type_class.writer)
++  ;;
++
++  let _ = bin_writer_t
++
++  let __bin_read_t__ : t Bin_prot.Read.vtag_reader =
++    fun _buf ~pos_ref _vint ->
++    Bin_prot.Common.raise_variant_wrong_type "deriving_inline.ml.Empty_variant.t" !pos_ref
++  ;;
++
++  let _ = __bin_read_t__
++
++  let bin_read_t : t Bin_prot.Read.reader =
++    fun buf ~pos_ref ->
++    (fun _buf ~pos_ref ->
++      Bin_prot.Common.raise_read_error
++        (Bin_prot.Common.ReadError.Empty_type "deriving_inline.ml.Empty_variant.t")
++        !pos_ref)
++      buf
++      ~pos_ref
++  ;;
++
++  let _ = bin_read_t
++
++  let bin_reader_t =
++    ({ read = bin_read_t; vtag_read = __bin_read_t__ } : _ Bin_prot.Type_class.reader)
++  ;;
++
++  let _ = bin_reader_t
++
++  let bin_t =
++    ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
++     : _ Bin_prot.Type_class.t)
++  ;;
++
++  let _ = bin_t
++
++  let bin_shape_t =
++    let _group =
++      Bin_prot.Shape.group
++        (Bin_prot.Shape.Location.of_string
++           "ppx/ppx_bin_prot/test/deriving_inline.ml:291:2")
++        [ Bin_prot.Shape.Tid.of_string "t", [], Bin_prot.Shape.variant [] ]
++    in
++    (Bin_prot.Shape.top_app _group (Bin_prot.Shape.Tid.of_string "t")) []
++  ;;
++
++  let _ = bin_shape_t
++
++  let bin_size_t__local : t Bin_prot.Size.sizer_local =
++    fun v ->
++    (fun _v -> raise (Bin_prot.Common.Empty_type "deriving_inline.ml.Empty_variant.t")) v
++  ;;
++
++  let _ = bin_size_t__local
++  let bin_size_t = (bin_size_t__local :> _ Bin_prot.Size.sizer)
++  let _ = bin_size_t
++
++  let bin_write_t__local : t Bin_prot.Write.writer_local =
++    fun buf ~pos v ->
++    (fun _buf ~pos:_ _v ->
++      raise (Bin_prot.Common.Empty_type "deriving_inline.ml.Empty_variant.t"))
++      buf
++      ~pos
++      v
++  ;;
++
++  let _ = bin_write_t__local
++  let bin_write_t = (bin_write_t__local :> _ Bin_prot.Write.writer)
++  let _ = bin_write_t
++
++  let bin_writer_t =
++    ({ size = bin_size_t; write = bin_write_t } : _ Bin_prot.Type_class.writer)
++  ;;
++
++  let _ = bin_writer_t
++
++  let __bin_read_t__ : t Bin_prot.Read.vtag_reader =
++    fun _buf ~pos_ref _vint ->
++    Bin_prot.Common.raise_variant_wrong_type "deriving_inline.ml.Empty_variant.t" !pos_ref
++  ;;
++
++  let _ = __bin_read_t__
++
++  let bin_read_t : t Bin_prot.Read.reader =
++    fun buf ~pos_ref ->
++    (fun _buf ~pos_ref ->
++      Bin_prot.Common.raise_read_error
++        (Bin_prot.Common.ReadError.Empty_type "deriving_inline.ml.Empty_variant.t")
++        !pos_ref)
++      buf
++      ~pos_ref
++  ;;
++
++  let _ = bin_read_t
++
++  let bin_reader_t =
++    ({ read = bin_read_t; vtag_read = __bin_read_t__ } : _ Bin_prot.Type_class.reader)
++  ;;
++
++  let _ = bin_reader_t
++
++  let bin_t =
++    ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
++     : _ Bin_prot.Type_class.t)
++  ;;
++
++  let _ = bin_t
++
++  [@@@end]
++end
++
++module Empty_polymorphic_variant : sig
++  type t = private [> ] [@@deriving_inline bin_io, bin_io ~localize]
++
++  include sig
++    [@@@ocaml.warning "-32"]
++
++    include Bin_prot.Binable.S with type t := t
++    include Bin_prot.Binable.S_local with type t := t
++  end
++  [@@ocaml.doc "@inline"]
++
++  [@@@end]
++end = struct
++  type t = private [> ] [@@deriving_inline bin_io, bin_io ~localize]
++
++  let _ = fun (_ : t) -> ()
++
++  let bin_shape_t =
++    let _group =
++      Bin_prot.Shape.group
++        (Bin_prot.Shape.Location.of_string
++           "ppx/ppx_bin_prot/test/deriving_inline.ml:451:2")
++        [ ( Bin_prot.Shape.Tid.of_string "t"
++          , []
++          , Bin_prot.Shape.poly_variant
++              (Bin_prot.Shape.Location.of_string
++                 "ppx/ppx_bin_prot/test/deriving_inline.ml:451:19")
++              [] )
++        ]
++    in
++    (Bin_prot.Shape.top_app _group (Bin_prot.Shape.Tid.of_string "t")) []
++  ;;
++
++  let _ = bin_shape_t
++
++  let bin_size_t =
++    (fun v ->
++       (fun _v ->
++         raise
++           (Bin_prot.Common.Empty_type "deriving_inline.ml.Empty_polymorphic_variant.t"))
++         v
++     : _ Bin_prot.Size.sizer)
++  ;;
++
++  let _ = bin_size_t
++
++  let bin_write_t =
++    (fun buf ~pos v ->
++       (fun _buf ~pos:_ _v ->
++         raise
++           (Bin_prot.Common.Empty_type "deriving_inline.ml.Empty_polymorphic_variant.t"))
++         buf
++         ~pos
++         v
++     : _ Bin_prot.Write.writer)
++  ;;
++
++  let _ = bin_write_t
++
++  let bin_writer_t =
++    ({ size = bin_size_t; write = bin_write_t } : _ Bin_prot.Type_class.writer)
++  ;;
++
++  let _ = bin_writer_t
++
++  let __bin_read_t__ _buf ~pos_ref _vint =
++    Bin_prot.Common.raise_read_error
++      (Bin_prot.Common.ReadError.Empty_type
++         "deriving_inline.ml.Empty_polymorphic_variant.t")
++      !pos_ref
++  ;;
++
++  let _ = __bin_read_t__
++
++  let bin_read_t buf ~pos_ref =
++    let vint = Bin_prot.Read.bin_read_variant_int buf ~pos_ref in
++    try __bin_read_t__ buf ~pos_ref vint with
++    | Bin_prot.Common.No_variant_match ->
++      let err =
++        Bin_prot.Common.ReadError.Variant "deriving_inline.ml.Empty_polymorphic_variant.t"
++      in
++      Bin_prot.Common.raise_read_error err !pos_ref
++  ;;
++
++  let _ = bin_read_t
++
++  let bin_reader_t =
++    ({ read = bin_read_t; vtag_read = __bin_read_t__ } : _ Bin_prot.Type_class.reader)
++  ;;
++
++  let _ = bin_reader_t
++
++  let bin_t =
++    ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
++     : _ Bin_prot.Type_class.t)
++  ;;
++
++  let _ = bin_t
++
++  let bin_shape_t =
++    let _group =
++      Bin_prot.Shape.group
++        (Bin_prot.Shape.Location.of_string
++           "ppx/ppx_bin_prot/test/deriving_inline.ml:451:2")
++        [ ( Bin_prot.Shape.Tid.of_string "t"
++          , []
++          , Bin_prot.Shape.poly_variant
++              (Bin_prot.Shape.Location.of_string
++                 "ppx/ppx_bin_prot/test/deriving_inline.ml:451:19")
++              [] )
++        ]
++    in
++    (Bin_prot.Shape.top_app _group (Bin_prot.Shape.Tid.of_string "t")) []
++  ;;
++
++  let _ = bin_shape_t
++
++  let bin_size_t__local =
++    (fun v ->
++       (fun _v ->
++         raise
++           (Bin_prot.Common.Empty_type "deriving_inline.ml.Empty_polymorphic_variant.t"))
++         v
++     : _ Bin_prot.Size.sizer_local)
++  ;;
++
++  let _ = bin_size_t__local
++  let bin_size_t = (bin_size_t__local :> _ Bin_prot.Size.sizer)
++  let _ = bin_size_t
++
++  let bin_write_t__local =
++    (fun buf ~pos v ->
++       (fun _buf ~pos:_ _v ->
++         raise
++           (Bin_prot.Common.Empty_type "deriving_inline.ml.Empty_polymorphic_variant.t"))
++         buf
++         ~pos
++         v
++     : _ Bin_prot.Write.writer_local)
++  ;;
++
++  let _ = bin_write_t__local
++  let bin_write_t = (bin_write_t__local :> _ Bin_prot.Write.writer)
++  let _ = bin_write_t
++
++  let bin_writer_t =
++    ({ size = bin_size_t; write = bin_write_t } : _ Bin_prot.Type_class.writer)
++  ;;
++
++  let _ = bin_writer_t
++
++  let __bin_read_t__ _buf ~pos_ref _vint =
++    Bin_prot.Common.raise_read_error
++      (Bin_prot.Common.ReadError.Empty_type
++         "deriving_inline.ml.Empty_polymorphic_variant.t")
++      !pos_ref
++  ;;
++
++  let _ = __bin_read_t__
++
++  let bin_read_t buf ~pos_ref =
++    let vint = Bin_prot.Read.bin_read_variant_int buf ~pos_ref in
++    try __bin_read_t__ buf ~pos_ref vint with
++    | Bin_prot.Common.No_variant_match ->
++      let err =
++        Bin_prot.Common.ReadError.Variant "deriving_inline.ml.Empty_polymorphic_variant.t"
++      in
++      Bin_prot.Common.raise_read_error err !pos_ref
++  ;;
++
++  let _ = bin_read_t
++
++  let bin_reader_t =
++    ({ read = bin_read_t; vtag_read = __bin_read_t__ } : _ Bin_prot.Type_class.reader)
++  ;;
++
++  let _ = bin_reader_t
++
++  let bin_t =
++    ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
++     : _ Bin_prot.Type_class.t)
++  ;;
++
++  let _ = bin_t
++
++  [@@@end]
++end
++
+ module Mutual_recursion : sig
+   type t =
+     | Int of int
+@@ -383,13 +731,13 @@ end = struct
+   let _ = bin_writer_t
+   and _ = bin_writer_u
+ 
+-  let rec (__bin_read_t__ : (int -> t) Bin_prot.Read.reader) =
++  let rec (__bin_read_t__ : t Bin_prot.Read.vtag_reader) =
+     fun _buf ~pos_ref _vint ->
+     Bin_prot.Common.raise_variant_wrong_type
+       "deriving_inline.ml.Mutual_recursion.t"
+       !pos_ref
+ 
+-  and (__bin_read_u__ : (int -> u) Bin_prot.Read.reader) =
++  and (__bin_read_u__ : u Bin_prot.Read.vtag_reader) =
+     fun _buf ~pos_ref _vint ->
+     Bin_prot.Common.raise_variant_wrong_type
+       "deriving_inline.ml.Mutual_recursion.u"
+@@ -440,11 +788,11 @@ end = struct
+ 
+   let bin_t =
+     ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
+-      : _ Bin_prot.Type_class.t)
++     : _ Bin_prot.Type_class.t)
+ 
+   and bin_u =
+     ({ writer = bin_writer_u; reader = bin_reader_u; shape = bin_shape_u }
+-      : _ Bin_prot.Type_class.t)
++     : _ Bin_prot.Type_class.t)
+   ;;
+ 
+   let _ = bin_t
+@@ -508,7 +856,7 @@ end = struct
+ 
+   let _ = bin_writer_t
+ 
+-  let (__bin_read_t__ : (int -> t) Bin_prot.Read.reader) =
++  let (__bin_read_t__ : t Bin_prot.Read.vtag_reader) =
+     fun _buf ~pos_ref _vint ->
+     Bin_prot.Common.raise_variant_wrong_type "deriving_inline.ml.Float_array.t" !pos_ref
+   ;;
+@@ -532,7 +880,7 @@ end = struct
+ 
+   let bin_t =
+     ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
+-      : _ Bin_prot.Type_class.t)
++     : _ Bin_prot.Type_class.t)
+   ;;
+ 
+   let _ = bin_t
+@@ -629,7 +977,7 @@ end = struct
+ 
+     let _ = bin_writer_t
+ 
+-    let (__bin_read_t__ : (int -> t) Bin_prot.Read.reader) =
++    let (__bin_read_t__ : t Bin_prot.Read.vtag_reader) =
+       fun _buf ~pos_ref _vint ->
+       Bin_prot.Common.raise_variant_wrong_type
+         "deriving_inline.ml.Global_fields_with_localize.Record.t"
+@@ -658,7 +1006,7 @@ end = struct
+ 
+     let bin_t =
+       ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
+-        : _ Bin_prot.Type_class.t)
++       : _ Bin_prot.Type_class.t)
+     ;;
+ 
+     let _ = bin_t
+@@ -738,7 +1086,7 @@ end = struct
+ 
+     let _ = bin_writer_t
+ 
+-    let (__bin_read_t__ : (int -> t) Bin_prot.Read.reader) =
++    let (__bin_read_t__ : t Bin_prot.Read.vtag_reader) =
+       fun _buf ~pos_ref _vint ->
+       Bin_prot.Common.raise_variant_wrong_type
+         "deriving_inline.ml.Global_fields_with_localize.Record_constructor.t"
+@@ -774,7 +1122,7 @@ end = struct
+ 
+     let bin_t =
+       ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
+-        : _ Bin_prot.Type_class.t)
++       : _ Bin_prot.Type_class.t)
+     ;;
+ 
+     let _ = bin_t
+@@ -842,7 +1190,7 @@ end = struct
+ 
+     let _ = bin_writer_t
+ 
+-    let (__bin_read_t__ : (int -> t) Bin_prot.Read.reader) =
++    let (__bin_read_t__ : t Bin_prot.Read.vtag_reader) =
+       fun _buf ~pos_ref _vint ->
+       Bin_prot.Common.raise_variant_wrong_type
+         "deriving_inline.ml.Global_fields_with_localize.Tuple_constructor.t"
+@@ -877,7 +1225,7 @@ end = struct
+ 
+     let bin_t =
+       ({ writer = bin_writer_t; reader = bin_reader_t; shape = bin_shape_t }
+-        : _ Bin_prot.Type_class.t)
++       : _ Bin_prot.Type_class.t)
+     ;;
+ 
+     let _ = bin_t
+diff --git a/test/dune b/test/dune
+index 5503079..6fb7d1c 100644
+--- a/test/dune
++++ b/test/dune
+@@ -1,5 +1,6 @@
+ (library
+  (name ppx_bin_prot_tests)
+- (libraries core expect_test_helpers_core)
++ (libraries base base_bigstring bin_prot.shape
++   expect_test_helpers_core.expect_test_helpers_base stdio)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/test/edge_cases.mlt b/test/edge_cases.mlt
+new file mode 100644
+index 0000000..6b5c0cd
+--- /dev/null
++++ b/test/edge_cases.mlt
+@@ -0,0 +1,15 @@
++module Empty_variant : sig
++  type t = | [@@deriving bin_io]
++end = struct
++  type t = | [@@deriving bin_io]
++end
++
++[%%expect {| |}]
++
++module Empty_polymorphic_variant : sig
++  type t = private [> ] [@@deriving bin_io]
++end = struct
++  type t = private [> ] [@@deriving bin_io]
++end
++
++[%%expect {| |}]
+diff --git a/test/example.ml b/test/example.ml
+index ac2ca1a..104971d 100644
+--- a/test/example.ml
++++ b/test/example.ml
+@@ -13,188 +13,188 @@ module type S2 = sig
+ end
+ 
+ include (
+-  struct
+-    type t = int [@@deriving bin_io ~localize]
+-  end :
+-    S)
++struct
++  type t = int [@@deriving bin_io ~localize]
++end :
++  S)
+ 
+ include (
+-  struct
+-    type t = int32 [@@deriving bin_io ~localize]
+-  end :
+-    S)
++struct
++  type t = int32 [@@deriving bin_io ~localize]
++end :
++  S)
+ 
+ include (
+-  struct
+-    type t = int64 [@@deriving bin_io ~localize]
+-  end :
+-    S)
++struct
++  type t = int64 [@@deriving bin_io ~localize]
++end :
++  S)
+ 
+ include (
+-  struct
+-    type t = nativeint [@@deriving bin_io ~localize]
+-  end :
+-    S)
++struct
++  type t = nativeint [@@deriving bin_io ~localize]
++end :
++  S)
+ 
+ include (
+-  struct
+-    type t = float [@@deriving bin_io ~localize]
+-  end :
+-    S)
++struct
++  type t = float [@@deriving bin_io ~localize]
++end :
++  S)
+ 
+ include (
+-  struct
+-    type t = char [@@deriving bin_io ~localize]
+-  end :
+-    S)
+-
+-include (
+-  struct
+-    type t = int list [@@deriving bin_io ~localize]
+-  end :
+-    S)
+-
+-include (
+-  struct
+-    type t = float array [@@deriving bin_io ~localize]
+-  end :
+-    S)
++struct
++  type t = char [@@deriving bin_io ~localize]
++end :
++  S)
++
++include (
++struct
++  type t = int list [@@deriving bin_io ~localize]
++end :
++  S)
++
++include (
++struct
++  type t = float array [@@deriving bin_io ~localize]
++end :
++  S)
+ 
+-include (
+-  struct
+-    type t = int64 array [@@deriving bin_io ~localize]
+-  end :
+-    S)
++include (
++struct
++  type t = int64 array [@@deriving bin_io ~localize]
++end :
++  S)
+ 
+ include (
+-  struct
+-    type t = int * float * char [@@deriving bin_io ~localize]
+-  end :
+-    S)
++struct
++  type t = int * float * char [@@deriving bin_io ~localize]
++end :
++  S)
+ 
+ include (
+-  struct
+-    type u =
+-      | A
+-      | B
+-    [@@deriving bin_io ~localize]
++struct
++  type u =
++    | A
++    | B
++  [@@deriving bin_io ~localize]
+ 
+-    type t =
+-      | C
+-      | D
+-      | E of u
+-    [@@deriving bin_io ~localize]
+-  end :
+-    S)
++  type t =
++    | C
++    | D
++    | E of u
++  [@@deriving bin_io ~localize]
++end :
++  S)
+ 
+ include (
+-  struct
+-    type u =
+-      [ `A
+-      | `B
+-      ]
+-    [@@deriving bin_io ~localize]
+-
+-    type t =
+-      [ `C
+-      | `D
+-      | `E of u
+-      ]
+-    [@@deriving bin_io ~localize]
+-  end :
+-    S)
+-
+-include (
+-  struct
+-    type a =
+-      [ `A1
+-      | `A2
+-      ]
+-    [@@deriving bin_io ~localize]
+-
+-    type b =
+-      [ `B1
+-      | `B2
+-      ]
+-    [@@deriving bin_io ~localize]
+-
+-    type t =
+-      [ a
+-      | b
+-      ]
+-    [@@deriving bin_io ~localize]
+-  end :
+-    S)
+-
+-include (
+-  struct
+-    type t =
+-      { foo : char
+-      ; bar : int
+-      ; baz : string
+-      }
+-    [@@deriving bin_io ~localize]
+-  end :
+-    S)
+-
+-include (
+-  struct
+-    type t =
+-      | A of
+-          { foo : char
+-          ; bar : int
+-          ; baz : string
+-          }
+-      | B of int
+-      | C of char * int * string
+-    [@@deriving bin_io ~localize]
+-  end :
+-    S)
+-
+-include (
+-  struct
+-    type 'a t = 'a [@@deriving bin_io ~localize]
+-  end :
+-    S1)
+-
+-include (
+-  struct
+-    type 'a t = 'a * int [@@deriving bin_io ~localize]
+-  end :
+-    S1)
+-
+-include (
+-  struct
+-    type ('a, 'b) t = 'a * 'b [@@deriving bin_io ~localize]
+-  end :
+-    S2)
+-
+-include (
+-  struct
+-    type 'a u = 'a constraint 'a = [< `A | `B ] [@@deriving bin_io ~localize]
+-    type 'a t = [ `A ] u [@@deriving bin_io ~localize]
+-  end :
+-    S1)
+-
+-include (
+-  struct
+-    type 'a t =
+-      { foo : 'a
+-      ; bar : int
+-      }
+-    [@@deriving bin_io ~localize]
+-  end :
+-    S1)
+-
+-include (
+-  struct
+-    type 'a t =
+-      | A of
+-          { foo : 'a
+-          ; bar : int
+-          }
+-      | B of 'a
+-      | C
+-    [@@deriving bin_io ~localize]
+-  end :
+-    S1)
++struct
++  type u =
++    [ `A
++    | `B
++    ]
++  [@@deriving bin_io ~localize]
++
++  type t =
++    [ `C
++    | `D
++    | `E of u
++    ]
++  [@@deriving bin_io ~localize]
++end :
++  S)
++
++include (
++struct
++  type a =
++    [ `A1
++    | `A2
++    ]
++  [@@deriving bin_io ~localize]
++
++  type b =
++    [ `B1
++    | `B2
++    ]
++  [@@deriving bin_io ~localize]
++
++  type t =
++    [ a
++    | b
++    ]
++  [@@deriving bin_io ~localize]
++end :
++  S)
++
++include (
++struct
++  type t =
++    { foo : char
++    ; bar : int
++    ; baz : string
++    }
++  [@@deriving bin_io ~localize]
++end :
++  S)
++
++include (
++struct
++  type t =
++    | A of
++        { foo : char
++        ; bar : int
++        ; baz : string
++        }
++    | B of int
++    | C of char * int * string
++  [@@deriving bin_io ~localize]
++end :
++  S)
++
++include (
++struct
++  type 'a t = 'a [@@deriving bin_io ~localize]
++end :
++  S1)
++
++include (
++struct
++  type 'a t = 'a * int [@@deriving bin_io ~localize]
++end :
++  S1)
++
++include (
++struct
++  type ('a, 'b) t = 'a * 'b [@@deriving bin_io ~localize]
++end :
++  S2)
++
++include (
++struct
++  type 'a u = 'a constraint 'a = [< `A | `B ] [@@deriving bin_io ~localize]
++  type 'a t = [ `A ] u [@@deriving bin_io ~localize]
++end :
++  S1)
++
++include (
++struct
++  type 'a t =
++    { foo : 'a
++    ; bar : int
++    }
++  [@@deriving bin_io ~localize]
++end :
++  S1)
++
++include (
++struct
++  type 'a t =
++    | A of
++        { foo : 'a
++        ; bar : int
++        }
++    | B of 'a
++    | C
++  [@@deriving bin_io ~localize]
++end :
++  S1)
+diff --git a/test/extension_tests.ml b/test/extension_tests.ml
+index a07bfde..3178628 100644
+--- a/test/extension_tests.ml
++++ b/test/extension_tests.ml
+@@ -43,8 +43,11 @@ module _ = struct
+   let _ = [%bin_type_class: [ `A | `B of int ]]
+ end
+ 
+-open! Core
+-open Expect_test_helpers_core
++open! Base
++open Expect_test_helpers_base
++open Base_quickcheck.Export
++open Bin_prot.Std
++module Bigstring = Base_bigstring
+ 
+ module type S = sig
+   type t [@@deriving equal, quickcheck, sexp_of]
+@@ -62,13 +65,11 @@ let test
+   (module M : S with type t = a)
+   =
+   quickcheck_m
+-    [%here]
+     (module M)
+     ~f:(fun t ->
+       let computed_size = bin_size t in
+       let computed_size_local = bin_size_local t in
+       require
+-        [%here]
+         (computed_size = computed_size_local)
+         ~if_false_then_print_s:
+           [%lazy_message
+@@ -78,7 +79,6 @@ let test
+       let message = Bigstring.create computed_size in
+       let written_size = bin_write message ~pos:0 t in
+       require
+-        [%here]
+         (computed_size = written_size)
+         ~if_false_then_print_s:
+           [%lazy_message
+@@ -90,7 +90,6 @@ let test
+       let round_trip = bin_read message ~pos_ref in
+       let read_size = !pos_ref in
+       require
+-        [%here]
+         (computed_size = read_size)
+         ~if_false_then_print_s:
+           [%lazy_message
+@@ -99,14 +98,12 @@ let test
+               (read_size : int)
+               (message : Bigstring.t)];
+       require
+-        [%here]
+         (M.equal t round_trip)
+         ~if_false_then_print_s:
+           [%lazy_message "value did not round-trip" (t : M.t) (round_trip : M.t)];
+       let message_local = Bigstring.create computed_size in
+       let (_ : int) = bin_write_local message_local ~pos:0 t in
+       require
+-        [%here]
+         (Bigstring.equal message message_local)
+         ~if_false_then_print_s:
+           [%lazy_message
+@@ -122,7 +119,9 @@ let%expect_test _ =
+     [%bin_write: int]
+     [%bin_write_local: int]
+     [%bin_read: int]
+-    (module Int);
++    (module struct
++      type t = int [@@deriving equal, quickcheck, sexp_of]
++    end);
+   [%expect {| |}]
+ ;;
+ 
+diff --git a/test/mutually_recursive.mlt b/test/mutually_recursive.mlt
+index 7069bef..fdfa4da 100644
+--- a/test/mutually_recursive.mlt
++++ b/test/mutually_recursive.mlt
+@@ -66,11 +66,10 @@ module Test :
+       'b Bin_prot.Type_class.writer -> ('a, 'b) t' Bin_prot.Type_class.writer
+     val __bin_read_branch__ :
+       'a Bin_prot.Read.reader ->
+-      'm Bin_prot.Read.reader ->
+-      (int -> ('a, 'm) branch) Bin_prot.Read.reader
++      'm Bin_prot.Read.reader -> ('a, 'm) branch Bin_prot.Read.vtag_reader
+     val __bin_read_t'__ :
+       'a Bin_prot.Read.reader ->
+-      'm Bin_prot.Read.reader -> (int -> ('a, 'm) t') Bin_prot.Read.reader
++      'm Bin_prot.Read.reader -> ('a, 'm) t' Bin_prot.Read.vtag_reader
+     val bin_read_branch :
+       'a Bin_prot.Read.reader ->
+       'm Bin_prot.Read.reader -> ('a, 'm) branch Bin_prot.Read.reader
+diff --git a/test/nopervasives/dune b/test/nopervasives/dune
+index e7c6143..85f5f1a 100644
+--- a/test/nopervasives/dune
++++ b/test/nopervasives/dune
+@@ -4,7 +4,7 @@
+ 
+ (library
+  (name ppx_bin_prot_nopervasives)
+- (libraries core)
++ (libraries base)
+  (flags :standard -nopervasives)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/test/nopervasives/ppx_bin_prot_nopervasives.ml b/test/nopervasives/ppx_bin_prot_nopervasives.ml
+index d6fbd87..f1dbfbd 100644
+--- a/test/nopervasives/ppx_bin_prot_nopervasives.ml
++++ b/test/nopervasives/ppx_bin_prot_nopervasives.ml
+@@ -1,4 +1,5 @@
+-open Core
++open Base
++open Bin_prot.Std
+ 
+ module M = struct
+   type t =
+diff --git a/test/polymorphic_recursion.mlt b/test/polymorphic_recursion.mlt
+index 068b169..e49e03a 100644
+--- a/test/polymorphic_recursion.mlt
++++ b/test/polymorphic_recursion.mlt
+@@ -21,7 +21,7 @@ module Simple :
+     val bin_writer_t :
+       'a Bin_prot.Type_class.writer -> 'a t Bin_prot.Type_class.writer
+     val __bin_read_t__ :
+-      'a Bin_prot.Read.reader -> (int -> 'a t) Bin_prot.Read.reader
++      'a Bin_prot.Read.reader -> 'a t Bin_prot.Read.vtag_reader
+     val bin_read_t : 'a Bin_prot.Read.reader -> 'a t Bin_prot.Read.reader
+     val bin_reader_t :
+       'a Bin_prot.Type_class.reader -> 'a t Bin_prot.Type_class.reader
