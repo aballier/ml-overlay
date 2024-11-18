@@ -1,0 +1,1575 @@
+From 3cd2046294812d38687ac805709e01a1c042b155 Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Tue, 13 Aug 2024 20:53:43 +0100
+Subject: [PATCH] v0.17~preview.129.36+325
+
+---
+ shape/src/bin_shape.ml                        |   6 +-
+ shape/src/dune                                |   2 +-
+ src/binable.ml                                |  54 ++++--
+ src/blit_stubs.c                              |  21 +--
+ src/blob.ml                                   |  10 +-
+ src/blob.mli                                  |   2 +-
+ src/common.ml                                 |  16 +-
+ src/common.mli                                |  22 +--
+ src/read_intf.ml                              |   9 +
+ src/runtime.wat                               | 158 ++++++++++++++++++
+ src/type_class_intf.ml                        |   2 +-
+ src/utils.ml                                  |  88 +++++-----
+ src/write.ml                                  |  10 +-
+ test/bin_prot_test.ml                         |  90 +++++-----
+ test/bin_prot_test.mli                        |   2 +-
+ test/blob_tests.ml                            |   3 +-
+ test/blob_tests.mli                           |   4 +-
+ test/{ => core}/blob_stability_tests.ml       |   0
+ test/{ => core}/blob_stability_tests.mli      |   0
+ test/core/dune                                |   5 +
+ test/core/import.ml                           |   1 +
+ test/{ => core}/list_allocation.ml            |   6 +-
+ test/{ => core}/list_allocation.mli           |   0
+ test/dune                                     |  10 +-
+ test/import.ml                                |   2 +-
+ test/integers_repr.ml                         |  15 +-
+ test/integers_repr_tests_js.ml                |   2 +-
+ ...s_32bit.ml => integers_repr_tests_wasm.ml} |   2 +-
+ ...32bit.mli => integers_repr_tests_wasm.mli} |   0
+ test/non_integers_repr.ml                     |  88 +++++-----
+ 30 files changed, 418 insertions(+), 212 deletions(-)
+ create mode 100644 src/runtime.wat
+ rename test/{ => core}/blob_stability_tests.ml (100%)
+ rename test/{ => core}/blob_stability_tests.mli (100%)
+ create mode 100644 test/core/dune
+ create mode 100644 test/core/import.ml
+ rename test/{ => core}/list_allocation.ml (97%)
+ rename test/{ => core}/list_allocation.mli (100%)
+ rename test/{integers_repr_tests_32bit.ml => integers_repr_tests_wasm.ml} (99%)
+ rename test/{integers_repr_tests_32bit.mli => integers_repr_tests_wasm.mli} (100%)
+
+diff --git a/shape/src/bin_shape.ml b/shape/src/bin_shape.ml
+index a44ac7f..3922ddc 100644
+--- a/shape/src/bin_shape.ml
++++ b/shape/src/bin_shape.ml
+@@ -711,9 +711,9 @@ module Evaluation (Canonical : Canonical) = struct
+     then
+       Defining.look_env (gid, tid)
+       >>= (function
+-            | Some recurse -> return recurse
+-            | None ->
+-              Defining.extend_new_tid (gid, tid) (eval_definition group formals body))
++             | Some recurse -> return recurse
++             | None ->
++               Defining.extend_new_tid (gid, tid) (eval_definition group formals body))
+       >>= function
+       | Recursion_level r -> return (Canonical.Exp1.recurse r args)
+       | Definition def -> return (Canonical.Exp1.apply def args)
+diff --git a/shape/src/dune b/shape/src/dune
+index 58442cf..6c19f31 100644
+--- a/shape/src/dune
++++ b/shape/src/dune
+@@ -1,7 +1,7 @@
+ (library
+  (name bin_shape)
+  (public_name bin_prot.shape)
+- (libraries base.md5)
++ (libraries base base.md5)
+  (preprocess
+   (pps ppx_compare ppx_sexp_conv ppx_fields_conv ppx_variants_conv
+     ppx_custom_printf)))
+diff --git a/src/binable.ml b/src/binable.ml
+index 16f49a5..9a6d300 100644
+--- a/src/binable.ml
++++ b/src/binable.ml
+@@ -4,7 +4,7 @@
+ 
+ (* the subset of S containing only functions, so that one can recursively define modules
+    implementing this interface *)
+-module type S_only_functions = sig
++module type S_any_only_functions = sig
+   type t
+ 
+   val bin_size_t : t Size.sizer
+@@ -17,20 +17,20 @@ module type S_only_functions = sig
+      instead it takes the constructor tag (int) before reading and reads the rest of the
+      variant [t] afterwards.
+   *)
+-  val __bin_read_t__ : (int -> t) Read.reader
++  val __bin_read_t__ : t Read.vtag_reader
+ end
+ 
+-module type S_local_only_functions = sig
+-  include S_only_functions
++module type S_any_local_only_functions = sig
++  include S_any_only_functions
+ 
+   val bin_size_t__local : t Size.sizer_local
+   val bin_write_t__local : t Write.writer_local
+ end
+ 
+-module type S = sig
++module type S_any = sig
+   type t
+ 
+-  include S_only_functions with type t := t
++  include S_any_only_functions with type t := t
+ 
+   val bin_shape_t : Shape.t
+   val bin_writer_t : t Type_class.writer
+@@ -38,10 +38,10 @@ module type S = sig
+   val bin_t : t Type_class.t
+ end
+ 
+-module type S_local = sig
++module type S_any_local = sig
+   type t
+ 
+-  include S_local_only_functions with type t := t
++  include S_any_local_only_functions with type t := t
+ 
+   val bin_shape_t : Shape.t
+   val bin_writer_t : t Type_class.writer
+@@ -49,6 +49,30 @@ module type S_local = sig
+   val bin_t : t Type_class.t
+ end
+ 
++module type S = sig
++  type t
++
++  include S_any with type t := t
++end
++
++module type S_only_functions = sig
++  type t
++
++  include S_any_only_functions with type t := t
++end
++
++module type S_local_only_functions = sig
++  type t
++
++  include S_any_local_only_functions with type t := t
++end
++
++module type S_local = sig
++  type t
++
++  include S_any_local with type t := t
++end
++
+ module type S1 = sig
+   type 'a t
+ 
+@@ -56,7 +80,7 @@ module type S1 = sig
+   val bin_size_t : ('a, 'a t) Size.sizer1
+   val bin_write_t : ('a, 'a t) Write.writer1
+   val bin_read_t : ('a, 'a t) Read.reader1
+-  val __bin_read_t__ : ('a, int -> 'a t) Read.reader1
++  val __bin_read_t__ : ('a, 'a t) Read.vtag_reader1
+   val bin_writer_t : ('a, 'a t) Type_class.S1.writer
+   val bin_reader_t : ('a, 'a t) Type_class.S1.reader
+   val bin_t : ('a, 'a t) Type_class.S1.t
+@@ -76,7 +100,7 @@ module type S2 = sig
+   val bin_size_t : ('a, 'b, ('a, 'b) t) Size.sizer2
+   val bin_write_t : ('a, 'b, ('a, 'b) t) Write.writer2
+   val bin_read_t : ('a, 'b, ('a, 'b) t) Read.reader2
+-  val __bin_read_t__ : ('a, 'b, int -> ('a, 'b) t) Read.reader2
++  val __bin_read_t__ : ('a, 'b, ('a, 'b) t) Read.vtag_reader2
+   val bin_writer_t : ('a, 'b, ('a, 'b) t) Type_class.S2.writer
+   val bin_reader_t : ('a, 'b, ('a, 'b) t) Type_class.S2.reader
+   val bin_t : ('a, 'b, ('a, 'b) t) Type_class.S2.t
+@@ -96,7 +120,7 @@ module type S3 = sig
+   val bin_size_t : ('a, 'b, 'c, ('a, 'b, 'c) t) Size.sizer3
+   val bin_write_t : ('a, 'b, 'c, ('a, 'b, 'c) t) Write.writer3
+   val bin_read_t : ('a, 'b, 'c, ('a, 'b, 'c) t) Read.reader3
+-  val __bin_read_t__ : ('a, 'b, 'c, int -> ('a, 'b, 'c) t) Read.reader3
++  val __bin_read_t__ : ('a, 'b, 'c, ('a, 'b, 'c) t) Read.vtag_reader3
+   val bin_writer_t : ('a, 'b, 'c, ('a, 'b, 'c) t) Type_class.S3.writer
+   val bin_reader_t : ('a, 'b, 'c, ('a, 'b, 'c) t) Type_class.S3.reader
+   val bin_t : ('a, 'b, 'c, ('a, 'b, 'c) t) Type_class.S3.t
+@@ -117,7 +141,7 @@ module Minimal = struct
+     val bin_size_t : t Size.sizer
+     val bin_write_t : t Write.writer
+     val bin_read_t : t Read.reader
+-    val __bin_read_t__ : (int -> t) Read.reader
++    val __bin_read_t__ : t Read.vtag_reader
+   end
+ 
+   module type S_local = sig
+@@ -134,7 +158,7 @@ module Minimal = struct
+     val bin_size_t : ('a, 'a t) Size.sizer1
+     val bin_write_t : ('a, 'a t) Write.writer1
+     val bin_read_t : ('a, 'a t) Read.reader1
+-    val __bin_read_t__ : ('a, int -> 'a t) Read.reader1
++    val __bin_read_t__ : ('a, 'a t) Read.vtag_reader1
+   end
+ 
+   module type S_local1 = sig
+@@ -151,7 +175,7 @@ module Minimal = struct
+     val bin_size_t : ('a, 'b, ('a, 'b) t) Size.sizer2
+     val bin_write_t : ('a, 'b, ('a, 'b) t) Write.writer2
+     val bin_read_t : ('a, 'b, ('a, 'b) t) Read.reader2
+-    val __bin_read_t__ : ('a, 'b, int -> ('a, 'b) t) Read.reader2
++    val __bin_read_t__ : ('a, 'b, ('a, 'b) t) Read.vtag_reader2
+   end
+ 
+   module type S_local2 = sig
+@@ -168,7 +192,7 @@ module Minimal = struct
+     val bin_size_t : ('a, 'b, 'c, ('a, 'b, 'c) t) Size.sizer3
+     val bin_write_t : ('a, 'b, 'c, ('a, 'b, 'c) t) Write.writer3
+     val bin_read_t : ('a, 'b, 'c, ('a, 'b, 'c) t) Read.reader3
+-    val __bin_read_t__ : ('a, 'b, 'c, int -> ('a, 'b, 'c) t) Read.reader3
++    val __bin_read_t__ : ('a, 'b, 'c, ('a, 'b, 'c) t) Read.vtag_reader3
+   end
+ 
+   module type S_local3 = sig
+diff --git a/src/blit_stubs.c b/src/blit_stubs.c
+index 6792401..6b26bf1 100644
+--- a/src/blit_stubs.c
++++ b/src/blit_stubs.c
+@@ -35,42 +35,37 @@
+ #endif
+ 
+ CAMLprim value bin_prot_blit_string_buf_stub(value v_src_pos, value v_str,
+-                                             value v_dst_pos, value v_buf,
+-                                             value v_len) {
++                                             value v_dst_pos, value v_buf, value v_len) {
+   const char *str = String_val(v_str) + Long_val(v_src_pos);
+   char *buf = get_buf(v_buf, v_dst_pos);
+   memcpy(buf, str, (size_t)Long_val(v_len));
+   return Val_unit;
+ }
+ 
+-CAMLprim value bin_prot_blit_bytes_buf_stub(value v_src_pos, value v_str,
+-                                            value v_dst_pos, value v_buf,
+-                                            value v_len) {
++CAMLprim value bin_prot_blit_bytes_buf_stub(value v_src_pos, value v_str, value v_dst_pos,
++                                            value v_buf, value v_len) {
+   unsigned char *str = Bytes_val(v_str) + Long_val(v_src_pos);
+   char *buf = get_buf(v_buf, v_dst_pos);
+   memcpy(buf, str, (size_t)Long_val(v_len));
+   return Val_unit;
+ }
+ 
+-CAMLprim value bin_prot_blit_buf_bytes_stub(value v_src_pos, value v_buf,
+-                                            value v_dst_pos, value v_str,
+-                                            value v_len) {
++CAMLprim value bin_prot_blit_buf_bytes_stub(value v_src_pos, value v_buf, value v_dst_pos,
++                                            value v_str, value v_len) {
+   char *buf = get_buf(v_buf, v_src_pos);
+   unsigned char *str = Bytes_val(v_str) + Long_val(v_dst_pos);
+   memcpy(str, buf, (size_t)Long_val(v_len));
+   return Val_unit;
+ }
+ 
+-CAMLprim value bin_prot_blit_buf_stub(value v_src_pos, value v_src,
+-                                      value v_dst_pos, value v_dst,
+-                                      value v_len) {
++CAMLprim value bin_prot_blit_buf_stub(value v_src_pos, value v_src, value v_dst_pos,
++                                      value v_dst, value v_len) {
+   struct caml_ba_array *ba_src = Caml_ba_array_val(v_src);
+   struct caml_ba_array *ba_dst = Caml_ba_array_val(v_dst);
+   char *src = (char *)ba_src->data + Long_val(v_src_pos);
+   char *dst = (char *)ba_dst->data + Long_val(v_dst_pos);
+   size_t len = (size_t)Long_val(v_len);
+-  if (unlikely(len > 65536) ||
+-      unlikely(((ba_src->flags & CAML_BA_MAPPED_FILE) != 0)) ||
++  if (unlikely(len > 65536) || unlikely(((ba_src->flags & CAML_BA_MAPPED_FILE) != 0)) ||
+       unlikely(((ba_dst->flags & CAML_BA_MAPPED_FILE) != 0)))
+   /* use [memmove] rather than [memcpy] because src and dst may overlap */
+   {
+diff --git a/src/blob.ml b/src/blob.ml
+index f0d7f7f..880fd1b 100644
+--- a/src/blob.ml
++++ b/src/blob.ml
+@@ -41,13 +41,13 @@ type 'a id = 'a
+ include T
+ 
+ include Utils.Make_binable1_without_uuid [@alert "-legacy"] (struct
+-  module Binable = T
++    module Binable = T
+ 
+-  type 'a t = 'a T.t
++    type 'a t = 'a T.t
+ 
+-  let of_binable t = t
+-  let to_binable t = t
+-end)
++    let of_binable t = t
++    let to_binable t = t
++  end)
+ 
+ module Opaque = struct
+   (* [Bigstring] and [String] share [bin_shape_t] because they have exactly the same
+diff --git a/src/blob.mli b/src/blob.mli
+index 8f9c3b0..aa78671 100644
+--- a/src/blob.mli
++++ b/src/blob.mli
+@@ -115,6 +115,6 @@ module Ignored : sig
+ 
+   val bin_size_t : t Size.sizer
+   val bin_read_t : t Read.reader
+-  val __bin_read_t__ : (int -> t) Read.reader
++  val __bin_read_t__ : t Read.vtag_reader
+   val bin_reader_t : t Type_class.reader
+ end
+diff --git a/src/common.ml b/src/common.ml
+index 8632ec8..f301abb 100644
+--- a/src/common.ml
++++ b/src/common.ml
+@@ -141,7 +141,7 @@ external unsafe_blit_string_buf
+   -> len:int
+   -> unit
+   = "bin_prot_blit_string_buf_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_bytes_buf
+   :  src_pos:int
+@@ -151,7 +151,7 @@ external unsafe_blit_bytes_buf
+   -> len:int
+   -> unit
+   = "bin_prot_blit_bytes_buf_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ let blit_string_buf ?src_pos str ?dst_pos buf ~len =
+   let loc = "blit_string_buf" in
+@@ -199,7 +199,7 @@ external unsafe_blit_buf_string
+   -> len:int
+   -> unit
+   = "bin_prot_blit_buf_bytes_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_buf_bytes
+   :  src_pos:int
+@@ -209,7 +209,7 @@ external unsafe_blit_buf_bytes
+   -> len:int
+   -> unit
+   = "bin_prot_blit_buf_bytes_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ let blit_buf_bytes ?src_pos buf ?dst_pos str ~len =
+   let loc = "blit_buf_string" in
+@@ -260,7 +260,7 @@ external unsafe_blit_float_array_buf
+   -> len:int
+   -> unit
+   = "bin_prot_blit_float_array_buf_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_buf_float_array
+   :  src_pos:int
+@@ -270,7 +270,7 @@ external unsafe_blit_buf_float_array
+   -> len:int
+   -> unit
+   = "bin_prot_blit_buf_float_array_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_floatarray_buf
+   :  src_pos:int
+@@ -280,7 +280,7 @@ external unsafe_blit_floatarray_buf
+   -> len:int
+   -> unit
+   = "bin_prot_blit_float_array_buf_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_buf_floatarray
+   :  src_pos:int
+@@ -290,7 +290,7 @@ external unsafe_blit_buf_floatarray
+   -> len:int
+   -> unit
+   = "bin_prot_blit_buf_float_array_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ (***)
+ 
+diff --git a/src/common.mli b/src/common.mli
+index 709077e..0356692 100644
+--- a/src/common.mli
++++ b/src/common.mli
+@@ -106,11 +106,11 @@ module ReadError : sig
+     | Sum_tag of string (** Illegal sum tag for given type *)
+     | Variant of string (** Illegal variant for given type *)
+     | Poly_rec_bound of string
+-        (** Attempt to read data bound through polymorphic record fields *)
++    (** Attempt to read data bound through polymorphic record fields *)
+     | Variant_wrong_type of string
+-        (** Unexpected attempt to read variant with given non-variant type *)
++    (** Unexpected attempt to read variant with given non-variant type *)
+     | Silly_type of string
+-        (** [Silly_type type_name] indicates unhandled but silly case
++    (** [Silly_type type_name] indicates unhandled but silly case
+         where a type of the sort [type 'a type_name = 'a] is used
+         with a polymorphic variant as type parameter and included
+         in another polymorphic variant type. *)
+@@ -179,7 +179,7 @@ external unsafe_blit_string_buf
+   -> len:int
+   -> unit
+   = "bin_prot_blit_string_buf_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_bytes_buf
+   :  src_pos:int
+@@ -189,7 +189,7 @@ external unsafe_blit_bytes_buf
+   -> len:int
+   -> unit
+   = "bin_prot_blit_bytes_buf_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_buf_string
+   :  src_pos:int
+@@ -199,7 +199,7 @@ external unsafe_blit_buf_string
+   -> len:int
+   -> unit
+   = "bin_prot_blit_buf_bytes_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_buf_bytes
+   :  src_pos:int
+@@ -209,7 +209,7 @@ external unsafe_blit_buf_bytes
+   -> len:int
+   -> unit
+   = "bin_prot_blit_buf_bytes_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_float_array_buf
+   :  src_pos:int
+@@ -219,7 +219,7 @@ external unsafe_blit_float_array_buf
+   -> len:int
+   -> unit
+   = "bin_prot_blit_float_array_buf_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_buf_float_array
+   :  src_pos:int
+@@ -229,7 +229,7 @@ external unsafe_blit_buf_float_array
+   -> len:int
+   -> unit
+   = "bin_prot_blit_buf_float_array_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_floatarray_buf
+   :  src_pos:int
+@@ -239,7 +239,7 @@ external unsafe_blit_floatarray_buf
+   -> len:int
+   -> unit
+   = "bin_prot_blit_float_array_buf_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ external unsafe_blit_buf_floatarray
+   :  src_pos:int
+@@ -249,6 +249,6 @@ external unsafe_blit_buf_floatarray
+   -> len:int
+   -> unit
+   = "bin_prot_blit_buf_float_array_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ val ( + ) : int -> int -> int
+diff --git a/src/read_intf.ml b/src/read_intf.ml
+index 58b891c..89500c2 100644
+--- a/src/read_intf.ml
++++ b/src/read_intf.ml
+@@ -10,6 +10,15 @@ module Definitions = struct
+   type ('a, 'b) reader1 = 'a reader -> 'b reader
+   type ('a, 'b, 'c) reader2 = 'a reader -> ('b, 'c) reader1
+   type ('a, 'b, 'c, 'd) reader3 = 'a reader -> ('b, 'c, 'd) reader2
++
++  (** Type of reader functions for polymorphic variant readers, after reading their tag.
++      Used for definitions such as [__bin_read_t__]. The [int] argument is a numerical
++      representation of the variant tag, such as [`a]. *)
++  type 'a vtag_reader = buf -> pos_ref:pos_ref -> int -> 'a
++
++  type ('a, 'b) vtag_reader1 = 'a reader -> 'b vtag_reader
++  type ('a, 'b, 'c) vtag_reader2 = 'a reader -> ('b, 'c) vtag_reader1
++  type ('a, 'b, 'c, 'd) vtag_reader3 = 'a reader -> ('b, 'c, 'd) vtag_reader2
+ end
+ 
+ module type Read = sig
+diff --git a/src/runtime.wat b/src/runtime.wat
+new file mode 100644
+index 0000000..7d0ded4
+--- /dev/null
++++ b/src/runtime.wat
+@@ -0,0 +1,158 @@
++(module
++   (import "env" "wrap" (func $wrap (param anyref) (result (ref eq))))
++   (import "env" "caml_ba_create"
++      (func $caml_ba_create
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_ba_get_kind"
++      (func $caml_ba_get_kind (param (ref eq)) (result i32)))
++   (import "env" "caml_ba_to_typed_array"
++      (func $caml_ba_to_typed_array (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_ba_get_1"
++      (func  $caml_ba_get_1 (param (ref eq)) (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_ba_set_1"
++      (func  $caml_ba_set_1
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_ba_sub"
++      (func $caml_ba_sub
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_ba_blit"
++      (func $caml_ba_blit (param (ref eq)) (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_blit_ba_to_ba"
++      (func $caml_bigstring_blit_ba_to_ba
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_blit_string_to_ba"
++      (func $caml_bigstring_blit_string_to_ba
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_blit_ba_to_bytes"
++      (func $caml_bigstring_blit_ba_to_bytes
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (param (ref eq)) (result (ref eq))))
++   (import "env" "bigstring_of_typed_array"
++      (func $bigstring_of_typed_array (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_floatarray_unsafe_get"
++      (func $caml_floatarray_unsafe_get
++         (param (ref eq)) (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_floatarray_unsafe_set"
++      (func $caml_floatarray_unsafe_set
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (result (ref eq))))
++
++   (type $block (array (mut (ref eq))))
++
++   (func (export "bin_prot_blit_buf_float_array_stub")
++      (param $src_pos (ref eq)) (param $src (ref eq))
++      (param $vdst_pos (ref eq)) (param $dst (ref eq))
++      (param $vlen (ref eq)) (result (ref eq))
++      (local $dst_pos i32) (local $len i32) (local $i i32)
++      (local $view (ref eq)) (local $buffer (ref eq))
++      (local.set $dst_pos (i31.get_u (ref.cast (ref i31) (local.get $vdst_pos))))
++      (local.set $len (i31.get_u (ref.cast (ref i31) (local.get $vlen))))
++      (if (i32.eqz (local.get $len))
++         (then (return (ref.i31 (i32.const 0)))))
++      (local.set $view
++         (call $caml_ba_create
++            (ref.i31 (i32.const 1 (;double;)))
++            (ref.i31 (i32.const 0))
++            (array.new_fixed $block 2 (ref.i31 (i32.const 0))
++               (local.get $vlen))))
++      (local.set $buffer
++         (call $bigstring_of_typed_array
++            (call $caml_ba_to_typed_array (local.get $view))))
++      (drop
++         (call $caml_ba_blit
++            (call $caml_ba_sub
++               (local.get $src)
++               (local.get $src_pos)
++               (ref.i31 (i32.mul (local.get $len) (i32.const 8))))
++            (local.get $buffer)))
++      (loop $loop
++         (if (i32.lt_s (local.get $i) (local.get $len))
++            (then
++               (drop (call $caml_floatarray_unsafe_set
++                  (local.get $dst)
++                  (ref.i31 (i32.add (local.get $dst_pos) (local.get $i)))
++                  (call $caml_ba_get_1
++                     (local.get $view) (ref.i31 (local.get $i)))))
++               (local.set $i (i32.add (local.get $i) (i32.const 1)))
++               (br $loop))))
++      (ref.i31 (i32.const 0)))
++
++   (func (export "bin_prot_blit_buf_bytes_stub")
++      (param $src_pos (ref eq)) (param $src (ref eq))
++      (param $dst_pos (ref eq)) (param $dst (ref eq))
++      (param $len (ref eq)) (result (ref eq))
++      (return_call $caml_bigstring_blit_ba_to_bytes
++         (local.get $src) (local.get $src_pos)
++         (local.get $dst) (local.get $dst_pos)
++         (local.get $len)))
++
++   (func (export "bin_prot_blit_float_array_buf_stub")
++      (param $vsrc_pos (ref eq)) (param $src (ref eq))
++      (param $dst_pos (ref eq)) (param $dst (ref eq))
++      (param $vlen (ref eq)) (result (ref eq))
++      (local $src_pos i32)
++      (local $len i32) (local $i i32)
++      (local $float64_array (ref eq)) (local $float64_uint8 (ref eq))
++      (local $view (ref eq))
++      (local.set $src_pos (i31.get_u (ref.cast (ref i31) (local.get $vsrc_pos))))
++      (local.set $len (i31.get_u (ref.cast (ref i31) (local.get $vlen))))
++      (if (i32.eqz (local.get $len))
++         (then (return (ref.i31 (i32.const 0)))))
++      (local.set $float64_array
++         (call $caml_ba_create
++            (ref.i31 (i32.const 1 (;double;)))
++            (ref.i31 (i32.const 0))
++            (array.new_fixed $block 2 (ref.i31 (i32.const 0))
++               (local.get $vlen))))
++      (loop $loop
++         (if (i32.lt_s (local.get $i) (local.get $len))
++            (then
++               (drop
++                  (call $caml_ba_set_1
++                     (local.get $float64_array) (ref.i31 (local.get $i))
++                     (call $caml_floatarray_unsafe_get
++                        (local.get $src)
++                        (ref.i31
++                           (i32.add (local.get $src_pos) (local.get $i))))))
++               (local.set $i (i32.add (local.get $i) (i32.const 1)))
++               (br $loop))))
++      (local.set $float64_uint8
++         (call $bigstring_of_typed_array
++            (call $caml_ba_to_typed_array (local.get $float64_array))))
++      (drop
++         (call $caml_ba_blit
++            (local.get $float64_uint8)
++            (call $caml_ba_sub (local.get $dst) (local.get $dst_pos)
++               (ref.i31 (i32.mul (local.get $len) (i32.const 8))))))
++      (ref.i31 (i32.const 0)))
++
++   (export "bin_prot_blit_bytes_buf_stub" (func $bin_prot_blit_string_buf_stub))
++   (func $bin_prot_blit_string_buf_stub (export "bin_prot_blit_string_buf_stub")
++      (param $src_pos (ref eq)) (param $src (ref eq))
++      (param $dst_pos (ref eq)) (param $dst (ref eq))
++      (param $len (ref eq)) (result (ref eq))
++      (return_call $caml_bigstring_blit_string_to_ba
++         (local.get $src) (local.get $src_pos)
++         (local.get $dst) (local.get $dst_pos)
++         (local.get $len)))
++
++   (func (export "bin_prot_blit_buf_stub")
++      (param $src_pos (ref eq)) (param $src (ref eq))
++      (param $dst_pos (ref eq)) (param $dst (ref eq))
++      (param $len (ref eq)) (result (ref eq))
++      (if (i32.ne (call $caml_ba_get_kind (local.get $src)) (i32.const 12))
++         (then
++            (local.set $src
++               (call $bigstring_of_typed_array
++                  (call $caml_ba_to_typed_array (local.get $src))))))
++      (if (i32.ne (call $caml_ba_get_kind (local.get $dst)) (i32.const 12))
++         (then
++            (local.set $dst
++               (call $bigstring_of_typed_array
++                  (call $caml_ba_to_typed_array (local.get $dst))))))
++      (return_call $caml_bigstring_blit_ba_to_ba
++         (local.get $src) (local.get $src_pos)
++         (local.get $dst) (local.get $dst_pos)
++         (local.get $len)))
++)
+diff --git a/src/type_class_intf.ml b/src/type_class_intf.ml
+index b519b6e..5f9696d 100644
+--- a/src/type_class_intf.ml
++++ b/src/type_class_intf.ml
+@@ -6,7 +6,7 @@ module Definitions = struct
+ 
+   type 'a reader =
+     { read : 'a Read.reader
+-    ; vtag_read : (int -> 'a) Read.reader
++    ; vtag_read : 'a Read.vtag_reader
+     }
+ 
+   type 'a t =
+diff --git a/src/utils.ml b/src/utils.ml
+index 939e669..e8dda7d 100644
+--- a/src/utils.ml
++++ b/src/utils.ml
+@@ -96,29 +96,29 @@ let maybe_annotate_shape maybe_uuid shape =
+ ;;
+ 
+ module Make_binable_gen (S : sig
+-  include Make_binable_without_uuid_spec
++    include Make_binable_without_uuid_spec
+ 
+-  val maybe_caller_identity : Shape.Uuid.t option
+-end) =
++    val maybe_caller_identity : Shape.Uuid.t option
++  end) =
+ struct
+   include Of_minimal (struct
+-    module B = S.Binable
++      module B = S.Binable
+ 
+-    type t = S.t
++      type t = S.t
+ 
+-    let bin_shape_t = maybe_annotate_shape S.maybe_caller_identity B.bin_shape_t
+-    let bin_size_t t = B.bin_size_t (S.to_binable t)
+-    let bin_write_t buf ~pos t = B.bin_write_t buf ~pos (S.to_binable t)
+-    let bin_read_t buf ~pos_ref = S.of_binable (B.bin_read_t buf ~pos_ref)
+-    let __bin_read_t__ buf ~pos_ref n = S.of_binable (B.__bin_read_t__ buf ~pos_ref n)
+-  end)
++      let bin_shape_t = maybe_annotate_shape S.maybe_caller_identity B.bin_shape_t
++      let bin_size_t t = B.bin_size_t (S.to_binable t)
++      let bin_write_t buf ~pos t = B.bin_write_t buf ~pos (S.to_binable t)
++      let bin_read_t buf ~pos_ref = S.of_binable (B.bin_read_t buf ~pos_ref)
++      let __bin_read_t__ buf ~pos_ref n = S.of_binable (B.__bin_read_t__ buf ~pos_ref n)
++    end)
+ end
+ 
+ module Make_binable1_gen (S : sig
+-  include Make_binable1_without_uuid_spec
++    include Make_binable1_without_uuid_spec
+ 
+-  val maybe_caller_identity : Shape.Uuid.t option
+-end) =
++    val maybe_caller_identity : Shape.Uuid.t option
++  end) =
+ struct
+   module B = S.Binable
+ 
+@@ -163,10 +163,10 @@ struct
+ end
+ 
+ module Make_binable2_gen (S : sig
+-  include Make_binable2_without_uuid_spec
++    include Make_binable2_without_uuid_spec
+ 
+-  val maybe_caller_identity : Shape.Uuid.t option
+-end) =
++    val maybe_caller_identity : Shape.Uuid.t option
++  end) =
+ struct
+   module B = S.Binable
+ 
+@@ -217,10 +217,10 @@ struct
+ end
+ 
+ module Make_binable3_gen (S : sig
+-  include Make_binable3_without_uuid_spec
++    include Make_binable3_without_uuid_spec
+ 
+-  val maybe_caller_identity : Shape.Uuid.t option
+-end) =
++    val maybe_caller_identity : Shape.Uuid.t option
++  end) =
+ struct
+   module B = S.Binable
+ 
+@@ -273,59 +273,59 @@ struct
+ end
+ 
+ module Make_binable_with_uuid (S : Make_binable_with_uuid_spec) = Make_binable_gen (struct
+-  include S
++    include S
+ 
+-  let maybe_caller_identity = Some S.caller_identity
+-end)
++    let maybe_caller_identity = Some S.caller_identity
++  end)
+ 
+ module Make_binable1_with_uuid (S : Make_binable1_with_uuid_spec) =
+ Make_binable1_gen (struct
+-  include S
++    include S
+ 
+-  let maybe_caller_identity = Some S.caller_identity
+-end)
++    let maybe_caller_identity = Some S.caller_identity
++  end)
+ 
+ module Make_binable2_with_uuid (S : Make_binable2_with_uuid_spec) =
+ Make_binable2_gen (struct
+-  include S
++    include S
+ 
+-  let maybe_caller_identity = Some S.caller_identity
+-end)
++    let maybe_caller_identity = Some S.caller_identity
++  end)
+ 
+ module Make_binable3_with_uuid (S : Make_binable3_with_uuid_spec) =
+ Make_binable3_gen (struct
+-  include S
++    include S
+ 
+-  let maybe_caller_identity = Some S.caller_identity
+-end)
++    let maybe_caller_identity = Some S.caller_identity
++  end)
+ 
+ module Make_binable_without_uuid (S : Make_binable_without_uuid_spec) =
+ Make_binable_gen (struct
+-  include S
++    include S
+ 
+-  let maybe_caller_identity = None
+-end)
++    let maybe_caller_identity = None
++  end)
+ 
+ module Make_binable1_without_uuid (S : Make_binable1_without_uuid_spec) =
+ Make_binable1_gen (struct
+-  include S
++    include S
+ 
+-  let maybe_caller_identity = None
+-end)
++    let maybe_caller_identity = None
++  end)
+ 
+ module Make_binable2_without_uuid (S : Make_binable2_without_uuid_spec) =
+ Make_binable2_gen (struct
+-  include S
++    include S
+ 
+-  let maybe_caller_identity = None
+-end)
++    let maybe_caller_identity = None
++  end)
+ 
+ module Make_binable3_without_uuid (S : Make_binable3_without_uuid_spec) =
+ Make_binable3_gen (struct
+-  include S
++    include S
+ 
+-  let maybe_caller_identity = None
+-end)
++    let maybe_caller_identity = None
++  end)
+ 
+ let with_module_name f ~module_name function_name =
+   match module_name with
+diff --git a/src/write.ml b/src/write.ml
+index a2569a4..7b59d04 100644
+--- a/src/write.ml
++++ b/src/write.ml
+@@ -102,7 +102,7 @@ let all_bin_write_int32 buf pos n =
+   unsafe_set buf pos code_INT32;
+   unsafe_set32le buf (pos + 1) n;
+   next
+-  [@@inline]
++[@@inline]
+ ;;
+ 
+ let all_bin_write_int64 buf pos n =
+@@ -111,7 +111,7 @@ let all_bin_write_int64 buf pos n =
+   unsafe_set buf pos code_INT64;
+   unsafe_set64le buf (pos + 1) n;
+   next
+-  [@@inline]
++[@@inline]
+ ;;
+ 
+ let bin_write_char buf ~pos c =
+@@ -181,7 +181,7 @@ let bin_write_float buf ~pos x =
+   check_next buf next;
+   unsafe_set64le buf pos (Base.Int64.bits_of_float x);
+   next
+-  [@@inline]
++[@@inline]
+ ;;
+ 
+ let bin_write_int32 =
+@@ -208,7 +208,7 @@ let bin_write_int64 buf ~pos n =
+     assert_pos pos;
+     all_bin_write_int32 buf pos (Base.Int64.to_int32_trunc n) [@nontail])
+   else bin_write_int buf ~pos (Int64.to_int n)
+-  [@@inline]
++[@@inline]
+ ;;
+ 
+ let bin_write_nativeint buf ~pos n =
+@@ -223,7 +223,7 @@ let bin_write_nativeint buf ~pos n =
+     assert_pos pos;
+     all_bin_write_int32 buf pos (Base.Nativeint.to_int32_trunc n) [@nontail])
+   else bin_write_int buf ~pos (Nativeint.to_int n)
+-  [@@inline]
++[@@inline]
+ ;;
+ 
+ let bin_write_ref bin_write_el buf ~pos r = bin_write_el buf ~pos !r
+diff --git a/test/bin_prot_test.ml b/test/bin_prot_test.ml
+index 32a2921..c2e79ba 100644
+--- a/test/bin_prot_test.ml
++++ b/test/bin_prot_test.ml
+@@ -1,9 +1,10 @@
+-open! Core
++open! Base
+ open Bigarray
+ open Bin_prot
+ open Common
+ open Utils
+ open Type_class
++module Blob_tests = Blob_tests
+ 
+ module Bigstring = struct
+   type t = buf
+@@ -23,11 +24,11 @@ end
+ let require_does_raise here expected_exn f =
+   try
+     ignore (f () : _);
+-    Expect_test_helpers_base.print_cr here [%message "did not raise"]
++    Expect_test_helpers_base.print_cr ~here [%message "did not raise"]
+   with
+   | exn ->
+     Expect_test_helpers_base.require
+-      here
++      ~here
+       (Poly.equal exn expected_exn)
+       ~if_false_then_print_s:
+         [%lazy_message
+@@ -52,7 +53,6 @@ let check_read_bounds_checks buf read =
+ let check_write_result name buf pos write arg exp_len =
+   let res_pos = write buf ~pos arg in
+   Expect_test_helpers_base.require_equal
+-    [%here]
+     (module Int)
+     ~message:(name ^ " returned wrong write position")
+     res_pos
+@@ -62,13 +62,11 @@ let check_write_result name buf pos write arg exp_len =
+ let check_read_result m name buf pos read exp_ret exp_len =
+   let pos_ref = ref pos in
+   Expect_test_helpers_base.require_equal
+-    [%here]
+     m
+     ~message:(name ^ " returned wrong result")
+     (read buf ~pos_ref)
+     exp_ret;
+   Expect_test_helpers_base.require_equal
+-    [%here]
+     (module Int)
+     ~message:(name ^ " returned wrong read position")
+     !pos_ref
+@@ -88,11 +86,10 @@ let check_all_args m tp_name read write buf args =
+       check_write_result write_name_arg buf pos write arg arg_len;
+       check_read_result m read_name_arg buf pos read arg arg_len
+     done;
+-    Expect_test_helpers_base.require_does_not_raise [%here] (fun () ->
++    Expect_test_helpers_base.require_does_not_raise (fun () ->
+       ignore (write buf ~pos:(buf_len - arg_len) arg : int));
+-    Expect_test_helpers_base.require_does_not_raise [%here] (fun () ->
++    Expect_test_helpers_base.require_does_not_raise (fun () ->
+       Expect_test_helpers_base.require_equal
+-        [%here]
+         m
+         ~message:(read_name_arg ^ ": read near bound returned wrong result")
+         (read buf ~pos_ref:(ref (buf_len - arg_len)))
+@@ -150,7 +147,7 @@ let mk_nativeint_test ~n ~len = n, Printf.sprintf "%nx" n, len
+ let mk_gen_float_vec tp n =
+   let vec = Array1.create tp fortran_layout n in
+   for i = 1 to n do
+-    vec.{i} <- float i
++    vec.{i} <- Float.of_int i
+   done;
+   vec
+ ;;
+@@ -160,11 +157,11 @@ let mk_float64_vec = mk_gen_float_vec float64
+ 
+ let mk_gen_float_mat tp m n =
+   let mat = Array2.create tp fortran_layout m n in
+-  let fn = float m in
++  let fn = Float.of_int m in
+   for c = 1 to n do
+-    let ofs = float (c - 1) *. fn in
++    let ofs = Float.of_int (c - 1) *. fn in
+     for r = 1 to m do
+-      mat.{r, c} <- ofs +. float r
++      mat.{r, c} <- ofs +. Float.of_int r
+     done
+   done;
+   mat
+@@ -212,7 +209,7 @@ let%expect_test ("string" [@tags "no-js"]) =
+     ; Random.string 65535, "long 65535", 65535 + 3
+     ; Random.string 65536, "long 65536", 65536 + 5
+     ];
+-  if Core.Sys.word_size_in_bits = 32
++  if Sys.word_size_in_bits = 32
+   then (
+     let bad_buf = Bigstring.of_string "\253\252\255\255\000" in
+     require_does_raise
+@@ -223,12 +220,12 @@ let%expect_test ("string" [@tags "no-js"]) =
+     require_does_raise [%here] Buffer_short (fun () ->
+       Read.bin_read_string bad_buf ~pos_ref:(ref 0)))
+   else (
+-    let bad_buf = Bigstring.of_string "\252\248\255\255\255\255\255\255\001" in
++    let bad_buf = Bigstring.of_string "\252\248\255\255\255\255\255\001\000" in
+     require_does_raise
+       [%here]
+       (Read_error (String_too_long, 0))
+       (fun () -> Read.bin_read_string bad_buf ~pos_ref:(ref 0));
+-    let bad_buf = Bigstring.of_string "\252\247\255\255\255\255\255\255\001" in
++    let bad_buf = Bigstring.of_string "\252\247\255\255\255\255\255\001\000" in
+     require_does_raise [%here] Buffer_short (fun () ->
+       Read.bin_read_string bad_buf ~pos_ref:(ref 0)))
+ ;;
+@@ -270,20 +267,20 @@ let%expect_test ("int" [@tags "no-js"]) =
+     ]
+   in
+   let all_int_tests =
+-    if Core.Sys.word_size_in_bits = 32
++    if Sys.word_size_in_bits = 32
+     then small_int_tests
+     else
+-      mk_int_test ~n:(int_of_string "-0x40000001") ~len:5
+-      :: mk_int_test ~n:(int_of_string "-0x40000000") ~len:5
+-      :: mk_int_test ~n:(int_of_string "0x7ffffffe") ~len:5
+-      :: mk_int_test ~n:(int_of_string "0x7fffffff") ~len:5
+-      :: mk_int_test ~n:(int_of_string "0x80000000") ~len:9
+-      :: mk_int_test ~n:(int_of_string "0x80000001") ~len:9
++      mk_int_test ~n:(Int.of_string "-0x40000001") ~len:5
++      :: mk_int_test ~n:(Int.of_string "-0x40000000") ~len:5
++      :: mk_int_test ~n:(Int.of_string "0x7ffffffe") ~len:5
++      :: mk_int_test ~n:(Int.of_string "0x7fffffff") ~len:5
++      :: mk_int_test ~n:(Int.of_string "0x80000000") ~len:9
++      :: mk_int_test ~n:(Int.of_string "0x80000001") ~len:9
+       :: mk_int_test ~n:Int.max_value ~len:9
+-      :: mk_int_test ~n:(int_of_string "-0x000000007fffffff") ~len:5
+-      :: mk_int_test ~n:(int_of_string "-0x0000000080000000") ~len:5
+-      :: mk_int_test ~n:(int_of_string "-0x0000000080000001") ~len:9
+-      :: mk_int_test ~n:(int_of_string "-0x0000000080000002") ~len:9
++      :: mk_int_test ~n:(Int.of_string "-0x000000007fffffff") ~len:5
++      :: mk_int_test ~n:(Int.of_string "-0x0000000080000000") ~len:5
++      :: mk_int_test ~n:(Int.of_string "-0x0000000080000001") ~len:9
++      :: mk_int_test ~n:(Int.of_string "-0x0000000080000002") ~len:9
+       :: mk_int_test ~n:Int.min_value ~len:9
+       :: small_int_tests
+   in
+@@ -300,7 +297,7 @@ let%expect_test ("int" [@tags "no-js"]) =
+     [%here]
+     (Read_error (Int_code, 0))
+     (fun () -> Read.bin_read_int bad_buf ~pos_ref:(ref 0));
+-  if Core.Sys.word_size_in_bits = 32
++  if Sys.word_size_in_bits = 32
+   then (
+     let bad_buf = Bigstring.of_string "\253\255\255\255\064" in
+     require_does_raise
+@@ -343,14 +340,14 @@ let%expect_test ("nat0" [@tags "no-js"]) =
+     ]
+   in
+   let all_int_tests =
+-    if Core.Sys.word_size_in_bits = 32
++    if Sys.word_size_in_bits = 32
+     then small_int_tests
+     else
+-      mk_nat0_test ~n:(int_of_string "0x7fffffff") ~len:5
+-      :: mk_nat0_test ~n:(int_of_string "0x80000000") ~len:5
+-      :: mk_nat0_test ~n:(int_of_string "0xffffffff") ~len:5
+-      :: mk_nat0_test ~n:(int_of_string "0x100000000") ~len:9
+-      :: mk_nat0_test ~n:(int_of_string "0x100000001") ~len:9
++      mk_nat0_test ~n:(Int.of_string "0x7fffffff") ~len:5
++      :: mk_nat0_test ~n:(Int.of_string "0x80000000") ~len:5
++      :: mk_nat0_test ~n:(Int.of_string "0xffffffff") ~len:5
++      :: mk_nat0_test ~n:(Int.of_string "0x100000000") ~len:9
++      :: mk_nat0_test ~n:(Int.of_string "0x100000001") ~len:9
+       :: mk_nat0_test ~n:Int.max_value ~len:9
+       :: small_int_tests
+   in
+@@ -374,7 +371,7 @@ let%expect_test ("nat0" [@tags "no-js"]) =
+     [%here]
+     (Read_error (Nat0_code, 0))
+     (fun () -> Read.bin_read_nat0 bad_buf ~pos_ref:(ref 0));
+-  if Core.Sys.word_size_in_bits = 32
++  if Sys.word_size_in_bits = 32
+   then (
+     let bad_buf = Bigstring.of_string "\253\255\255\255\064" in
+     require_does_raise
+@@ -534,7 +531,7 @@ let%expect_test "nativeint" =
+     ]
+   in
+   let nativeint_tests =
+-    if Core.Sys.word_size_in_bits = 32
++    if Sys.word_size_in_bits = 32
+     then small_nativeint_tests
+     else
+       mk_nativeint_test ~n:(Nativeint.of_string "0x80000000") ~len:9
+@@ -547,7 +544,7 @@ let%expect_test "nativeint" =
+       :: mk_nativeint_test ~n:(Nativeint.of_string "-0x8000000000000000") ~len:9
+       :: small_nativeint_tests
+   in
+-  let size = if Core.Sys.word_size_in_bits = 32 then 5 else 9 in
++  let size = if Sys.word_size_in_bits = 32 then 5 else 9 in
+   check_all_with_local
+     (module Nativeint)
+     size
+@@ -561,7 +558,7 @@ let%expect_test "nativeint" =
+     [%here]
+     (Read_error (Nativeint_code, 0))
+     (fun () -> Read.bin_read_nativeint bad_buf ~pos_ref:(ref 0));
+-  if Core.Sys.word_size_in_bits = 32
++  if Sys.word_size_in_bits = 32
+   then (
+     let bad_buf = Bigstring.of_string "\252\255\255\255\255\255\255\255\255" in
+     require_does_raise
+@@ -653,7 +650,7 @@ let%expect_test ("array" [@tags "no-js"]) =
+     (Write.bin_write_array Write.bin_write_int)
+     (Write.bin_write_array__local Write.bin_write_int__local)
+     [ [| 42; -1; 200; 33000 |], "[|42; -1; 200; 33000|]", 12; [||], "[||]", 1 ];
+-  if Core.Sys.word_size_in_bits = 32
++  if Sys.word_size_in_bits = 32
+   then (
+     let bad_buf = Bigstring.of_string "\253\000\000\064\000" in
+     require_does_raise
+@@ -664,12 +661,12 @@ let%expect_test ("array" [@tags "no-js"]) =
+     require_does_raise [%here] Buffer_short (fun () ->
+       bin_read_int_array bad_buf ~pos_ref:(ref 0)))
+   else (
+-    let bad_buf = Bigstring.of_string "\252\000\000\000\000\000\000\064\000" in
++    let bad_buf = Bigstring.of_string "\252\000\000\000\000\000\064\000\000" in
+     require_does_raise
+       [%here]
+       (Read_error (Array_too_long, 0))
+       (fun () -> bin_read_int_array bad_buf ~pos_ref:(ref 0));
+-    let bad_buf = Bigstring.of_string "\252\255\255\255\255\255\255\063\000" in
++    let bad_buf = Bigstring.of_string "\252\255\255\255\255\255\063\000\000" in
+     require_does_raise [%here] Buffer_short (fun () ->
+       bin_read_int_array bad_buf ~pos_ref:(ref 0)))
+ ;;
+@@ -686,11 +683,14 @@ let%expect_test "hashtbl" =
+         Stdlib.Hashtbl.fold
+           (fun key data acc -> Map.add_multi acc ~key ~data)
+           t
+-          Int.Map.empty
++          (Map.empty (module Int))
+       ;;
+ 
+-      let equal = Comparable.lift (Int.Map.equal (List.equal Float.equal)) ~f:to_map
+-      let sexp_of_t t = Int.Map.sexp_of_t (List.sexp_of_t Float.sexp_of_t) (to_map t)
++      let equal = Comparable.lift (Map.equal (List.equal Float.equal)) ~f:to_map
++
++      let sexp_of_t t =
++        Map.sexp_of_m__t (module Int) (List.sexp_of_t Float.sexp_of_t) (to_map t)
++      ;;
+     end)
+     28
+     "hashtbl"
+@@ -897,7 +897,7 @@ let%expect_test "variant_tag" =
+     Read.bin_read_variant_int
+     Write.bin_write_variant_int
+     Write.bin_write_variant_int__local
+-    [ (Obj.magic `Foo : int), "`Foo", 4; (Obj.magic `Bar : int), "`Bar", 4 ];
++    [ (Stdlib.Obj.magic `Foo : int), "`Foo", 4; (Stdlib.Obj.magic `Bar : int), "`Bar", 4 ];
+   let bad_buf = Bigstring.of_string "\000\000\000\000" in
+   require_does_raise
+     [%here]
+diff --git a/test/bin_prot_test.mli b/test/bin_prot_test.mli
+index 435c161..eda9a01 100644
+--- a/test/bin_prot_test.mli
++++ b/test/bin_prot_test.mli
+@@ -1 +1 @@
+-(*_ This file is intentionally left blank. *)
++module Blob_tests = Blob_tests
+diff --git a/test/blob_tests.ml b/test/blob_tests.ml
+index b46c8b8..37e762d 100644
+--- a/test/blob_tests.ml
++++ b/test/blob_tests.ml
+@@ -1,5 +1,6 @@
+-open! Core
++open! Base
+ open! Import
++open Stdio
+ module Blob = Bin_prot.Blob
+ module Opaque = Blob.Opaque
+ module Type_class = Bin_prot.Type_class
+diff --git a/test/blob_tests.mli b/test/blob_tests.mli
+index 602226d..b35a44e 100644
+--- a/test/blob_tests.mli
++++ b/test/blob_tests.mli
+@@ -1,4 +1,6 @@
+-open! Core
++open! Base
+ open! Import
+ 
++(* This is exposed for use in [bin_prot_test_core], in addition to the non-core-dependent
++   tests in this module. *)
+ val run_stability_test : 'a Bin_prot.Type_class.t -> ('a -> 'a -> bool) -> 'a -> unit
+diff --git a/test/blob_stability_tests.ml b/test/core/blob_stability_tests.ml
+similarity index 100%
+rename from test/blob_stability_tests.ml
+rename to test/core/blob_stability_tests.ml
+diff --git a/test/blob_stability_tests.mli b/test/core/blob_stability_tests.mli
+similarity index 100%
+rename from test/blob_stability_tests.mli
+rename to test/core/blob_stability_tests.mli
+diff --git a/test/core/dune b/test/core/dune
+new file mode 100644
+index 0000000..0218dac
+--- /dev/null
++++ b/test/core/dune
+@@ -0,0 +1,5 @@
++(library
++ (name bin_prot_test_core)
++ (libraries bin_prot bin_prot_test core)
++ (preprocess
++  (pps ppx_jane)))
+diff --git a/test/core/import.ml b/test/core/import.ml
+new file mode 100644
+index 0000000..dc01e0d
+--- /dev/null
++++ b/test/core/import.ml
+@@ -0,0 +1 @@
++include Bin_prot_test
+diff --git a/test/list_allocation.ml b/test/core/list_allocation.ml
+similarity index 97%
+rename from test/list_allocation.ml
+rename to test/core/list_allocation.ml
+index 29cef92..e6419e7 100644
+--- a/test/list_allocation.ml
++++ b/test/core/list_allocation.ml
+@@ -34,12 +34,14 @@ let%expect_test "" =
+     ()
+   in
+   run_test [%here] Int.Stable.V1.bin_t [ 1; 2; 3; 4; 5 ];
+-  [%expect {|
++  [%expect
++    {|
+     size: 6
+     pos after writing: 6
+     |}];
+   run_test [%here] String.Stable.V1.bin_t [ "one"; "two"; "three"; "four" ];
+-  [%expect {|
++  [%expect
++    {|
+     size: 20
+     pos after writing: 20
+     |}]
+diff --git a/test/list_allocation.mli b/test/core/list_allocation.mli
+similarity index 100%
+rename from test/list_allocation.mli
+rename to test/core/list_allocation.mli
+diff --git a/test/dune b/test/dune
+index 05859d2..6c0ef2f 100644
+--- a/test/dune
++++ b/test/dune
+@@ -1,13 +1,15 @@
+ (library
+  (name bin_prot_test)
+- (libraries core bin_prot expect_test_patterns float_array base.md5)
++ (libraries base base_bigstring bin_prot
++   expect_test_helpers_core.expect_test_helpers_base expect_test_patterns
++   float_array base.md5 sexplib splittable_random stdio)
+  (preprocess
+   (pps ppx_jane)))
+ 
+ (rule
+  (alias runtest)
+- (deps blob_stability_tests.ml integers_repr_tests_32bit.ml
+-   integers_repr_tests_64bit.ml integers_repr_tests_js.ml)
++ (deps core/blob_stability_tests.ml integers_repr_tests_64bit.ml
++   integers_repr_tests_js.ml integers_repr_tests_wasm.ml)
+  (action
+   (bash
+-    "diff <(echo '869e6b3143f14201f406eac9c05c4cdb  blob_stability_tests.ml'\necho '714ea0b2dcb175b3f87a9aff0890c091  integers_repr_tests_32bit.ml'\necho '2db396dfced6ae8d095f308acb4c80eb  integers_repr_tests_64bit.ml'\necho 'f54ad24b4e4e601d16bef7d8c79358d8  integers_repr_tests_js.ml'\n  ) <(md5sum %{deps})")))
++    "diff <(\necho '869e6b3143f14201f406eac9c05c4cdb  core/blob_stability_tests.ml'\necho '2db396dfced6ae8d095f308acb4c80eb  integers_repr_tests_64bit.ml'\necho '9f7b6332177a4ae9547d37d17008d7ef  integers_repr_tests_js.ml'\necho '22f653bfba79ce30c22fe378c596df54  integers_repr_tests_wasm.ml'\n  ) <(md5sum %{deps})")))
+diff --git a/test/import.ml b/test/import.ml
+index f887304..6ab2d9c 100644
+--- a/test/import.ml
++++ b/test/import.ml
+@@ -1,4 +1,4 @@
+-open Core
++open Base
+ include Bin_prot.Std
+ 
+ let hex_char n =
+diff --git a/test/integers_repr.ml b/test/integers_repr.ml
+index d5a1377..d4f7bf9 100644
+--- a/test/integers_repr.ml
++++ b/test/integers_repr.ml
+@@ -1,5 +1,6 @@
+-open Core
++open Base
+ open Poly
++open Stdio
+ open Import
+ 
+ (* This module generates reference serialized output for various functions of
+@@ -230,7 +231,7 @@ let tests =
+   ]
+ ;;
+ 
+-let buf = Bigstring.create 32
++let buf = Base_bigstring.create 32
+ let bin_protted_size_of t n = t.writer buf ~pos:0 (t.of_int64 n)
+ 
+ let mean a b =
+@@ -294,7 +295,7 @@ let find_interesting_points t =
+   let b = t.to_int64 t.max in
+   assert (a <= 0L && b >= 0L);
+   let size0 = bin_protted_size_of t 0L in
+-  let acc = Int64.Set.of_list [ 0L; a; b ] in
++  let acc = Set.of_list (module Int64) [ 0L; a; b ] in
+   let acc =
+     if a < 0L
+     then
+@@ -319,7 +320,7 @@ let power_of_twos =
+       let x = Int64.shift_left 1L n in
+       loop (n + 1) (Set.add (Set.add acc x) (Int64.neg x)))
+   in
+-  loop 0 Int64.Set.empty
++  loop 0 (Set.empty (module Int64))
+ ;;
+ 
+ let valid_power_of_twos t =
+@@ -344,7 +345,7 @@ let add_windows_around_points t points =
+       let b = if i >= Int64.( - ) max d then max else Int64.( + ) i d in
+       loop rest (add_between a b acc)
+   in
+-  loop (Set.elements points) Int64.Set.empty
++  loop (Set.elements points) (Set.empty (module Int64))
+ ;;
+ 
+ let gen_tests (T t) =
+@@ -355,10 +356,10 @@ let gen_tests (T t) =
+   let min, max =
+     Set.fold points ~init:(Int.max_value, 0) ~f:(fun (min, max) n ->
+       let len = t.writer buf ~pos:0 (t.of_int64 n) in
+-      let s = Bigstring.To_string.sub buf ~pos:0 ~len in
++      let s = Base_bigstring.To_string.sub buf ~pos:0 ~len in
+       printf "%s| %s -> %Ld" t.name (to_hex s 9) n;
+       let len_local = t.writer_local buf ~pos:0 (t.of_int64 n) in
+-      let s_local = Bigstring.To_string.sub buf ~pos:0 ~len:len_local in
++      let s_local = Base_bigstring.To_string.sub buf ~pos:0 ~len:len_local in
+       if String.( <> ) s s_local
+       then printf ", write_local output (%s) differs from write output (%s)" s_local s;
+       let pos_ref = ref 0 in
+diff --git a/test/integers_repr_tests_js.ml b/test/integers_repr_tests_js.ml
+index 835f7ad..afff8bd 100644
+--- a/test/integers_repr_tests_js.ml
++++ b/test/integers_repr_tests_js.ml
+@@ -1,6 +1,6 @@
+ (* WARNING: never accept the corrected output for this file, it must never change! *)
+ 
+-let%expect_test ("javascript integer tests" [@tags "js-only"]) =
++let%expect_test ("javascript integer tests" [@tags "js-only", "no-wasm"]) =
+   print_newline ();
+   Integers_repr.run_tests ();
+   [%expect_exact
+diff --git a/test/integers_repr_tests_32bit.ml b/test/integers_repr_tests_wasm.ml
+similarity index 99%
+rename from test/integers_repr_tests_32bit.ml
+rename to test/integers_repr_tests_wasm.ml
+index 67f6996..0f2451e 100644
+--- a/test/integers_repr_tests_32bit.ml
++++ b/test/integers_repr_tests_wasm.ml
+@@ -1,6 +1,6 @@
+ (* WARNING: never accept the corrected output for this file, it must never change! *)
+ 
+-let%expect_test ("32 bit integer tests" [@tags "32-bits-only", "no-js"]) =
++let%expect_test ("32 bit integer (wasm) tests" [@tags "wasm-only"]) =
+   print_newline ();
+   Integers_repr.run_tests ();
+   [%expect_exact
+diff --git a/test/integers_repr_tests_32bit.mli b/test/integers_repr_tests_wasm.mli
+similarity index 100%
+rename from test/integers_repr_tests_32bit.mli
+rename to test/integers_repr_tests_wasm.mli
+diff --git a/test/non_integers_repr.ml b/test/non_integers_repr.ml
+index dda5ae0..e41ad27 100644
+--- a/test/non_integers_repr.ml
++++ b/test/non_integers_repr.ml
+@@ -1,7 +1,8 @@
+ (* WARNING: never accept the corrected output for this file, it must never change! *)
+ 
+-open Core
++open Base
+ open Poly
++open Stdio
+ open Bigarray
+ open Import
+ 
+@@ -32,7 +33,7 @@ module Vec = struct
+   let mk_gen_float tp n =
+     let vec = Array1.create tp fortran_layout n in
+     for i = 1 to n do
+-      vec.{i} <- float i
++      vec.{i} <- Float.of_int i
+     done;
+     vec
+   ;;
+@@ -47,11 +48,11 @@ end
+ module Mat = struct
+   let mk_gen_float tp m n =
+     let mat = Array2.create tp fortran_layout m n in
+-    let fn = float m in
++    let fn = Float.of_int m in
+     for c = 1 to n do
+-      let ofs = float (c - 1) *. fn in
++      let ofs = Float.of_int (c - 1) *. fn in
+       for r = 1 to m do
+-        mat.{r, c} <- ofs +. float r
++        mat.{r, c} <- ofs +. Float.of_int r
+       done
+     done;
+     mat
+@@ -134,7 +135,7 @@ module Tests = struct
+         ; Float.minus_one
+         ; Float.neg_infinity
+         ; Float.one
+-        ; Float.robust_comparison_tolerance
++        ; 1E-7
+         ; Float.zero
+         ]
+     ; equal = (fun a b -> (Float.is_nan a && Float.is_nan b) || Float.equal a b)
+@@ -223,10 +224,11 @@ module Tests = struct
+     { writer = Write.bin_write_bigstring
+     ; writer_local = Some Write.bin_write_bigstring__local
+     ; reader = Read.bin_read_bigstring
+-    ; values = [ Bigstring.of_string ""; Bigstring.of_string "hello" ]
++    ; values = [ Base_bigstring.of_string ""; Base_bigstring.of_string "hello" ]
+     ; equal =
+-        (fun s1 s2 -> String.equal (Bigstring.to_string s1) (Bigstring.to_string s2))
+-    ; sexp_of = [%sexp_of: Bigstring.t]
++        (fun s1 s2 ->
++          String.equal (Base_bigstring.to_string s1) (Base_bigstring.to_string s2))
++    ; sexp_of = [%sexp_of: Base_bigstring.t]
+     ; hi_bound = None
+     ; lo_bound = Minimum.bin_size_bigstring
+     }
+@@ -297,7 +299,7 @@ module Tests = struct
+         ; Int32.max_value, Int32.max_value
+         ; Int32.min_value, Int32.min_value
+         ]
+-    ; equal = Tuple2.equal ~eq1:Int32.equal ~eq2:Int32.equal
++    ; equal = [%equal: Int32.t * Int32.t]
+     ; sexp_of = [%sexp_of: int32 * int32]
+     ; hi_bound = None
+     ; lo_bound = Minimum.bin_size_pair
+@@ -325,7 +327,7 @@ module Tests = struct
+         ; Int32.max_value, Int32.max_value, Int32.max_value
+         ; Int32.min_value, Int32.min_value, Int32.min_value
+         ]
+-    ; equal = Tuple3.equal ~eq1:Int32.equal ~eq2:Int32.equal ~eq3:Int32.equal
++    ; equal = [%equal: Int32.t * Int32.t * Int32.t]
+     ; sexp_of = [%sexp_of: int32 * int32 * int32]
+     ; hi_bound = None
+     ; lo_bound = Minimum.bin_size_triple
+@@ -401,7 +403,7 @@ module Tests = struct
+ 
+   module R1 = struct
+     type t =
+-      { x : Int32.t
++      { x : int32
+       ; y : float
+       }
+     [@@deriving bin_io ~localize, fields ~iterators:fold, sexp_of]
+@@ -436,8 +438,8 @@ module Tests = struct
+ 
+   module R2 = struct
+     type inner =
+-      { w : Int64.t
+-      ; x : Int32.t
++      { w : int64
++      ; x : int32
+       }
+     [@@deriving bin_io ~localize, fields ~iterators:fold, sexp_of]
+ 
+@@ -495,8 +497,8 @@ module Tests = struct
+   module Inline_record = struct
+     type inner =
+       | Inner of
+-          { w : Int64.t
+-          ; x : Int32.t
++          { w : int64
++          ; x : int32
+           }
+       | Inner_other of unit
+     [@@deriving bin_io ~localize, sexp_of, variants]
+@@ -563,18 +565,18 @@ module Tests = struct
+   ;;
+ end
+ 
+-let buf = Bigstring.create 1024
++let buf = Base_bigstring.create 1024
+ 
+ let gen_tests t =
+   let bin_protted_values =
+     List.map t.values ~f:(fun v ->
+       let len = t.writer buf ~pos:0 v in
+-      let str = Bigstring.To_string.sub buf ~pos:0 ~len in
++      let str = Base_bigstring.To_string.sub buf ~pos:0 ~len in
+       (match t.writer_local with
+        | None -> ()
+        | Some writer_local ->
+          let len = writer_local buf ~pos:0 v in
+-         let str_local = Bigstring.To_string.sub buf ~pos:0 ~len in
++         let str_local = Base_bigstring.To_string.sub buf ~pos:0 ~len in
+          if String.( <> ) str str_local
+          then
+            printf ", write_local output (%s) differs from write output (%s)" str_local str);
+@@ -589,24 +591,24 @@ let gen_tests t =
+       bin_protted_values
+       ~init:(Int.max_value, 0)
+       ~f:(fun (min, max) v s ->
+-      let len = String.length s in
+-      printf !"%s -> %{Sexp}" (to_hex s hex_size) (t.sexp_of v);
+-      Bigstring.From_string.blito ~src:s ~dst:buf ();
+-      let pos_ref = ref 0 in
+-      let v' = t.reader buf ~pos_ref in
+-      let len' = !pos_ref in
+-      let hi_bound = Option.value t.hi_bound ~default:Int.max_value in
+-      if len < t.lo_bound || len > hi_bound
+-      then printf ", bin_size outside of range %d..%d: %d" t.lo_bound hi_bound len;
+-      if (not (t.equal v v')) || len <> len'
+-      then
+-        printf
+-          !", read test failed: read %d byte%s as %{Sexp}"
+-          len'
+-          (if len' = 1 then "" else "s")
+-          (t.sexp_of v');
+-      Out_channel.output_char stdout '\n';
+-      Int.min min len, Int.max max len)
++        let len = String.length s in
++        printf !"%s -> %{Sexp}" (to_hex s hex_size) (t.sexp_of v);
++        Base_bigstring.From_string.blito ~src:s ~dst:buf ();
++        let pos_ref = ref 0 in
++        let v' = t.reader buf ~pos_ref in
++        let len' = !pos_ref in
++        let hi_bound = Option.value t.hi_bound ~default:Int.max_value in
++        if len < t.lo_bound || len > hi_bound
++        then printf ", bin_size outside of range %d..%d: %d" t.lo_bound hi_bound len;
++        if (not (t.equal v v')) || len <> len'
++        then
++          printf
++            !", read test failed: read %d byte%s as %{Sexp}"
++            len'
++            (if len' = 1 then "" else "s")
++            (t.sexp_of v');
++        Out_channel.output_char stdout '\n';
++        Int.min min len, Int.max max len)
+   in
+   match t.hi_bound with
+   | None ->
+@@ -621,7 +623,8 @@ let%expect_test "Non-integer bin_prot size tests" =
+   gen_tests Tests.unit;
+   [%expect {| 00 -> () |}];
+   gen_tests Tests.bool;
+-  [%expect {|
++  [%expect
++    {|
+     01 -> true
+     00 -> false
+     |}];
+@@ -666,7 +669,8 @@ let%expect_test "Non-integer bin_prot size tests" =
+     3f f0 00 00 00 00 00 00 01 -> (1)
+     |}];
+   gen_tests Tests.float32_vec;
+-  [%expect {|
++  [%expect
++    {|
+     .. .. .. .. 00 -> ()
+     3f 80 00 00 01 -> (1)
+     |}];
+@@ -683,7 +687,8 @@ let%expect_test "Non-integer bin_prot size tests" =
+     3f f0 00 00 00 00 00 00 01 01 -> ((1))
+     |}];
+   gen_tests Tests.float32_mat;
+-  [%expect {|
++  [%expect
++    {|
+     .. .. .. .. 00 00 -> ()
+     3f 80 00 00 01 01 -> ((1))
+     |}];
+@@ -694,7 +699,8 @@ let%expect_test "Non-integer bin_prot size tests" =
+     3f f0 00 00 00 00 00 00 01 01 -> ((1))
+     |}];
+   gen_tests Tests.bigstring;
+-  [%expect {|
++  [%expect
++    {|
+     .. .. .. .. .. 00 -> ""
+     6f 6c 6c 65 68 05 -> hello
+     |}];
