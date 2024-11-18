@@ -1,0 +1,1342 @@
+From eeac226ae7822bbf52aa33ad5823fb96e6564874 Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Tue, 13 Aug 2024 20:53:44 +0100
+Subject: [PATCH] v0.17~preview.129.36+325
+
+---
+ bench/bench_record.ml    |   8 +
+ src/sexp.ml              |  12 +-
+ src/sexp_conv.ml         |  15 +-
+ src/sexp_conv.mli        |   2 +-
+ src/sexp_conv_error.ml   |  49 ++-
+ src/sexp_conv_record.ml  |  61 ++-
+ src/sexp_conv_record.mli |  16 +
+ src/sexp_grammar.ml      |  14 +-
+ src/sexpable.ml          |  28 ++
+ test/dune                |   3 +-
+ test/sexplib0_test.ml    | 794 ++++++++++++++++++++++-----------------
+ 11 files changed, 601 insertions(+), 401 deletions(-)
+
+diff --git a/bench/bench_record.ml b/bench/bench_record.ml
+index 3690eb8..9f48b32 100644
+--- a/bench/bench_record.ml
++++ b/bench/bench_record.ml
+@@ -27,40 +27,48 @@ let t_of_sexp =
+          { name = "a"
+          ; kind = Required
+          ; conv = int_of_sexp
++         ; layout = Value
+          ; rest =
+              Field
+                { name = "b"
+                ; kind = Omit_nil
+                ; conv = option_of_sexp int_of_sexp
++               ; layout = Value
+                ; rest =
+                    Field
+                      { name = "c"
+                      ; kind = Sexp_bool
+                      ; conv = ()
++                     ; layout = Value
+                      ; rest =
+                          Field
+                            { name = "d"
+                            ; kind = Sexp_array
+                            ; conv = int_of_sexp
++                           ; layout = Value
+                            ; rest =
+                                Field
+                                  { name = "e"
+                                  ; kind = Sexp_list
+                                  ; conv = int_of_sexp
++                                 ; layout = Value
+                                  ; rest =
+                                      Field
+                                        { name = "f"
+                                        ; kind = Sexp_option
+                                        ; conv = int_of_sexp
++                                       ; layout = Value
+                                        ; rest =
+                                            Field
+                                              { name = "g"
+                                              ; kind = Default (fun () -> 0)
+                                              ; conv = int_of_sexp
++                                             ; layout = Value
+                                              ; rest =
+                                                  Field
+                                                    { name = "h"
+                                                    ; kind = Required
++                                                   ; layout = Value
+                                                    ; conv =
+                                                        (fun sexp ->
+                                                          { h =
+diff --git a/src/sexp.ml b/src/sexp.ml
+index f67a835..9f1afcf 100644
+--- a/src/sexp.ml
++++ b/src/sexp.ml
+@@ -82,12 +82,12 @@ module Printing = struct
+     let n = ref 0 in
+     for i = 0 to String.length s - 1 do
+       n
+-        := !n
+-           +
+-           match String.unsafe_get s i with
+-           | '\"' | '\\' | '\n' | '\t' | '\r' | '\b' -> 2
+-           | ' ' .. '~' -> 1
+-           | _ -> 4
++      := !n
++         +
++         match String.unsafe_get s i with
++         | '\"' | '\\' | '\n' | '\t' | '\r' | '\b' -> 2
++         | ' ' .. '~' -> 1
++         | _ -> 4
+     done;
+     if !n = String.length s
+     then s
+diff --git a/src/sexp_conv.ml b/src/sexp_conv.ml
+index e13dfba..a80ff90 100644
+--- a/src/sexp_conv.ml
++++ b/src/sexp_conv.ml
+@@ -72,11 +72,6 @@ let sexp_of_fun _ = Atom "<fun>"
+ (* Exception converter registration and lookup *)
+ 
+ module Exn_converter = struct
+-  (* These exception registration functions assume that context-switches
+-     cannot happen unless there is an allocation.  It is reasonable to expect
+-     that this will remain true for the foreseeable future.  That way we
+-     avoid using mutexes and thus a dependency on the threads library. *)
+-
+   (* Fast and automatic exception registration *)
+ 
+   module Registration = struct
+@@ -88,11 +83,11 @@ module Exn_converter = struct
+   end
+ 
+   module Exn_table = Ephemeron.K1.Make (struct
+-    type t = extension_constructor
++      type t = extension_constructor
+ 
+-    let equal = ( == )
+-    let hash = Obj.Extension_constructor.id
+-  end)
++      let equal = ( == )
++      let hash = Obj.Extension_constructor.id
++    end)
+ 
+   let the_exn_table : Registration.t Exn_table.t = Exn_table.create 17
+ 
+@@ -407,5 +402,5 @@ let () =
+     ]
+ ;;
+ 
+-external ignore : _ -> unit = "%ignore"
++external ignore : (_[@local_opt]) -> unit = "%ignore"
+ external ( = ) : 'a -> 'a -> bool = "%equal"
+diff --git a/src/sexp_conv.mli b/src/sexp_conv.mli
+index 87ae85d..db00a96 100644
+--- a/src/sexp_conv.mli
++++ b/src/sexp_conv.mli
+@@ -285,5 +285,5 @@ end
+ (**/**)
+ 
+ (*_ For the syntax extension *)
+-external ignore : _ -> unit = "%ignore"
++external ignore : (_[@local_opt]) -> unit = "%ignore"
+ external ( = ) : 'a -> 'a -> bool = "%equal"
+diff --git a/src/sexp_conv_error.ml b/src/sexp_conv_error.ml
+index cc6fda5..fd1c8f6 100644
+--- a/src/sexp_conv_error.ml
++++ b/src/sexp_conv_error.ml
+@@ -39,12 +39,25 @@ let stag_incorrect_n_args loc tag sexp =
+ let stag_takes_args = simple_error "this constructor requires arguments"
+ let nested_list_invalid_sum = simple_error "expected a variant type, saw a nested list"
+ let empty_list_invalid_sum = simple_error "expected a variant type, saw an empty list"
+-let unexpected_stag = simple_error "unexpected variant constructor"
++
++let unexpected_stag loc expected_cnstrs sexp =
++  let max_cnstrs = 10 in
++  let expected_cnstrs =
++    if List.length expected_cnstrs <= max_cnstrs
++    then expected_cnstrs
++    else List.filteri expected_cnstrs ~f:(fun i _ -> i < max_cnstrs) @ [ "..." ]
++  in
++  let expected_cnstrs_string = String.concat expected_cnstrs ~sep:" " in
++  error
++    ~loc
++    ~sexp
++    (sprintf "unexpected variant constructor; expected one of %s" expected_cnstrs_string)
++;;
+ 
+ (* Errors concerning records *)
+ 
+ let record_sexp_bool_with_payload =
+-  simple_error "record conversion: a [sexp.bool] field was given a payload."
++  simple_error "record conversion: a [sexp.bool] field was given a payload"
+ ;;
+ 
+ let record_only_pairs_expected =
+@@ -61,23 +74,25 @@ let record_duplicate_fields loc fld_names sexp =
+   record_invalid_fields ~what:"duplicate fields" ~loc fld_names sexp
+ ;;
+ 
+-let record_extra_fields loc fld_names sexp =
+-  record_invalid_fields ~what:"extra fields" ~loc fld_names sexp
+-;;
+-
+-let rec record_get_undefined_loop fields = function
+-  | [] -> String.concat (List.rev fields) ~sep:" "
+-  | (true, field) :: rest -> record_get_undefined_loop (field :: fields) rest
+-  | _ :: rest -> record_get_undefined_loop fields rest
+-;;
+-
+-let record_undefined_elements loc sexp lst =
+-  let undefined = record_get_undefined_loop [] lst in
+-  let msg = sprintf "the following record elements were undefined: %s" undefined in
+-  error ~loc ~sexp msg
++let record_missing_and_extra_fields loc sexp ~missing ~extras =
++  match missing, extras with
++  | [], [] -> assert false
++  | _ :: _, [] -> record_invalid_fields ~what:"missing fields" ~loc missing sexp
++  | [], _ :: _ -> record_invalid_fields ~what:"extra fields" ~loc extras sexp
++  | _ :: _, _ :: _ ->
++    let missing_fields = String.concat ~sep:" " missing in
++    let extra_fields = String.concat ~sep:" " extras in
++    error
++      ~loc
++      ~sexp
++      (sprintf
++         "extra fields found while some fields missing; extra fields: %s; missing \
++          fields: %s"
++         extra_fields
++         missing_fields)
+ ;;
+ 
+-let record_list_instead_atom = simple_error "list instead of atom for record expected"
++let record_list_instead_atom = simple_error "list expected for record, found atom instead"
+ 
+ let record_poly_field_value =
+   simple_error "cannot convert values of types resulting from polymorphic record fields"
+diff --git a/src/sexp_conv_record.ml b/src/sexp_conv_record.ml
+index af5e50e..039f11d 100644
+--- a/src/sexp_conv_record.ml
++++ b/src/sexp_conv_record.ml
+@@ -13,12 +13,19 @@ module Kind = struct
+     | Sexp_option : ('a option, Sexp.t -> 'a) t
+ end
+ 
++module Layout_witness = struct
++  type _ t =
++    | Value : _ t
++    | Any : 'a. (unit -> 'a) t
++end
++
+ module Fields = struct
+   type _ t =
+     | Empty : unit t
+     | Field :
+         { name : string
+         ; kind : ('a, 'conv) Kind.t
++        ; layout : 'a Layout_witness.t
+         ; conv : 'conv
+         ; rest : 'b t
+         }
+@@ -41,33 +48,36 @@ module Malformed = struct
+      missing fields. *)
+   type t =
+     | Bool_payload
+-    | Extras of string list
++    | Missing_and_extras of
++        { missing : string list
++        ; extras : string list
++        }
+     | Dups of string list
+-    | Missing of string list
+     | Non_pair of Sexp.t option
+ 
++  let missing missing = Missing_and_extras { missing; extras = [] }
++  let extras extras = Missing_and_extras { missing = []; extras }
++
+   let combine a b =
+     match a, b with
+     (* choose the first bool-payload or non-pair error that occurs *)
+     | ((Bool_payload | Non_pair _) as t), _ -> t
+     | _, ((Bool_payload | Non_pair _) as t) -> t
+     (* combine lists of similar errors *)
+-    | Extras a, Extras b -> Extras (a @ b)
++    | ( Missing_and_extras { missing = missing_a; extras = extras_a }
++      , Missing_and_extras { missing = missing_b; extras = extras_b } ) ->
++      Missing_and_extras { missing = missing_a @ missing_b; extras = extras_a @ extras_b }
+     | Dups a, Dups b -> Dups (a @ b)
+-    | Missing a, Missing b -> Missing (a @ b)
+     (* otherwise, dups > extras > missing *)
+     | (Dups _ as t), _ | _, (Dups _ as t) -> t
+-    | (Extras _ as t), _ | _, (Extras _ as t) -> t
+   ;;
+ 
+   let raise t ~caller ~context =
+     match t with
+     | Bool_payload -> record_sexp_bool_with_payload caller context
+-    | Extras names -> record_extra_fields caller names context
++    | Missing_and_extras { missing; extras } ->
++      record_missing_and_extra_fields caller ~missing ~extras context
+     | Dups names -> record_duplicate_fields caller names context
+-    | Missing names ->
+-      List.map names ~f:(fun name -> true, name)
+-      |> record_undefined_elements caller context
+     | Non_pair maybe_context ->
+       let context = Option.value maybe_context ~default:context in
+       record_only_pairs_expected caller context
+@@ -106,7 +116,7 @@ let rec parse_value_malformed
+ 
+ and parse_value : type a b. fields:(a * b) Fields.t -> state:State.t -> pos:int -> a * b =
+   fun ~fields ~state ~pos ->
+-  let (Field { name; kind; conv; rest }) = fields in
++  let (Field { name; kind; conv; rest; layout = _ }) = fields in
+   let value : a =
+     match kind, State.unsafe_get state pos with
+     (* well-formed *)
+@@ -126,7 +136,8 @@ and parse_value : type a b. fields:(a * b) Fields.t -> state:State.t -> pos:int
+     | Sexp_bool, List ([] | _ :: _ :: _) ->
+       parse_value_malformed Bool_payload ~fields ~state ~pos
+     (* absent *)
+-    | Required, Atom _ -> parse_value_malformed (Missing [ name ]) ~fields ~state ~pos
++    | Required, Atom _ ->
++      parse_value_malformed (Malformed.missing [ name ]) ~fields ~state ~pos
+     | Default default, Atom _ -> default ()
+     | Omit_nil, Atom _ -> conv (List [])
+     | Sexp_option, Atom _ -> None
+@@ -181,7 +192,14 @@ and parse_spine_slow ~index ~extra ~seen ~state ~len sexps =
+           (match extra with
+            | true -> parse_spine_slow ~index ~extra ~seen ~state ~len sexps
+            | false ->
+-             parse_spine_malformed (Extras [ name ]) ~index ~extra ~seen ~state ~len sexps)))
++             parse_spine_malformed
++               (Malformed.extras [ name ])
++               ~index
++               ~extra
++               ~seen
++               ~state
++               ~len
++               sexps)))
+   | sexp :: sexps ->
+     parse_spine_malformed (Non_pair (Some sexp)) ~index ~extra ~seen ~state ~len sexps
+ ;;
+@@ -193,9 +211,22 @@ let parse_record_slow ~fields ~index ~extra ~seen sexps =
+   let state = State.create unseen in
+   let len = seen + unseen in
+   (* populate state *)
+-  parse_spine_slow ~index ~extra ~seen ~state ~len sexps;
++  let maybe_malformed =
++    match parse_spine_slow ~index ~extra ~seen ~state ~len sexps with
++    | exception Malformed malformed -> Some malformed
++    | () -> None
++  in
+   (* parse values from state *)
+-  parse_values ~fields ~state ~pos:0
++  let parsed_or_malformed =
++    match parse_values ~fields ~state ~pos:0 with
++    | values -> Ok values
++    | exception Malformed malformed -> Error malformed
++  in
++  match maybe_malformed, parsed_or_malformed with
++  | None, Ok values -> values
++  | Some malformed, Ok _ | None, Error malformed -> raise (Malformed malformed)
++  | Some malformed1, Error malformed2 ->
++    raise (Malformed (Malformed.combine malformed1 malformed2))
+ ;;
+ 
+ (* Fast path for record parsing. Directly parses and returns fields in the order they are
+@@ -211,7 +242,7 @@ let rec parse_field_fast
+     -> a * b
+   =
+   fun ~fields ~index ~extra ~seen sexps ->
+-  let (Field { name; kind; conv; rest }) = fields in
++  let (Field { name; kind; conv; rest; layout = _ }) = fields in
+   match sexps with
+   | List (Atom atom :: args) :: others when String.equal atom name ->
+     (match kind, args with
+diff --git a/src/sexp_conv_record.mli b/src/sexp_conv_record.mli
+index 82a4f69..af23e25 100644
+--- a/src/sexp_conv_record.mli
++++ b/src/sexp_conv_record.mli
+@@ -11,13 +11,29 @@ module Kind : sig
+     | Sexp_option : ('a option, Sexp.t -> 'a) t
+ end
+ 
++(** Non-value fields must be stored as a closure [unit -> 'a] instead of as
++    ['a] directly. This is because we can't store non-value things in arbitrary
++    records. This closure involves some additional overhead not present
++    in value fields.
++
++   Users use [@sexp.non_value] to mark a field as a non-value. This carries
++   the extra overhead explained above.
++*)
++module Layout_witness : sig
++  type _ t =
++    | Value : _ t
++    | Any : 'a. (unit -> 'a) t
++end
++
+ module Fields : sig
+   (** A GADT specifying record fields. *)
++
+   type _ t =
+     | Empty : unit t
+     | Field :
+         { name : string
+         ; kind : ('a, 'conv) Kind.t
++        ; layout : 'a Layout_witness.t
+         ; conv : 'conv
+         ; rest : 'b t
+         }
+diff --git a/src/sexp_grammar.ml b/src/sexp_grammar.ml
+index 93b2dc3..5ee724f 100644
+--- a/src/sexp_grammar.ml
++++ b/src/sexp_grammar.ml
+@@ -29,12 +29,12 @@ type grammar =
+   | Variant of variant (** accepts clauses keyed by a leading or sole atom *)
+   | Union of grammar list (** accepts a sexp if any of the listed grammars accepts it *)
+   | Tagged of grammar with_tag
+-      (** annotates a grammar with a client-specific key/value pair *)
++  (** annotates a grammar with a client-specific key/value pair *)
+   | Tyvar of string
+-      (** Name of a type variable, e.g. [Tyvar "a"] for ['a]. Only meaningful when the body of
++  (** Name of a type variable, e.g. [Tyvar "a"] for ['a]. Only meaningful when the body of
+       the innermost enclosing [defn] defines a corresponding type variable. *)
+   | Tycon of string * grammar list * defn list
+-      (** Type constructor applied to arguments, and its definition.
++  (** Type constructor applied to arguments, and its definition.
+ 
+       For example, writing [Tycon ("tree", [ Integer ], defns)] represents [int tree], for
+       whatever [tree] is defined as in [defns]. The following defines [tree] as a binary
+@@ -92,18 +92,18 @@ type grammar =
+       This transformation exposes the structure of a grammar with recursive references,
+       while preserving the meaning of recursively-defined elements. *)
+   | Recursive of string * grammar list
+-      (** Type constructor applied to arguments. Used to denote recursive type references.
++  (** Type constructor applied to arguments. Used to denote recursive type references.
+       Only meaningful when used inside the [defn]s of a [Tycon] grammar, to refer to a
+       type constructor in the nearest enclosing [defn] list. *)
+   | Lazy of grammar lazy_t
+-      (** Lazily computed grammar. Use [Lazy] to avoid top-level side effects. To define
++  (** Lazily computed grammar. Use [Lazy] to avoid top-level side effects. To define
+       recursive grammars, use [Recursive] instead. *)
+ 
+ (** Grammar of a list of sexps. *)
+ and list_grammar =
+   | Empty (** accepts an empty list of sexps *)
+   | Cons of grammar * list_grammar
+-      (** accepts a non-empty list with head and tail matching the given grammars *)
++  (** accepts a non-empty list with head and tail matching the given grammars *)
+   | Many of grammar (** accepts zero or more sexps, each matching the given grammar *)
+   | Fields of record (** accepts sexps representing fields of a record *)
+ 
+@@ -112,7 +112,7 @@ and case_sensitivity =
+   | Case_insensitive (** Comparison is case insensitive. Used for custom parsers. *)
+   | Case_sensitive (** Comparison is case sensitive. Used for polymorphic variants. *)
+   | Case_sensitive_except_first_character
+-      (** Comparison is case insensitive for the first character and case sensitive afterward.
++  (** Comparison is case insensitive for the first character and case sensitive afterward.
+       Used for regular variants. *)
+ 
+ (** Grammar of variants. Accepts any sexp matching one of the clauses. *)
+diff --git a/src/sexpable.ml b/src/sexpable.ml
+index 4d62f4f..9467a4d 100644
+--- a/src/sexpable.ml
++++ b/src/sexpable.ml
+@@ -36,3 +36,31 @@ module type S3 = sig
+     -> ('a, 'b, 'c) t
+     -> Sexp.t
+ end
++
++module type S_with_grammar = sig
++  include S
++
++  val t_sexp_grammar : t Sexp_grammar.t
++end
++
++module type S1_with_grammar = sig
++  include S1
++
++  val t_sexp_grammar : 'a Sexp_grammar.t -> 'a t Sexp_grammar.t
++end
++
++module type S2_with_grammar = sig
++  include S2
++
++  val t_sexp_grammar : 'a Sexp_grammar.t -> 'b Sexp_grammar.t -> ('a, 'b) t Sexp_grammar.t
++end
++
++module type S3_with_grammar = sig
++  include S3
++
++  val t_sexp_grammar
++    :  'a Sexp_grammar.t
++    -> 'b Sexp_grammar.t
++    -> 'c Sexp_grammar.t
++    -> ('a, 'b, 'c) t Sexp_grammar.t
++end
+diff --git a/test/dune b/test/dune
+index 4f1d0ec..c448450 100644
+--- a/test/dune
++++ b/test/dune
+@@ -1,5 +1,6 @@
+ (library
+  (name sexplib0_test)
+- (libraries base expect_test_helpers_core.expect_test_helpers_base sexplib0)
++ (libraries base expect_test_helpers_core.expect_test_helpers_base parsexp
++   sexplib sexplib0)
+  (preprocess
+   (pps ppx_compare ppx_expect ppx_here ppx_sexp_conv ppx_sexp_value)))
+diff --git a/test/sexplib0_test.ml b/test/sexplib0_test.ml
+index d2a5e73..4e661a8 100644
+--- a/test/sexplib0_test.ml
++++ b/test/sexplib0_test.ml
+@@ -14,277 +14,325 @@ let test (type a) (module M : S with type t = a) string =
+   print_s [%sexp (result : M.t Or_error.t)]
+ ;;
+ 
++(** All possible ways of constructing [Sexp_conv_record.Layout_witness.t] values, together
++    with a uniform interface for manipulating them. The tests below use this uniform
++    interface to write tests that try all possible combinations of layouts (i.e., both
++    [Any] and [Value]).
++*)
++module Layout_impl = struct
++  type (_, _) t =
++    | Value : ('a, 'a) t
++    | Any : ('a, unit -> 'a) t
++
++  type _ packed = T : ('a, _) t -> 'a packed [@@unboxed]
++
++  let all = [ T Value; T Any ]
++  let all_pairs () = List.cartesian_product all all
++
++  let value : type a b. (a, b) t -> b -> a = function
++    | Value -> fun x -> x
++    | Any -> fun f -> f ()
++  ;;
++end
++
++let field
++  : type a b c conv.
++    name:string
++    -> kind:(a, conv) Sexp_conv_record.Kind.t
++    -> impl:(a, b) Layout_impl.t
++    -> conv:conv
++    -> rest:c Sexp_conv_record.Fields.t
++    -> (b * c) Sexp_conv_record.Fields.t
++  =
++  fun ~name ~kind ~impl ~conv ~rest ->
++  let const x () = x in
++  let thunk f x = const (f x) in
++  match impl with
++  | Value -> Field { name; kind; layout = Value; conv; rest }
++  | Any ->
++    (match kind with
++     | Default f ->
++       Field { name; kind = Default (thunk f); layout = Value; conv = thunk conv; rest }
++     | Omit_nil ->
++       Field { name; kind = Omit_nil; layout = Value; conv = thunk conv; rest }
++     | Required ->
++       Field { name; kind = Required; layout = Value; conv = thunk conv; rest }
++     | Sexp_array | Sexp_bool | Sexp_list | Sexp_option ->
++       failwith "[array], [bool], [list], and [option] all have layout [value]")
++;;
++
+ let%expect_test "simple record" =
+-  let module M = struct
+-    type t =
+-      { x : int
+-      ; y : int
+-      }
+-    [@@deriving equal, sexp_of]
++  List.iter (Layout_impl.all_pairs ()) ~f:(fun (T impl1, T impl2) ->
++    let module M = struct
++      type t =
++        { x : int
++        ; y : int
++        }
++      [@@deriving equal, sexp_of]
+ 
+-    let t_of_sexp =
+-      Sexp_conv_record.record_of_sexp
+-        ~caller:"M.t"
+-        ~fields:
+-          (Field
+-             { name = "x"
+-             ; kind = Required
+-             ; conv = int_of_sexp
+-             ; rest =
+-                 Field { name = "y"; kind = Required; conv = int_of_sexp; rest = Empty }
+-             })
+-        ~index_of_field:(function
+-          | "x" -> 0
+-          | "y" -> 1
+-          | _ -> -1)
+-        ~allow_extra_fields:false
+-        ~create:(fun (x, (y, ())) -> { x; y })
+-    ;;
+-  end
+-  in
+-  let test = test (module M) in
+-  (* in order *)
+-  test "((x 1) (y 2))";
+-  [%expect {| (Ok ((x 1) (y 2))) |}];
+-  (* reverse order *)
+-  test "((y 2) (x 1))";
+-  [%expect {| (Ok ((x 1) (y 2))) |}];
+-  (* duplicate fields *)
+-  test "((x 1) (x 2) (y 3) (y 4))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: duplicate fields: x y"
+-      (invalid_sexp ((x 1) (x 2) (y 3) (y 4)))))
+-    |}];
+-  (* extra fields *)
+-  test "((a 1) (b 2) (c 3))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: extra fields: a b c"
+-      (invalid_sexp ((a 1) (b 2) (c 3)))))
+-    |}];
+-  (* missing field *)
+-  test "((x 1))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: the following record elements were undefined: y"
+-      (invalid_sexp ((x 1)))))
+-    |}];
+-  (* other missing field *)
+-  test "((y 2))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: the following record elements were undefined: x"
+-      (invalid_sexp ((y 2)))))
+-    |}];
+-  (* multiple missing fields *)
+-  test "()";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: the following record elements were undefined: x y"
+-      (invalid_sexp ())))
+-    |}];
+-  ()
++      let t_of_sexp sexp =
++        Sexp_conv_record.record_of_sexp
++          sexp
++          ~caller:"M.t"
++          ~fields:
++            (field
++               ~name:"x"
++               ~kind:Required
++               ~impl:impl1
++               ~conv:int_of_sexp
++               ~rest:
++                 (field
++                    ~name:"y"
++                    ~kind:Required
++                    ~impl:impl2
++                    ~conv:int_of_sexp
++                    ~rest:Empty))
++          ~index_of_field:(function
++            | "x" -> 0
++            | "y" -> 1
++            | _ -> -1)
++          ~allow_extra_fields:false
++          ~create:(fun (x, (y, ())) ->
++            { x = Layout_impl.value impl1 x; y = Layout_impl.value impl2 y })
++      ;;
++    end
++    in
++    let test = test (module M) in
++    (* in order *)
++    test "((x 1) (y 2))";
++    [%expect {| (Ok ((x 1) (y 2))) |}];
++    (* reverse order *)
++    test "((y 2) (x 1))";
++    [%expect {| (Ok ((x 1) (y 2))) |}];
++    (* duplicate fields *)
++    test "((x 1) (x 2) (y 3) (y 4))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error
++        "M.t_of_sexp: duplicate fields: x y"
++        (invalid_sexp ((x 1) (x 2) (y 3) (y 4)))))
++      |}];
++    (* extra fields *)
++    test "((a 1) (b 2) (c 3))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error
++        "M.t_of_sexp: extra fields found while some fields missing; extra fields: a b c; missing fields: x y"
++        (invalid_sexp ((a 1) (b 2) (c 3)))))
++      |}];
++    (* missing field *)
++    test "((x 1))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error "M.t_of_sexp: missing fields: y" (invalid_sexp ((x 1)))))
++      |}];
++    (* other missing field *)
++    test "((y 2))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error "M.t_of_sexp: missing fields: x" (invalid_sexp ((y 2)))))
++      |}];
++    (* multiple missing fields *)
++    test "()";
++    [%expect
++      {| (Error (Of_sexp_error "M.t_of_sexp: missing fields: x y" (invalid_sexp ()))) |}];
++    ())
+ ;;
+ 
+ let%expect_test "record with extra fields" =
+-  let module M = struct
+-    type t =
+-      { x : int
+-      ; y : int
+-      }
+-    [@@deriving equal, sexp_of]
++  List.iter (Layout_impl.all_pairs ()) ~f:(fun (T impl1, T impl2) ->
++    let module M = struct
++      type t =
++        { x : int
++        ; y : int
++        }
++      [@@deriving equal, sexp_of]
+ 
+-    let t_of_sexp =
+-      Sexp_conv_record.record_of_sexp
+-        ~caller:"M.t"
+-        ~fields:
+-          (Field
+-             { name = "x"
+-             ; kind = Required
+-             ; conv = int_of_sexp
+-             ; rest =
+-                 Field { name = "y"; kind = Required; conv = int_of_sexp; rest = Empty }
+-             })
+-        ~index_of_field:(function
+-          | "x" -> 0
+-          | "y" -> 1
+-          | _ -> -1)
+-        ~allow_extra_fields:true
+-        ~create:(fun (x, (y, ())) -> { x; y })
+-    ;;
+-  end
+-  in
+-  let test = test (module M) in
+-  (* in order *)
+-  test "((x 1) (y 2))";
+-  [%expect {| (Ok ((x 1) (y 2))) |}];
+-  (* reversed order *)
+-  test "((y 2) (x 1))";
+-  [%expect {| (Ok ((x 1) (y 2))) |}];
+-  (* extra field *)
+-  test "((x 1) (y 2) (z 3))";
+-  [%expect {| (Ok ((x 1) (y 2))) |}];
+-  (* missing field *)
+-  test "((x 1))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: the following record elements were undefined: y"
+-      (invalid_sexp ((x 1)))))
+-    |}];
+-  (* other missing field *)
+-  test "((y 2))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: the following record elements were undefined: x"
+-      (invalid_sexp ((y 2)))))
+-    |}];
+-  (* multiple missing fields *)
+-  test "()";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: the following record elements were undefined: x y"
+-      (invalid_sexp ())))
+-    |}];
+-  ()
++      let t_of_sexp =
++        Sexp_conv_record.record_of_sexp
++          ~caller:"M.t"
++          ~fields:
++            (field
++               ~name:"x"
++               ~kind:Required
++               ~impl:impl1
++               ~conv:int_of_sexp
++               ~rest:
++                 (field
++                    ~name:"y"
++                    ~kind:Required
++                    ~impl:impl2
++                    ~conv:int_of_sexp
++                    ~rest:Empty))
++          ~index_of_field:(function
++            | "x" -> 0
++            | "y" -> 1
++            | _ -> -1)
++          ~allow_extra_fields:true
++          ~create:(fun (x, (y, ())) ->
++            { x = Layout_impl.value impl1 x; y = Layout_impl.value impl2 y })
++      ;;
++    end
++    in
++    let test = test (module M) in
++    (* in order *)
++    test "((x 1) (y 2))";
++    [%expect {| (Ok ((x 1) (y 2))) |}];
++    (* reversed order *)
++    test "((y 2) (x 1))";
++    [%expect {| (Ok ((x 1) (y 2))) |}];
++    (* extra field *)
++    test "((x 1) (y 2) (z 3))";
++    [%expect {| (Ok ((x 1) (y 2))) |}];
++    (* missing field *)
++    test "((x 1))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error "M.t_of_sexp: missing fields: y" (invalid_sexp ((x 1)))))
++      |}];
++    (* other missing field *)
++    test "((y 2))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error "M.t_of_sexp: missing fields: x" (invalid_sexp ((y 2)))))
++      |}];
++    (* multiple missing fields *)
++    test "()";
++    [%expect
++      {| (Error (Of_sexp_error "M.t_of_sexp: missing fields: x y" (invalid_sexp ()))) |}];
++    ())
+ ;;
+ 
+ let%expect_test "record with defaults" =
+-  let module M = struct
+-    type t =
+-      { x : int
+-      ; y : int
+-      }
+-    [@@deriving equal, sexp_of]
++  List.iter (Layout_impl.all_pairs ()) ~f:(fun (T impl1, T impl2) ->
++    let module M = struct
++      type t =
++        { x : int
++        ; y : int
++        }
++      [@@deriving equal, sexp_of]
+ 
+-    let t_of_sexp =
+-      Sexp_conv_record.record_of_sexp
+-        ~caller:"M.t"
+-        ~fields:
+-          (Field
+-             { name = "x"
+-             ; kind = Default (fun () -> 0)
+-             ; conv = int_of_sexp
+-             ; rest =
+-                 Field
+-                   { name = "y"
+-                   ; kind = Default (fun () -> 0)
+-                   ; conv = int_of_sexp
+-                   ; rest = Empty
+-                   }
+-             })
+-        ~index_of_field:(function
+-          | "x" -> 0
+-          | "y" -> 1
+-          | _ -> -1)
+-        ~allow_extra_fields:false
+-        ~create:(fun (x, (y, ())) -> { x; y })
+-    ;;
+-  end
+-  in
+-  let test = test (module M) in
+-  (* in order *)
+-  test "((x 1) (y 2))";
+-  [%expect {| (Ok ((x 1) (y 2))) |}];
+-  (* reverse order *)
+-  test "((y 2) (x 1))";
+-  [%expect {| (Ok ((x 1) (y 2))) |}];
+-  (* extra field *)
+-  test "((x 1) (y 2) (z 3))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: extra fields: z"
+-      (invalid_sexp ((x 1) (y 2) (z 3)))))
+-    |}];
+-  (* missing field *)
+-  test "((x 1))";
+-  [%expect {| (Ok ((x 1) (y 0))) |}];
+-  (* other missing field *)
+-  test "((y 2))";
+-  [%expect {| (Ok ((x 0) (y 2))) |}];
+-  (* multiple missing fields *)
+-  test "()";
+-  [%expect {| (Ok ((x 0) (y 0))) |}];
+-  ()
++      let t_of_sexp =
++        Sexp_conv_record.record_of_sexp
++          ~caller:"M.t"
++          ~fields:
++            (field
++               ~name:"x"
++               ~kind:(Default (fun () -> 0))
++               ~impl:impl1
++               ~conv:int_of_sexp
++               ~rest:
++                 (field
++                    ~name:"y"
++                    ~kind:(Default (fun () -> 0))
++                    ~impl:impl2
++                    ~conv:int_of_sexp
++                    ~rest:Empty))
++          ~index_of_field:(function
++            | "x" -> 0
++            | "y" -> 1
++            | _ -> -1)
++          ~allow_extra_fields:false
++          ~create:(fun (x, (y, ())) ->
++            { x = Layout_impl.value impl1 x; y = Layout_impl.value impl2 y })
++      ;;
++    end
++    in
++    let test = test (module M) in
++    (* in order *)
++    test "((x 1) (y 2))";
++    [%expect {| (Ok ((x 1) (y 2))) |}];
++    (* reverse order *)
++    test "((y 2) (x 1))";
++    [%expect {| (Ok ((x 1) (y 2))) |}];
++    (* extra field *)
++    test "((x 1) (y 2) (z 3))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error
++        "M.t_of_sexp: extra fields: z"
++        (invalid_sexp ((x 1) (y 2) (z 3)))))
++      |}];
++    (* missing field *)
++    test "((x 1))";
++    [%expect {| (Ok ((x 1) (y 0))) |}];
++    (* other missing field *)
++    test "((y 2))";
++    [%expect {| (Ok ((x 0) (y 2))) |}];
++    (* multiple missing fields *)
++    test "()";
++    [%expect {| (Ok ((x 0) (y 0))) |}];
++    ())
+ ;;
+ 
+ let%expect_test "record with omit nil" =
+-  let module M = struct
+-    type t =
+-      { a : int option
+-      ; b : int list
+-      }
+-    [@@deriving equal, sexp_of]
++  List.iter (Layout_impl.all_pairs ()) ~f:(fun (T impl1, T impl2) ->
++    let module M = struct
++      type t =
++        { a : int option
++        ; b : int list
++        }
++      [@@deriving equal, sexp_of]
+ 
+-    let t_of_sexp =
+-      Sexp_conv_record.record_of_sexp
+-        ~caller:"M.t"
+-        ~fields:
+-          (Field
+-             { name = "a"
+-             ; kind = Omit_nil
+-             ; conv = option_of_sexp int_of_sexp
+-             ; rest =
+-                 Field
+-                   { name = "b"
+-                   ; kind = Omit_nil
+-                   ; conv = list_of_sexp int_of_sexp
+-                   ; rest = Empty
+-                   }
+-             })
+-        ~index_of_field:(function
+-          | "a" -> 0
+-          | "b" -> 1
+-          | _ -> -1)
+-        ~allow_extra_fields:false
+-        ~create:(fun (a, (b, ())) -> { a; b })
+-    ;;
+-  end
+-  in
+-  let test = test (module M) in
+-  (* in order *)
+-  test "((a (1)) (b (2 3)))";
+-  [%expect {| (Ok ((a (1)) (b (2 3)))) |}];
+-  (* reverse order *)
+-  test "((b ()) (a ()))";
+-  [%expect {| (Ok ((a ()) (b ()))) |}];
+-  (* extra field *)
+-  test "((a (1)) (b (2 3)) (z ()))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: extra fields: z"
+-      (invalid_sexp ((a (1)) (b (2 3)) (z ())))))
+-    |}];
+-  (* missing field *)
+-  test "((a (1)))";
+-  [%expect {| (Ok ((a (1)) (b ()))) |}];
+-  (* other missing field *)
+-  test "((b (2 3)))";
+-  [%expect {| (Ok ((a ()) (b (2 3)))) |}];
+-  (* multiple missing fields *)
+-  test "()";
+-  [%expect {| (Ok ((a ()) (b ()))) |}];
+-  ()
++      let t_of_sexp =
++        Sexp_conv_record.record_of_sexp
++          ~caller:"M.t"
++          ~fields:
++            (field
++               ~name:"a"
++               ~kind:Omit_nil
++               ~impl:impl1
++               ~conv:(option_of_sexp int_of_sexp)
++               ~rest:
++                 (field
++                    ~name:"b"
++                    ~kind:Omit_nil
++                    ~impl:impl2
++                    ~conv:(list_of_sexp int_of_sexp)
++                    ~rest:Empty))
++          ~index_of_field:(function
++            | "a" -> 0
++            | "b" -> 1
++            | _ -> -1)
++          ~allow_extra_fields:false
++          ~create:(fun (a, (b, ())) ->
++            { a = Layout_impl.value impl1 a; b = Layout_impl.value impl2 b })
++      ;;
++    end
++    in
++    let test = test (module M) in
++    (* in order *)
++    test "((a (1)) (b (2 3)))";
++    [%expect {| (Ok ((a (1)) (b (2 3)))) |}];
++    (* reverse order *)
++    test "((b ()) (a ()))";
++    [%expect {| (Ok ((a ()) (b ()))) |}];
++    (* extra field *)
++    test "((a (1)) (b (2 3)) (z ()))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error
++        "M.t_of_sexp: extra fields: z"
++        (invalid_sexp ((a (1)) (b (2 3)) (z ())))))
++      |}];
++    (* missing field *)
++    test "((a (1)))";
++    [%expect {| (Ok ((a (1)) (b ()))) |}];
++    (* other missing field *)
++    test "((b (2 3)))";
++    [%expect {| (Ok ((a ()) (b (2 3)))) |}];
++    (* multiple missing fields *)
++    test "()";
++    [%expect {| (Ok ((a ()) (b ()))) |}];
++    ())
+ ;;
+ 
+ let%expect_test "record with sexp types" =
+@@ -304,20 +352,28 @@ let%expect_test "record with sexp types" =
+           (Field
+              { name = "a"
+              ; kind = Sexp_option
++             ; layout = Value
+              ; conv = int_of_sexp
+              ; rest =
+                  Field
+                    { name = "b"
+                    ; kind = Sexp_list
++                   ; layout = Value
+                    ; conv = int_of_sexp
+                    ; rest =
+                        Field
+                          { name = "c"
+                          ; kind = Sexp_array
++                         ; layout = Value
+                          ; conv = int_of_sexp
+                          ; rest =
+                              Field
+-                               { name = "d"; kind = Sexp_bool; conv = (); rest = Empty }
++                               { name = "d"
++                               ; kind = Sexp_bool
++                               ; layout = Value
++                               ; conv = ()
++                               ; rest = Empty
++                               }
+                          }
+                    }
+              })
+@@ -376,94 +432,99 @@ let%expect_test "record with polymorphic fields" =
+ 
+     let equal = Poly.equal
+ 
+-    let t_of_sexp =
+-      let open struct
+-        type a = { a : 'a. 'a list } [@@unboxed]
+-        type b = { b : 'a 'b. ('a, 'b) Result.t option } [@@unboxed]
+-      end in
+-      let caller = "M.t" in
+-      Sexp_conv_record.record_of_sexp
+-        ~caller
+-        ~fields:
+-          (Field
+-             { name = "a"
+-             ; kind = Required
+-             ; conv =
+-                 (fun sexp ->
+-                   { a =
+-                       list_of_sexp
+-                         (Sexplib.Conv_error.record_poly_field_value caller)
+-                         sexp
+-                   })
+-             ; rest =
+-                 Field
+-                   { name = "b"
+-                   ; kind = Required
+-                   ; conv =
+-                       (fun sexp ->
+-                         { b =
+-                             Option.t_of_sexp
+-                               (Result.t_of_sexp
+-                                  (Sexplib.Conv_error.record_poly_field_value caller)
+-                                  (Sexplib.Conv_error.record_poly_field_value caller))
+-                               sexp
+-                         })
+-                   ; rest = Empty
+-                   }
+-             })
+-        ~index_of_field:(function
+-          | "a" -> 0
+-          | "b" -> 1
+-          | _ -> -1)
+-        ~allow_extra_fields:false
+-        ~create:(fun ({ a }, ({ b }, ())) -> { a; b })
+-    ;;
++    type a = { a : 'a. 'a list } [@@unboxed]
++    type b = { b : 'a 'b. ('a, 'b) Result.t option } [@@unboxed]
+   end
+   in
+-  let test = test (module M) in
+-  (* in order *)
+-  test "((a ()) (b ()))";
+-  [%expect {| (Ok ((a ()) (b ()))) |}];
+-  (* reverse order *)
+-  test "((b ()) (a ()))";
+-  [%expect {| (Ok ((a ()) (b ()))) |}];
+-  (* attempt to deserialize paramter to [a] *)
+-  test "((a (_)) (b ()))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: cannot convert values of types resulting from polymorphic record fields"
+-      (invalid_sexp _)))
+-    |}];
+-  (* attempt to deserialize first parameter to [b] *)
+-  test "((a ()) (b ((Ok _))))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: cannot convert values of types resulting from polymorphic record fields"
+-      (invalid_sexp _)))
+-    |}];
+-  (* attempt to deserialize second parameter to [b] *)
+-  test "((a ()) (b ((Error _))))";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: cannot convert values of types resulting from polymorphic record fields"
+-      (invalid_sexp _)))
+-    |}];
+-  (* multiple missing fields *)
+-  test "()";
+-  [%expect
+-    {|
+-    (Error
+-     (Of_sexp_error
+-      "M.t_of_sexp: the following record elements were undefined: a b"
+-      (invalid_sexp ())))
+-    |}];
+-  ()
++  (* Unlike other tests, we write the skeleton of module [M] before performing the nested
++     iteration over layout impls. This is for a silly OCaml value-restriction-flavored
++     reason, not for a good reason: the below [all_pairs ()] introduces a weak type
++     variable. That weak type variable ends up needs to unify with the local type [M.a]
++     (and another one with [M.b]), so it's necessary for these local types to be defined
++     first so this unification is not considered to make them "escape their scope".
++  *)
++  List.iter (Layout_impl.all_pairs ()) ~f:(fun (T impl1, T impl2) ->
++    let module M = struct
++      include M
++
++      let t_of_sexp =
++        let caller = "M.t" in
++        Sexp_conv_record.record_of_sexp
++          ~caller
++          ~fields:
++            (field
++               ~name:"a"
++               ~kind:Required
++               ~impl:impl1
++               ~conv:(fun sexp ->
++                 { a =
++                     list_of_sexp (Sexplib.Conv_error.record_poly_field_value caller) sexp
++                 })
++               ~rest:
++                 (field
++                    ~name:"b"
++                    ~kind:Required
++                    ~impl:impl2
++                    ~conv:(fun sexp ->
++                      { b =
++                          Option.t_of_sexp
++                            (Result.t_of_sexp
++                               (Sexplib.Conv_error.record_poly_field_value caller)
++                               (Sexplib.Conv_error.record_poly_field_value caller))
++                            sexp
++                      })
++                    ~rest:Empty))
++          ~index_of_field:(function
++            | "a" -> 0
++            | "b" -> 1
++            | _ -> -1)
++          ~allow_extra_fields:false
++          ~create:(fun (a, (b, ())) ->
++            let { a } = Layout_impl.value impl1 a
++            and { b } = Layout_impl.value impl2 b in
++            { a; b })
++      ;;
++    end
++    in
++    let test = test (module M) in
++    (* in order *)
++    test "((a ()) (b ()))";
++    [%expect {| (Ok ((a ()) (b ()))) |}];
++    (* reverse order *)
++    test "((b ()) (a ()))";
++    [%expect {| (Ok ((a ()) (b ()))) |}];
++    (* attempt to deserialize paramter to [a] *)
++    test "((a (_)) (b ()))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error
++        "M.t_of_sexp: cannot convert values of types resulting from polymorphic record fields"
++        (invalid_sexp _)))
++      |}];
++    (* attempt to deserialize first parameter to [b] *)
++    test "((a ()) (b ((Ok _))))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error
++        "M.t_of_sexp: cannot convert values of types resulting from polymorphic record fields"
++        (invalid_sexp _)))
++      |}];
++    (* attempt to deserialize second parameter to [b] *)
++    test "((a ()) (b ((Error _))))";
++    [%expect
++      {|
++      (Error
++       (Of_sexp_error
++        "M.t_of_sexp: cannot convert values of types resulting from polymorphic record fields"
++        (invalid_sexp _)))
++      |}];
++    (* multiple missing fields *)
++    test "()";
++    [%expect
++      {| (Error (Of_sexp_error "M.t_of_sexp: missing fields: a b" (invalid_sexp ()))) |}];
++    ())
+ ;;
+ 
+ let%expect_test _ =
+@@ -476,3 +537,48 @@ let%expect_test _ =
+   print_endline (Int.to_string_hum (String.length sexp_string));
+   [%expect {| 5_000_000 |}]
+ ;;
++
++(* Assert that the module types defined by sexplib0 are equivalent to those derived by
++   ppx_sexp_conv. *)
++module _ = struct
++  module type S = sig
++    type t [@@deriving sexp]
++  end
++
++  module type S1 = sig
++    type 'a t [@@deriving sexp]
++  end
++
++  module type S2 = sig
++    type ('a, 'b) t [@@deriving sexp]
++  end
++
++  module type S3 = sig
++    type ('a, 'b, 'c) t [@@deriving sexp]
++  end
++
++  module type S_with_grammar = sig
++    type t [@@deriving sexp, sexp_grammar]
++  end
++
++  module type S1_with_grammar = sig
++    type 'a t [@@deriving sexp, sexp_grammar]
++  end
++
++  module type S2_with_grammar = sig
++    type ('a, 'b) t [@@deriving sexp, sexp_grammar]
++  end
++
++  module type S3_with_grammar = sig
++    type ('a, 'b, 'c) t [@@deriving sexp, sexp_grammar]
++  end
++
++  let (T : ((module Sexpable.S), (module S)) Type_equal.t) = T
++  let (T : ((module Sexpable.S1), (module S1)) Type_equal.t) = T
++  let (T : ((module Sexpable.S2), (module S2)) Type_equal.t) = T
++  let (T : ((module Sexpable.S3), (module S3)) Type_equal.t) = T
++  let (T : ((module Sexpable.S_with_grammar), (module S_with_grammar)) Type_equal.t) = T
++  let (T : ((module Sexpable.S1_with_grammar), (module S1_with_grammar)) Type_equal.t) = T
++  let (T : ((module Sexpable.S2_with_grammar), (module S2_with_grammar)) Type_equal.t) = T
++  let (T : ((module Sexpable.S3_with_grammar), (module S3_with_grammar)) Type_equal.t) = T
++end
