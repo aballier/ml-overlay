@@ -1,0 +1,2080 @@
+From 37ba21167ae36f3c71bfd8d87d385272840ebf9f Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Tue, 13 Aug 2024 20:53:44 +0100
+Subject: [PATCH] v0.17~preview.129.36+325
+
+---
+ README.org                                    |  15 +
+ expander/attrs.ml                             |  12 +-
+ expander/attrs.mli                            |   1 +
+ expander/conversion.ml                        |   2 +-
+ expander/expand_of_sexp.ml                    | 122 ++++++--
+ expander/expand_sexp_of.ml                    |  19 +-
+ expander/helpers.ml                           |  95 ++++--
+ expander/helpers.mli                          |   3 +-
+ expander/lifted.ml                            |  16 +-
+ expander/ppx_sexp_conv_grammar.ml             |  22 +-
+ test/expansion.ml                             | 282 +++++++++++-------
+ test/ppx_sexp_test.ml                         |  96 ++++--
+ .../test_coverage_for_deriving.ml             |  29 +-
+ test/sexp_grammar/test_functors.ml            |   8 +-
+ test/sexp_grammar/test_gadt.ml                |   6 +-
+ .../sexp_grammar/test_polymorphic_variants.ml |   3 +-
+ test/sexp_grammar/test_polymorphism.ml        |  12 +-
+ test/sexp_grammar/test_regular_variants.ml    |   3 +-
+ test/sexp_grammar/test_tag_type_names.ml      |   2 +-
+ test/sexp_grammar/test_test.ml                |  10 +-
+ 20 files changed, 503 insertions(+), 255 deletions(-)
+
+diff --git a/README.org b/README.org
+index b46e970..7db1b4c 100644
+--- a/README.org
++++ b/README.org
+@@ -253,6 +253,21 @@ conversion of a sexp to the record.
+   (A (a 0)(b b)) => A {a = 0}
+ #+end_src
+ 
++*** Allowing unboxed type fields in records
++
++The =@sexp.non_value= annotation lets one specify that a record field is an
++unboxed type with a non-value layout. These language features are supported by
++[an experimental compiler
++branch](https://github.com/ocaml-flambda/flambda-backend). In the standard OCaml
++compiler, this annotation is essentially a no-op.
++
++#+begin_src ocaml
++  type t = { a : Float_u.t [@sexp.non_value] } [@@deriving sexp]
++  ((a 4.0)) => { a = #4.0 }
++#+end_src
++
++Forgetting this annotation will result in a type error.
++
+ ** Variants
+ 
+ Constant constructors in variants are represented as
+diff --git a/expander/attrs.ml b/expander/attrs.ml
+index 84d22f2..73454f0 100644
+--- a/expander/attrs.ml
++++ b/expander/attrs.ml
+@@ -21,8 +21,8 @@ let drop_default =
+     Attribute.Context.label_declaration
+     Ast_pattern.(pstr (alt_option (pstr_eval __ nil ^:: nil) nil))
+     (function
+-     | None -> None
+-     | Some x -> Some { to_lift = x })
++      | None -> None
++      | Some x -> Some { to_lift = x })
+ ;;
+ 
+ let drop_default_equal =
+@@ -61,6 +61,14 @@ let opaque =
+   Attribute.declare "sexp.opaque" Attribute.Context.core_type Ast_pattern.(pstr nil) ()
+ ;;
+ 
++let non_value =
++  Attribute.declare
++    "sexp.non_value"
++    Attribute.Context.label_declaration
++    Ast_pattern.(pstr nil)
++    ()
++;;
++
+ let omit_nil =
+   Attribute.declare
+     "sexp.omit_nil"
+diff --git a/expander/attrs.mli b/expander/attrs.mli
+index 34475d3..1aa80f3 100644
+--- a/expander/attrs.mli
++++ b/expander/attrs.mli
+@@ -38,3 +38,4 @@ val tags_type : (core_type, expression) Attribute.t
+ val tags_ld : (label_declaration, expression) Attribute.t
+ val tags_cd : (constructor_declaration, expression) Attribute.t
+ val tags_poly : (row_field, expression) Attribute.t
++val non_value : (label_declaration, unit) Attribute.t
+diff --git a/expander/conversion.ml b/expander/conversion.ml
+index fa1cede..59e16fd 100644
+--- a/expander/conversion.ml
++++ b/expander/conversion.ml
+@@ -180,5 +180,5 @@ let apply_all ts ~loc =
+    ; arguments = List.map arguments_names ~f:(pvar ~loc)
+    ; converted = List.map converted_names ~f:(evar ~loc)
+    }
+-    : Apply_all.t)
++   : Apply_all.t)
+ ;;
+diff --git a/expander/expand_of_sexp.ml b/expander/expand_of_sexp.ml
+index 685154c..bd0ef5a 100644
+--- a/expander/expand_of_sexp.ml
++++ b/expander/expand_of_sexp.ml
+@@ -4,6 +4,12 @@ open Ast_builder.Default
+ open Helpers
+ open Lifted.Monad_infix
+ 
++module Layout = struct
++  type t =
++    | Non_value
++    | Value
++end
++
+ (* Generates the signature for type conversion from S-expressions *)
+ module Sig_generate_of_sexp = struct
+   let type_of_of_sexp ~loc t =
+@@ -222,13 +228,13 @@ module Str_generate_of_sexp = struct
+         alist
+         ~init:[%expr Empty]
+         ~f:(fun (label_option, core_type) rest_expr ->
+-        let name_expr = estring ~loc (Labeled_tuple.atom_of_label label_option) in
+-        let conv_expr =
+-          type_of_sexp ~error_source ~typevars core_type
+-          |> Conversion.to_expression ~loc:core_type.ptyp_loc
+-        in
+-        [%expr
+-          Field { name = [%e name_expr]; conv = [%e conv_expr]; rest = [%e rest_expr] }])
++          let name_expr = estring ~loc (Labeled_tuple.atom_of_label label_option) in
++          let conv_expr =
++            type_of_sexp ~error_source ~typevars core_type
++            |> Conversion.to_expression ~loc:core_type.ptyp_loc
++          in
++          [%expr
++            Field { name = [%e name_expr]; conv = [%e conv_expr]; rest = [%e rest_expr] }])
+     in
+     let create_expr =
+       let pats, exprs =
+@@ -610,10 +616,29 @@ module Str_generate_of_sexp = struct
+     | _ -> None
+   ;;
+ 
+-  let record_field_conv field ~poly ~loc ~error_source ~typevars =
++  let field_layout field : Layout.t =
++    if Option.is_some (Attribute.get Attrs.non_value field) then Non_value else Value
++  ;;
++
++  let close_over_non_value ~loc expr =
++    let result = gen_symbol () in
++    [%expr
++      let [%p pvar ~loc result] = [%e expr] in
++      fun () -> [%e evar ~loc result]]
++  ;;
++
++  let record_field_conv field ~poly ~loc ~error_source ~typevars ~(layout : Layout.t) =
+     match poly with
+     | None ->
+-      type_of_sexp ~error_source ~typevars field.pld_type |> Conversion.to_expression ~loc
++      let conv =
++        type_of_sexp ~error_source ~typevars field.pld_type
++        |> Conversion.to_expression ~loc
++      in
++      (match layout with
++       | Value -> conv
++       | Non_value ->
++         fresh_lambda ~loc (fun ~arg ->
++           close_over_non_value ~loc [%expr [%e conv] [%e arg]]))
+     | Some { type_and_field_name; params; body } ->
+       let fresh_sexp = Fresh_name.create "sexp" ~loc in
+       let fresh_params =
+@@ -647,17 +672,27 @@ module Str_generate_of_sexp = struct
+         in
+         pexp_record ~loc [ label, expr ] None
+       in
+-      eabstract ~loc [ pat ] body
++      eabstract
++        ~loc
++        [ pat ]
++        (match layout with
++         | Value -> body
++         | Non_value -> close_over_non_value ~loc body)
+   ;;
+ 
+   let fields_arg_for_record_of_sexp poly_fields ~loc ~error_source ~typevars =
+     List.fold_right
+       poly_fields
+       ~init:(Lifted.return [%expr Empty])
+-      ~f:(fun (poly, field) rest_lifted ->
++      ~f:(fun (poly, field, (layout : Layout.t)) rest_lifted ->
+         rest_lifted
+         >>= fun rest_expr ->
+         let label_expr = estring ~loc:field.pld_name.loc field.pld_name.txt in
++        let layout_expr =
++          match layout with
++          | Non_value -> [%expr Any]
++          | Value -> [%expr Value]
++        in
+         match Record_field_attrs.Of_sexp.create ~loc field with
+         | Specific Required ->
+           Lifted.return
+@@ -665,17 +700,27 @@ module Str_generate_of_sexp = struct
+               Field
+                 { name = [%e label_expr]
+                 ; kind = Required
+-                ; conv = [%e record_field_conv field ~poly ~loc ~error_source ~typevars]
++                ; layout = [%e layout_expr]
++                ; conv =
++                    [%e
++                      record_field_conv field ~poly ~loc ~error_source ~typevars ~layout]
+                 ; rest = [%e rest_expr]
+                 }]
+         | Specific (Default lifted) ->
+           lifted
+           >>| fun default ->
++          let default_expr =
++            match layout with
++            | Value -> default
++            | Non_value -> close_over_non_value ~loc default
++          in
+           [%expr
+             Field
+               { name = [%e label_expr]
+-              ; kind = Default (fun () -> [%e default])
+-              ; conv = [%e record_field_conv field ~poly ~loc ~error_source ~typevars]
++              ; kind = Default (fun () -> [%e default_expr])
++              ; layout = [%e layout_expr]
++              ; conv =
++                  [%e record_field_conv field ~poly ~loc ~error_source ~typevars ~layout]
+               ; rest = [%e rest_expr]
+               }]
+         | Omit_nil ->
+@@ -684,7 +729,10 @@ module Str_generate_of_sexp = struct
+               Field
+                 { name = [%e label_expr]
+                 ; kind = Omit_nil
+-                ; conv = [%e record_field_conv field ~poly ~loc ~error_source ~typevars]
++                ; layout = [%e layout_expr]
++                ; conv =
++                    [%e
++                      record_field_conv field ~poly ~loc ~error_source ~typevars ~layout]
+                 ; rest = [%e rest_expr]
+                 }]
+         | Sexp_bool ->
+@@ -693,6 +741,7 @@ module Str_generate_of_sexp = struct
+               Field
+                 { name = [%e label_expr]
+                 ; kind = Sexp_bool
++                ; layout = [%e layout_expr]
+                 ; conv = ()
+                 ; rest = [%e rest_expr]
+                 }]
+@@ -706,6 +755,7 @@ module Str_generate_of_sexp = struct
+               Field
+                 { name = [%e label_expr]
+                 ; kind = Sexp_array
++                ; layout = [%e layout_expr]
+                 ; conv = [%e conv_expr]
+                 ; rest = [%e rest_expr]
+                 }]
+@@ -719,6 +769,7 @@ module Str_generate_of_sexp = struct
+               Field
+                 { name = [%e label_expr]
+                 ; kind = Sexp_list
++                ; layout = [%e layout_expr]
+                 ; conv = [%e conv_expr]
+                 ; rest = [%e rest_expr]
+                 }]
+@@ -732,6 +783,7 @@ module Str_generate_of_sexp = struct
+               Field
+                 { name = [%e label_expr]
+                 ; kind = Sexp_option
++                ; layout = [%e layout_expr]
+                 ; conv = [%e conv_expr]
+                 ; rest = [%e rest_expr]
+                 }])
+@@ -739,7 +791,7 @@ module Str_generate_of_sexp = struct
+ 
+   let index_of_field_arg_for_record_of_sexp fields ~loc =
+     let field_cases =
+-      List.mapi fields ~f:(fun i (_, field) ->
++      List.mapi fields ~f:(fun i (_, field, _) ->
+         let lhs = pstring ~loc:field.pld_name.loc field.pld_name.txt in
+         let rhs = eint ~loc i in
+         case ~lhs ~guard:None ~rhs)
+@@ -754,7 +806,7 @@ module Str_generate_of_sexp = struct
+       List.fold_right
+         fields
+         ~init:[%pat? ()]
+-        ~f:(fun (poly, field) tail ->
++        ~f:(fun (poly, field, _) tail ->
+           let head =
+             let pat = pvar ~loc:field.pld_name.loc field.pld_name.txt in
+             match poly with
+@@ -773,9 +825,14 @@ module Str_generate_of_sexp = struct
+       let record_expr =
+         pexp_record
+           ~loc
+-          (List.map fields ~f:(fun (_, field) ->
++          (List.map fields ~f:(fun (_, field, (layout : Layout.t)) ->
+              let label = Located.map_lident field.pld_name in
+-             let expr = evar ~loc:field.pld_name.loc field.pld_name.txt in
++             let var = evar ~loc:field.pld_name.loc field.pld_name.txt in
++             let expr =
++               match layout with
++               | Non_value -> [%expr [%e var] ()]
++               | Value -> var
++             in
+              label, expr))
+           None
+       in
+@@ -792,12 +849,16 @@ module Str_generate_of_sexp = struct
+         (List.map td.ptype_params ~f:(fun (core_type, _) ->
+            ptyp_any ~loc:core_type.ptyp_loc))
+     in
+-    eabstract ~loc [ pat ] (pexp_constraint ~loc body core_type)
++    Ppxlib_jane.Ast_builder.Default.eabstract
++      ~loc
++      [ pat ]
++      body
++      ~return_constraint:core_type
+   ;;
+ 
+   let polymorphic_record_types_for_record_of_sexp fields ~loc =
+     (* Define fresh types to contain polymorphic values parsed from sexps. *)
+-    List.filter_map fields ~f:(fun (poly, _) ->
++    List.filter_map fields ~f:(fun (poly, _, _) ->
+       match poly with
+       | Some { type_and_field_name; params; body } ->
+         let fresh_field =
+@@ -841,7 +902,9 @@ module Str_generate_of_sexp = struct
+     =
+     let caller_expr = error_source () in
+     let allow_extra_fields_expr = ebool ~loc allow_extra_fields in
+-    let fields = List.map fields ~f:(fun field -> record_poly_type field, field) in
++    let fields =
++      List.map fields ~f:(fun field -> record_poly_type field, field, field_layout field)
++    in
+     let index_of_field_expr = index_of_field_arg_for_record_of_sexp fields ~loc in
+     let create_expr = create_arg_for_record_of_sexp td fields ~loc ~constructor in
+     let fields_expr_lifted =
+@@ -930,7 +993,8 @@ module Str_generate_of_sexp = struct
+         [%pat? Sexplib0.Sexp.Atom ([%p lcstr] | [%p str])]
+         --> pexp_construct ~loc (Located.lident ~loc cnstr.txt) None
+         |> Lifted.return
+-      | { pcd_name = cnstr; pcd_args = Pcstr_tuple (_ :: _ as tps); _ } ->
++      | { pcd_name = cnstr; pcd_args = Pcstr_tuple (_ :: _ as args); _ } ->
++        let tps = List.map args ~f:Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type in
+         Attrs.fail_if_allow_extra_field_cd ~loc cd;
+         let lcstr = pstring ~loc (String.uncapitalize cnstr.txt) in
+         let str = pstring ~loc cnstr.txt in
+@@ -995,6 +1059,13 @@ module Str_generate_of_sexp = struct
+   (* Generate matching code for sum types *)
+   let sum_of_sexp ~error_source ~typevars td (loc, alts) =
+     let fresh_sexp = Fresh_name.create "sexp" ~loc in
++    let alts_strings =
++      elist
++        ~loc
++        (List.map alts ~f:(fun alt ->
++           let { txt; loc } = alt.pcd_name in
++           estring ~loc txt))
++    in
+     [ mk_good_sum_matches ~error_source ~typevars td (loc, alts) |> Lifted.all
+     ; mk_bad_sum_matches ~error_source (loc, alts) |> Lifted.return
+     ; [ ppat_alias
+@@ -1017,6 +1088,7 @@ module Str_generate_of_sexp = struct
+         --> [%expr
+               Sexplib0.Sexp_conv_error.unexpected_stag
+                 [%e error_source ()]
++                [%e alts_strings]
+                 [%e Fresh_name.expression fresh_sexp]]
+       ]
+       |> Lifted.return
+@@ -1035,7 +1107,7 @@ module Str_generate_of_sexp = struct
+   (* Generate code from type definitions *)
+ 
+   let td_of_sexp ~typevars ~loc:_ ~poly ~path ~rec_flag ~values_being_defined td =
+-    let tps = List.map td.ptype_params ~f:get_type_param_name in
++    let tps = List.map td.ptype_params ~f:Ppxlib_jane.get_type_param_name_and_jkind in
+     let { ptype_name = { txt = type_name; loc = _ }; ptype_loc = loc; _ } = td in
+     let full_type =
+       core_type_of_type_declaration td |> replace_variables_by_underscores
+@@ -1097,7 +1169,7 @@ module Str_generate_of_sexp = struct
+     let arg_patts, arg_exprs =
+       List.unzip
+         (List.map
+-           ~f:(fun tp ->
++           ~f:(fun (tp, _) ->
+              let name = Map.find_exn typevars tp.txt in
+              Fresh_name.pattern name, Fresh_name.expression name)
+            tps)
+diff --git a/expander/expand_sexp_of.ml b/expander/expand_sexp_of.ml
+index 7c7a1d3..70c6687 100644
+--- a/expander/expand_sexp_of.ml
++++ b/expander/expand_sexp_of.ml
+@@ -261,7 +261,7 @@ module Str_generate_sexp_of = struct
+                       ]
+                   in
+                   ([%e Fresh_name.expression bnd] :: [%e Fresh_name.expression bnds]
+-                    : _ Stdlib.List.t))]
++                   : _ Stdlib.List.t))]
+             | Inspect_sexp is_empty_expr ->
+               [%expr
+                 let [%p Fresh_name.pattern arg] =
+@@ -277,7 +277,7 @@ module Str_generate_sexp_of = struct
+                       ]
+                   in
+                   ([%e Fresh_name.expression bnd] :: [%e Fresh_name.expression bnds]
+-                    : _ Stdlib.List.t))]]
++                   : _ Stdlib.List.t))]]
+         in
+         [%e expr]]
+     in
+@@ -449,7 +449,7 @@ module Str_generate_sexp_of = struct
+                     ]
+                 in
+                 ([%e Fresh_name.expression bnd] :: [%e Fresh_name.expression bnds]
+-                  : _ Stdlib.List.t)
++                 : _ Stdlib.List.t)
+             in
+             [%e expr]]
+         in
+@@ -466,7 +466,7 @@ module Str_generate_sexp_of = struct
+                   Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom [%e estring ~loc name] ]
+                 in
+                 ([%e Fresh_name.expression bnd] :: [%e Fresh_name.expression bnds]
+-                  : _ Stdlib.List.t))
++                 : _ Stdlib.List.t))
+               else [%e Fresh_name.expression bnds]
+             in
+             [%e expr]]
+@@ -541,7 +541,7 @@ module Str_generate_sexp_of = struct
+                  ; [%e Fresh_name.expression arg]
+                  ]
+                :: [%e Fresh_name.expression bnds]
+-                : _ Stdlib.List.t)]
++               : _ Stdlib.List.t)]
+         in
+         ( patt
+         , [%expr
+@@ -562,7 +562,7 @@ module Str_generate_sexp_of = struct
+                ; [%e Fresh_name.expression arg]
+                ]
+              :: [%e Fresh_name.expression bnds]
+-              : _ Stdlib.List.t)]
++             : _ Stdlib.List.t)]
+         in
+         ( patt
+         , [%expr
+@@ -608,6 +608,7 @@ module Str_generate_sexp_of = struct
+          --> [%expr Sexplib0.Sexp.Atom [%e constr_str]]
+          |> Lifted.return
+        | args ->
++         let args = List.map args ~f:Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type in
+          (match args with
+           | [ tp ] when Option.is_some (Attribute.get inline_attr row) ->
+             (match tp with
+@@ -679,7 +680,7 @@ module Str_generate_sexp_of = struct
+ 
+   let sexp_of_td ~types_being_defined td =
+     let td = name_type_params_in_td td in
+-    let tps = List.map td.ptype_params ~f:get_type_param_name in
++    let tps = List.map td.ptype_params ~f:Ppxlib_jane.get_type_param_name_and_jkind in
+     let { ptype_name = { txt = type_name; loc = _ }; ptype_loc = loc; _ } = td in
+     let renaming = Renaming.of_type_declaration td ~prefix:"_of_" in
+     let body =
+@@ -689,7 +690,7 @@ module Str_generate_sexp_of = struct
+           sexp_of_sum
+             ~renaming
+             ~types_being_defined
+-            (List.map tps ~f:(fun x -> x.txt))
++            (List.map tps ~f:(fun (x, _) -> x.txt))
+             cds
+         | Ptype_record lds ->
+           sexp_of_label_declaration_list
+@@ -747,7 +748,7 @@ module Str_generate_sexp_of = struct
+       body
+       >>| fun body ->
+       let patts =
+-        List.map tps ~f:(fun id ->
++        List.map tps ~f:(fun (id, _) ->
+           match Renaming.binding_kind renaming id.txt ~loc:id.loc with
+           | Universally_bound name -> Fresh_name.pattern name
+           | Existentially_bound -> assert false)
+diff --git a/expander/helpers.ml b/expander/helpers.ml
+index 96b6ef3..53465c0 100644
+--- a/expander/helpers.ml
++++ b/expander/helpers.ml
+@@ -24,20 +24,25 @@ let make_rigid_types tps =
+   List.fold
+     tps
+     ~init:(Map.empty (module String))
+-    ~f:(fun map tp ->
++    ~f:(fun map (tp, jkind) ->
+       Map.update map tp.txt ~f:(function
+-        | None -> Fresh_name.of_string_loc tp
+-        | Some fresh ->
++        | None -> Fresh_name.of_string_loc tp, jkind
++        | Some (fresh, jkind) ->
+           (* Ignore duplicate names, the typechecker will raise after expansion. *)
+-          fresh))
++          fresh, jkind))
+ ;;
+ 
+ let find_rigid_type ~loc ~rigid_types name =
+   match Map.find rigid_types name with
+-  | Some tp -> Fresh_name.to_string_loc tp
++  | Some (tp, jkind) -> Fresh_name.to_string_loc tp, jkind
+   | None ->
+     (* Ignore unbound type names, the typechecker will raise after expansion. *)
+-    { txt = name; loc }
++    { txt = name; loc }, None
++;;
++
++let find_rigid_type_constr ~loc ~rigid_types name =
++  let name, _jkind = find_rigid_type ~loc ~rigid_types name in
++  Ptyp_constr (Located.map_lident name, [])
+ ;;
+ 
+ let make_type_rigid ~rigid_types =
+@@ -46,14 +51,19 @@ let make_type_rigid ~rigid_types =
+       inherit Ast_traverse.map as super
+ 
+       method! core_type ty =
+-        let ptyp_desc =
+-          match ty.ptyp_desc with
+-          | Ptyp_var s ->
+-            Ptyp_constr
+-              (Located.map_lident (find_rigid_type ~loc:ty.ptyp_loc ~rigid_types s), [])
+-          | desc -> super#core_type_desc desc
+-        in
+-        { ty with ptyp_desc }
++        match Ppxlib_jane.Jane_syntax.Core_type.of_ast ty with
++        | Some (Jtyp_layout (Ltyp_var { name = Some name; jkind = _ }), ptyp_attributes)
++          ->
++          let ptyp_desc = find_rigid_type_constr ~loc:ty.ptyp_loc ~rigid_types name in
++          { ty with ptyp_desc; ptyp_attributes }
++        | Some _ -> super#core_type ty
++        | None ->
++          let ptyp_desc =
++            match ty.ptyp_desc with
++            | Ptyp_var s -> find_rigid_type_constr ~loc:ty.ptyp_loc ~rigid_types s
++            | desc -> super#core_type_desc desc
++          in
++          { ty with ptyp_desc }
+     end
+   in
+   map#core_type
+@@ -66,14 +76,34 @@ let make_type_rigid ~rigid_types =
+    not work because of certains types with constraints. We thus only use rigid variables
+    for sum types, which includes all GADTs. *)
+ 
+-let tvars_of_core_type : core_type -> string list =
++type bound_var = string loc * Ppxlib_jane.Jane_syntax.Jkind.annotation option
++
++let tvars_of_core_type : core_type -> bound_var list =
++  let add_binding_to_list (bindings : bound_var list) (bound : bound_var) =
++    let { txt = bound_name; loc = _ }, _annot = bound in
++    match
++      List.exists bindings ~f:(fun b' ->
++        let { txt = bound_name'; loc = _ }, _annot' = b' in
++        String.equal bound_name bound_name')
++    with
++    | true -> bindings
++    | false -> bound :: bindings
++  in
+   let tvars =
+     object
+-      inherit [string list] Ast_traverse.fold as super
++      inherit [bound_var list] Ast_traverse.fold as super
+ 
+       method! core_type x acc =
++        let loc = x.ptyp_loc in
+         match x.ptyp_desc with
+-        | Ptyp_var x -> if List.mem acc x ~equal:String.equal then acc else x :: acc
++        | Ptyp_var bound_name ->
++          let binding =
++            match Ppxlib_jane.Jane_syntax.Core_type.of_ast x with
++            | Some (Jtyp_layout (Ltyp_var { name = Some name; jkind }), _attrs) ->
++              { txt = name; loc }, Some jkind
++            | _ -> { txt = bound_name; loc }, None
++          in
++          add_binding_to_list acc binding
+         | _ -> super#core_type x acc
+     end
+   in
+@@ -85,13 +115,13 @@ let constrained_function_binding
+     (loc : Location.t)
+   (td : type_declaration)
+   (typ : core_type)
+-  ~(tps : string loc list)
++  ~(tps : (string loc * Ppxlib_jane.Jane_syntax.Jkind.annotation option) list)
+   ~(func_name : string)
+   (body : expression)
+   =
+-  let vars = tvars_of_core_type typ in
++  let bound_vars = tvars_of_core_type typ in
+   let has_vars =
+-    match vars with
++    match bound_vars with
+     | [] -> false
+     | _ :: _ -> true
+   in
+@@ -100,8 +130,13 @@ let constrained_function_binding
+     if not has_vars
+     then pat
+     else (
+-      let vars = List.map ~f:(fun txt -> { txt; loc }) vars in
+-      ppat_constraint ~loc pat (ptyp_poly ~loc vars typ))
++      let annot =
++        Ppxlib_jane.Jane_syntax.Core_type.core_type_of
++          ~loc
++          ~attrs:[]
++          (Jtyp_layout (Ltyp_poly { inner_type = typ; bound_vars }))
++      in
++      ppat_constraint ~loc pat annot)
+   in
+   let body =
+     let use_rigid_variables =
+@@ -114,8 +149,14 @@ let constrained_function_binding
+       let rigid_types = make_rigid_types tps in
+       List.fold_right
+         tps
+-        ~f:(fun tp body ->
+-          pexp_newtype ~loc (find_rigid_type ~loc:tp.loc ~rigid_types tp.txt) body)
++        ~f:(fun (tp, _) body ->
++          let name, jkind = find_rigid_type ~loc:tp.loc ~rigid_types tp.txt in
++          match jkind with
++          | None -> pexp_newtype ~loc name body
++          | Some jkind ->
++            Ppxlib_jane.Jane_syntax.Layouts.expr_of
++              ~loc
++              (Lexp_newtype (name, jkind, body)))
+         ~init:(pexp_constraint ~loc body (make_type_rigid ~rigid_types typ)))
+     else if has_vars
+     then body
+@@ -154,9 +195,11 @@ let fresh_lambda ~loc apply =
+ ;;
+ 
+ let rec is_value_expression expr =
+-  match expr.pexp_desc with
++  match
++    Ppxlib_jane.Shim.Expression_desc.of_parsetree expr.pexp_desc ~loc:expr.pexp_loc
++  with
+   (* Syntactic values. *)
+-  | Pexp_ident _ | Pexp_constant _ | Pexp_function _ | Pexp_fun _ | Pexp_lazy _ -> true
++  | Pexp_ident _ | Pexp_constant _ | Pexp_function _ | Pexp_lazy _ -> true
+   (* Type-only wrappers; we check their contents. *)
+   | Pexp_constraint (expr, (_ : core_type))
+   | Pexp_coerce (expr, (_ : core_type option), (_ : core_type))
+diff --git a/expander/helpers.mli b/expander/helpers.mli
+index 4631a1d..8df007b 100644
+--- a/expander/helpers.mli
++++ b/expander/helpers.mli
+@@ -12,7 +12,8 @@ val constrained_function_binding
+   :  location (** location to use for the binding *)
+   -> type_declaration (** type declaration used to derive the function *)
+   -> core_type (** type of the function *)
+-  -> tps:string loc list (** names of type parameters in the declaration *)
++  -> tps:(string loc * Ppxlib_jane.Jane_syntax.Jkind.annotation option) list
++       (** names and jkinds of type parameters in the declaration *)
+   -> func_name:string (** name to bind the function to *)
+   -> expression (** expression representing the function *)
+   -> value_binding
+diff --git a/expander/lifted.ml b/expander/lifted.ml
+index 85a663f..27c38d1 100644
+--- a/expander/lifted.ml
++++ b/expander/lifted.ml
+@@ -8,17 +8,17 @@ type 'a t =
+   }
+ 
+ include Monad.Make (struct
+-  type nonrec 'a t = 'a t
++    type nonrec 'a t = 'a t
+ 
+-  let return body = { value_bindings = []; body }
++    let return body = { value_bindings = []; body }
+ 
+-  let bind a ~f =
+-    let b = f a.body in
+-    { value_bindings = a.value_bindings @ b.value_bindings; body = b.body }
+-  ;;
++    let bind a ~f =
++      let b = f a.body in
++      { value_bindings = a.value_bindings @ b.value_bindings; body = b.body }
++    ;;
+ 
+-  let map = `Define_using_bind
+-end)
++    let map = `Define_using_bind
++  end)
+ 
+ let create ~loc ~prefix ~ty rhs =
+   let name = gen_symbol ~prefix () in
+diff --git a/expander/ppx_sexp_conv_grammar.ml b/expander/ppx_sexp_conv_grammar.ml
+index a928d68..c8bd91c 100644
+--- a/expander/ppx_sexp_conv_grammar.ml
++++ b/expander/ppx_sexp_conv_grammar.ml
+@@ -434,11 +434,19 @@ let grammar_of_variant ~loc ~rec_flag ~tags_of_doc_comments clause_decls =
+       match Attribute.get Attrs.list_variant clause with
+       | Some () ->
+         (match clause.pcd_args with
+-         | Pcstr_tuple [ [%type: [%t? ty] list] ] ->
+-           let args =
+-             many_grammar ~loc (grammar_of_type ty ~rec_flag ~tags_of_doc_comments)
+-           in
+-           { name = clause.pcd_name; comments; tags; clause_kind = list_clause ~loc args }
++         | Pcstr_tuple [ arg ] ->
++           let core_type = Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type arg in
++           (match core_type with
++            | [%type: [%t? ty] list] ->
++              let args =
++                many_grammar ~loc (grammar_of_type ty ~rec_flag ~tags_of_doc_comments)
++              in
++              { name = clause.pcd_name
++              ; comments
++              ; tags
++              ; clause_kind = list_clause ~loc args
++              }
++            | _ -> Attrs.invalid_attribute ~loc Attrs.list_variant "_ list")
+          | _ -> Attrs.invalid_attribute ~loc Attrs.list_variant "_ list")
+       | None ->
+         (match clause.pcd_args with
+@@ -448,7 +456,9 @@ let grammar_of_variant ~loc ~rec_flag ~tags_of_doc_comments clause_decls =
+            let args =
+              tuple_grammar
+                ~loc
+-               (List.map args ~f:(grammar_of_type ~rec_flag ~tags_of_doc_comments))
++               (List.map args ~f:(fun arg ->
++                  Ppxlib_jane.Shim.Pcstr_tuple_arg.to_core_type arg
++                  |> grammar_of_type ~rec_flag ~tags_of_doc_comments))
+            in
+            { name = clause.pcd_name; comments; tags; clause_kind = list_clause ~loc args }
+          | Pcstr_record fields ->
+diff --git a/test/expansion.ml b/test/expansion.ml
+index fca17e7..f414364 100644
+--- a/test/expansion.ml
++++ b/test/expansion.ml
+@@ -16,7 +16,7 @@ module Abstract = struct
+   let t_of_sexp =
+     (let error_source__002_ = "expansion.ml.Abstract.t" in
+      fun x__003_ -> Sexplib0.Sexp_conv_error.empty_type error_source__002_ x__003_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -41,7 +41,7 @@ module Tuple = struct
+        res0__008_, res1__009_, res2__010_
+      | sexp__011_ ->
+        Sexplib0.Sexp_conv_error.tuple_of_size_n_expected error_source__012_ 3 sexp__011_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -52,7 +52,7 @@ module Tuple = struct
+        and res1__017_ = sexp_of_int arg1__014_
+        and res2__018_ = sexp_of_int arg2__015_ in
+        Sexplib0.Sexp.List [ res0__016_; res1__017_; res2__018_ ]
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -79,16 +79,19 @@ module Record = struct
+            (Field
+               { name = "a"
+               ; kind = Required
++              ; layout = Value
+               ; conv = int_of_sexp
+               ; rest =
+                   Field
+                     { name = "b"
+                     ; kind = Required
++                    ; layout = Value
+                     ; conv = int_of_sexp
+                     ; rest =
+                         Field
+                           { name = "c"
+                           ; kind = Required
++                          ; layout = Value
+                           ; conv = int_of_sexp
+                           ; rest = Empty
+                           }
+@@ -102,7 +105,7 @@ module Record = struct
+          ~allow_extra_fields:false
+          ~create:(fun (a, (b, (c, ()))) : t -> { a; b; c })
+          x__021_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -113,20 +116,20 @@ module Record = struct
+        let bnds__022_ =
+          let arg__028_ = sexp_of_int c__027_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "c"; arg__028_ ] :: bnds__022_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__022_ =
+          let arg__026_ = sexp_of_int b__025_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "b"; arg__026_ ] :: bnds__022_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__022_ =
+          let arg__024_ = sexp_of_int a__023_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__024_ ] :: bnds__022_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List bnds__022_
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -153,16 +156,19 @@ module Mutable_record = struct
+            (Field
+               { name = "a"
+               ; kind = Required
++              ; layout = Value
+               ; conv = int_of_sexp
+               ; rest =
+                   Field
+                     { name = "b"
+                     ; kind = Required
++                    ; layout = Value
+                     ; conv = int_of_sexp
+                     ; rest =
+                         Field
+                           { name = "c"
+                           ; kind = Required
++                          ; layout = Value
+                           ; conv = int_of_sexp
+                           ; rest = Empty
+                           }
+@@ -176,7 +182,7 @@ module Mutable_record = struct
+          ~allow_extra_fields:false
+          ~create:(fun (a, (b, (c, ()))) : t -> { a; b; c })
+          x__031_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -187,20 +193,20 @@ module Mutable_record = struct
+        let bnds__032_ =
+          let arg__038_ = sexp_of_int c__037_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "c"; arg__038_ ] :: bnds__032_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__032_ =
+          let arg__036_ = sexp_of_int b__035_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "b"; arg__036_ ] :: bnds__032_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__032_ =
+          let arg__034_ = sexp_of_int a__033_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__034_ ] :: bnds__032_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List bnds__032_
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -251,16 +257,19 @@ module Variant = struct
+            (Field
+               { name = "a"
+               ; kind = Required
++              ; layout = Value
+               ; conv = int_of_sexp
+               ; rest =
+                   Field
+                     { name = "b"
+                     ; kind = Required
++                    ; layout = Value
+                     ; conv = int_of_sexp
+                     ; rest =
+                         Field
+                           { name = "d"
+                           ; kind = Required
++                          ; layout = Value
+                           ; conv = int_of_sexp
+                           ; rest = Empty
+                           }
+@@ -282,16 +291,19 @@ module Variant = struct
+            (Field
+               { name = "a"
+               ; kind = Required
++              ; layout = Value
+               ; conv = int_of_sexp
+               ; rest =
+                   Field
+                     { name = "b"
+                     ; kind = Required
++                    ; layout = Value
+                     ; conv = int_of_sexp
+                     ; rest =
+                         Field
+                           { name = "t"
+                           ; kind = Required
++                          ; layout = Value
+                           ; conv = int_of_sexp
+                           ; rest = Empty
+                           }
+@@ -318,8 +330,11 @@ module Variant = struct
+      | Sexplib0.Sexp.List [] as sexp__040_ ->
+        Sexplib0.Sexp_conv_error.empty_list_invalid_sum error_source__041_ sexp__040_
+      | sexp__040_ ->
+-       Sexplib0.Sexp_conv_error.unexpected_stag error_source__041_ sexp__040_
+-      : Sexplib0.Sexp.t -> t)
++       Sexplib0.Sexp_conv_error.unexpected_stag
++         error_source__041_
++         [ "A"; "B"; "C"; "D" ]
++         sexp__040_
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -336,17 +351,17 @@ module Variant = struct
+        let bnds__058_ =
+          let arg__064_ = sexp_of_int d__063_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "d"; arg__064_ ] :: bnds__058_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__058_ =
+          let arg__062_ = sexp_of_int b__061_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "b"; arg__062_ ] :: bnds__058_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__058_ =
+          let arg__060_ = sexp_of_int a__059_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__060_ ] :: bnds__058_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List (Sexplib0.Sexp.Atom "C" :: bnds__058_)
+      | D { a = a__066_; b = b__068_; t = t__070_ } ->
+@@ -354,20 +369,20 @@ module Variant = struct
+        let bnds__065_ =
+          let arg__071_ = sexp_of_int t__070_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "t"; arg__071_ ] :: bnds__065_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__065_ =
+          let arg__069_ = sexp_of_int b__068_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "b"; arg__069_ ] :: bnds__065_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__065_ =
+          let arg__067_ = sexp_of_int a__066_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__067_ ] :: bnds__065_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List (Sexplib0.Sexp.Atom "D" :: bnds__065_)
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -411,7 +426,7 @@ module Poly_variant = struct
+        Sexplib0.Sexp_conv_error.nested_list_invalid_poly_var error_source__077_ sexp__074_
+      | Sexplib0.Sexp.List [] as sexp__074_ ->
+        Sexplib0.Sexp_conv_error.empty_list_invalid_poly_var error_source__077_ sexp__074_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = __t_of_sexp__
+@@ -422,7 +437,7 @@ module Poly_variant = struct
+        try __t_of_sexp__ sexp__081_ with
+        | Sexplib0.Sexp_conv_error.No_variant_match ->
+          Sexplib0.Sexp_conv_error.no_matching_variant_found error_source__082_ sexp__081_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -431,7 +446,7 @@ module Poly_variant = struct
+     (function
+      | `A -> Sexplib0.Sexp.Atom "A"
+      | `B v__083_ -> Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "B"; sexp_of_int v__083_ ]
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -492,7 +507,7 @@ module Inline_poly_variant = struct
+             Sexplib0.Sexp_conv_error.empty_list_invalid_poly_var
+               error_source__095_
+               sexp__086_)
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = __t_of_sexp__
+@@ -503,7 +518,7 @@ module Inline_poly_variant = struct
+        try __t_of_sexp__ sexp__098_ with
+        | Sexplib0.Sexp_conv_error.No_variant_match ->
+          Sexplib0.Sexp_conv_error.no_matching_variant_found error_source__099_ sexp__098_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -519,7 +534,7 @@ module Inline_poly_variant = struct
+             and res1__105_ = sexp_of_int arg1__103_ in
+             Sexplib0.Sexp.List [ res0__104_; res1__105_ ])
+          ]
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -542,7 +557,7 @@ module Recursive = struct
+          (Sexplib0.Sexp.Atom (("banana" | "Banana") as _tag__111_) :: sexp_args__112_) as
+        _sexp__110_ ->
+        (match sexp_args__112_ with
+-        | [ arg0__113_ ] ->
++        | arg0__113_ :: [] ->
+           let res0__114_ = t_of_sexp arg0__113_ in
+           Banana res0__114_
+         | _ ->
+@@ -560,8 +575,11 @@ module Recursive = struct
+      | Sexplib0.Sexp.List [] as sexp__107_ ->
+        Sexplib0.Sexp_conv_error.empty_list_invalid_sum error_source__108_ sexp__107_
+      | sexp__107_ ->
+-       Sexplib0.Sexp_conv_error.unexpected_stag error_source__108_ sexp__107_
+-      : Sexplib0.Sexp.t -> t)
++       Sexplib0.Sexp_conv_error.unexpected_stag
++         error_source__108_
++         [ "Banana"; "Orange" ]
++         sexp__107_
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -572,7 +590,7 @@ module Recursive = struct
+        let res0__116_ = sexp_of_t arg0__115_ in
+        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Banana"; res0__116_ ]
+      | Orange -> Sexplib0.Sexp.Atom "Orange"
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -623,7 +641,7 @@ module Mutually_recursive = struct
+          (Sexplib0.Sexp.Atom (("b" | "B") as _tag__123_) :: sexp_args__124_) as
+        _sexp__122_ ->
+        (match sexp_args__124_ with
+-        | [ arg0__125_ ] ->
++        | arg0__125_ :: [] ->
+           let res0__126_ = b_of_sexp arg0__125_ in
+           B res0__126_
+         | _ ->
+@@ -639,15 +657,22 @@ module Mutually_recursive = struct
+            (Field
+               { name = "a"
+               ; kind = Required
++              ; layout = Value
+               ; conv = a_of_sexp
+               ; rest =
+                   Field
+                     { name = "b"
+                     ; kind = Required
++                    ; layout = Value
+                     ; conv = b_of_sexp
+                     ; rest =
+                         Field
+-                          { name = "c"; kind = Required; conv = c_of_sexp; rest = Empty }
++                          { name = "c"
++                          ; kind = Required
++                          ; layout = Value
++                          ; conv = c_of_sexp
++                          ; rest = Empty
++                          }
+                     }
+               })
+          ~index_of_field:(function
+@@ -669,8 +694,11 @@ module Mutually_recursive = struct
+      | Sexplib0.Sexp.List [] as sexp__119_ ->
+        Sexplib0.Sexp_conv_error.empty_list_invalid_sum error_source__120_ sexp__119_
+      | sexp__119_ ->
+-       Sexplib0.Sexp_conv_error.unexpected_stag error_source__120_ sexp__119_
+-      : Sexplib0.Sexp.t -> a)
++       Sexplib0.Sexp_conv_error.unexpected_stag
++         error_source__120_
++         [ "A"; "B"; "C" ]
++         sexp__119_
++     : Sexplib0.Sexp.t -> a)
+ 
+   and b_of_sexp =
+     (let error_source__130_ = "expansion.ml.Mutually_recursive.b" in
+@@ -681,9 +709,16 @@ module Mutually_recursive = struct
+            (Field
+               { name = "a"
+               ; kind = Required
++              ; layout = Value
+               ; conv = a_of_sexp
+               ; rest =
+-                  Field { name = "b"; kind = Required; conv = b_of_sexp; rest = Empty }
++                  Field
++                    { name = "b"
++                    ; kind = Required
++                    ; layout = Value
++                    ; conv = b_of_sexp
++                    ; rest = Empty
++                    }
+               })
+          ~index_of_field:(function
+            | "a" -> 0
+@@ -692,7 +727,7 @@ module Mutually_recursive = struct
+          ~allow_extra_fields:false
+          ~create:(fun (a, (b, ())) : b -> { a; b })
+          x__131_
+-      : Sexplib0.Sexp.t -> b)
++     : Sexplib0.Sexp.t -> b)
+ 
+   and c_of_sexp = (fun x__133_ -> a_of_sexp x__133_ : Sexplib0.Sexp.t -> c)
+ 
+@@ -711,20 +746,20 @@ module Mutually_recursive = struct
+        let bnds__136_ =
+          let arg__142_ = sexp_of_c c__141_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "c"; arg__142_ ] :: bnds__136_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__136_ =
+          let arg__140_ = sexp_of_b b__139_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "b"; arg__140_ ] :: bnds__136_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__136_ =
+          let arg__138_ = sexp_of_a a__137_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__138_ ] :: bnds__136_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List (Sexplib0.Sexp.Atom "C" :: bnds__136_)
+-      : a -> Sexplib0.Sexp.t)
++     : a -> Sexplib0.Sexp.t)
+ 
+   and sexp_of_b =
+     (fun { a = a__144_; b = b__146_ } ->
+@@ -732,15 +767,15 @@ module Mutually_recursive = struct
+        let bnds__143_ =
+          let arg__147_ = sexp_of_b b__146_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "b"; arg__147_ ] :: bnds__143_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__143_ =
+          let arg__145_ = sexp_of_a a__144_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__145_ ] :: bnds__143_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List bnds__143_
+-      : b -> Sexplib0.Sexp.t)
++     : b -> Sexplib0.Sexp.t)
+ 
+   and sexp_of_c = (fun x__148_ -> sexp_of_a x__148_ : c -> Sexplib0.Sexp.t)
+ 
+@@ -778,7 +813,7 @@ module Re_export = struct
+          (Sexplib0.Sexp.Atom (("banana" | "Banana") as _tag__155_) :: sexp_args__156_) as
+        _sexp__154_ ->
+        (match sexp_args__156_ with
+-        | [ arg0__157_ ] ->
++        | arg0__157_ :: [] ->
+           let res0__158_ = t_of_sexp arg0__157_ in
+           Banana res0__158_
+         | _ ->
+@@ -796,8 +831,11 @@ module Re_export = struct
+      | Sexplib0.Sexp.List [] as sexp__151_ ->
+        Sexplib0.Sexp_conv_error.empty_list_invalid_sum error_source__152_ sexp__151_
+      | sexp__151_ ->
+-       Sexplib0.Sexp_conv_error.unexpected_stag error_source__152_ sexp__151_
+-      : Sexplib0.Sexp.t -> t)
++       Sexplib0.Sexp_conv_error.unexpected_stag
++         error_source__152_
++         [ "Banana"; "Orange" ]
++         sexp__151_
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -808,7 +846,7 @@ module Re_export = struct
+        let res0__160_ = sexp_of_t arg0__159_ in
+        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Banana"; res0__160_ ]
+      | Orange -> Sexplib0.Sexp.Atom "Orange"
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -841,24 +879,18 @@ module Binary = struct
+ 
+   let _ = fun (_ : ('a, 'b) t) -> ()
+ 
+-  let t_of_sexp :
+-        'a 'b.
+-        (Sexplib0.Sexp.t -> 'a)
+-        -> (Sexplib0.Sexp.t -> 'b)
+-        -> Sexplib0.Sexp.t
+-        -> ('a, 'b) t
++  let t_of_sexp
++    : 'a 'b.
++    (Sexplib0.Sexp.t -> 'a) -> (Sexplib0.Sexp.t -> 'b) -> Sexplib0.Sexp.t -> ('a, 'b) t
+     =
+     Either.t_of_sexp
+   ;;
+ 
+   let _ = t_of_sexp
+ 
+-  let sexp_of_t :
+-        'a 'b.
+-        ('a -> Sexplib0.Sexp.t)
+-        -> ('b -> Sexplib0.Sexp.t)
+-        -> ('a, 'b) t
+-        -> Sexplib0.Sexp.t
++  let sexp_of_t
++    : 'a 'b.
++    ('a -> Sexplib0.Sexp.t) -> ('b -> Sexplib0.Sexp.t) -> ('a, 'b) t -> Sexplib0.Sexp.t
+     =
+     Either.sexp_of_t
+   ;;
+@@ -894,24 +926,18 @@ module Second_order = struct
+ 
+   let _ = fun (_ : ('a, 'b) t) -> ()
+ 
+-  let t_of_sexp :
+-        'a 'b.
+-        (Sexplib0.Sexp.t -> 'a)
+-        -> (Sexplib0.Sexp.t -> 'b)
+-        -> Sexplib0.Sexp.t
+-        -> ('a, 'b) t
++  let t_of_sexp
++    : 'a 'b.
++    (Sexplib0.Sexp.t -> 'a) -> (Sexplib0.Sexp.t -> 'b) -> Sexplib0.Sexp.t -> ('a, 'b) t
+     =
+     fun _of_a__176_ _of_b__177_ -> Sexplib0.Sexp_conv.fun_of_sexp
+   ;;
+ 
+   let _ = t_of_sexp
+ 
+-  let sexp_of_t :
+-        'a 'b.
+-        ('a -> Sexplib0.Sexp.t)
+-        -> ('b -> Sexplib0.Sexp.t)
+-        -> ('a, 'b) t
+-        -> Sexplib0.Sexp.t
++  let sexp_of_t
++    : 'a 'b.
++    ('a -> Sexplib0.Sexp.t) -> ('b -> Sexplib0.Sexp.t) -> ('a, 'b) t -> Sexplib0.Sexp.t
+     =
+     fun _of_a__179_ _of_b__180_ _ ->
+     Sexplib0.Sexp_conv.sexp_of_fun Sexplib0.Sexp_conv.ignore
+@@ -931,7 +957,7 @@ module Named_arguments = struct
+ 
+   let sexp_of_t =
+     (fun _ -> Sexplib0.Sexp_conv.sexp_of_fun Sexplib0.Sexp_conv.ignore
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -976,7 +1002,7 @@ module Recursive_record_containing_variant = struct
+   let _ = fun (_ : t) -> ()
+ 
+   let rec t_of_sexp =
+-    (let (default__191_ : [ `B ]) = `B in
++    (let default__191_ : [ `B ] = `B in
+      let error_source__190_ = "expansion.ml.Recursive_record_containing_variant.t" in
+      fun x__207_ ->
+        Sexplib0.Sexp_conv_record.record_of_sexp
+@@ -985,6 +1011,7 @@ module Recursive_record_containing_variant = struct
+            (Field
+               { name = "a"
+               ; kind = Required
++              ; layout = Value
+               ; conv =
+                   (fun sexp__206_ ->
+                     try
+@@ -1002,7 +1029,7 @@ module Recursive_record_containing_variant = struct
+                         (match atom__199_ with
+                          | "A" as _tag__203_ ->
+                            (match sexp_args__202_ with
+-                            | [ arg0__204_ ] ->
++                            | arg0__204_ :: [] ->
+                               let res0__205_ = t_of_sexp arg0__204_ in
+                               `A res0__205_
+                             | _ ->
+@@ -1028,6 +1055,7 @@ module Recursive_record_containing_variant = struct
+                   Field
+                     { name = "b"
+                     ; kind = Default (fun () -> default__191_)
++                    ; layout = Value
+                     ; conv =
+                         (fun sexp__197_ ->
+                           try
+@@ -1068,7 +1096,7 @@ module Recursive_record_containing_variant = struct
+          ~allow_extra_fields:false
+          ~create:(fun (a, (b, ())) : t -> { a; b })
+          x__207_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -1092,10 +1120,10 @@ module Recursive_record_containing_variant = struct
+            Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "A"; sexp_of_t v__211_ ]
+          in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__210_ ] :: bnds__208_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List bnds__208_
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -1127,6 +1155,7 @@ module Poly_record = struct
+            (Field
+               { name = "a"
+               ; kind = Required
++              ; layout = Value
+               ; conv =
+                   (fun sexp__227_ ->
+                     { a__220_ =
+@@ -1140,6 +1169,7 @@ module Poly_record = struct
+                   Field
+                     { name = "b"
+                     ; kind = Required
++                    ; layout = Value
+                     ; conv =
+                         (fun sexp__225_ ->
+                           { b__221_ =
+@@ -1153,6 +1183,7 @@ module Poly_record = struct
+                         Field
+                           { name = "c"
+                           ; kind = Required
++                          ; layout = Value
+                           ; conv =
+                               (fun sexp__223_ ->
+                                 { c__222_ =
+@@ -1175,7 +1206,7 @@ module Poly_record = struct
+          ~create:(fun ({ a__220_ = a }, ({ b__221_ = b }, ({ c__222_ = c }, ()))) : t ->
+            { a; b; c })
+          x__229_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -1189,7 +1220,7 @@ module Poly_record = struct
+            _of_c__239_ c__237_
+          in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "c"; arg__238_ ] :: bnds__230_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__230_ =
+          let arg__235_ =
+@@ -1197,7 +1228,7 @@ module Poly_record = struct
+            sexp_of_option _of_b__236_ b__234_
+          in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "b"; arg__235_ ] :: bnds__230_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        let bnds__230_ =
+          let arg__232_ =
+@@ -1205,10 +1236,10 @@ module Poly_record = struct
+            sexp_of_list _of_a__233_ a__231_
+          in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__232_ ] :: bnds__230_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List bnds__230_
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -1230,11 +1261,11 @@ module Record_with_defaults = struct
+   let _ = fun (_ : t) -> ()
+ 
+   let t_of_sexp =
+-    (let (default__242_ : int) = 0
+-     and (default__243_ : int) = 0
+-     and (default__244_ : int) = 0
+-     and (default__245_ : int) = 0
+-     and (default__246_ : int) = 0 in
++    (let default__242_ : int = 0
++     and default__243_ : int = 0
++     and default__244_ : int = 0
++     and default__245_ : int = 0
++     and default__246_ : int = 0 in
+      let error_source__241_ = "expansion.ml.Record_with_defaults.t" in
+      fun x__247_ ->
+        Sexplib0.Sexp_conv_record.record_of_sexp
+@@ -1243,31 +1274,37 @@ module Record_with_defaults = struct
+            (Field
+               { name = "a"
+               ; kind = Default (fun () -> default__246_)
++              ; layout = Value
+               ; conv = int_of_sexp
+               ; rest =
+                   Field
+                     { name = "b"
+                     ; kind = Default (fun () -> default__245_)
++                    ; layout = Value
+                     ; conv = int_of_sexp
+                     ; rest =
+                         Field
+                           { name = "c"
+                           ; kind = Default (fun () -> default__244_)
++                          ; layout = Value
+                           ; conv = int_of_sexp
+                           ; rest =
+                               Field
+                                 { name = "d"
+                                 ; kind = Default (fun () -> default__243_)
++                                ; layout = Value
+                                 ; conv = int_of_sexp
+                                 ; rest =
+                                     Field
+                                       { name = "e"
+                                       ; kind = Default (fun () -> default__242_)
++                                      ; layout = Value
+                                       ; conv = int_of_sexp
+                                       ; rest =
+                                           Field
+                                             { name = "f"
+                                             ; kind = Required
++                                            ; layout = Value
+                                             ; conv = int_of_sexp
+                                             ; rest = Empty
+                                             }
+@@ -1287,7 +1324,7 @@ module Record_with_defaults = struct
+          ~allow_extra_fields:false
+          ~create:(fun (a, (b, (c, (d, (e, (f, ())))))) : t -> { a; b; c; d; e; f })
+          x__247_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -1344,10 +1381,10 @@ module Record_with_defaults = struct
+        let bnds__248_ =
+          let arg__250_ = sexp_of_int a__249_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__250_ ] :: bnds__248_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List bnds__248_
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -1375,20 +1412,28 @@ module Record_with_special_types = struct
+            (Field
+               { name = "a"
+               ; kind = Sexp_option
++              ; layout = Value
+               ; conv = int_of_sexp
+               ; rest =
+                   Field
+                     { name = "b"
+                     ; kind = Sexp_list
++                    ; layout = Value
+                     ; conv = int_of_sexp
+                     ; rest =
+                         Field
+                           { name = "c"
+                           ; kind = Sexp_array
++                          ; layout = Value
+                           ; conv = int_of_sexp
+                           ; rest =
+                               Field
+-                                { name = "d"; kind = Sexp_bool; conv = (); rest = Empty }
++                                { name = "d"
++                                ; kind = Sexp_bool
++                                ; layout = Value
++                                ; conv = ()
++                                ; rest = Empty
++                                }
+                           }
+                     }
+               })
+@@ -1401,7 +1446,7 @@ module Record_with_special_types = struct
+          ~allow_extra_fields:false
+          ~create:(fun (a, (b, (c, (d, ())))) : t -> { a; b; c; d })
+          x__285_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -1445,7 +1490,7 @@ module Record_with_special_types = struct
+            (bnd__289_ :: bnds__286_ : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List bnds__286_
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -1473,21 +1518,25 @@ module Record_with_omit_nil = struct
+            (Field
+               { name = "a"
+               ; kind = Omit_nil
++              ; layout = Value
+               ; conv = option_of_sexp int_of_sexp
+               ; rest =
+                   Field
+                     { name = "b"
+                     ; kind = Omit_nil
++                    ; layout = Value
+                     ; conv = list_of_sexp int_of_sexp
+                     ; rest =
+                         Field
+                           { name = "c"
+                           ; kind = Omit_nil
++                          ; layout = Value
+                           ; conv = unit_of_sexp
+                           ; rest =
+                               Field
+                                 { name = "d"
+                                 ; kind = Omit_nil
++                                ; layout = Value
+                                 ; conv = int_of_sexp
+                                 ; rest = Empty
+                                 }
+@@ -1503,7 +1552,7 @@ module Record_with_omit_nil = struct
+          ~allow_extra_fields:false
+          ~create:(fun (a, (b, (c, (d, ())))) : t -> { a; b; c; d })
+          x__303_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -1516,31 +1565,31 @@ module Record_with_omit_nil = struct
+          | Sexplib0.Sexp.List [] -> bnds__304_
+          | arg__312_ ->
+            (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "d"; arg__312_ ] :: bnds__304_
+-             : _ Stdlib.List.t)
++            : _ Stdlib.List.t)
+        in
+        let bnds__304_ =
+          match sexp_of_unit c__309_ with
+          | Sexplib0.Sexp.List [] -> bnds__304_
+          | arg__310_ ->
+            (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "c"; arg__310_ ] :: bnds__304_
+-             : _ Stdlib.List.t)
++            : _ Stdlib.List.t)
+        in
+        let bnds__304_ =
+          match sexp_of_list sexp_of_int b__307_ with
+          | Sexplib0.Sexp.List [] -> bnds__304_
+          | arg__308_ ->
+            (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "b"; arg__308_ ] :: bnds__304_
+-             : _ Stdlib.List.t)
++            : _ Stdlib.List.t)
+        in
+        let bnds__304_ =
+          match sexp_of_option sexp_of_int a__305_ with
+          | Sexplib0.Sexp.List [] -> bnds__304_
+          | arg__306_ ->
+            (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__306_ ] :: bnds__304_
+-             : _ Stdlib.List.t)
++            : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List bnds__304_
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -1566,8 +1615,8 @@ module Variant_with_sexp_list = struct
+      | Sexplib0.Sexp.List [] as sexp__314_ ->
+        Sexplib0.Sexp_conv_error.empty_list_invalid_sum error_source__315_ sexp__314_
+      | sexp__314_ ->
+-       Sexplib0.Sexp_conv_error.unexpected_stag error_source__315_ sexp__314_
+-      : Sexplib0.Sexp.t -> t)
++       Sexplib0.Sexp_conv_error.unexpected_stag error_source__315_ [ "A" ] sexp__314_
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -1576,7 +1625,7 @@ module Variant_with_sexp_list = struct
+     (fun (A l__320_) ->
+        Sexplib0.Sexp.List
+          (Sexplib0.Sexp.Atom "A" :: Sexplib0.Sexp_conv.list_map sexp_of_int l__320_)
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -1606,7 +1655,7 @@ module Poly_variant_with_sexp_list = struct
+        Sexplib0.Sexp_conv_error.nested_list_invalid_poly_var error_source__327_ sexp__323_
+      | Sexplib0.Sexp.List [] as sexp__323_ ->
+        Sexplib0.Sexp_conv_error.empty_list_invalid_poly_var error_source__327_ sexp__323_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = __t_of_sexp__
+@@ -1617,7 +1666,7 @@ module Poly_variant_with_sexp_list = struct
+        try __t_of_sexp__ sexp__328_ with
+        | Sexplib0.Sexp_conv_error.No_variant_match ->
+          Sexplib0.Sexp_conv_error.no_matching_variant_found error_source__329_ sexp__328_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -1626,7 +1675,7 @@ module Poly_variant_with_sexp_list = struct
+     (fun (`A l__330_) ->
+        Sexplib0.Sexp.List
+          (Sexplib0.Sexp.Atom "A" :: Sexplib0.Sexp_conv.list_map sexp_of_int l__330_)
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -1644,14 +1693,21 @@ module Record_allowing_extra_fields = struct
+      fun x__333_ ->
+        Sexplib0.Sexp_conv_record.record_of_sexp
+          ~caller:error_source__332_
+-         ~fields:(Field { name = "a"; kind = Required; conv = int_of_sexp; rest = Empty })
++         ~fields:
++           (Field
++              { name = "a"
++              ; kind = Required
++              ; layout = Value
++              ; conv = int_of_sexp
++              ; rest = Empty
++              })
+          ~index_of_field:(function
+            | "a" -> 0
+            | _ -> -1)
+          ~allow_extra_fields:true
+          ~create:(fun (a, ()) : t -> { a })
+          x__333_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+@@ -1662,10 +1718,10 @@ module Record_allowing_extra_fields = struct
+        let bnds__334_ =
+          let arg__336_ = sexp_of_int a__335_ in
+          (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "a"; arg__336_ ] :: bnds__334_
+-           : _ Stdlib.List.t)
++          : _ Stdlib.List.t)
+        in
+        Sexplib0.Sexp.List bnds__334_
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+@@ -1680,14 +1736,14 @@ module Opaque = struct
+ 
+   let t_of_sexp =
+     (fun x__338_ -> list_of_sexp Sexplib0.Sexp_conv.opaque_of_sexp x__338_
+-      : Sexplib0.Sexp.t -> t)
++     : Sexplib0.Sexp.t -> t)
+   ;;
+ 
+   let _ = t_of_sexp
+ 
+   let sexp_of_t =
+     (fun x__339_ -> sexp_of_list Sexplib0.Sexp_conv.sexp_of_opaque x__339_
+-      : t -> Sexplib0.Sexp.t)
++     : t -> Sexplib0.Sexp.t)
+   ;;
+ 
+   let _ = sexp_of_t
+diff --git a/test/ppx_sexp_test.ml b/test/ppx_sexp_test.ml
+index c9176b5..597b94c 100644
+--- a/test/ppx_sexp_test.ml
++++ b/test/ppx_sexp_test.ml
+@@ -44,6 +44,18 @@ module Sum_and_polymorphic_variants = struct
+       ; (Two_args (1, "a"), Sexp.(List [ Atom "Two_args"; Atom "1"; Atom "a" ]))
+       ]
+   ;;
++
++  let%expect_test _ =
++    let sexp = Sexplib.Sexp.of_string "(Three_args 1 1 1)" in
++    Expect_test_helpers_core.show_raise (fun () -> nominal_of_sexp sexp);
++    [%expect
++      {|
++      (raised (
++        Of_sexp_error
++        "ppx_sexp_test.ml.Sum_and_polymorphic_variants.nominal_of_sexp: unexpected variant constructor; expected one of No_arg One_arg One_tuple Two_args"
++        (invalid_sexp (Three_args 1 1 1))))
++      |}]
++  ;;
+ end
+ 
+ module Records = struct
+@@ -103,10 +115,34 @@ module Records = struct
+       {|
+       (raised (
+         Of_sexp_error
+-        "ppx_sexp_test.ml.Records.t_of_sexp: extra fields: c"
++        "ppx_sexp_test.ml.Records.t_of_sexp: extra fields found while some fields missing; extra fields: c; missing fields: a b"
+         (invalid_sexp ((c 3)))))
+       |}]
+   ;;
++
++  let%expect_test _ =
++    let sexp = Sexplib.Sexp.of_string "((a 3))" in
++    Expect_test_helpers_core.show_raise (fun () -> t_of_sexp sexp);
++    [%expect
++      {|
++      (raised (
++        Of_sexp_error
++        "ppx_sexp_test.ml.Records.t_of_sexp: missing fields: b"
++        (invalid_sexp ((a 3)))))
++      |}]
++  ;;
++
++  let%expect_test _ =
++    let sexp = Sexplib.Sexp.of_string "((a 3) (b ()) (c 1))" in
++    Expect_test_helpers_core.show_raise (fun () -> t_of_sexp sexp);
++    [%expect
++      {|
++      (raised (
++        Of_sexp_error
++        "ppx_sexp_test.ml.Records.t_of_sexp: extra fields: c"
++        (invalid_sexp ((a 3) (b ()) (c 1)))))
++      |}]
++  ;;
+ end
+ 
+ module Inline_records = struct
+@@ -298,8 +334,8 @@ module No_unused_value_warnings : sig end = struct
+   module Empty = struct end
+ 
+   module No_warning2 (X : sig
+-    type t [@@deriving sexp, sexp_grammar]
+-  end) =
++      type t [@@deriving sexp, sexp_grammar]
++    end) =
+   struct end
+ 
+   (* this one can't be handled (what if Empty was a functor, huh?) *)
+@@ -320,11 +356,13 @@ module No_unused_value_warnings : sig end = struct
+       S) :
+       S)
+ 
+-  module Nested_functors (M1 : sig
+-    type t [@@deriving sexp, sexp_grammar]
+-  end) (M2 : sig
+-    type t [@@deriving sexp, sexp_grammar]
+-  end) =
++  module Nested_functors
++      (M1 : sig
++         type t [@@deriving sexp, sexp_grammar]
++       end)
++      (M2 : sig
++         type t [@@deriving sexp, sexp_grammar]
++       end) =
+   struct end
+ 
+   let () =
+@@ -339,13 +377,13 @@ module No_unused_value_warnings : sig end = struct
+ 
+   module Include = struct
+     include (
+-      struct
+-        type t = int [@@deriving sexp, sexp_grammar]
+-      end :
+-        sig
+-          type t [@@deriving sexp, sexp_grammar]
+-        end
+-        with type t := int)
++    struct
++      type t = int [@@deriving sexp, sexp_grammar]
++    end :
++      sig
++        type t [@@deriving sexp, sexp_grammar]
++      end
++      with type t := int)
+   end
+ end
+ 
+@@ -409,12 +447,12 @@ module Drop_default = struct
+ 
+   let test ?cr t_of_sexp sexp_of_t =
+     let ( = ) = Sexp.( = ) in
+-    require ?cr [%here] (Sexp.(List [ List [ Atom "a"; Atom "1" ] ]) = sexp_of_t { a = 1 });
+-    require ?cr [%here] (Sexp.(List []) = sexp_of_t { a = 2 });
++    require ?cr (Sexp.(List [ List [ Atom "a"; Atom "1" ] ]) = sexp_of_t { a = 1 });
++    require ?cr (Sexp.(List []) = sexp_of_t { a = 2 });
+     let ( = ) = equal in
+-    require ?cr [%here] (t_of_sexp Sexp.(List [ List [ Atom "a"; Atom "1" ] ]) = { a = 1 });
+-    require ?cr [%here] (t_of_sexp Sexp.(List [ List [ Atom "a"; Atom "2" ] ]) = { a = 2 });
+-    require ?cr [%here] (t_of_sexp Sexp.(List []) = { a = 2 })
++    require ?cr (t_of_sexp Sexp.(List [ List [ Atom "a"; Atom "1" ] ]) = { a = 1 });
++    require ?cr (t_of_sexp Sexp.(List [ List [ Atom "a"; Atom "2" ] ]) = { a = 2 });
++    require ?cr (t_of_sexp Sexp.(List []) = { a = 2 })
+   ;;
+ 
+   type my_int = int [@@deriving sexp, sexp_grammar]
+@@ -738,13 +776,13 @@ module Boolean = struct
+   [@@deriving sexp, sexp_grammar] [@@sexp.allow_extra_fields]
+ 
+   let%expect_test _ =
+-    Expect_test_helpers_core.require_does_raise ~cr:CR_soon [%here] (fun () ->
++    Expect_test_helpers_core.require_does_raise ~cr:CR_soon (fun () ->
+       let r = t_allow_extra_fields_of_sexp (Sexplib.Sexp.of_string "((no_arg true))") in
+       print_endline (Bool.to_string r.no_arg));
+     [%expect
+       {|
+       (Of_sexp_error
+-       "ppx_sexp_test.ml.Boolean.t_allow_extra_fields_of_sexp: record conversion: a [sexp.bool] field was given a payload."
++       "ppx_sexp_test.ml.Boolean.t_allow_extra_fields_of_sexp: record conversion: a [sexp.bool] field was given a payload"
+        (invalid_sexp ((no_arg true))))
+       |}]
+   ;;
+@@ -782,11 +820,13 @@ module Applicative_functor_types = struct
+   module Bidirectional_map = struct
+     type ('k1, 'k2) t
+ 
+-    module S (K1 : sig
+-      type t
+-    end) (K2 : sig
+-      type t
+-    end) =
++    module S
++        (K1 : sig
++           type t
++         end)
++        (K2 : sig
++           type t
++         end) =
+     struct
+       type nonrec t = (K1.t, K2.t) t
+     end
+@@ -855,7 +895,7 @@ module Allow_extra_fields = struct
+     let%test _ = should_raise t1_of_sexp sexp_extra
+ 
+     let%expect_test _ =
+-      Expect_test_helpers_core.require_does_raise ~cr:CR_soon [%here] (fun () ->
++      Expect_test_helpers_core.require_does_raise ~cr:CR_soon (fun () ->
+         t2_of_sexp (Sexplib.Sexp.of_string "((a 1)(a))"));
+       [%expect
+         {|
+diff --git a/test/sexp_grammar/test_coverage_for_deriving.ml b/test/sexp_grammar/test_coverage_for_deriving.ml
+index e6680b1..a4b2f25 100644
+--- a/test/sexp_grammar/test_coverage_for_deriving.ml
++++ b/test/sexp_grammar/test_coverage_for_deriving.ml
+@@ -90,8 +90,8 @@ type 'a unary = 'a list [@@deriving sexp] [@@deriving_inline sexp_grammar]
+ 
+ let _ = fun (_ : 'a unary) -> ()
+ 
+-let unary_sexp_grammar :
+-      'a. 'a Sexplib0.Sexp_grammar.t -> 'a unary Sexplib0.Sexp_grammar.t
++let unary_sexp_grammar
++  : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a unary Sexplib0.Sexp_grammar.t
+   =
+   fun _'a_sexp_grammar -> list_sexp_grammar _'a_sexp_grammar
+ ;;
+@@ -132,11 +132,11 @@ type ('a, 'b) which =
+ 
+ let _ = fun (_ : ('a, 'b) which) -> ()
+ 
+-let which_sexp_grammar :
+-      'a 'b.
+-      'a Sexplib0.Sexp_grammar.t
+-      -> 'b Sexplib0.Sexp_grammar.t
+-      -> ('a, 'b) which Sexplib0.Sexp_grammar.t
++let which_sexp_grammar
++  : 'a 'b.
++  'a Sexplib0.Sexp_grammar.t
++  -> 'b Sexplib0.Sexp_grammar.t
++  -> ('a, 'b) which Sexplib0.Sexp_grammar.t
+   =
+   fun _'a_sexp_grammar _'b_sexp_grammar ->
+   { untyped =
+@@ -169,8 +169,8 @@ type 'a optional =
+ 
+ let _ = fun (_ : 'a optional) -> ()
+ 
+-let optional_sexp_grammar :
+-      'a. 'a Sexplib0.Sexp_grammar.t -> 'a optional Sexplib0.Sexp_grammar.t
++let optional_sexp_grammar
++  : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a optional Sexplib0.Sexp_grammar.t
+   =
+   fun _'a_sexp_grammar ->
+   { untyped =
+@@ -204,9 +204,8 @@ type _ phantom = int [@@deriving sexp] [@@deriving_inline sexp_grammar]
+ 
+ let _ = fun (_ : _ phantom) -> ()
+ 
+-let phantom_sexp_grammar :
+-      'a__086_.
+-      'a__086_ Sexplib0.Sexp_grammar.t -> 'a__086_ phantom Sexplib0.Sexp_grammar.t
++let phantom_sexp_grammar
++  : 'a__086_. 'a__086_ Sexplib0.Sexp_grammar.t -> 'a__086_ phantom Sexplib0.Sexp_grammar.t
+   =
+   fun _'a__086__sexp_grammar -> int_sexp_grammar
+ ;;
+@@ -288,7 +287,7 @@ include struct
+     let (grammars__118_ : Sexplib0.Sexp_grammar.defn Stdlib.List.t Stdlib.Lazy.t) =
+       lazy
+         (let tree_sexp_grammar
+-               : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a tree Sexplib0.Sexp_grammar.t
++           : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a tree Sexplib0.Sexp_grammar.t
+            =
+            fun _'a_sexp_grammar ->
+            { untyped = Recursive ("tree", [ _'a_sexp_grammar.untyped ]) }
+@@ -324,8 +323,8 @@ include struct
+     let _ = grammars__118_
+   end
+ 
+-  let tree_sexp_grammar :
+-        'a. 'a Sexplib0.Sexp_grammar.t -> 'a tree Sexplib0.Sexp_grammar.t
++  let tree_sexp_grammar
++    : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a tree Sexplib0.Sexp_grammar.t
+     =
+     fun _'a_sexp_grammar ->
+     { untyped =
+diff --git a/test/sexp_grammar/test_functors.ml b/test/sexp_grammar/test_functors.ml
+index 6ec6b69..d2fce0a 100644
+--- a/test/sexp_grammar/test_functors.ml
++++ b/test/sexp_grammar/test_functors.ml
+@@ -15,8 +15,8 @@ module Maybe = struct
+ end
+ 
+ module Make (T : sig
+-  type 'a t [@@deriving sexp_grammar]
+-end) =
++    type 'a t [@@deriving sexp_grammar]
++  end) =
+ struct
+   [@@@warning "-37"]
+ 
+@@ -31,12 +31,12 @@ struct
+       let (grammars__001_ : Sexplib0.Sexp_grammar.defn Stdlib.List.t Stdlib.Lazy.t) =
+         lazy
+           (let t_sexp_grammar
+-                 : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a t Sexplib0.Sexp_grammar.t
++             : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a t Sexplib0.Sexp_grammar.t
+              =
+              fun _'a_sexp_grammar ->
+              { untyped = Recursive ("t", [ _'a_sexp_grammar.untyped ]) }
+            and u_sexp_grammar
+-                 : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a u Sexplib0.Sexp_grammar.t
++             : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a u Sexplib0.Sexp_grammar.t
+              =
+              fun _'a_sexp_grammar ->
+              { untyped = Recursive ("u", [ _'a_sexp_grammar.untyped ]) }
+diff --git a/test/sexp_grammar/test_gadt.ml b/test/sexp_grammar/test_gadt.ml
+index 98019cd..3f14278 100644
+--- a/test/sexp_grammar/test_gadt.ml
++++ b/test/sexp_grammar/test_gadt.ml
+@@ -51,9 +51,9 @@ type _ grammar_only = Grammar_only : int -> string grammar_only
+ 
+ let _ = fun (_ : _ grammar_only) -> ()
+ 
+-let grammar_only_sexp_grammar :
+-      'a__016_.
+-      'a__016_ Sexplib0.Sexp_grammar.t -> 'a__016_ grammar_only Sexplib0.Sexp_grammar.t
++let grammar_only_sexp_grammar
++  : 'a__016_.
++  'a__016_ Sexplib0.Sexp_grammar.t -> 'a__016_ grammar_only Sexplib0.Sexp_grammar.t
+   =
+   fun _'a__016__sexp_grammar ->
+   { untyped =
+diff --git a/test/sexp_grammar/test_polymorphic_variants.ml b/test/sexp_grammar/test_polymorphic_variants.ml
+index 64833cd..d38d262 100644
+--- a/test/sexp_grammar/test_polymorphic_variants.ml
++++ b/test/sexp_grammar/test_polymorphic_variants.ml
+@@ -86,7 +86,8 @@ module _ = struct
+   let%expect_test _ =
+     print_s (With_sexp.sexp_of_t (`A (1, 2)));
+     print_s (With_sexp.sexp_of_t (`B "foo"));
+-    [%expect {|
++    [%expect
++      {|
+       (A (1 2))
+       (B foo)
+       |}]
+diff --git a/test/sexp_grammar/test_polymorphism.ml b/test/sexp_grammar/test_polymorphism.ml
+index 53fcc9a..ab00f99 100644
+--- a/test/sexp_grammar/test_polymorphism.ml
++++ b/test/sexp_grammar/test_polymorphism.ml
+@@ -6,12 +6,12 @@ and u = (string, int, float) t [@@deriving_inline sexp_grammar]
+ let _ = fun (_ : ('a, _, 'b) t) -> ()
+ let _ = fun (_ : u) -> ()
+ 
+-let t_sexp_grammar :
+-      'a 'b__001_ 'b.
+-      'a Sexplib0.Sexp_grammar.t
+-      -> 'b__001_ Sexplib0.Sexp_grammar.t
+-      -> 'b Sexplib0.Sexp_grammar.t
+-      -> ('a, 'b__001_, 'b) t Sexplib0.Sexp_grammar.t
++let t_sexp_grammar
++  : 'a 'b__001_ 'b.
++  'a Sexplib0.Sexp_grammar.t
++  -> 'b__001_ Sexplib0.Sexp_grammar.t
++  -> 'b Sexplib0.Sexp_grammar.t
++  -> ('a, 'b__001_, 'b) t Sexplib0.Sexp_grammar.t
+   =
+   fun _'a_sexp_grammar _'b__001__sexp_grammar _'b_sexp_grammar ->
+   { untyped =
+diff --git a/test/sexp_grammar/test_regular_variants.ml b/test/sexp_grammar/test_regular_variants.ml
+index 1147c78..0308561 100644
+--- a/test/sexp_grammar/test_regular_variants.ml
++++ b/test/sexp_grammar/test_regular_variants.ml
+@@ -80,7 +80,8 @@ module _ = struct
+   let%expect_test _ =
+     print_s (With_sexp.sexp_of_t (A (1, 2)));
+     print_s (With_sexp.sexp_of_t (B "foo"));
+-    [%expect {|
++    [%expect
++      {|
+       (A 1 2)
+       (B foo)
+       |}]
+diff --git a/test/sexp_grammar/test_tag_type_names.ml b/test/sexp_grammar/test_tag_type_names.ml
+index 9d92692..74715a9 100644
+--- a/test/sexp_grammar/test_tag_type_names.ml
++++ b/test/sexp_grammar/test_tag_type_names.ml
+@@ -109,7 +109,7 @@ module _ = struct
+       let (grammars__002_ : Sexplib0.Sexp_grammar.defn Stdlib.List.t Stdlib.Lazy.t) =
+         lazy
+           (let t_sexp_grammar
+-                 : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a t Sexplib0.Sexp_grammar.t
++             : 'a. 'a Sexplib0.Sexp_grammar.t -> 'a t Sexplib0.Sexp_grammar.t
+              =
+              fun _'a_sexp_grammar ->
+              { untyped = Recursive ("t", [ _'a_sexp_grammar.untyped ]) }
+diff --git a/test/sexp_grammar/test_test.ml b/test/sexp_grammar/test_test.ml
+index 26e69ff..66ba6ce 100644
+--- a/test/sexp_grammar/test_test.ml
++++ b/test/sexp_grammar/test_test.ml
+@@ -71,11 +71,11 @@ module _ = struct
+ 
+   let _ = fun (_ : ('a, 'b) t) -> ()
+ 
+-  let t_sexp_grammar :
+-        'a 'b.
+-        'a Sexplib0.Sexp_grammar.t
+-        -> 'b Sexplib0.Sexp_grammar.t
+-        -> ('a, 'b) t Sexplib0.Sexp_grammar.t
++  let t_sexp_grammar
++    : 'a 'b.
++    'a Sexplib0.Sexp_grammar.t
++    -> 'b Sexplib0.Sexp_grammar.t
++    -> ('a, 'b) t Sexplib0.Sexp_grammar.t
+     =
+     fun _'a_sexp_grammar _'b_sexp_grammar -> Sexplib0.Sexp_conv.fun_sexp_grammar
+   ;;

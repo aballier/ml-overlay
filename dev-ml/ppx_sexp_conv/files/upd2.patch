@@ -1,0 +1,214 @@
+From 746e59c337c9bb51b16da41d57e469907414c602 Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Thu, 26 Sep 2024 19:08:47 +0100
+Subject: [PATCH] v0.18~preview.129.42+498
+
+---
+ expander/expand_of_sexp.ml        | 41 +++++++++++++++++--------------
+ expander/expand_sexp_of.ml        | 25 ++++++++++---------
+ expander/helpers.ml               |  7 ++++--
+ expander/ppx_sexp_conv_grammar.ml | 15 +++++++----
+ ppx_sexp_conv.opam                |  2 +-
+ 5 files changed, 53 insertions(+), 37 deletions(-)
+
+diff --git a/expander/expand_of_sexp.ml b/expander/expand_of_sexp.ml
+index bd0ef5a..b4a679c 100644
+--- a/expander/expand_of_sexp.ml
++++ b/expander/expand_of_sexp.ml
+@@ -160,21 +160,11 @@ module Str_generate_of_sexp = struct
+       Conversion.of_reference_exn
+         (labeled_tuple_of_sexp ~error_source ~typevars ~loc alist)
+     | Some (Jtyp_layout _, _) | None ->
+-      (match typ with
++      (match Ppxlib_jane.Shim.Core_type.of_parsetree typ with
+        | _ when Option.is_some (Attribute.get Attrs.opaque typ) ->
+          Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.opaque_of_sexp]
+-       | [%type: [%t? _] sexp_opaque] | [%type: _] ->
++       | { ptyp_desc = Ptyp_any; _ } ->
+          Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.opaque_of_sexp]
+-       | [%type: [%t? ty1] sexp_list] ->
+-         let arg1 =
+-           Conversion.to_expression ~loc (type_of_sexp ~error_source ~typevars ty1)
+-         in
+-         Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.list_of_sexp [%e arg1]]
+-       | [%type: [%t? ty1] sexp_array] ->
+-         let arg1 =
+-           Conversion.to_expression ~loc (type_of_sexp ~error_source ~typevars ty1)
+-         in
+-         Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.array_of_sexp [%e arg1]]
+        | { ptyp_desc = Ptyp_tuple tp; _ } ->
+          Conversion.of_lambda (tuple_of_sexp ~error_source ~typevars (loc, tp))
+        | { ptyp_desc = Ptyp_var parm; _ } ->
+@@ -183,17 +173,32 @@ module Str_generate_of_sexp = struct
+           | None ->
+             Location.raise_errorf ~loc "ppx_sexp_conv: unbound type variable '%s" parm)
+        | { ptyp_desc = Ptyp_constr (id, args); _ } ->
+-         let args =
+-           List.map args ~f:(fun arg ->
+-             Conversion.to_expression ~loc (type_of_sexp ~error_source ~typevars arg))
+-         in
+-         Conversion.of_reference_exn (type_constr_of_sexp ~loc ~internal id args)
+-       | { ptyp_desc = Ptyp_arrow (_, _, _); _ } ->
++         (match typ with
++          | [%type: [%t? _] sexp_opaque] ->
++            Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.opaque_of_sexp]
++          | [%type: [%t? ty1] sexp_list] ->
++            let arg1 =
++              Conversion.to_expression ~loc (type_of_sexp ~error_source ~typevars ty1)
++            in
++            Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.list_of_sexp [%e arg1]]
++          | [%type: [%t? ty1] sexp_array] ->
++            let arg1 =
++              Conversion.to_expression ~loc (type_of_sexp ~error_source ~typevars ty1)
++            in
++            Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.array_of_sexp [%e arg1]]
++          | _ ->
++            let args =
++              List.map args ~f:(fun arg ->
++                Conversion.to_expression ~loc (type_of_sexp ~error_source ~typevars arg))
++            in
++            Conversion.of_reference_exn (type_constr_of_sexp ~loc ~internal id args))
++       | { ptyp_desc = Ptyp_arrow (_, _, _, _, _); _ } ->
+          Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.fun_of_sexp]
+        | { ptyp_desc = Ptyp_variant (row_fields, Closed, _); _ } ->
+          variant_of_sexp ~error_source ~typevars ?full_type (loc, row_fields)
+        | { ptyp_desc = Ptyp_poly (parms, poly_tp); _ } ->
+          poly_of_sexp ~error_source ~typevars parms poly_tp
++       | { ptyp_desc = Ptyp_unboxed_tuple _; _ }
+        | { ptyp_desc = Ptyp_variant (_, Open, _); _ }
+        | { ptyp_desc = Ptyp_object (_, _); _ }
+        | { ptyp_desc = Ptyp_class (_, _); _ }
+diff --git a/expander/expand_sexp_of.ml b/expander/expand_sexp_of.ml
+index 70c6687..8e7e252 100644
+--- a/expander/expand_sexp_of.ml
++++ b/expander/expand_sexp_of.ml
+@@ -56,13 +56,11 @@ module Str_generate_sexp_of = struct
+     | Some (Jtyp_tuple alist, (_ : attributes)) ->
+       Conversion.of_lambda [ sexp_of_labeled_tuple ~renaming ~loc alist ]
+     | Some (Jtyp_layout _, _) | None ->
+-      (match typ with
++      (match Ppxlib_jane.Shim.Core_type.of_parsetree typ with
+        | _ when Option.is_some (Attribute.get Attrs.opaque typ) ->
+          Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.sexp_of_opaque]
+-       | [%type: _] ->
++       | { ptyp_desc = Ptyp_any; _ } ->
+          Conversion.of_lambda [ ppat_any ~loc --> [%expr Sexplib0.Sexp.Atom "_"] ]
+-       | [%type: [%t? _] sexp_opaque] ->
+-         Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.sexp_of_opaque]
+        | { ptyp_desc = Ptyp_tuple tp; _ } ->
+          Conversion.of_lambda [ sexp_of_tuple ~renaming (loc, tp) ]
+        | { ptyp_desc = Ptyp_var parm; _ } ->
+@@ -71,13 +69,17 @@ module Str_generate_sexp_of = struct
+             Conversion.of_reference_exn (Fresh_name.expression fresh)
+           | Existentially_bound -> sexp_of_type ~renaming [%type: _])
+        | { ptyp_desc = Ptyp_constr (id, args); _ } ->
+-         Conversion.of_reference_exn
+-           (sexp_of_type_constr
+-              ~loc
+-              id
+-              (List.map args ~f:(fun tp ->
+-                 Conversion.to_expression ~loc (sexp_of_type ~renaming tp))))
+-       | { ptyp_desc = Ptyp_arrow (_, _, _); _ } ->
++         (match typ with
++          | [%type: [%t? _] sexp_opaque] ->
++            Conversion.of_reference_exn [%expr Sexplib0.Sexp_conv.sexp_of_opaque]
++          | _ ->
++            Conversion.of_reference_exn
++              (sexp_of_type_constr
++                 ~loc
++                 id
++                 (List.map args ~f:(fun tp ->
++                    Conversion.to_expression ~loc (sexp_of_type ~renaming tp)))))
++       | { ptyp_desc = Ptyp_arrow (_, _, _, _, _); _ } ->
+          Conversion.of_lambda
+            [ ppat_any ~loc
+              --> [%expr Sexplib0.Sexp_conv.sexp_of_fun Sexplib0.Sexp_conv.ignore]
+@@ -86,6 +88,7 @@ module Str_generate_sexp_of = struct
+          sexp_of_variant ~renaming (loc, row_fields)
+        | { ptyp_desc = Ptyp_poly (parms, poly_tp); _ } ->
+          sexp_of_poly ~renaming parms poly_tp
++       | { ptyp_desc = Ptyp_unboxed_tuple _; _ }
+        | { ptyp_desc = Ptyp_variant (_, Open, _); _ }
+        | { ptyp_desc = Ptyp_object (_, _); _ }
+        | { ptyp_desc = Ptyp_class (_, _); _ }
+diff --git a/expander/helpers.ml b/expander/helpers.ml
+index 53465c0..1cebfbf 100644
+--- a/expander/helpers.ml
++++ b/expander/helpers.ml
+@@ -201,11 +201,14 @@ let rec is_value_expression expr =
+   (* Syntactic values. *)
+   | Pexp_ident _ | Pexp_constant _ | Pexp_function _ | Pexp_lazy _ -> true
+   (* Type-only wrappers; we check their contents. *)
+-  | Pexp_constraint (expr, (_ : core_type))
++  | Pexp_constraint (expr, (_ : core_type option), _)
+   | Pexp_coerce (expr, (_ : core_type option), (_ : core_type))
+-  | Pexp_newtype ((_ : string loc), expr) -> is_value_expression expr
++  | Pexp_newtype ((_ : string loc), expr)
++  | Pexp_stack expr -> is_value_expression expr
+   (* Allocating constructors; they are only values if all of their contents are. *)
+   | Pexp_tuple exprs -> List.for_all exprs ~f:is_value_expression
++  | Pexp_unboxed_tuple lexprs ->
++    List.for_all lexprs ~f:(fun (_, e) -> is_value_expression e)
+   | Pexp_construct (_, maybe_expr) -> Option.for_all maybe_expr ~f:is_value_expression
+   | Pexp_variant (_, maybe_expr) -> Option.for_all maybe_expr ~f:is_value_expression
+   | Pexp_record (fields, maybe_expr) ->
+diff --git a/expander/ppx_sexp_conv_grammar.ml b/expander/ppx_sexp_conv_grammar.ml
+index c8bd91c..5b20faa 100644
+--- a/expander/ppx_sexp_conv_grammar.ml
++++ b/expander/ppx_sexp_conv_grammar.ml
+@@ -278,7 +278,7 @@ let rec grammar_of_type core_type ~rec_flag ~tags_of_doc_comments =
+        | Some (Jtyp_tuple ltps, _attrs) ->
+          grammar_of_labeled_tuple ~loc ~rec_flag ~tags_of_doc_comments ltps
+        | Some (Jtyp_layout _, _) | None ->
+-         (match core_type.ptyp_desc with
++         (match Ppxlib_jane.Shim.Core_type_desc.of_parsetree core_type.ptyp_desc with
+           | Ptyp_any -> any_grammar ~loc "_"
+           | Ptyp_var name ->
+             (match rec_flag with
+@@ -300,6 +300,7 @@ let rec grammar_of_type core_type ~rec_flag ~tags_of_doc_comments =
+             List.map ~f:(grammar_of_type ~rec_flag ~tags_of_doc_comments) list
+             |> tuple_grammar ~loc
+             |> list_grammar ~loc
++          | Ptyp_unboxed_tuple _ -> unsupported ~loc "unboxed tuple types"
+           | Ptyp_constr (id, args) ->
+             List.map args ~f:(fun core_type ->
+               let loc = core_type.ptyp_loc in
+@@ -517,8 +518,10 @@ let pattern_of_td td =
+ (* Any grammar expression that is purely a constant does no work, and does not need to be
+    wrapped in [Lazy]. *)
+ let rec is_preallocated_constant expr =
+-  match expr.pexp_desc with
+-  | Pexp_constraint (expr, _) | Pexp_coerce (expr, _, _) | Pexp_open (_, expr) ->
++  match
++    Ppxlib_jane.Shim.Expression_desc.of_parsetree ~loc:expr.pexp_loc expr.pexp_desc
++  with
++  | Pexp_constraint (expr, _, _) | Pexp_coerce (expr, _, _) | Pexp_open (_, expr) ->
+     is_preallocated_constant expr
+   | Pexp_constant _ -> true
+   | Pexp_tuple args -> List.for_all ~f:is_preallocated_constant args
+@@ -534,8 +537,10 @@ let rec is_preallocated_constant expr =
+    need to be wrapped in [Lazy]. Accessing the previous grammar is work, but building the
+    closure for a lazy value is at least as much work anyway. *)
+ let rec is_variable_access expr =
+-  match expr.pexp_desc with
+-  | Pexp_constraint (expr, _) | Pexp_coerce (expr, _, _) | Pexp_open (_, expr) ->
++  match
++    Ppxlib_jane.Shim.Expression_desc.of_parsetree ~loc:expr.pexp_loc expr.pexp_desc
++  with
++  | Pexp_constraint (expr, _, _) | Pexp_coerce (expr, _, _) | Pexp_open (_, expr) ->
+     is_variable_access expr
+   | Pexp_ident _ -> true
+   | Pexp_field (expr, _) -> is_variable_access expr
+diff --git a/ppx_sexp_conv.opam b/ppx_sexp_conv.opam
+index 4189730..fb2773f 100644
+--- a/ppx_sexp_conv.opam
++++ b/ppx_sexp_conv.opam
+@@ -15,7 +15,7 @@ depends: [
+   "ppxlib_jane"
+   "sexplib0"
+   "dune"        {>= "3.11.0"}
+-  "ppxlib"      {>= "0.28.0"}
++  "ppxlib"      {>= "0.33.0"}
+ ]
+ available: arch != "arm32" & arch != "x86_32"
+ synopsis: "[@@deriving] plugin to generate S-expression conversion functions"
