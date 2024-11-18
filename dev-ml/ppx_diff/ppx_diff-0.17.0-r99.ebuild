@@ -16,3 +16,7 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
+PATCHES=(
+	"${FILESDIR}/upd.patch"
+	"${FILESDIR}/upd2.patch"
+)

@@ -1,0 +1,225 @@
+From cae8f432c6091ad84edfd468394ca6d54cefd1c5 Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Thu, 26 Sep 2024 19:08:47 +0100
+Subject: [PATCH] v0.18~preview.129.42+498
+
+---
+ lib/src/diffable.ml     |  1 +
+ lib/src/of_diffable.ml  | 16 +++++++++--
+ lib/src/of_diffable.mli |  5 ++++
+ src/diff.ml             | 63 ++++++++++++++++++++++++-----------------
+ src/type_kind.ml        | 13 +++++----
+ 6 files changed, 66 insertions(+), 36 deletions(-)
+
+diff --git a/lib/src/diffable.ml b/lib/src/diffable.ml
+index c79a131..e655c9f 100644
+--- a/lib/src/diffable.ml
++++ b/lib/src/diffable.ml
+@@ -6,6 +6,7 @@ module Optional_diff = Optional_diff
+ module Tuples = Tuples
+ module Set_diff = Set_diff
+ module Map_diff = Map_diff
++module Of_diffable_plain = Of_diffable.Make_plain
+ module Of_diffable = Of_diffable.Make
+ 
+ module For_ppx = struct
+diff --git a/lib/src/of_diffable.ml b/lib/src/of_diffable.ml
+index 7343c41..c80f503 100644
+--- a/lib/src/of_diffable.ml
++++ b/lib/src/of_diffable.ml
+@@ -6,8 +6,10 @@ module type Conv = sig
+   val of_diffable : diffable -> t
+ end
+ 
+-module Make (Diffable : Diffable_intf.S) (M : Conv with type diffable = Diffable.t) :
+-  Diffable_intf.S with type t := M.t and type Diff.t = Diffable.Diff.t = struct
++module Make_plain
++    (Diffable : Diffable_intf.S_plain)
++    (M : Conv with type diffable = Diffable.t) :
++  Diffable_intf.S_plain with type t := M.t and type Diff.t = Diffable.Diff.t = struct
+   module Diff = struct
+     include Diffable.Diff
+ 
+@@ -26,3 +28,13 @@ module Make (Diffable : Diffable_intf.S) (M : Conv with type diffable = Diffable
+     let of_list_exn diffs = Diffable.Diff.of_list_exn diffs
+   end
+ end
++
++module Make (Diffable : Diffable_intf.S) (M : Conv with type diffable = Diffable.t) :
++  Diffable_intf.S with type t := M.t and type Diff.t = Diffable.Diff.t = struct
++  module Plain = Make_plain (Diffable) (M)
++
++  module Diff = struct
++    include Diffable.Diff
++    include Plain.Diff
++  end
++end
+diff --git a/lib/src/of_diffable.mli b/lib/src/of_diffable.mli
+index 9ce8cba..8a883df 100644
+--- a/lib/src/of_diffable.mli
++++ b/lib/src/of_diffable.mli
+@@ -8,3 +8,8 @@ end
+ 
+ module Make (Diffable : Diffable_intf.S) (M : Conv with type diffable = Diffable.t) :
+   Diffable_intf.S with type t := M.t and type Diff.t = Diffable.Diff.t
++
++module Make_plain
++    (Diffable : Diffable_intf.S_plain)
++    (M : Conv with type diffable = Diffable.t) :
++  Diffable_intf.S_plain with type t := M.t and type Diff.t = Diffable.Diff.t
+diff --git a/src/diff.ml b/src/diff.ml
+index 819dedd..f98f8c2 100644
+--- a/src/diff.ml
++++ b/src/diff.ml
+@@ -1,5 +1,6 @@
+ open Base
+ open Ppxlib
++module Modes = Ppxlib_jane.Shim.Modes
+ 
+ module Functions = struct
+   type t =
+@@ -21,40 +22,46 @@ module Functions = struct
+     let pointer type_declaration =
+       type_declaration |> Type_declaration.pointer |> Type_kind.core_to_ppx ~builder
+     in
+-    let get_base (derived_on_mode, derived_on) t =
+-      let arg label =
+-        { arg_label = Labelled label; arg_mode = derived_on_mode; arg_type = derived_on }
++    let get_base (derived_on_modes, derived_on) t =
++      let arg label : Ppxlib_jane.arrow_argument =
++        { arg_label = Labelled label
++        ; arg_modes = derived_on_modes
++        ; arg_type = derived_on
++        }
+       in
+       tarrow
+         [ arg "from"; arg "to_" ]
+-        { result_mode = Some Local; result_type = [%type: [%t t] Optional_diff.t] }
++        { result_modes = Modes.local; result_type = [%type: [%t t] Optional_diff.t] }
+     in
+-    let apply_base (derived_on_mode, derived_on) t =
++    let apply_base (derived_on_modes, derived_on) t =
+       tarrow
+-        [ { arg_label = Nolabel; arg_mode = derived_on_mode; arg_type = derived_on }
+-        ; { arg_label = Nolabel; arg_mode = None; arg_type = t }
++        [ { arg_label = Nolabel; arg_modes = derived_on_modes; arg_type = derived_on }
++        ; { arg_label = Nolabel; arg_modes = Modes.none; arg_type = t }
+         ]
+-        { result_mode = derived_on_mode; result_type = derived_on }
++        { result_modes = derived_on_modes; result_type = derived_on }
+     in
+     let of_list_base _derived_on t =
+       tarrow
+-        [ { arg_label = Nolabel; arg_mode = None; arg_type = [%type: [%t t] list] } ]
+-        { result_mode = Some Local; result_type = [%type: [%t t] Optional_diff.t] }
++        [ { arg_label = Nolabel; arg_modes = Modes.none; arg_type = [%type: [%t t] list] }
++        ]
++        { result_modes = Modes.local; result_type = [%type: [%t t] Optional_diff.t] }
+     in
+     let fun_type base ~var_functions =
+       let v = Var.core_type ~builder in
+-      let derived_on_mode = if derived_on_type_is_local then Some Local else None in
++      let derived_on_modes =
++        if derived_on_type_is_local then Modes.local else Modes.none
++      in
+       (* Generate the parametrized functions, e.g.
+          (from:'a -> to_:'a -> local_ 'a_diff Optional_diff.t)
+          (from:'b -> to_:'b -> local_ 'b_diff Optional_diff.t)
+       *)
+       tarrow_maybe
+         (List.concat_map vars ~f:(fun var ->
+-           List.map var_functions ~f:(fun fn ->
+-             let arg_type = fn (None, v var) (v (Var.diff_var var)) in
+-             { arg_label = Nolabel; arg_mode = None; arg_type })))
++           List.map var_functions ~f:(fun fn : Ppxlib_jane.arrow_argument ->
++             let arg_type = fn ([], v var) (v (Var.diff_var var)) in
++             { arg_label = Nolabel; arg_modes = Modes.none; arg_type })))
+         (base
+-           (derived_on_mode, pointer derived_on_type_declaration)
++           (derived_on_modes, pointer derived_on_type_declaration)
+            (pointer diff_type_declaration))
+     in
+     let sig_items =
+@@ -225,21 +232,25 @@ let to_items t ~context ~(type_to_diff_declaration : unit Type_declaration.t) =
+       in
+       let create_type =
+         tarrow_maybe
+-          (List.map single_kind ~f:(fun (row_name, row_type) ->
+-             let arg_name = create_arg_name row_name in
+-             let arg_type = core_to_ppx row_type in
+-             { arg_label = Optional arg_name; arg_mode = None; arg_type }))
++          (List.map
++             single_kind
++             ~f:(fun (row_name, row_type) : Ppxlib_jane.arrow_argument ->
++               let arg_name = create_arg_name row_name in
++               let arg_type = core_to_ppx row_type in
++               { arg_label = Optional arg_name; arg_modes = Modes.none; arg_type }))
+           [%type: unit -> [%t t_]]
+       in
+       let create_of_variants_type =
+         tarrow_maybe
+-          (List.map single_kind ~f:(fun (row_name, row_type) ->
+-             let arg_name = create_arg_name row_name in
+-             let arg_type =
+-               [%type:
+-                 ([%t core_to_ppx row_type], [%t core_to_ppx single_type]) Of_variant.t]
+-             in
+-             { arg_label = Labelled arg_name; arg_mode = Some Local; arg_type }))
++          (List.map
++             single_kind
++             ~f:(fun (row_name, row_type) : Ppxlib_jane.arrow_argument ->
++               let arg_name = create_arg_name row_name in
++               let arg_type =
++                 [%type:
++                   ([%t core_to_ppx row_type], [%t core_to_ppx single_type]) Of_variant.t]
++               in
++               { arg_label = Labelled arg_name; arg_modes = Modes.local; arg_type }))
+           t_
+       in
+       let create_arg_names =
+diff --git a/src/type_kind.ml b/src/type_kind.ml
+index cdfb85c..ad9659e 100644
+--- a/src/type_kind.ml
++++ b/src/type_kind.ml
+@@ -79,7 +79,7 @@ let label_declarations record_fields ~builder =
+       ~name:(Located.mk (Record_field_name.to_string field_name))
+       ~type_:(core_to_ppx field_type ~builder)
+       ~mutable_:(if mutable_ then Mutable else Immutable)
+-      ~modality:(if global then Some Global else None))
++      ~modalities:(if global then [ Modality "global" ] else []))
+ ;;
+ 
+ let to_ppx_kind t ~builder =
+@@ -254,7 +254,7 @@ let duplicate_how_to_diff how_to_diff1 how_to_diff2 ~builder =
+ let rec create_core core_type ~builder : How_to_diff.t core =
+   let how_to_diff = How_to_diff.Custom.of_core_type core_type ~builder in
+   let kind : How_to_diff.t core_kind =
+-    match core_type.ptyp_desc with
++    match Ppxlib_jane.Shim.Core_type_desc.of_parsetree core_type.ptyp_desc with
+     | Ptyp_var var -> Var (Var.of_string var)
+     | Ptyp_tuple types -> Tuple (List.map types ~f:(create_core ~builder))
+     | Ptyp_constr (id, core_types) ->
+@@ -315,6 +315,7 @@ let rec create_core core_type ~builder : How_to_diff.t core =
+              Variant_row_name.of_string variant_name, variant_type))
+     | Ptyp_any -> not_supported builder "Ptyp_any"
+     | Ptyp_arrow _ -> not_supported builder "Ptyp_arrow"
++    | Ptyp_unboxed_tuple _ -> not_supported builder "Ptyp_unboxed_tuple"
+     | Ptyp_object _ -> not_supported builder "Ptyp_object"
+     | Ptyp_class _ -> not_supported builder "Ptyp_class"
+     | Ptyp_alias _ -> not_supported builder "Ptyp_alias"
+@@ -330,11 +331,11 @@ let core_of_ppx = create_core
+ let create_record fields ~builder =
+   let open (val builder : Builder.S) in
+   List.map fields ~f:(fun (field : label_declaration) ->
+-    let modality, field = get_label_declaration_modality field in
++    let modalities, field = get_label_declaration_modalities field in
+     let global =
+-      match modality with
+-      | Some Global -> true
+-      | None -> false
++      List.exists modalities ~f:(function
++        | Modality "global" -> true
++        | Modality _ -> false)
+     in
+     let { pld_name; pld_mutable; pld_type; pld_loc = _; pld_attributes = _; _ } = field in
+     let field_type =
