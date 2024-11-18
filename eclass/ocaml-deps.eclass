@@ -650,6 +650,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[odoc]="bos findlib ppx_expect yojson"
 	[odoc-parser]="ppx_expect"
 	[ohex]="alcotest"
+	[opam-0install-cudf]="alcotest"
 	[opam-file-format]="alcotest"
 	[owl]="alcotest"
 	[pbkdf]="alcotest ohex"
