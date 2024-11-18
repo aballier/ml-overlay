@@ -1,0 +1,94 @@
+From c7bab9e66e8b82795b2026c46e593ed87cdfa43d Mon Sep 17 00:00:00 2001
+From: Antonio Nuno Monteiro <anmonteiro@gmail.com>
+Date: Tue, 3 Sep 2024 12:53:13 +0200
+Subject: [PATCH] OCaml 5.3 support
+
+---
+ src/lib/uTop_compat.ml | 15 ++++++++++++---
+ src/lib/uTop_main.ml   | 15 +++++++++++++++
+ 2 files changed, 27 insertions(+), 3 deletions(-)
+
+diff --git a/src/lib/uTop_compat.ml b/src/lib/uTop_compat.ml
+index b294cbe..60c8adf 100644
+--- a/src/lib/uTop_compat.ml
++++ b/src/lib/uTop_compat.ml
+@@ -66,6 +66,15 @@ let rec is_persistent_path = function
+   | Path.Pextra_ty (p, _) -> is_persistent_path p
+ #endif
+ 
++#if OCAML_VERSION >= (5, 2, 0)
++let inline_code =
++#if OCAML_VERSION >= (5, 3, 0)
++  (Format_doc.compat Misc.Style.inline_code)
++#else
++  Misc.Style.inline_code
++#endif
++#endif
++
+ let invalid_package_error_to_string err =
+ #if OCAML_VERSION >= (5, 2, 0)
+   (* NOTE: from https://github.com/ocaml/ocaml/blob/9b059b1e7a66e9d2f04d892a4de34c418cd96f69/parsing/parse.ml#L149 *)
+@@ -78,11 +87,11 @@ let invalid_package_error_to_string err =
+       Format.fprintf ppf  "private types are not supported"
+     | Not_with_type ->
+       Format.fprintf ppf "only %a constraints are supported"
+-        Misc.Style.inline_code "with type t ="
++        inline_code "with type t ="
+     | Neither_identifier_nor_with_type ->
+         Format.fprintf ppf
+           "only module type identifier and %a constraints are supported"
+-          Misc.Style.inline_code "with type"
++          inline_code "with type"
+   in
+   let buf = Buffer.create 128 in
+   let fmt = Format.formatter_of_buffer buf in
+@@ -119,7 +128,7 @@ let find_in_path_normalized =
+       Misc.find_in_path_normalized
+ #else
+       Misc.find_in_path_uncap
+-#endif   
++#endif
+ 
+ let visible_paths_for_cmt_infos (cmt_infos: Cmt_format.cmt_infos) =
+ #if OCAML_VERSION >= (5, 2, 0)
+diff --git a/src/lib/uTop_main.ml b/src/lib/uTop_main.ml
+index 3018681..1836e62 100644
+--- a/src/lib/uTop_main.ml
++++ b/src/lib/uTop_main.ml
+@@ -1165,6 +1165,13 @@ end
+    | Extra macros                                                    |
+    +-----------------------------------------------------------------+ *)
+ 
++module Printtyp =
++#if OCAML_VERSION >= (5, 3, 0)
++  Out_type
++#else
++  Printtyp
++#endif
++
+ let typeof sid =
+   let id = Parse.longident (Lexing.from_string sid) in
+   let env = !Toploop.toplevel_env in
+@@ -1218,7 +1225,11 @@ let typeof sid =
+   | Some osig ->
+     let buf = Buffer.create 128 in
+     let pp = Format.formatter_of_buffer buf in
++#if OCAML_VERSION >= (5, 3, 0)
++    Format.fprintf pp "%a" (Format_doc.compat !Toploop.print_out_signature) [osig];
++#else
+     !Toploop.print_out_signature pp [osig];
++#endif
+     Format.pp_print_newline pp ();
+     let str = Buffer.contents buf in
+     Lwt_main.run (Lazy.force LTerm.stdout >>= fun term -> render_out_phrase term str)
+@@ -1584,6 +1595,10 @@ let () =
+   Location.register_error_of_exn
+     (function
+       | Envaux.Error err ->
++#if OCAML_VERSION >= (5,3,0)
++        Some (Location.error_of_printer_file Envaux.report_error_doc err)
++#else
+         Some (Location.error_of_printer_file Envaux.report_error err)
++#endif
+       | _ -> None
+     )
