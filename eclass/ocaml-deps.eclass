@@ -628,6 +628,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[lambdasoup]="ounit2"
 	[logs]="mtime"
 	[lru]="alcotest qcheck-alcotest qcheck-core"
+	[lwt_ppx]="ppx_let"
 	[macaddr]="ounit2 ppx_sexp_conv"
 	[macaddr-sexp]="macaddr-cstruct ounit2"
 	[mdx]="alcotest lwt"
