@@ -1,0 +1,985 @@
+From fe758e3bd20a447710eb3a9e2c0b608405da5543 Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Tue, 13 Aug 2024 20:53:43 +0100
+Subject: [PATCH] v0.17~preview.129.36+325
+
+---
+ src/base_bigstring.ml      | 126 ++++++++++++++++++++--------------
+ src/base_bigstring.mli     |  62 ++++++++++++-----
+ src/base_bigstring_stubs.c |  11 +++
+ src/dune                   |   2 +-
+ src/runtime.js             |  11 +++
+ src/runtime.wat            | 136 ++++++++++++++++++++++++++++++++++++
+ test/dune                  |   3 +-
+ test/test_bigstring.ml     | 137 ++++++++++++++++++++++++++-----------
+ 9 files changed, 376 insertions(+), 113 deletions(-)
+ create mode 100644 src/runtime.wat
+
+diff --git a/src/base_bigstring.ml b/src/base_bigstring.ml
+index 17490e2..db752e1 100644
+--- a/src/base_bigstring.ml
++++ b/src/base_bigstring.ml
+@@ -3,9 +3,9 @@ open! Base
+ module Bigstring0 = struct
+   type t =
+     ( char
+-    , Stdlib.Bigarray.int8_unsigned_elt
+-    , Stdlib.Bigarray.c_layout )
+-    Stdlib.Bigarray.Array1.t
++      , Stdlib.Bigarray.int8_unsigned_elt
++      , Stdlib.Bigarray.c_layout )
++      Stdlib.Bigarray.Array1.t
+ end
+ 
+ module Array1 = struct
+@@ -14,15 +14,8 @@ module Array1 = struct
+   external get : ('a, 'b, 'c) t -> int -> 'a = "%caml_ba_ref_1"
+   external set : ('a, 'b, 'c) t -> int -> 'a -> unit = "%caml_ba_set_1"
+   external unsafe_get : ('a, 'b, 'c) t -> int -> 'a = "%caml_ba_unsafe_ref_1"
+-
+-  external unsafe_set
+-    :  (('a, 'b, 'c) t[@local_opt])
+-    -> int
+-    -> 'a
+-    -> unit
+-    = "%caml_ba_unsafe_set_1"
+-
+-  external dim : (('a, 'b, 'c) t[@local_opt]) -> int = "%caml_ba_dim_1"
++  external unsafe_set : ('a, 'b, 'c) t -> int -> 'a -> unit = "%caml_ba_unsafe_set_1"
++  external dim : ('a, 'b, 'c) t -> int = "%caml_ba_dim_1"
+ end
+ 
+ include Bigstring0
+@@ -43,9 +36,10 @@ let create size =
+   aux_create ~size
+ ;;
+ 
++let empty = create 0
+ let length = Array1.dim
+ 
+-external is_mmapped : t -> bool = "bigstring_is_mmapped_stub" [@@noalloc]
++external is_mmapped : (t[@local_opt]) -> bool = "bigstring_is_mmapped_stub" [@@noalloc]
+ 
+ let init n ~f =
+   let t = create n in
+@@ -72,7 +66,7 @@ let[@inline always] check_args ~loc ~pos ~len (bstr : t) =
+ ;;
+ 
+ let get_opt_len bstr ~pos = function
+-  | Some len -> len
++  | Some len -> (len : int)
+   | None -> length bstr - pos
+ ;;
+ 
+@@ -86,13 +80,13 @@ external unsafe_blit
+   -> len:int
+   -> unit
+   = "bigstring_blit_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ (* Exposing the external version of get/set supports better inlining. *)
+-external get : t -> int -> char = "%caml_ba_ref_1"
+-external unsafe_get : t -> int -> char = "%caml_ba_unsafe_ref_1"
+-external set : t -> int -> char -> unit = "%caml_ba_set_1"
+-external unsafe_set : t -> int -> char -> unit = "%caml_ba_unsafe_set_1"
++external get : (t[@local_opt]) -> int -> char = "%caml_ba_ref_1"
++external unsafe_get : (t[@local_opt]) -> int -> char = "%caml_ba_unsafe_ref_1"
++external set : (t[@local_opt]) -> int -> char -> unit = "%caml_ba_set_1"
++external unsafe_set : (t[@local_opt]) -> int -> char -> unit = "%caml_ba_unsafe_set_1"
+ 
+ module Bigstring_sequence = struct
+   type nonrec t = t
+@@ -109,10 +103,10 @@ module Bytes_sequence = struct
+ end
+ 
+ include Blit.Make (struct
+-  include Bigstring_sequence
++    include Bigstring_sequence
+ 
+-  let unsafe_blit = unsafe_blit
+-end)
++    let unsafe_blit = unsafe_blit
++  end)
+ 
+ module From_bytes =
+   Blit.Make_distinct
+@@ -126,7 +120,7 @@ module From_bytes =
+         -> len:int
+         -> unit
+         = "bigstring_blit_bytes_bigstring_stub"
+-        [@@noalloc]
++      [@@noalloc]
+ 
+       include Bigstring_sequence
+     end)
+@@ -143,7 +137,7 @@ module To_bytes =
+         -> len:int
+         -> unit
+         = "bigstring_blit_bigstring_bytes_stub"
+-        [@@noalloc]
++      [@@noalloc]
+ 
+       include Bytes_sequence
+     end)
+@@ -164,7 +158,7 @@ module From_string =
+         -> len:int
+         -> unit
+         = "bigstring_blit_string_bigstring_stub"
+-        [@@noalloc]
++      [@@noalloc]
+ 
+       include Bigstring_sequence
+     end)
+@@ -186,6 +180,10 @@ let t_of_sexp : Sexp.t -> t = function
+     Sexplib0.Sexp_conv.of_sexp_error "bigstring_of_sexp: atom needed" sexp
+ ;;
+ 
++let t_sexp_grammar : t Sexplib.Sexp_grammar.t =
++  Sexplib.Sexp_grammar.coerce [%sexp_grammar: string]
++;;
++
+ let copy t : t = sub t ~pos:0 ~len:(length t)
+ 
+ let concat =
+@@ -220,8 +218,14 @@ let concat =
+       dst
+ ;;
+ 
+-external unsafe_memset : t -> pos:int -> len:int -> char -> unit = "bigstring_memset_stub"
+-  [@@noalloc]
++external unsafe_memset
++  :  (t[@local_opt])
++  -> pos:int
++  -> len:int
++  -> char
++  -> unit
++  = "bigstring_memset_stub"
++[@@noalloc]
+ 
+ let memset t ~pos ~len c =
+   Ordered_collection_common.check_pos_len_exn ~pos ~len ~total_length:(length t);
+@@ -231,14 +235,14 @@ let memset t ~pos ~len c =
+ (* Comparison *)
+ 
+ external unsafe_memcmp
+-  :  t
++  :  (t[@local_opt])
+   -> pos1:int
+-  -> t
++  -> (t[@local_opt])
+   -> pos2:int
+   -> len:int
+   -> int
+   = "bigstring_memcmp_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ let memcmp t1 ~pos1 t2 ~pos2 ~len =
+   Ordered_collection_common.check_pos_len_exn ~pos:pos1 ~len ~total_length:(length t1);
+@@ -247,14 +251,14 @@ let memcmp t1 ~pos1 t2 ~pos2 ~len =
+ ;;
+ 
+ external unsafe_memcmp_bytes
+-  :  t
++  :  (t[@local_opt])
+   -> pos1:int
+-  -> Bytes.t
++  -> (Bytes.t[@local_opt])
+   -> pos2:int
+   -> len:int
+   -> int
+   = "bigstring_memcmp_bytes_stub"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ let memcmp_bytes t ~pos1 bytes ~pos2 ~len =
+   Ordered_collection_common.check_pos_len_exn ~pos:pos1 ~len ~total_length:(length t);
+@@ -274,7 +278,7 @@ let memcmp_string t ~pos1 str ~pos2 ~len =
+     ~len [@nontail]
+ ;;
+ 
+-let compare t1 t2 =
++let compare__local t1 t2 =
+   if phys_equal t1 t2
+   then 0
+   else (
+@@ -286,20 +290,21 @@ let compare t1 t2 =
+     | n -> n)
+ ;;
+ 
++let compare t1 t2 = compare__local t1 t2
++
+ external internalhash_fold_bigstring
+   :  Hash.state
+   -> t
+   -> Hash.state
+   = "internalhash_fold_bigstring"
+-  [@@noalloc]
++[@@noalloc]
+ 
+-let _making_sure_the_C_binding_takes_an_int (x : Hash.state) = (x :> int)
+ let hash_fold_t = internalhash_fold_bigstring
+ let hash = Ppx_hash_lib.Std.Hash.of_fold hash_fold_t
+ 
+-type t_frozen = t [@@deriving compare, hash, sexp]
++type t_frozen = t [@@deriving compare ~localize, hash, sexp, sexp_grammar]
+ 
+-let equal t1 t2 =
++let equal__local t1 t2 =
+   if phys_equal t1 t2
+   then true
+   else (
+@@ -308,21 +313,38 @@ let equal t1 t2 =
+     Int.equal len1 len2 && Int.equal (unsafe_memcmp t1 ~pos1:0 t2 ~pos2:0 ~len:len1) 0)
+ ;;
+ 
++let equal t1 t2 = equal__local t1 t2
++
+ (* Search *)
+ 
+-external unsafe_find : t -> char -> pos:int -> len:int -> int = "bigstring_find"
+-  [@@noalloc]
++external unsafe_find
++  :  (t[@local_opt])
++  -> char
++  -> pos:int
++  -> len:int
++  -> int
++  = "bigstring_find"
++[@@noalloc]
++
++external unsafe_rfind
++  :  (t[@local_opt])
++  -> char
++  -> pos:int
++  -> len:int
++  -> int
++  = "bigstring_rfind"
++[@@noalloc]
+ 
+ external unsafe_memmem
+-  :  haystack:t
+-  -> needle:t
++  :  haystack:(t[@local_opt])
++  -> needle:(t[@local_opt])
+   -> haystack_pos:int
+   -> haystack_len:int
+   -> needle_pos:int
+   -> needle_len:int
+   -> int
+   = "bigstring_memmem_bytecode" "bigstring_memmem"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ let find ?(pos = 0) ?len chr bstr =
+   let len = get_opt_len bstr ~pos len in
+@@ -331,6 +353,13 @@ let find ?(pos = 0) ?len chr bstr =
+   if res < 0 then None else Some res
+ ;;
+ 
++let rfind ?(pos = 0) ?len chr bstr =
++  let len = get_opt_len bstr ~pos len in
++  check_args ~loc:"rfind" ~pos ~len bstr;
++  let res = unsafe_rfind bstr chr ~pos ~len in
++  if res < 0 then None else Some res
++;;
++
+ let memmem
+   ~haystack
+   ~needle
+@@ -362,15 +391,8 @@ external swap64 : int64 -> int64 = "%bswap_int64"
+ external unsafe_get_16 : t -> int -> int = "%caml_bigstring_get16u"
+ external unsafe_get_32 : t -> int -> int32 = "%caml_bigstring_get32u"
+ external unsafe_get_64 : t -> int -> (int64[@local_opt]) = "%caml_bigstring_get64u"
+-external unsafe_set_16 : (t[@local_opt]) -> int -> int -> unit = "%caml_bigstring_set16u"
+-
+-external unsafe_set_32
+-  :  (t[@local_opt])
+-  -> int
+-  -> int32
+-  -> unit
+-  = "%caml_bigstring_set32u"
+-
++external unsafe_set_16 : t -> int -> int -> unit = "%caml_bigstring_set16u"
++external unsafe_set_32 : t -> int -> int32 -> unit = "%caml_bigstring_set32u"
+ external unsafe_set_64 : t -> int -> int64 -> unit = "%caml_bigstring_set64u"
+ 
+ let[@inline always] get_16 (t : t) (pos : int) : int =
+diff --git a/src/base_bigstring.mli b/src/base_bigstring.mli
+index 3995e5b..cf7d3d3 100644
+--- a/src/base_bigstring.mli
++++ b/src/base_bigstring.mli
+@@ -6,13 +6,12 @@ open Stdlib.Bigarray
+ (** {2 Types and exceptions} *)
+ 
+ (** Type of bigstrings *)
+-type t = (char, int8_unsigned_elt, c_layout) Array1.t [@@deriving compare, sexp]
++type t = (char, int8_unsigned_elt, c_layout) Array1.t
++[@@deriving compare ~localize, equal ~localize, sexp, sexp_grammar]
+ 
+ (** Type of bigstrings which support hashing. Note that mutation invalidates previous
+     hashes. *)
+-type t_frozen = t [@@deriving compare, hash, sexp]
+-
+-include Equal.S with type t := t
++type t_frozen = t [@@deriving compare ~localize, hash, sexp, sexp_grammar]
+ 
+ (** {2 Creation and string conversion} *)
+ 
+@@ -21,6 +20,9 @@ include Equal.S with type t := t
+     Content is undefined. *)
+ val create : int -> t
+ 
++(** [empty] is a bigstring of length 0 *)
++val empty : t
++
+ (** [init n ~f] creates a bigstring [t] of length [n], with [t.{i} = f i]. *)
+ val init : int -> f:(int -> char) -> t
+ 
+@@ -79,21 +81,21 @@ val get_opt_len : t -> pos:int -> int option -> int
+ val length : t -> int
+ 
+ (** [get t pos] returns the character at [pos] *)
+-external get : t -> int -> char = "%caml_ba_ref_1"
++external get : (t[@local_opt]) -> int -> char = "%caml_ba_ref_1"
+ 
+ (** [unsafe_get t pos] returns the character at [pos], without bounds checks. *)
+-external unsafe_get : t -> int -> char = "%caml_ba_unsafe_ref_1"
++external unsafe_get : (t[@local_opt]) -> int -> char = "%caml_ba_unsafe_ref_1"
+ 
+ (** [set t pos] sets the character at [pos] *)
+-external set : t -> int -> char -> unit = "%caml_ba_set_1"
++external set : (t[@local_opt]) -> int -> char -> unit = "%caml_ba_set_1"
+ 
+ (** [unsafe_set t pos] sets the character at [pos], without bounds checks. *)
+-external unsafe_set : t -> int -> char -> unit = "%caml_ba_unsafe_set_1"
++external unsafe_set : (t[@local_opt]) -> int -> char -> unit = "%caml_ba_unsafe_set_1"
+ 
+ (** [is_mmapped bstr] @return whether the bigstring [bstr] is
+     memory-mapped. *)
+-external is_mmapped : t -> bool = "bigstring_is_mmapped_stub"
+-  [@@noalloc]
++external is_mmapped : (t[@local_opt]) -> bool = "bigstring_is_mmapped_stub"
++[@@noalloc]
+ 
+ (** {2 Blitting} *)
+ 
+@@ -108,13 +110,13 @@ val copy : t -> t
+ 
+ module To_string : sig
+   val blit : (t, bytes) Blit.blit
+-    [@@deprecated "[since 2017-10] use [Bigstring.To_bytes.blit] instead"]
++  [@@deprecated "[since 2017-10] use [Bigstring.To_bytes.blit] instead"]
+ 
+   val blito : (t, bytes) Blit.blito
+-    [@@deprecated "[since 2017-10] use [Bigstring.To_bytes.blito] instead"]
++  [@@deprecated "[since 2017-10] use [Bigstring.To_bytes.blito] instead"]
+ 
+   val unsafe_blit : (t, bytes) Blit.blit
+-    [@@deprecated "[since 2017-10] use [Bigstring.To_bytes.unsafe_blit] instead"]
++  [@@deprecated "[since 2017-10] use [Bigstring.To_bytes.unsafe_blit] instead"]
+ 
+   include Blit.S_to_string with type t := t
+ end
+@@ -151,10 +153,34 @@ val memcmp_string : t -> pos1:int -> string -> pos2:int -> len:int -> int
+     @param len default = [length bstr - pos] *)
+ val find : ?pos:int -> ?len:int -> char -> t -> int option
+ 
++(** [rfind ?pos ?len char t] returns [Some i] for the largest [i >= pos] such that
++    [t.{i} = char], or [None] if there is no such [i].
++
++    @param pos default = 0
++    @param len default = [length bstr - pos] *)
++val rfind : ?pos:int -> ?len:int -> char -> t -> int option
++
+ (** Same as [find], but does no bounds checking, and returns a negative value instead of
+     [None] if [char] is not found. *)
+-external unsafe_find : t -> char -> pos:int -> len:int -> int = "bigstring_find"
+-  [@@noalloc]
++external unsafe_find
++  :  (t[@local_opt])
++  -> char
++  -> pos:int
++  -> len:int
++  -> int
++  = "bigstring_find"
++[@@noalloc]
++
++(** Same as [rfind], but does no bounds checking, and returns a negative value instead of
++    [None] if [char] is not found. *)
++external unsafe_rfind
++  :  (t[@local_opt])
++  -> char
++  -> pos:int
++  -> len:int
++  -> int
++  = "bigstring_rfind"
++[@@noalloc]
+ 
+ (** Search for the position of (a substring of) [needle] in (a substring of) [haystack]. *)
+ val memmem
+@@ -169,15 +195,15 @@ val memmem
+ 
+ (** As [unsafe_find] for [memmem]. *)
+ external unsafe_memmem
+-  :  haystack:t
+-  -> needle:t
++  :  haystack:(t[@local_opt])
++  -> needle:(t[@local_opt])
+   -> haystack_pos:int
+   -> haystack_len:int
+   -> needle_pos:int
+   -> needle_len:int
+   -> int
+   = "bigstring_memmem_bytecode" "bigstring_memmem"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ (** {2 Accessors for parsing binary values, analogous to [Binary_packing]}
+ 
+diff --git a/src/base_bigstring_stubs.c b/src/base_bigstring_stubs.c
+index a4df9d2..bee74d4 100644
+--- a/src/base_bigstring_stubs.c
++++ b/src/base_bigstring_stubs.c
+@@ -221,6 +221,17 @@ CAMLprim value bigstring_find(value v_str, value v_needle,
+   return ptr_to_offset(start, v_pos, r);
+ }
+ 
++CAMLprim value bigstring_rfind(value v_str, value v_needle,
++                               value v_pos, value v_len)
++{
++  char *start, *r;
++
++  start = get_bstr(v_str, v_pos);
++  r = (char*) memrchr(start, Int_val(v_needle), Long_val(v_len));
++
++  return ptr_to_offset(start, v_pos, r);
++}
++
+ CAMLprim value bigstring_memmem(value v_haystack, value v_needle,
+                                 value v_haystack_pos, value v_haystack_len,
+                                 value v_needle_pos, value v_needle_len)
+diff --git a/src/dune b/src/dune
+index 1089e54..60734ce 100644
+--- a/src/dune
++++ b/src/dune
+@@ -6,7 +6,7 @@
+  (public_name base_bigstring)
+  (js_of_ocaml
+   (javascript_files runtime.js))
+- (libraries base int_repr)
++ (libraries base int_repr sexplib)
+  (ocamlopt_flags :standard -O3)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/src/runtime.js b/src/runtime.js
+index 555105e..dced18e 100644
+--- a/src/runtime.js
++++ b/src/runtime.js
+@@ -83,6 +83,17 @@ function bigstring_find(bs, chr, pos, len){
+   return -1;
+ }
+ 
++//Provides: bigstring_rfind
++//Requires: caml_ba_get_1
++function bigstring_rfind(bs, chr, pos, len){
++  var cur = pos + len - 1;
++  while(cur >= pos){
++    if(caml_ba_get_1(bs,cur) == chr) return cur;
++    cur--;
++  }
++  return -1;
++}
++
+ //Provides: bigstring_memmem_bytecode
+ //Requires: caml_ba_get_1
+ function bigstring_memmem_bytecode(haystack, needle, haystack_pos, haystack_len, needle_pos, needle_len){
+diff --git a/src/runtime.wat b/src/runtime.wat
+new file mode 100644
+index 0000000..1be846b
+--- /dev/null
++++ b/src/runtime.wat
+@@ -0,0 +1,136 @@
++(module
++   (import "env" "caml_ba_create"
++      (func $caml_ba_create
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_ba_get_1"
++      (func  $caml_ba_get_1 (param (ref eq)) (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_blit_ba_to_ba"
++      (func $bigstring_blit_stub
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_blit_bytes_to_ba"
++      (func $bigstring_blit_bytes_bigstring_stub
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_blit_string_to_ba"
++      (func $bigstring_blit_string_bigstring_stub
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_blit_ba_to_bytes"
++      (func $bigstring_blit_bigstring_bytes_stub
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_memset"
++      (func $bigstring_memset_stub
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (result (ref eq))))
++   (import "env" "caml_bigstring_memcmp"
++      (func $bigstring_memcmp_stub
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_memcmp_string"
++      (func $bigstring_memcmp_bytes_stub
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (param (ref eq)) (result (ref eq))))
++   (import "env" "caml_bigstring_memchr"
++      (func $bigstring_find
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (result (ref eq))))
++   (import "env" "caml_bigstring_memrchr"
++      (func $bigstring_rfind
++         (param (ref eq)) (param (ref eq)) (param (ref eq)) (param (ref eq))
++         (result (ref eq))))
++   (import "env" "caml_hash_mix_bigstring"
++      (func $caml_hash_mix_bigstring
++         (param i32) (param (ref eq)) (result i32)))
++   (import "env" "Int32_val" (func $Int32_val (param (ref eq)) (result i32)))
++   (import "env" "caml_copy_int32"
++      (func $caml_copy_int32 (param $i i32) (result (ref eq))))
++
++   (type $block (array (mut (ref eq))))
++   (type $string (array (mut i8)))
++
++   (func (export "bigstring_alloc_v2")
++      (param $size (ref eq)) (result (ref eq))
++      (return_call $caml_ba_create
++        (ref.i31 (i32.const 12)) ;; kind: Char
++        (ref.i31 (i32.const 0)) ;; layout: c_layout
++        (array.new_fixed $block 2 (ref.i31 (i32.const 0)) (local.get $size))))
++
++   (func (export "bigstring_is_mmapped_stub") (param (ref eq)) (result (ref eq))
++       (ref.i31 (i32.const 0)))
++
++   (export "bigstring_blit_stub" (func $bigstring_blit_stub))
++
++   (export "bigstring_blit_bytes_bigstring_stub"
++      (func $bigstring_blit_bytes_bigstring_stub))
++
++   (export "bigstring_blit_bigstring_bytes_stub"
++      (func $bigstring_blit_bigstring_bytes_stub))
++
++   (export "bigstring_blit_string_bigstring_stub"
++      (func $bigstring_blit_string_bigstring_stub))
++
++   (export "bigstring_memset_stub" (func $bigstring_memset_stub))
++
++   (export "bigstring_memcmp_stub" (func $bigstring_memcmp_stub))
++
++   (export "bigstring_memcmp_bytes_stub" (func $bigstring_memcmp_bytes_stub))
++
++   (func (export "internalhash_fold_bigstring")
++      (param (ref eq)) (param (ref eq)) (result (ref eq))
++      (return_call $caml_copy_int32
++         (call $caml_hash_mix_bigstring
++            (call $Int32_val (local.get 0))
++            (local.get 1))))
++
++   (export "bigstring_find" (func $bigstring_find))
++
++   (export "bigstring_rfind" (func $bigstring_rfind))
++
++   (func (export "bigstring_memmem_bytecode")
++      (param $haystack (ref eq)) (param $needle (ref eq))
++      (param $v_haystack_pos (ref eq)) (param $v_haystack_len (ref eq))
++      (param $v_needle_pos (ref eq)) (param $v_needle_len (ref eq))
++      (result (ref eq))
++      (local $haystack_pos i32) (local $haystack_len i32)
++      (local $needle_pos i32) (local $needle_len i32)
++      (local $i i32) (local $j i32) (local $lim i32)
++      (local.set $haystack_pos
++         (i31.get_s (ref.cast (ref i31) (local.get $v_haystack_pos))))
++      (local.set $haystack_len
++         (i31.get_s (ref.cast (ref i31) (local.get $v_haystack_len))))
++      (local.set $needle_pos
++         (i31.get_s (ref.cast (ref i31) (local.get $v_needle_pos))))
++      (local.set $needle_len
++         (i31.get_s (ref.cast (ref i31) (local.get $v_needle_len))))
++      (local.set $lim
++         (i32.sub (local.get $haystack_len) (local.get $needle_len)))
++      (loop $outer
++         (if (i32.le_s (local.get $i) (local.get $lim))
++            (then
++               (local.set $j (i32.const 0))
++               (loop $inner
++                  (if (i32.lt_s (local.get $j) (local.get $needle_len))
++                     (then
++                        (if (ref.eq
++                               (call $caml_ba_get_1 (local.get $haystack)
++                                  (ref.i31
++                                     (i32.add (local.get $haystack_pos)
++                                        (i32.add (local.get $i)
++                                           (local.get $j)))))
++                               (call $caml_ba_get_1 (local.get $needle)
++                                  (ref.i31
++                                     (i32.add (local.get $needle_pos)
++                                        (local.get $j)))))
++                           (then
++                              (local.set $j
++                                 (i32.add (local.get $j) (i32.const 1)))
++                              (br $inner)))
++                        (local.set $i (i32.add (local.get $i) (i32.const 1)))
++                        (br $outer))))
++               (return
++                  (ref.i31
++                     (i32.add (local.get $haystack_pos) (local.get $i)))))))
++      (ref.i31 (i32.const -1)))
++)
+diff --git a/test/dune b/test/dune
+index bc3c404..8d23f86 100644
+--- a/test/dune
++++ b/test/dune
+@@ -1,5 +1,6 @@
+ (library
+  (name base_bigstring_test)
+- (libraries base_bigstring expect_test_helpers_core)
++ (libraries base_bigstring core.base_for_tests core expect_test_helpers_core
++   stdio)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/test/test_bigstring.ml b/test/test_bigstring.ml
+index 646f945..2843cee 100644
+--- a/test/test_bigstring.ml
++++ b/test/test_bigstring.ml
+@@ -3,6 +3,7 @@ open Base_bigstring
+ 
+ let length = length
+ let create = create
++let empty = empty
+ 
+ module Bigstring_sequence = struct
+   type nonrec t = t
+@@ -17,7 +18,7 @@ module Bytes_sequence = struct
+   type t = bytes [@@deriving sexp_of]
+ 
+   let create ~len = Bytes.create len
+-  let get = Bytes.get
++  let get t i = Bytes.get t i
+   let set = Bytes.set
+   let length = Bytes.length
+ end
+@@ -76,6 +77,7 @@ let sexp_of_t = sexp_of_t
+ let of_string = of_string
+ let of_bytes = of_bytes
+ let t_of_sexp = t_of_sexp
++let t_sexp_grammar = t_sexp_grammar
+ 
+ let%test_unit "roundtrip" =
+   let string_gen =
+@@ -121,9 +123,9 @@ let%expect_test "checking setters (should end in [_exn])" =
+   let test setters z =
+     try_setters z setters
+     |> List.iteri ~f:(fun i -> function
+-         | Ok bytes ->
+-           raise_s [%message "didn't raise" (z : Int.Hex.t) (i : int) (bytes : int list)]
+-         | Error _ -> ())
++      | Ok bytes ->
++        raise_s [%message "didn't raise" (z : Int.Hex.t) (i : int) (bytes : int list)]
++      | Error _ -> ())
+   in
+   test [ set_int8_exn ] 0x80;
+   test [ set_uint8_exn ] (-1);
+@@ -164,8 +166,8 @@ let%test_module "truncating setters (should end in [_trunc] or begin with [unsaf
+     let test setters z =
+       try_setters z setters
+       |> List.iter ~f:(fun t ->
+-           Or_error.ok_exn t |> List.iter ~f:(printf "%x ");
+-           printf "; ")
++        Or_error.ok_exn t |> List.iter ~f:(printf "%x ");
++        printf "; ")
+     ;;
+ 
+     let%expect_test "all word sizes" =
+@@ -213,10 +215,10 @@ let%test_module "truncating getters (should end in [_trunc] or begin with [unsaf
+         ; 0xc1 (* negative if top bit truncated *)
+         ]
+         ~f:(fun first_byte ->
+-        let i = getter (getter_t ~first_byte) ~pos:0 in
+-        (* Signed hex is not clear; make sure the hex is unsigned.  Include the signed
++          let i = getter (getter_t ~first_byte) ~pos:0 in
++          (* Signed hex is not clear; make sure the hex is unsigned.  Include the signed
+              decimal form mainly to indicate the sign. *)
+-        printf !"0x%x (= %d)\n" i i)
++          printf !"0x%x (= %d)\n" i i)
+     ;;
+ 
+     let%expect_test ("63-bit int" [@tags "64-bits-only"]) =
+@@ -246,7 +248,7 @@ let%test_module "truncating getters (should end in [_trunc] or begin with [unsaf
+         |}]
+     ;;
+ 
+-    let%expect_test ("31-bit int" [@tags "32-bits-only", "no-js"]) =
++    let%expect_test ("31-bit int" [@tags "wasm-only"]) =
+       test get_int64_le_trunc;
+       [%expect
+         {|
+@@ -273,7 +275,7 @@ let%test_module "truncating getters (should end in [_trunc] or begin with [unsaf
+         |}]
+     ;;
+ 
+-    let%expect_test ("32-bit int" [@tags "js-only"]) =
++    let%expect_test ("32-bit int" [@tags "js-only", "no-wasm"]) =
+       test get_int64_le_trunc;
+       [%expect
+         {|
+@@ -321,8 +323,8 @@ let%expect_test "checking getters (should end in [_exn])" =
+   let test getters ~first_bigstring_byte =
+     try_getters getters ~first_bigstring_byte
+     |> List.iteri ~f:(fun i -> function
+-         | Ok z -> raise_s [%message "didn't raise" (i : int) (z : Int.Hex.t)]
+-         | Error _ -> ())
++      | Ok z -> raise_s [%message "didn't raise" (i : int) (z : Int.Hex.t)]
++      | Error _ -> ())
+   in
+   test
+     (* These should check that the 64th bit in the string representation is redundant, so
+@@ -536,34 +538,89 @@ let%expect_test "basic string getters" =
+ ;;
+ 
+ external unsafe_find : t_frozen -> char -> pos:int -> len:int -> int = "bigstring_find"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ let%expect_test "basic unsafe_find" =
+-  let t = of_string "abc" in
++  let t = of_string "abcba" in
+   [%test_result: int] ~expect:1 (unsafe_find t 'b' ~pos:1 ~len:1);
+   [%test_result: int] ~expect:1 (unsafe_find t 'b' ~pos:1 ~len:2);
++  [%test_result: int] ~expect:3 (unsafe_find t 'b' ~pos:2 ~len:2);
++  [%test_pred: int] Int.is_negative (unsafe_find t 'b' ~pos:2 ~len:1);
+   [%test_pred: int] Int.is_negative (unsafe_find t 'd' ~pos:1 ~len:2)
+ ;;
+ 
+ let find = find
+ 
+ let%expect_test "basic find" =
+-  let t = of_string "abc" in
+-  [%test_result: int option] ~expect:(Some 1) (find 'b' t ~pos:1 ~len:1);
++  let t = of_string "abcba" in
+   [%test_result: int option] ~expect:None (find 'b' t ~pos:1 ~len:0);
+-  require_does_raise [%here] (fun () -> find 'b' t ~len:4);
++  [%test_result: int option] ~expect:(Some 1) (find 'b' t ~pos:1 ~len:1);
++  [%test_result: int option] ~expect:(Some 1) (find 'b' t ~pos:1 ~len:2);
++  [%test_result: int option] ~expect:(Some 1) (find 'b' t ~pos:1 ~len:3);
++  [%test_result: int option] ~expect:(Some 1) (find 'b' t ~pos:1 ~len:4);
++  require_does_raise (fun () -> find 'b' t ~pos:1 ~len:5);
+   [%expect {| (Invalid_argument "Bigstring.find: length(bstr) < pos + len") |}];
+-  require_does_raise [%here] (fun () -> find 'd' t ~len:4);
++  require_does_raise (fun () -> find 'd' t ~len:6);
+   [%expect {| (Invalid_argument "Bigstring.find: length(bstr) < pos + len") |}];
+-  [%test_result: int option] ~expect:(Some 1) (find 'b' t ~pos:1 ~len:2);
++  [%test_result: int option] ~expect:None (find 'b' t ~pos:2 ~len:1);
++  [%test_result: int option] ~expect:(Some 3) (find 'b' t ~pos:2 ~len:2);
++  [%test_result: int option] ~expect:(Some 3) (find 'b' t ~pos:2 ~len:3);
+   [%test_result: int option] ~expect:None (find 'd' t ~pos:1 ~len:2);
+   [%test_result: int option] ~expect:None (find 'b' t ~len:1);
+   [%test_result: int option] ~expect:(Some 1) (find 'b' t ~pos:1);
++  [%test_result: int option] ~expect:(Some 3) (find 'b' t ~pos:2);
++  [%test_result: int option] ~expect:(Some 3) (find 'b' t ~pos:3);
+   [%test_result: int option] ~expect:None (find 'd' t);
+-  require_does_raise [%here] (fun () -> find 'b' t ~pos:4);
++  require_does_raise (fun () -> find 'b' t ~pos:6);
+   [%expect {| (Invalid_argument "find: len < 0") |}]
+ ;;
+ 
++external unsafe_rfind
++  :  (t_frozen[@local_opt])
++  -> char
++  -> pos:int
++  -> len:int
++  -> int
++  = "bigstring_rfind"
++[@@noalloc]
++
++let%expect_test "basic unsafe_rfind" =
++  let t = of_string "abcba" in
++  [%test_result: int] ~expect:1 (unsafe_rfind t 'b' ~pos:1 ~len:1);
++  [%test_result: int] ~expect:1 (unsafe_rfind t 'b' ~pos:1 ~len:2);
++  [%test_result: int] ~expect:3 (unsafe_rfind t 'b' ~pos:1 ~len:3);
++  [%test_result: int] ~expect:3 (unsafe_rfind t 'b' ~pos:1 ~len:4);
++  [%test_result: int] ~expect:3 (unsafe_rfind t 'b' ~pos:3 ~len:1);
++  [%test_pred: int] Int.is_negative (unsafe_rfind t 'b' ~pos:4 ~len:1);
++  [%test_pred: int] Int.is_negative (unsafe_rfind t 'd' ~pos:1 ~len:2)
++;;
++
++let rfind = rfind
++
++let%expect_test "basic rfind" =
++  let t = of_string "abcba" in
++  [%test_result: int option] ~expect:None (rfind 'b' t ~pos:1 ~len:0);
++  [%test_result: int option] ~expect:(Some 1) (rfind 'b' t ~pos:1 ~len:1);
++  [%test_result: int option] ~expect:(Some 1) (rfind 'b' t ~pos:1 ~len:2);
++  [%test_result: int option] ~expect:(Some 3) (rfind 'b' t ~pos:1 ~len:3);
++  [%test_result: int option] ~expect:(Some 3) (rfind 'b' t ~pos:1 ~len:4);
++  require_does_raise (fun () -> rfind 'b' t ~pos:1 ~len:5);
++  [%expect {| (Invalid_argument "Bigstring.rfind: length(bstr) < pos + len") |}];
++  require_does_raise (fun () -> rfind 'd' t ~len:6);
++  [%expect {| (Invalid_argument "Bigstring.rfind: length(bstr) < pos + len") |}];
++  [%test_result: int option] ~expect:None (rfind 'b' t ~pos:2 ~len:1);
++  [%test_result: int option] ~expect:(Some 3) (rfind 'b' t ~pos:2 ~len:2);
++  [%test_result: int option] ~expect:(Some 3) (rfind 'b' t ~pos:2 ~len:3);
++  [%test_result: int option] ~expect:None (rfind 'd' t ~pos:1 ~len:2);
++  [%test_result: int option] ~expect:None (rfind 'b' t ~len:1);
++  [%test_result: int option] ~expect:(Some 3) (rfind 'b' t ~pos:1);
++  [%test_result: int option] ~expect:(Some 3) (rfind 'b' t ~pos:2);
++  [%test_result: int option] ~expect:(Some 3) (rfind 'b' t ~pos:3);
++  [%test_result: int option] ~expect:None (rfind 'd' t);
++  require_does_raise (fun () -> rfind 'b' t ~pos:6);
++  [%expect {| (Invalid_argument "rfind: len < 0") |}]
++;;
++
+ external unsafe_memmem
+   :  haystack:t
+   -> needle:t
+@@ -573,7 +630,7 @@ external unsafe_memmem
+   -> needle_len:int
+   -> int
+   = "bigstring_memmem_bytecode" "bigstring_memmem"
+-  [@@noalloc]
++[@@noalloc]
+ 
+ let%expect_test "basic unsafe_memmem" =
+   let haystack = "foo bar baz qwux" |> of_string in
+@@ -680,7 +737,7 @@ external set : t_frozen -> int -> char -> unit = "%caml_ba_set_1"
+ let%expect_test "basic char setters" =
+   try_setters
+     'x'
+-    [ memset ~len:0; memset ~len:1; memset ~len:2; (fun t ~pos -> set t pos) ]
++    [ memset ~len:0; memset ~len:1; memset ~len:2; (fun t ~pos x -> set t pos x) ]
+   |> printf !"%{sexp#hum:int list Or_error.t list}\n";
+   [%expect
+     {|
+@@ -699,7 +756,7 @@ let%expect_test "basic char unsafe setters" =
+     [ unsafe_memset ~len:0
+     ; unsafe_memset ~len:1
+     ; unsafe_memset ~len:2
+-    ; (fun t ~pos -> unsafe_set t pos)
++    ; (fun t ~pos x -> unsafe_set t pos x)
+     ]
+   |> printf !"%{sexp#hum:int list Or_error.t list}\n";
+   [%expect
+@@ -728,15 +785,13 @@ let%expect_test "basic unsafe char getters" =
+ let check_args = check_args
+ 
+ let%expect_test "basic check_args" =
+-  require_does_raise [%here] (fun () ->
++  require_does_raise (fun () ->
+     check_args ~loc:"LOC" ~pos:Int.max_value ~len:2 (of_string "abc"));
+   [%expect {| (Invalid_argument "Bigstring.LOC: length(bstr) < pos + len") |}];
+   check_args ~loc:"LOC" ~pos:0 ~len:0 (of_string "");
+-  require_does_raise [%here] (fun () ->
+-    check_args ~loc:"LOC" ~pos:1 ~len:0 (of_string ""));
++  require_does_raise (fun () -> check_args ~loc:"LOC" ~pos:1 ~len:0 (of_string ""));
+   [%expect {| (Invalid_argument "Bigstring.LOC: length(bstr) < pos + len") |}];
+-  require_does_raise [%here] (fun () ->
+-    check_args ~loc:"LOC" ~pos:0 ~len:1 (of_string ""));
++  require_does_raise (fun () -> check_args ~loc:"LOC" ~pos:0 ~len:1 (of_string ""));
+   [%expect {| (Invalid_argument "Bigstring.LOC: length(bstr) < pos + len") |}];
+   check_args ~loc:"LOC" ~pos:0 ~len:0 (of_string "STRING")
+ ;;
+@@ -770,7 +825,9 @@ let%expect_test "basic concat" =
+ ;;
+ 
+ let equal = equal
++let equal__local = equal__local
+ let compare = compare
++let compare__local = compare__local
+ 
+ let%expect_test "basic equal" =
+   let strings = [ ""; "a"; "aa"; "ab"; "b"; "ba"; "bb" ] in
+@@ -779,13 +836,11 @@ let%expect_test "basic equal" =
+     let test s2 =
+       let t2 = of_string s2 in
+       require_equal
+-        [%here]
+         (module Bool)
+         (equal t1 t2)
+         (String.equal s1 s2)
+         ~if_false_then_print_s:(lazy [%message (s1 : string) (s2 : string)]);
+       require_equal
+-        [%here]
+         (module Int)
+         (compare t1 t2)
+         (String.compare s1 s2)
+@@ -797,11 +852,11 @@ let%expect_test "basic equal" =
+ 
+ let%expect_test ("local allocation does not heap allocate" [@tags "64-bits-only"]) =
+   let t = init 8 ~f:Char.of_int_exn in
+-  Expect_test_helpers_core.require_no_allocation [%here] (fun () ->
++  Expect_test_helpers_core.require_no_allocation (fun () ->
+     let x = Local.get_int64_t_be t ~pos:0 in
+     set_int64_t_be t ~pos:0 x [@nontail]);
+   [%expect ""];
+-  Expect_test_helpers_core.require_no_allocation [%here] (fun () ->
++  Expect_test_helpers_core.require_no_allocation (fun () ->
+     let x = Local.get_int64_t_le t ~pos:0 in
+     set_int64_t_le t ~pos:0 x [@nontail]);
+   [%expect ""]
+@@ -814,15 +869,15 @@ let%expect_test "unsafe_get_int64_le_exn correctness" =
+       set_int64_t_le t ~pos:0 i;
+       let result = unsafe_get_int64_le_exn t ~pos:0 in
+       let expected = Int.of_int64_trunc i in
+-      require_equal here (module Int) expected result;
++      require_equal ~here (module Int) expected result;
+       result
+     in
+     match behavior with
+-    | `Fit -> require_does_not_raise here (fun () -> ignore (convert () : int))
++    | `Fit -> require_does_not_raise ~here (fun () -> ignore (convert () : int))
+     | `Raise ->
+       Or_error.try_with convert
+-      |> require_error here (fun result ->
+-           [%message "Unexpectedly successfully converted" (result : int)])
++      |> require_error ~here (fun result ->
++        [%message "Unexpectedly successfully converted" (result : int)])
+   in
+   let max_val = Int64.of_int Int.max_value in
+   let min_val = Int64.of_int Int.min_value in
+@@ -903,7 +958,7 @@ let%bench_module "" =
+         ignore
+           (Sys.opaque_identity
+              (with_poly_eq_int64_to_int_exn (Sys.opaque_identity some_int))
+-            : int)
++           : int)
+       done
+     ;;
+ 
+@@ -913,7 +968,7 @@ let%bench_module "" =
+         ignore
+           (Sys.opaque_identity
+              (bit_manipulation_int64_to_int_exn (Sys.opaque_identity some_int))
+-            : int)
++           : int)
+       done
+     ;;
+ 
+@@ -922,7 +977,7 @@ let%bench_module "" =
+       for _ = 1 to 1000 do
+         ignore
+           (Sys.opaque_identity (old_int64_to_int_exn (Sys.opaque_identity some_int))
+-            : int)
++           : int)
+       done
+     ;;
+ 
+@@ -940,7 +995,7 @@ let%bench_module "" =
+ ;;
+ 
+ type nonrec t = t
+-type nonrec t_frozen = t_frozen [@@deriving compare, hash, sexp]
++type nonrec t_frozen = t_frozen [@@deriving compare ~localize, hash, sexp, sexp_grammar]
+ 
+ (* Effectively tested in lib/int_repr *)
+ module Int_repr = Base_bigstring.Int_repr
