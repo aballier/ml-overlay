@@ -1,0 +1,495 @@
+From 549820c0aa47908a9c457a5473eaba2a478d2833 Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Tue, 13 Aug 2024 20:53:43 +0100
+Subject: [PATCH] v0.17~preview.129.36+325
+
+---
+ bigint/bench/dune       |  2 +-
+ bigint/src/bigint.ml    | 56 +++++++++++++++++++-------------
+ bigint/src/bigint.mli   | 17 +++++-----
+ bigint/src/dune         |  3 +-
+ src/bignum.ml           |  8 ++---
+ src/bignum.mli          | 28 +++++++++-------
+ src/dune                |  3 +-
+ test/src/dune           |  2 +-
+ test/src/test_bignum.ml | 72 ++++++++++++++++++++++++++++++++---------
+ test/src/zarith.ml      |  4 +++
+ 11 files changed, 133 insertions(+), 68 deletions(-)
+ create mode 100644 test/src/zarith.ml
+
+diff --git a/bigint/bench/dune b/bigint/bench/dune
+index 68d1bd4..85b1f1d 100644
+--- a/bigint/bench/dune
++++ b/bigint/bench/dune
+@@ -1,5 +1,5 @@
+ (library
+  (name bigint_benchmarks)
+- (libraries core bigint core_kernel.iobuf)
++ (libraries core bigint core_kernel.iobuf num)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/bigint/src/bigint.ml b/bigint/src/bigint.ml
+index 52e5d26..0d980ba 100644
+--- a/bigint/src/bigint.ml
++++ b/bigint/src/bigint.ml
+@@ -251,8 +251,10 @@ module Unstable = struct
+   let of_int32 = Z.of_int32
+   let of_int64 = Z.of_int64
+   let of_nativeint = Z.of_nativeint
+-  let of_float_unchecked = Z.of_float
+-  let of_float = Z.of_float
++
++  external of_float_unchecked : float -> t = "ml_z_of_float"
++  external of_float : float -> t = "ml_z_of_float"
++
+   let of_int_exn = of_int
+   let of_int32_exn = of_int32
+   let of_int64_exn = of_int64
+@@ -282,10 +284,10 @@ module T_conversions = Int_conversions.Make (Unstable)
+ module T_comparable_with_zero = Comparable.With_zero (Unstable)
+ 
+ module T_identifiable = Identifiable.Make (struct
+-  let module_name = module_name
++    let module_name = module_name
+ 
+-  include Unstable
+-end)
++    include Unstable
++  end)
+ 
+ (* Including in opposite order to shadow functorized bindings with direct bindings. *)
+ module O = struct
+@@ -299,11 +301,11 @@ end
+ include (O : module type of O with type t := t)
+ 
+ module Make_random (State : sig
+-  type t
++    type t
+ 
+-  val bits : t -> int
+-  val int : t -> int -> int
+-end) : sig
++    val bits : t -> int
++    val int : t -> int -> int
++  end) : sig
+   val random : state:State.t -> t -> t
+ end = struct
+   (* Uniform random generation of Bigint values.
+@@ -383,11 +385,11 @@ end = struct
+   open Generator.Let_syntax
+ 
+   module Uniform = Make_random (struct
+-    type t = Splittable_random.t
++      type t = Splittable_random.t
+ 
+-    let int t range = Splittable_random.int t ~lo:0 ~hi:(Int.pred range)
+-    let bits t = int t (Int.shift_left 1 30)
+-  end)
++      let int t range = Splittable_random.int t ~lo:0 ~hi:(Int.pred range)
++      let bits t = int t (Int.shift_left 1 30)
++    end)
+ 
+   let random_uniform ~state lo hi = lo + Uniform.random ~state (succ (hi - lo))
+ 
+@@ -466,16 +468,20 @@ module Hex = struct
+   type nonrec t = t [@@deriving bin_io, typerep]
+ 
+   module M = Base.Int_conversions.Make_hex (struct
+-    type nonrec t = t [@@deriving hash, compare ~localize]
+-
+-    let to_string i = Z.format "%x" i
+-    let of_hex_string str = Z.of_string_base 16 str
+-    let of_string str = of_string_base str ~name:"Hex.of_string" ~of_string:of_hex_string
+-    let ( < ) = ( < )
+-    let neg = neg
+-    let zero = zero
+-    let module_name = module_name ^ ".Hex"
+-  end)
++      type nonrec t = t [@@deriving hash, compare ~localize]
++
++      let to_string i = Z.format "%x" i
++      let of_hex_string str = Z.of_string_base 16 str
++
++      let of_string str =
++        of_string_base str ~name:"Hex.of_string" ~of_string:of_hex_string
++      ;;
++
++      let ( < ) = ( < )
++      let neg = neg
++      let zero = zero
++      let module_name = module_name ^ ".Hex"
++    end)
+ 
+   include (
+     M.Hex :
+@@ -497,4 +503,8 @@ module Binary = struct
+   ;;
+ 
+   let sexp_of_t t : Sexp.t = Atom (to_string t)
++
++  module Hum = struct
++    let to_string = to_string_hum
++  end
+ end
+diff --git a/bigint/src/bigint.mli b/bigint/src/bigint.mli
+index c28f2dc..db9f34e 100644
+--- a/bigint/src/bigint.mli
++++ b/bigint/src/bigint.mli
+@@ -9,6 +9,7 @@ type t
+     sign. *)
+ include Int_intf.S_unbounded with type t := t
+ 
++val to_float : t -> float
+ val to_int64_exn : t -> Int64.t
+ val to_int : t -> int option
+ val to_int32 : t -> Int32.t option
+@@ -46,22 +47,22 @@ module Unstable : sig
+ end
+ 
+ val bin_size_t : t Bin_prot.Size.sizer
+-  [@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
+ 
+ val bin_write_t : t Bin_prot.Write.writer
+-  [@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
+ 
+ val bin_read_t : t Bin_prot.Read.reader
+-  [@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
+ 
+-val __bin_read_t__ : (int -> t) Bin_prot.Read.reader
+-  [@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
++val __bin_read_t__ : t Bin_prot.Read.vtag_reader
++[@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
+ 
+ val bin_writer_t : t Bin_prot.Type_class.writer
+-  [@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
+ 
+ val bin_reader_t : t Bin_prot.Type_class.reader
+-  [@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
+ 
+ val bin_t : t Bin_prot.Type_class.t
+-  [@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V1 or Unstable instead"]
+diff --git a/bigint/src/dune b/bigint/src/dune
+index 652b37c..d787942 100644
+--- a/bigint/src/dune
++++ b/bigint/src/dune
+@@ -1,6 +1,7 @@
+ (library
+  (name bigint)
+  (public_name bignum.bigint)
+- (libraries core typerep num splittable_random zarith zarith_stubs_js)
++ (libraries core typerep num sexplib splittable_random
++   ppx_stable_witness.stable_witness zarith zarith_stubs_js)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/src/bignum.ml b/src/bignum.ml
+index 8fb731c..6c70a7f 100644
+--- a/src/bignum.ml
++++ b/src/bignum.ml
+@@ -1275,11 +1275,11 @@ let quickcheck_shrinker = For_quickcheck.quickcheck_shrinker
+ 
+ module _ : sig end = struct
+   include Pretty_printer.Register (struct
+-    include Unstable
++      include Unstable
+ 
+-    let module_name = "Bignum"
+-    let to_string t = Sexp.to_string (sexp_of_t t)
+-  end)
++      let module_name = "Bignum"
++      let to_string t = Sexp.to_string (sexp_of_t t)
++    end)
+ end
+ 
+ let of_float = of_float_dyadic
+diff --git a/src/bignum.mli b/src/bignum.mli
+index 1389bab..fe07276 100644
+--- a/src/bignum.mli
++++ b/src/bignum.mli
+@@ -102,7 +102,13 @@ val round_decimal
+   -> t
+   -> t
+ 
++(** For non-negative [digits], [round_decimal_to_nearest_half_to_even ~digits t] is
++    equivalent to, but somewhat more efficient than, [round_decimal ~dir:`Bankers ~digits
++    t].
++
++    @param digits must be non-negative. *)
+ val round_decimal_to_nearest_half_to_even : digits:int -> t -> t
++
+ val to_float : t -> float
+ 
+ (** Accurate if possible.  If this number is not representable as a finite decimal
+@@ -204,7 +210,7 @@ val of_float_decimal : float -> t
+ val of_float_dyadic : float -> t
+ 
+ val of_float : float -> t
+-  [@@deprecated "[since 2017-03]: Use [of_float_decimal] or [of_float_dyadic]"]
++[@@deprecated "[since 2017-03]: Use [of_float_decimal] or [of_float_dyadic]"]
+ 
+ (** Rounds toward zero. [None] if the conversion would overflow *)
+ val to_int : t -> int option
+@@ -353,10 +359,10 @@ module O : sig
+ end
+ 
+ val to_string : t -> string
+-  [@@deprecated "[since 2018-02]: Use [to_string_hum] or another [to_string_*] function"]
++[@@deprecated "[since 2018-02]: Use [to_string_hum] or another [to_string_*] function"]
+ 
+ val pp : Format.formatter -> t -> unit
+-  [@@deprecated "[since 2018-02]: Use [pp_hum] or [pp_accurate]"]
++[@@deprecated "[since 2018-02]: Use [pp_hum] or [pp_accurate]"]
+ 
+ module For_testing : sig
+   val of_string_internal : string -> t
+@@ -368,22 +374,22 @@ module For_testing : sig
+ end
+ 
+ val bin_size_t : t Bin_prot.Size.sizer
+-  [@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
+ 
+ val bin_write_t : t Bin_prot.Write.writer
+-  [@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
+ 
+ val bin_read_t : t Bin_prot.Read.reader
+-  [@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
+ 
+-val __bin_read_t__ : (int -> t) Bin_prot.Read.reader
+-  [@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
++val __bin_read_t__ : t Bin_prot.Read.vtag_reader
++[@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
+ 
+ val bin_writer_t : t Bin_prot.Type_class.writer
+-  [@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
+ 
+ val bin_reader_t : t Bin_prot.Type_class.reader
+-  [@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
+ 
+ val bin_t : t Bin_prot.Type_class.t
+-  [@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
++[@@deprecated "[since 2019-10] use module V2 or Unstable instead"]
+diff --git a/src/dune b/src/dune
+index 14338e1..7660b4f 100644
+--- a/src/dune
++++ b/src/dune
+@@ -1,6 +1,7 @@
+ (library
+  (name bignum)
+  (public_name bignum)
+- (libraries bigint core zarith zarith_stubs_js)
++ (libraries bigint core sexplib ppx_stable_witness.stable_witness zarith
++   zarith_stubs_js)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/test/src/dune b/test/src/dune
+index f93ae3f..7277a24 100644
+--- a/test/src/dune
++++ b/test/src/dune
+@@ -1,6 +1,6 @@
+ (library
+  (name bignum_test)
+  (libraries bigint bignum core expect_test_helpers_core
+-   sexp_grammar_validation)
++   sexp_grammar_validation zarith)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/test/src/test_bignum.ml b/test/src/test_bignum.ml
+index b56b82c..8e70db1 100644
+--- a/test/src/test_bignum.ml
++++ b/test/src/test_bignum.ml
+@@ -5,7 +5,7 @@ open Bignum.For_testing
+ 
+ let%expect_test "Bignum.abs" =
+   let test t =
+-    let t' = require_no_allocation [%here] (fun () -> abs t) in
++    let t' = require_no_allocation (fun () -> abs t) in
+     [%test_result: t] ~expect:t t'
+   in
+   test hundred;
+@@ -46,7 +46,7 @@ let compare_float_and_bignum_repr ~include_scientific_notation x =
+ ;;
+ 
+ let%expect_test "Bignum.sexp_of_t matches Float.to_string when it can" =
+-  require_does_not_raise [%here] (fun () ->
++  require_does_not_raise (fun () ->
+     Quickcheck.test ~sexp_of:[%sexp_of: float] Float.gen_finite ~f:(fun x ->
+       compare_float_and_bignum_repr ~include_scientific_notation:false x));
+   [%expect {| |}]
+@@ -76,14 +76,14 @@ let compare_floats ~of_float x =
+ ;;
+ 
+ let%expect_test "roundtrip: f |> Bignum.of_float_decimal |> Bignum.to_float" =
+-  require_does_not_raise [%here] (fun () ->
++  require_does_not_raise (fun () ->
+     Quickcheck.test ~sexp_of:[%sexp_of: float] Float.quickcheck_generator ~f:(fun x ->
+       compare_floats ~of_float:Bignum.of_float_decimal x));
+   [%expect {| |}]
+ ;;
+ 
+ let%expect_test "Subnormals are handled correctly by [Zarith.Q.to_float]" =
+-  require_does_not_raise [%here] (fun () ->
++  require_does_not_raise (fun () ->
+     let x = 7.56181796669062E-309 in
+     let x' = x |> Bignum.of_float_decimal |> Bignum.to_float in
+     if not (Float.( = ) x x') then raise_s [%message "mismatch" (x : float) (x' : float)]);
+@@ -91,14 +91,14 @@ let%expect_test "Subnormals are handled correctly by [Zarith.Q.to_float]" =
+ ;;
+ 
+ let%expect_test "roundtrip: f |> Bignum.of_float_dyadic |> Bignum.to_float" =
+-  require_does_not_raise [%here] (fun () ->
++  require_does_not_raise (fun () ->
+     Quickcheck.test ~sexp_of:[%sexp_of: float] Float.quickcheck_generator ~f:(fun x ->
+       compare_floats ~of_float:Bignum.of_float_dyadic x));
+   [%expect {| |}]
+ ;;
+ 
+ let%expect_test "to_string_accurate |> of_string" =
+-  require_does_not_raise [%here] (fun () ->
++  require_does_not_raise (fun () ->
+     Quickcheck.test ~sexp_of:[%sexp_of: Bignum.t] Bignum.quickcheck_generator ~f:(fun x ->
+       [%test_result: Bignum.t]
+         ~expect:x
+@@ -107,7 +107,7 @@ let%expect_test "to_string_accurate |> of_string" =
+ ;;
+ 
+ let%expect_test "to_string_accurate matches sexp_of_t" =
+-  require_does_not_raise [%here] (fun () ->
++  require_does_not_raise (fun () ->
+     Quickcheck.test ~sexp_of:[%sexp_of: Bignum.t] Bignum.quickcheck_generator ~f:(fun x ->
+       [%test_result: string]
+         ~expect:(Bignum.to_string_accurate x)
+@@ -116,7 +116,7 @@ let%expect_test "to_string_accurate matches sexp_of_t" =
+ ;;
+ 
+ let%expect_test "to_string_hum |> of_string" =
+-  require_does_not_raise [%here] (fun () ->
++  require_does_not_raise (fun () ->
+     Quickcheck.test ~sexp_of:[%sexp_of: Bignum.t] Bignum.quickcheck_generator ~f:(fun x ->
+       let decimals = 9 in
+       let dx = Bignum.to_string_hum ~decimals x |> Bignum.of_string in
+@@ -132,7 +132,7 @@ let%expect_test "to_string_hum |> of_string" =
+ ;;
+ 
+ let%expect_test ("Float.to_string_hum matches Bignum.to_string_hum" [@tags "no-js"]) =
+-  require_does_not_raise [%here] (fun () ->
++  require_does_not_raise (fun () ->
+     let delimiter = '_'
+     and decimals = 7 in
+     Quickcheck.test ~sexp_of:[%sexp_of: float] Float.gen_without_nan ~f:(fun x ->
+@@ -485,9 +485,9 @@ let%test_unit "of_string matches Float.of_string" =
+     ; "125e-3"
+     ]
+     ~f:(fun s ->
+-    as_float s;
+-    as_float ("+" ^ s);
+-    as_float ("-" ^ s))
++      as_float s;
++      as_float ("+" ^ s);
++      as_float ("-" ^ s))
+ ;;
+ 
+ let minus_one = of_int (-1)
+@@ -715,8 +715,8 @@ let%test_module _ =
+         let buf_as_bytes =
+           String.to_list_rev buf
+           |> List.rev_map ~f:(function
+-               | '0' .. '9' as c -> String.make 1 c
+-               | x -> sprintf "\\%03i" (Char.to_int x))
++            | '0' .. '9' as c -> String.make 1 c
++            | x -> sprintf "\\%03i" (Char.to_int x))
+           |> String.concat
+         in
+         printf
+@@ -786,7 +786,7 @@ let%test_module _ =
+         |}]
+     ;;
+ 
+-    let%expect_test ("bin_io serialization V2 (javascript)" [@tags "js-only"]) =
++    let%expect_test ("bin_io serialization V2 (javascript)" [@tags "js-only", "no-wasm"]) =
+       bin_io_tests (module V2);
+       [%expect
+         {|
+@@ -815,8 +815,37 @@ let%test_module _ =
+         |}]
+     ;;
+ 
++    let%expect_test ("bin_io serialization V2 (wasm)" [@tags "wasm-only"]) =
++      bin_io_tests (module V2);
++      [%expect
++        {|
++                           0 -> ( 1) \000
++                           1 -> ( 2) \001\001
++                          -1 -> ( 3) \001\255\255
++                   100000001 -> ( 6) \001\253\001\225\245\005
++                   1000000.1 -> ( 6) \002\253\129\150\152\000
++                   100000.01 -> ( 6) \003\253\129\150\152\000
++                   10000.001 -> ( 6) \004\253\129\150\152\000
++                   1000.0001 -> ( 6) \005\253\129\150\152\000
++                   100.00001 -> ( 6) \006\253\129\150\152\000
++                   10.000001 -> ( 6) \007\253\129\150\152\000
++                   1.0000001 -> ( 6) \008\253\129\150\152\000
++                  0.10000001 -> ( 6) \009\253\129\150\152\000
++                 0.010000001 -> (11) \010\253\129\150\152\000\253\000\202\154\059
++                0.0010000001 -> (22) \011\02010000001\04710000000000
++              10000000000000 -> (16) \011\01410000000000000
++             -10000000000000 -> (17) \011\015\04510000000000000
++        12345678901234567.12345678901234567 -> (55) \01151234567890123456712345678901234567\047100000000000000000
++               1099511627775 -> (15) \011\0131099511627775
++                  1073741823 -> ( 6) \001\253\255\255\255\063
++                 -1073741824 -> ( 6) \001\253\000\000\000\192
++                  1073741824 -> (12) \011\0101073741824
++                 -1073741825 -> (13) \011\011\0451073741825
++        |}]
++    ;;
++
+     let%expect_test "bin_io de-serialization V2" =
+-      (* Some bignums will have two bin_io representation depending on where their
++      (* Some bignums will have two bin_io representation depending on where they
+          were serialized.  Make sure we're able to parse things back regardless of the
+          architecture. *)
+       let all =
+@@ -830,6 +859,8 @@ let%test_module _ =
+           , [ "\011\015\04510000000000000"; "\001\252\000\096\141\177\231\246\255\255" ] )
+         ; ( "1099511627775"
+           , [ "\011\0131099511627775"; "\001\252\255\255\255\255\255\000\000\000" ] )
++        ; "1073741824", [ "\001\253\000\000\000\064"; "\011\0101073741824" ]
++        ; "-1073741825", [ "\001\253\255\255\255\191"; "\011\011\0451073741825" ]
+         ]
+       in
+       let module M = V2 in
+@@ -1099,6 +1130,15 @@ let%test_module "round" =
+       | _ -> true
+     ;;
+ 
++    let%test_unit _ =
++      Quickcheck.test Bignum.gen_finite ~sexp_of:Bignum.sexp_of_t ~f:(fun bignum ->
++        for digits = 0 to 10 do
++          [%test_result: Bignum.t]
++            ~expect:(Bignum.round_decimal_to_nearest_half_to_even ~digits bignum)
++            (Bignum.round_decimal ~dir:`Bankers ~digits bignum)
++        done)
++    ;;
++
+     let dir_to_string = function
+       | `Up -> "up"
+       | `Down -> "down"
+diff --git a/test/src/zarith.ml b/test/src/zarith.ml
+new file mode 100644
+index 0000000..b40264e
+--- /dev/null
++++ b/test/src/zarith.ml
+@@ -0,0 +1,4 @@
++module Big_int_Z = Big_int_Z
++module Q = Q
++module Z = Z
++module Zarith_version = Zarith_version
