@@ -6,8 +6,8 @@ EAPI=8
 inherit jbuilder
 
 DESCRIPTION="Opam solver using 0install backend using the CUDF interface"
-HOMEPAGE="https://github.com/ocaml-opam/opam-0install-solver"
-SRC_URI="https://github.com/ocaml-opam/opam-0install-solver/releases/download/v${PV}/${P}.tbz"
+HOMEPAGE="https://github.com/ocaml-opam/opam-0install-cudf"
+SRC_URI="https://github.com/ocaml-opam/opam-0install-cudf/releases/download/v${PV}/${P}.tar.gz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
