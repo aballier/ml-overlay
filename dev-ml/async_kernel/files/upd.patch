@@ -1,0 +1,4142 @@
+From ff0504f174572e7f8a808b4ee9981d56fbd4d92d Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Tue, 13 Aug 2024 20:53:43 +0100
+Subject: [PATCH] v0.17~preview.129.36+325
+
+---
+ config/async_kernel_config.ml                 |  61 +-
+ config/dune                                   |   2 +-
+ eager_deferred/src/eager_deferred1.ml         |   1 +
+ eager_deferred/src/eager_deferred1.mli        |   2 +-
+ eager_deferred/src/eager_deferred_array.ml    | 131 +++
+ eager_deferred/src/eager_deferred_intf.ml     |  11 +-
+ eager_deferred/src/eager_deferred_list.ml     |  14 +-
+ eager_deferred/src/eager_deferred_or_error.ml | 201 +++-
+ eager_deferred/src/eager_deferred_result.ml   | 110 +-
+ .../test/test_laziness_preserving_deferred.ml |   8 +-
+ limiter_async/test/dune                       |   3 +-
+ limiter_async/test/test_limiter_async.ml      | 997 +++++++++---------
+ persistent_connection_kernel/src/dune         |   2 +-
+ .../src/persistent_connection_kernel.ml       |  60 +-
+ src/async_kernel_scheduler.ml                 |   2 +-
+ src/async_kernel_scheduler.mli                |   2 +-
+ src/async_stream.ml                           |   8 +-
+ src/clock_intf.ml                             |  60 +-
+ src/deferred1.ml                              |  22 +-
+ src/deferred_array.ml                         |  14 +-
+ src/deferred_list.ml                          |  14 +-
+ src/deferred_memo.ml                          |   8 +-
+ src/deferred_memo_intf.ml                     |   4 +-
+ src/deferred_option.ml                        |  20 +-
+ src/deferred_or_error.ml                      | 199 +++-
+ src/deferred_or_error.mli                     |  11 +-
+ src/deferred_result.ml                        | 110 +-
+ src/deferred_result.mli                       |   5 +
+ src/dune                                      |   2 +-
+ src/execution_context.ml                      |   2 +
+ src/execution_context.mli                     |   2 +
+ src/ivar0.ml                                  |   2 +-
+ src/job_or_event.ml                           |   4 +-
+ src/job_queue.ml                              |  16 +-
+ src/monad_sequence.ml                         |  35 +
+ src/monitor.ml                                | 150 ++-
+ src/monitor.mli                               |  22 +-
+ src/monitor0.ml                               |  14 +-
+ src/pipe.ml                                   | 104 +-
+ src/pipe.mli                                  |  22 +-
+ src/require_explicit_time_source.ml           |   1 +
+ src/require_explicit_time_source.mli          |  11 +-
+ src/scheduler.ml                              |  18 +-
+ src/scheduler.mli                             |   7 +
+ src/scheduler1.ml                             |   7 +-
+ src/synchronous_time_source.mli               |  10 +-
+ src/synchronous_time_source0.ml               |  33 +-
+ src/throttle.ml                               |  89 +-
+ src/throttle.mli                              |  13 +
+ src/time_source_intf.ml                       |  17 +-
+ src/types.ml                                  |   2 +-
+ weak_hashtbl_async/src/dune                   |   2 +-
+ weak_hashtbl_async/test/dune                  |   2 +-
+ 54 files changed, 1727 insertions(+), 944 deletions(-)
+ create mode 100644 eager_deferred/src/eager_deferred_array.ml
+
+diff --git a/config/async_kernel_config.ml b/config/async_kernel_config.ml
+index ee2c5f4..bdb08b3 100644
+--- a/config/async_kernel_config.ml
++++ b/config/async_kernel_config.ml
+@@ -6,58 +6,58 @@ let sec = Time_ns.Span.of_sec
+ let concat = String.concat
+ 
+ module Epoll_max_ready_events = Validated.Make (struct
+-  include Int
++    include Int
+ 
+-  let here = [%here]
+-  let validate = Int.validate_positive
+-end)
++    let here = [%here]
++    let validate = Int.validate_positive
++  end)
+ 
+ module Io_uring_max_submission_entries = Validated.Make (struct
+-  include Int
++    include Int
+ 
+-  let here = [%here]
+-  let validate = Int.validate_positive
+-end)
++    let here = [%here]
++    let validate = Int.validate_positive
++  end)
+ 
+ module Max_inter_cycle_timeout = Validated.Make (struct
+-  include Time_ns.Span
++    include Time_ns.Span
+ 
+-  let here = [%here]
+-  let validate = Time_ns.Span.validate_non_negative
+-end)
++    let here = [%here]
++    let validate = Time_ns.Span.validate_non_negative
++  end)
+ 
+ module Min_inter_cycle_timeout = Validated.Make (struct
+-  include Time_ns.Span
++    include Time_ns.Span
+ 
+-  let here = [%here]
+-  let validate = Time_ns.Span.validate_non_negative
+-end)
++    let here = [%here]
++    let validate = Time_ns.Span.validate_non_negative
++  end)
+ 
+ module Max_num_open_file_descrs = struct
+   include Validated.Make (struct
+-    include Int
++      include Int
+ 
+-    let here = [%here]
+-    let validate = Int.validate_positive
+-  end)
++      let here = [%here]
++      let validate = Int.validate_positive
++    end)
+ 
+   let default = create_exn (1 lsl 17)
+   let equal (t1 : t) t2 = t1 = t2
+ end
+ 
+ module Max_num_threads = Validated.Make (struct
+-  include Int
++    include Int
+ 
+-  let here = [%here]
+-  let validate = Int.validate_positive
+-end)
++    let here = [%here]
++    let validate = Int.validate_positive
++  end)
+ 
+ module Max_num_jobs_per_priority_per_cycle = Validated.Make (struct
+-  include Int
++    include Int
+ 
+-  let here = [%here]
+-  let validate = Int.validate_positive
+-end)
++    let here = [%here]
++    let validate = Int.validate_positive
++  end)
+ 
+ module Dump_core_on_job_delay = struct
+   module How_to_dump = struct
+@@ -465,9 +465,10 @@ Allowed values are:|}
+                       ; default |> Max_num_open_file_descrs.raw |> Int.to_string_hum
+                       ; " [ulimit -n -H]"
+                       ]
+-                     : string)])
++                    : string)])
+            [ {|
+-  The maximum number of open file descriptors allowed at any one time.|} ])
++  The maximum number of open file descriptors allowed at any one time.|}
++           ])
+       ~max_num_threads:
+         (field
+            [%sexp_of: Max_num_threads.t]
+diff --git a/config/dune b/config/dune
+index 5cbc7b8..ba1538f 100644
+--- a/config/dune
++++ b/config/dune
+@@ -1,6 +1,6 @@
+ (library
+  (name async_kernel_config)
+- (libraries core core_kernel.thread_pool_cpu_affinity
++ (libraries core parsexp core_kernel.thread_pool_cpu_affinity
+    core_kernel.timing_wheel)
+  (public_name async_kernel.config)
+  (preprocess
+diff --git a/eager_deferred/src/eager_deferred1.ml b/eager_deferred/src/eager_deferred1.ml
+index ab6ea75..c3f46e6 100644
+--- a/eager_deferred/src/eager_deferred1.ml
++++ b/eager_deferred/src/eager_deferred1.ml
+@@ -1,4 +1,5 @@
+ include Eager_deferred0
++module Array = Eager_deferred_array.Array
+ module List = Eager_deferred_list.List
+ module Queue = Eager_deferred_queue.Queue
+ 
+diff --git a/eager_deferred/src/eager_deferred1.mli b/eager_deferred/src/eager_deferred1.mli
+index 3086763..ab9e41c 100644
+--- a/eager_deferred/src/eager_deferred1.mli
++++ b/eager_deferred/src/eager_deferred1.mli
+@@ -24,4 +24,4 @@ include
+   Eager_deferred_intf.Eager_deferred1
+   (*_ We do not expose [Eager_deferred.t] so that type-error messages refer to
+     [Deferred.t], not [Eager_deferred.t]. *)
+-    with type 'a t := 'a Deferred.t
++  with type 'a t := 'a Deferred.t
+diff --git a/eager_deferred/src/eager_deferred_array.ml b/eager_deferred/src/eager_deferred_array.ml
+new file mode 100644
+index 0000000..327d710
+--- /dev/null
++++ b/eager_deferred/src/eager_deferred_array.ml
+@@ -0,0 +1,131 @@
++open! Core
++open! Import
++module Ivar = Async_kernel.Ivar
++module Throttle = Async_kernel.Throttle
++open Eager_deferred0
++
++module Array = struct
++  open Infix
++  open Let_syntax
++
++  let foldi t ~init ~f =
++    create (fun result ->
++      let rec loop i b =
++        if i = Array.length t
++        then Ivar.fill_exn result b
++        else f i b t.(i) >>> fun b -> loop (i + 1) b
++      in
++      loop 0 init)
++  ;;
++
++  let fold t ~init ~f = foldi t ~init ~f:(fun _ a x -> f a x)
++
++  let seqmapi t ~f =
++    create (fun result ->
++      let rec loop i output =
++        if i = Array.length t
++        then Ivar.fill_exn result output
++        else
++          f i (Array.get t i)
++          >>> fun b ->
++          let output = if i = 0 then Array.create ~len:(Array.length t) b else output in
++          Array.set output i b;
++          loop (i + 1) output
++      in
++      loop 0 [||])
++  ;;
++
++  let all ds = seqmapi ds ~f:(fun _ x -> x)
++  let all_unit ds = ignore_m (fold ds ~init:() ~f:(fun () d -> d))
++
++  let iteri ~how t ~f =
++    match how with
++    | (`Parallel | `Max_concurrent_jobs _) as how ->
++      all_unit
++        (Array.mapi
++           t
++           ~f:
++             (unstage
++                (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
++    | `Sequential -> foldi t ~init:() ~f:(fun i () x -> f i x)
++  ;;
++
++  let mapi ~how t ~f =
++    match how with
++    | (`Parallel | `Max_concurrent_jobs _) as how ->
++      all
++        (Array.mapi
++           t
++           ~f:
++             (unstage
++                (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
++    | `Sequential -> seqmapi t ~f
++  ;;
++
++  let filteri ~how t ~f =
++    let%map bools = mapi t ~how ~f in
++    Array.of_list_rev
++      (Array.fold2_exn t bools ~init:[] ~f:(fun ac x b -> if b then x :: ac else ac))
++  ;;
++
++  let filter_mapi ~how t ~f = mapi t ~how ~f >>| Array.filter_opt
++
++  let concat_mapi ~how t ~f =
++    let%map t = mapi t ~how ~f in
++    Array.concat (Array.to_list t)
++  ;;
++
++  let find_mapi t ~f =
++    let rec aux i =
++      if i = Array.length t
++      then return None
++      else (
++        match%bind f i t.(i) with
++        | None -> aux (i + 1)
++        | Some _ as some -> return some)
++    in
++    aux 0
++  ;;
++
++  let findi t ~f =
++    find_mapi t ~f:(fun i elt ->
++      let%map b = f i elt in
++      if b then Some (i, elt) else None)
++  ;;
++
++  let find t ~f =
++    find_mapi t ~f:(fun _ elt ->
++      let%map b = f elt in
++      if b then Some elt else None)
++  ;;
++
++  let existsi t ~f =
++    match%map
++      find_mapi t ~f:(fun i elt ->
++        let%map b = f i elt in
++        if b then Some () else None)
++    with
++    | Some () -> true
++    | None -> false
++  ;;
++
++  let for_alli t ~f =
++    match%map
++      find_mapi t ~f:(fun i elt ->
++        let%map b = f i elt in
++        if not b then Some () else None)
++    with
++    | Some () -> false
++    | None -> true
++  ;;
++
++  let iter ~how t ~f = iteri ~how t ~f:(fun _ a -> f a)
++  let map ~how t ~f = mapi ~how t ~f:(fun _ a -> f a)
++  let filter_map ~how t ~f = filter_mapi ~how t ~f:(fun _ a -> f a)
++  let filter ~how t ~f = filteri ~how t ~f:(fun _ a -> f a)
++  let concat_map ~how t ~f = concat_mapi ~how t ~f:(fun _ a -> f a)
++  let find_map t ~f = find_mapi t ~f:(fun _ a -> f a)
++  let exists t ~f = existsi t ~f:(fun _ a -> f a)
++  let for_all t ~f = for_alli t ~f:(fun _ a -> f a)
++  let init ~how n ~f = map ~how (Array.init n ~f:Fn.id) ~f
++end
+diff --git a/eager_deferred/src/eager_deferred_intf.ml b/eager_deferred/src/eager_deferred_intf.ml
+index ac171e3..235f269 100644
+--- a/eager_deferred/src/eager_deferred_intf.ml
++++ b/eager_deferred/src/eager_deferred_intf.ml
+@@ -34,7 +34,7 @@ module type Eager_deferred_or_error = sig
+     :  ?extract_exn:bool
+     -> ?run:[ `Now | `Schedule ]
+     -> ?rest:[ `Log | `Raise | `Call of exn -> unit ] (** default is [`Raise] *)
+-    -> ?here:Lexing.position
++    -> ?here:Stdlib.Lexing.position
+     -> ?name:string
+     -> (unit -> 'a deferred)
+     -> 'a t
+@@ -44,7 +44,7 @@ module type Eager_deferred_or_error = sig
+     :  ?extract_exn:bool
+     -> ?run:[ `Now | `Schedule ]
+     -> ?rest:[ `Log | `Raise | `Call of exn -> unit ] (** default is [`Raise] *)
+-    -> ?here:Lexing.position
++    -> ?here:Stdlib.Lexing.position
+     -> ?name:string
+     -> (unit -> 'a t)
+     -> 'a t
+@@ -53,6 +53,7 @@ module type Eager_deferred_or_error = sig
+   val combine_errors_unit : unit t list -> unit t
+   val filter_ok_at_least_one : 'a t list -> 'a list t
+ 
++  module Array : Monad_sequence.S with type 'a monad := 'a t with type 'a t := 'a array
+   module List : Monad_sequence.S with type 'a monad := 'a t with type 'a t := 'a list
+ 
+   val repeat_until_finished
+@@ -91,6 +92,7 @@ module type Eager_deferred1 = sig
+     -> ('state -> [ `Repeat of 'state | `Finished of 'result ] t)
+     -> 'result t
+ 
++  module Array : Monad_sequence.S with type 'a monad := 'a t with type 'a t := 'a array
+   module List : Monad_sequence.S with type 'a monad := 'a t with type 'a t := 'a list
+ 
+   (** Similar to {Deferred.Queue} but eager when passing ~how:`Sequential. The functions
+@@ -117,6 +119,11 @@ module type Eager_deferred1 = sig
+       -> ok:('ok1 -> 'ok2 -> 'ok3)
+       -> err:('err -> 'err -> 'err)
+       -> ('ok3, 'err) t
++
++    module List :
++      Monad_sequence.S2_result
++      with type ('a, 'e) monad := ('a, 'e) t
++      with type 'a t := 'a list
+   end
+ end
+ 
+diff --git a/eager_deferred/src/eager_deferred_list.ml b/eager_deferred/src/eager_deferred_list.ml
+index 532833e..40b7f4d 100644
+--- a/eager_deferred/src/eager_deferred_list.ml
++++ b/eager_deferred/src/eager_deferred_list.ml
+@@ -43,14 +43,24 @@ module List = struct
+   let iteri ~how t ~f =
+     match how with
+     | (`Parallel | `Max_concurrent_jobs _) as how ->
+-      all_unit (List.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++      all_unit
++        (List.mapi
++           t
++           ~f:
++             (unstage
++                (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+     | `Sequential -> foldi t ~init:() ~f:(fun i () x -> f i x)
+   ;;
+ 
+   let mapi ~how t ~f =
+     match how with
+     | (`Parallel | `Max_concurrent_jobs _) as how ->
+-      all (List.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++      all
++        (List.mapi
++           t
++           ~f:
++             (unstage
++                (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+     | `Sequential -> seqmapi t ~f
+   ;;
+ 
+diff --git a/eager_deferred/src/eager_deferred_or_error.ml b/eager_deferred/src/eager_deferred_or_error.ml
+index 75c4696..90f99f0 100644
+--- a/eager_deferred/src/eager_deferred_or_error.ml
++++ b/eager_deferred/src/eager_deferred_or_error.ml
+@@ -2,6 +2,8 @@ open! Core
+ open! Async_kernel
+ open! Import
+ module Deferred = Eager_deferred0
++module Deferred_array = Eager_deferred_array.Array
++module Deferred_list = Eager_deferred_list.List
+ module Deferred_result = Eager_deferred_result
+ 
+ module Monitor = struct
+@@ -15,20 +17,20 @@ include (Deferred_result : Monad.S2 with type ('a, 'b) t := ('a, 'b) Deferred_re
+ type 'a t = 'a Or_error.t Deferred.t
+ 
+ include Applicative.Make (struct
+-  type nonrec 'a t = 'a t
++    type nonrec 'a t = 'a t
+ 
+-  let return = return
++    let return = return
+ 
+-  let apply f x =
+-    Deferred_result.combine
+-      f
+-      x
+-      ~ok:(fun f x -> f x)
+-      ~err:(fun e1 e2 -> Error.of_list [ e1; e2 ])
+-  ;;
++    let apply f x =
++      Deferred_result.combine
++        f
++        x
++        ~ok:(fun f x -> f x)
++        ~err:(fun e1 e2 -> Error.of_list [ e1; e2 ])
++    ;;
+ 
+-  let map = `Custom map
+-end)
++    let map = `Custom map
++  end)
+ 
+ module Let_syntax = struct
+   let return = return
+@@ -86,55 +88,95 @@ let find_map_ok l ~f =
+ 
+ let ok_unit = return ()
+ 
+-let try_with ?extract_exn ?run ?rest ?here ?name f =
+-  Deferred.map (Monitor.try_with ?extract_exn ?run ?rest ?here ?name f) ~f:(function
++let try_with ?extract_exn ?run ?rest ?(here = Stdlib.Lexing.dummy_pos) ?name f =
++  Deferred.map (Monitor.try_with ?extract_exn ?run ?rest ~here ?name f) ~f:(function
+     | Error exn -> Error (Error.of_exn exn)
+     | Ok _ as ok -> ok)
+ ;;
+ 
+-let try_with_join ?extract_exn ?run ?rest ?here ?name f =
+-  Deferred.map (try_with ?extract_exn ?run ?rest ?here ?name f) ~f:Or_error.join
++let try_with_join ?extract_exn ?run ?rest ?(here = Stdlib.Lexing.dummy_pos) ?name f =
++  Deferred.map (try_with ?extract_exn ?run ?rest ~here ?name f) ~f:Or_error.join
+ ;;
+ 
+-module List = struct
+-  let foldi list ~init:acc ~f =
+-    let rec loop i acc = function
+-      | [] -> return acc
+-      | hd :: tl ->
+-        let%bind acc = f i acc hd in
+-        loop (i + 1) acc tl
+-    in
+-    loop 0 acc list
+-  ;;
++module type Extras = sig
++  type 'a deferred_or_error := 'a t
++  type 'a t
++
++  val seqmapi : 'a t -> f:(int -> 'a -> 'b deferred_or_error) -> 'b t deferred_or_error
++
++  val find_mapi
++    :  'a t
++    -> f:(int -> 'a -> 'b option deferred_or_error)
++    -> 'b option deferred_or_error
++
++  (* We could define [foldi] in terms of [Container.foldi], but we use a custom definition
++     in order to preserve legacy binding pattern of [Deferred.List.foldi]. *)
++  val foldi
++    :  'a t
++    -> init:'acc
++    -> f:(int -> 'acc -> 'a -> 'acc deferred_or_error)
++    -> 'acc deferred_or_error
++end
++
++module Make_indexed_container
++    (Container : sig
++       type 'a t
++
++       include
++         Base.Indexed_container.Generic_with_creators
++         with type ('a, _, _) t := 'a t
++          and type ('a, _, _) concat := 'a list
++          and type 'a elt := 'a
++     end)
++    (Monadic_container : Monad_sequence.S
++                         with type 'a t := 'a Container.t
++                          and type 'a monad := 'a Deferred.t)
++    (Extras : Extras with type 'a t := 'a Container.t) :
++  Monad_sequence.S with type 'a t := 'a Container.t and type 'a monad := 'a t = struct
++  include Extras
+ 
+   let fold t ~init ~f = foldi t ~init ~f:(fun _ a x -> f a x)
+ 
+-  let seqmapi t ~f =
+-    foldi t ~init:[] ~f:(fun i bs a ->
+-      let%map b = f i a in
+-      b :: bs)
+-    >>| List.rev
++  let all t =
++    match%map.Deferred
++      Monadic_container.all t
++      |> Deferred.map ~f:(Container.partition_map ~f:Result.to_either)
++    with
++    | ok, errors when Container.is_empty errors -> Ok ok
++    | _, errors -> Error (errors |> Container.to_list |> Error.of_list)
+   ;;
+ 
+-  let all = all
+-  let all_unit = all_unit
++  let all_unit ts =
++    Monadic_container.all ts
++    |> Deferred.map ~f:(fun xs -> Container.to_list xs |> Or_error.all_unit)
++  ;;
+ 
+   let iteri ~how t ~f =
+     match how with
+     | (`Parallel | `Max_concurrent_jobs _) as how ->
+-      all_unit (List.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++      all_unit
++        (Container.mapi
++           t
++           ~f:
++             (unstage
++                (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+     | `Sequential -> foldi t ~init:() ~f:(fun i () x -> f i x)
+   ;;
+ 
+   let mapi ~how t ~f =
+     match how with
+     | (`Parallel | `Max_concurrent_jobs _) as how ->
+-      all (List.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++      all
++        (Container.mapi
++           t
++           ~f:
++             (unstage
++                (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+     | `Sequential -> seqmapi t ~f
+   ;;
+ 
+-  let filter_mapi ~how t ~f = mapi t ~how ~f >>| List.filter_opt
+-  let concat_mapi ~how t ~f = mapi t ~how ~f >>| List.concat
++  let filter_mapi ~how t ~f = mapi t ~how ~f >>| Container.filter_map ~f:Fn.id
++  let concat_mapi ~how t ~f = mapi t ~how ~f >>| Container.concat_map ~f:Fn.id
+ 
+   let filteri ~how t ~f =
+     filter_mapi ~how t ~f:(fun i x ->
+@@ -142,18 +184,6 @@ module List = struct
+       if b then Some x else None)
+   ;;
+ 
+-  let find_mapi t ~f =
+-    let rec find_mapi t ~f i =
+-      match t with
+-      | [] -> return None
+-      | hd :: tl ->
+-        (match%bind f i hd with
+-         | None -> find_mapi tl ~f (i + 1)
+-         | Some _ as some -> return some)
+-    in
+-    find_mapi t ~f 0
+-  ;;
+-
+   let find_map t ~f = find_mapi t ~f:(fun _ a -> f a)
+ 
+   let findi t ~f =
+@@ -196,9 +226,82 @@ module List = struct
+   let find_map t ~f = find_mapi t ~f:(fun _ a -> f a)
+   let exists t ~f = existsi t ~f:(fun _ a -> f a)
+   let for_all t ~f = for_alli t ~f:(fun _ a -> f a)
+-  let init ~how n ~f = map ~how (List.init n ~f:Fn.id) ~f
++  let init ~how n ~f = map ~how (Container.init n ~f:Fn.id) ~f
+ end
+ 
++module Array =
++  Make_indexed_container (Array) (Deferred_array)
++    (struct
++      let seqmapi t ~f =
++        if Array.is_empty t
++        then return [||]
++        else (
++          let%bind x0 = f 0 (Array.unsafe_get t 0) in
++          let a = Array.create ~len:(Array.length t) x0 in
++          let rec loop i =
++            if i = Array.length t
++            then return ()
++            else (
++              let%bind x = f i (Array.unsafe_get t i) in
++              Array.unsafe_set a i x;
++              loop (i + 1))
++          in
++          let%bind () = loop 1 in
++          return a)
++      ;;
++
++      let find_mapi t ~f =
++        let rec loop i =
++          if i = Array.length t
++          then return None
++          else (
++            match%bind f i (Array.unsafe_get t i) with
++            | None -> loop (i + 1)
++            | Some _ as some -> return some)
++        in
++        loop 0
++      ;;
++
++      let foldi t ~init ~f =
++        Array.foldi t ~init:(return init) ~f:(fun n acc elt ->
++          let%bind acc = acc in
++          f n acc elt)
++      ;;
++    end)
++
++module List =
++  Make_indexed_container (List) (Deferred_list)
++    (struct
++      let find_mapi t ~f =
++        let rec find_mapi t ~f i =
++          match t with
++          | [] -> return None
++          | hd :: tl ->
++            (match%bind f i hd with
++             | None -> find_mapi tl ~f (i + 1)
++             | Some _ as some -> return some)
++        in
++        find_mapi t ~f 0
++      ;;
++
++      let foldi t ~init ~f =
++        let rec loop i acc = function
++          | [] -> return acc
++          | hd :: tl ->
++            let%bind acc = f i acc hd in
++            loop (i + 1) acc tl
++        in
++        loop 0 init t
++      ;;
++
++      let seqmapi t ~f =
++        foldi t ~init:[] ~f:(fun i bs a ->
++          let%map b = f i a in
++          b :: bs)
++        >>| List.rev
++      ;;
++    end)
++
+ let rec repeat_until_finished state f =
+   match%bind f state with
+   | `Repeat state -> repeat_until_finished state f
+diff --git a/eager_deferred/src/eager_deferred_result.ml b/eager_deferred/src/eager_deferred_result.ml
+index 92f3a53..72b1427 100644
+--- a/eager_deferred/src/eager_deferred_result.ml
++++ b/eager_deferred/src/eager_deferred_result.ml
+@@ -19,20 +19,110 @@ let combine t1 t2 ~ok ~err =
+ ;;
+ 
+ include Monad.Make2 (struct
+-  include T
++    include T
+ 
+-  let return a = Deferred.return (Ok a)
++    let return a = Deferred.return (Ok a)
+ 
+-  let bind t ~f =
+-    Deferred.bind t ~f:(function
+-      | Ok a -> f a
+-      | Error _ as error -> Deferred.return error)
+-  ;;
++    let bind t ~f =
++      Deferred.bind t ~f:(function
++        | Ok a -> f a
++        | Error _ as error -> Deferred.return error)
++    ;;
+ 
+-  let map t ~f = Deferred.map t ~f:(fun r -> Result.map r ~f)
+-  let map = `Custom map
+-end)
++    let map t ~f = Deferred.map t ~f:(fun r -> Result.map r ~f)
++    let map = `Custom map
++  end)
+ 
+ let fail x = Deferred.return (Error x)
+ let failf format = Printf.ksprintf fail format
+ let map_error t ~f = Deferred.map t ~f:(fun r -> Result.map_error r ~f)
++
++module List = struct
++  open Let_syntax
++
++  let foldi list ~init:acc ~f =
++    let rec loop i acc = function
++      | [] -> return acc
++      | hd :: tl ->
++        let%bind acc = f i acc hd in
++        loop (i + 1) acc tl
++    in
++    loop 0 acc list
++  ;;
++
++  let fold t ~init ~f = foldi t ~init ~f:(fun _ a x -> f a x)
++
++  let seqmapi t ~f =
++    foldi t ~init:[] ~f:(fun i bs a ->
++      let%map b = f i a in
++      b :: bs)
++    >>| List.rev
++  ;;
++
++  let iteri t ~f = foldi t ~init:() ~f:(fun i () x -> f i x)
++  let mapi t ~f = seqmapi t ~f
++  let filter_mapi t ~f = mapi t ~f >>| List.filter_opt
++  let concat_mapi t ~f = mapi t ~f >>| List.concat
++
++  let filteri t ~f =
++    filter_mapi t ~f:(fun i x ->
++      let%map b = f i x in
++      if b then Some x else None)
++  ;;
++
++  let find_mapi t ~f =
++    let rec find_mapi t ~f i =
++      match t with
++      | [] -> return None
++      | hd :: tl ->
++        (match%bind f i hd with
++         | None -> find_mapi tl ~f (i + 1)
++         | Some _ as some -> return some)
++    in
++    find_mapi t ~f 0
++  ;;
++
++  let find_map t ~f = find_mapi t ~f:(fun _ a -> f a)
++
++  let findi t ~f =
++    find_mapi t ~f:(fun i elt ->
++      let%map b = f i elt in
++      if b then Some (i, elt) else None)
++  ;;
++
++  let find t ~f =
++    find_map t ~f:(fun elt ->
++      let%map b = f elt in
++      if b then Some elt else None)
++  ;;
++
++  let existsi t ~f =
++    match%map
++      find_mapi t ~f:(fun i elt ->
++        let%map b = f i elt in
++        if b then Some () else None)
++    with
++    | Some () -> true
++    | None -> false
++  ;;
++
++  let for_alli t ~f =
++    match%map
++      find_mapi t ~f:(fun i elt ->
++        let%map b = f i elt in
++        if not b then Some () else None)
++    with
++    | Some () -> false
++    | None -> true
++  ;;
++
++  let iter t ~f = iteri t ~f:(fun _ a -> f a)
++  let map t ~f = mapi t ~f:(fun _ a -> f a)
++  let filter t ~f = filteri t ~f:(fun _ a -> f a)
++  let filter_map t ~f = filter_mapi t ~f:(fun _ a -> f a)
++  let concat_map t ~f = concat_mapi t ~f:(fun _ a -> f a)
++  let find_map t ~f = find_mapi t ~f:(fun _ a -> f a)
++  let exists t ~f = existsi t ~f:(fun _ a -> f a)
++  let for_all t ~f = for_alli t ~f:(fun _ a -> f a)
++  let init n ~f = map (List.init n ~f:Fn.id) ~f
++end
+diff --git a/laziness_preserving_deferred/test/test_laziness_preserving_deferred.ml b/laziness_preserving_deferred/test/test_laziness_preserving_deferred.ml
+index 0244781..27f3154 100644
+--- a/laziness_preserving_deferred/test/test_laziness_preserving_deferred.ml
++++ b/laziness_preserving_deferred/test/test_laziness_preserving_deferred.ml
+@@ -20,7 +20,8 @@ let%expect_test "Simple [of_eager] test" =
+   let%bind () = Scheduler.yield_until_no_jobs_remain () in
+   print_s [%sexp (Deferred.peek result1 : test)];
+   print_s [%sexp (Deferred.peek result2 : test)];
+-  [%expect {|
++  [%expect
++    {|
+     (Ok foo)
+     (Ok foo)
+     |}];
+@@ -37,7 +38,8 @@ let%expect_test "Simple [of_lazy] test" =
+   let%bind () = Scheduler.yield_until_no_jobs_remain () in
+   print_s [%sexp (Deferred.peek result1 : test)];
+   print_s [%sexp (Deferred.peek result2 : test)];
+-  [%expect {|
++  [%expect
++    {|
+     (Ok foo)
+     (Ok foo)
+     |}];
+@@ -309,7 +311,7 @@ module Monad_laws_test = struct
+               ~cases:
+                 ([%message
+                    "" ~m:(m_case : Case.t) ~f:(f_case : Case.t) ~g:(g_case : Case.t)]
+-                  : Sexp.t)
++                 : Sexp.t)
+               (m >>= f >>= g : result1)
+               (m >>= fun x -> f x >>= g : result2)]
+     in
+diff --git a/limiter_async/test/dune b/limiter_async/test/dune
+index e929673..d73cd76 100644
+--- a/limiter_async/test/dune
++++ b/limiter_async/test/dune
+@@ -1,5 +1,6 @@
+ (library
+  (name limiter_async_test)
+- (libraries expect_test_helpers_async expect_test_helpers_core limiter_async)
++ (libraries async core expect_test_helpers_async expect_test_helpers_core
++   limiter_async)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/limiter_async/test/test_limiter_async.ml b/limiter_async/test/test_limiter_async.ml
+index 31cb1dd..8336bf8 100644
+--- a/limiter_async/test/test_limiter_async.ml
++++ b/limiter_async/test/test_limiter_async.ml
+@@ -11,522 +11,489 @@ let stabilize () =
+ 
+ let%test_module _ =
+   (module (
+-             struct
+-               open Limiter
+-               module Outcome = Outcome
+-
+-               type t = Limiter.t [@@deriving sexp_of]
+-               type limiter = t [@@deriving sexp_of]
+-
+-               module type Common = Common
+-
+-               let fill_if_zero r i =
+-                 decr r;
+-                 if !r <= 0 then Ivar.fill_if_empty i ()
+-               ;;
+-
+-               module Token_bucket = struct
+-                 open Token_bucket
+-
+-                 type t = Token_bucket.t [@@deriving sexp_of]
+-                 type 'a u = 'a Token_bucket.u
+-
+-                 let create_exn = create_exn
+-                 let enqueue_exn = enqueue_exn
+-                 let enqueue' = enqueue'
+-                 let kill = kill
+-                 let is_dead = is_dead
+-                 let to_limiter = to_limiter
+-
+-                 let%expect_test "rate limit is honored" =
+-                   let rate_per_second = 1000. in
+-                   let t =
+-                     create_exn
+-                       ~burst_size:1
+-                       ~sustained_rate_per_sec:rate_per_second
+-                       ~continue_on_error:false
+-                       ()
+-                   in
+-                   let job_count = rate_per_second /. 2. in
+-                   let start_time = Time_ns.now () in
+-                   let min_time = Time_ns.add start_time (Time_ns.Span.of_sec 0.5) in
+-                   let jobs_remaining = ref (Float.to_int job_count) in
+-                   let finished = Ivar.create () in
+-                   for _ = 1 to !jobs_remaining do
+-                     enqueue_exn t 1 (fun () -> fill_if_zero jobs_remaining finished) ()
+-                   done;
+-                   Ivar.read finished
+-                   >>| fun () -> assert (Time_ns.( >= ) (Time_ns.now ()) min_time)
+-                 ;;
+-
+-                 let%expect_test "burst rate is honored" =
+-                   let rate_per_second = 1000. in
+-                   let burst_size = 100 in
+-                   let t =
+-                     create_exn
+-                       ~burst_size
+-                       ~sustained_rate_per_sec:rate_per_second
+-                       ~continue_on_error:false
+-                       ~initial_burst_size:burst_size
+-                       ()
+-                   in
+-                   let job_count = ref (burst_size * 2) in
+-                   let hit_burst_rate = ref false in
+-                   let current_job_count = ref 0 in
+-                   let finished = Ivar.create () in
+-                   for _ = 1 to !job_count do
+-                     enqueue'
+-                       t
+-                       1
+-                       (fun () ->
+-                         incr current_job_count;
+-                         if !current_job_count = burst_size then hit_burst_rate := true;
+-                         assert (!current_job_count <= burst_size);
+-                         Deferred.unit
+-                         >>| fun () ->
+-                         decr current_job_count;
+-                         fill_if_zero job_count finished)
+-                       ()
+-                     >>> function
+-                     | Ok () -> ()
+-                     | Aborted | Raised _ -> assert false
+-                   done;
+-                   Ivar.read finished >>| fun () -> assert !hit_burst_rate
+-                 ;;
+-
+-                 let%expect_test "allow_immediate_run is honored" =
+-                   let t =
+-                     create_exn
+-                       ~burst_size:1
+-                       ~sustained_rate_per_sec:(1. /. 100.)
+-                       ~continue_on_error:false
+-                       ~initial_burst_size:1
+-                       ()
+-                   in
+-                   let num_jobs_run = ref 0 in
+-                   let job () = incr num_jobs_run in
+-                   enqueue_exn t ~allow_immediate_run:true 1 job ();
+-                   enqueue_exn t ~allow_immediate_run:true 1 job ();
+-                   assert (!num_jobs_run = 1);
+-                   Deferred.unit
+-                 ;;
+-               end
+-
+-               module Throttle = struct
+-                 open Throttle
+-
+-                 type t = Throttle.t [@@deriving sexp_of]
+-                 type 'a u = 'a Throttle.u
+-
+-                 let create_exn = create_exn
+-                 let enqueue_exn = enqueue_exn
+-                 let enqueue' = enqueue'
+-                 let concurrent_jobs_target = concurrent_jobs_target
+-                 let num_jobs_running = num_jobs_running
+-                 let num_jobs_waiting_to_start = num_jobs_waiting_to_start
+-                 let kill = kill
+-                 let is_dead = is_dead
+-                 let to_limiter = to_limiter
+-
+-                 let assert_concurrent_jobs_target_honored
+-                   (t : t)
+-                   ?jobs_finished
+-                   ?total_jobs
+-                   max_concurrent_jobs
+-                   =
+-                   let max_running_concurrently = ref 0 in
+-                   let num_running = ref 0 in
+-                   let job_count =
+-                     ref (Option.value total_jobs ~default:(max_concurrent_jobs * 3))
+-                   in
+-                   let finished = Ivar.create () in
+-                   for _ = 1 to !job_count do
+-                     enqueue'
+-                       t
+-                       (fun () ->
+-                         incr num_running;
+-                         max_running_concurrently
+-                           := Int.max !max_running_concurrently !num_running;
+-                         Deferred.unit >>| fun () -> decr num_running)
+-                       ()
+-                     >>> function
+-                     | Ok () ->
+-                       Option.iter jobs_finished ~f:incr;
+-                       fill_if_zero job_count finished
+-                     | Aborted -> assert false
+-                     | Raised e -> raise e
+-                   done;
+-                   Ivar.read finished
+-                   >>| fun () ->
+-                   if !max_running_concurrently <> max_concurrent_jobs
+-                   then
+-                     failwithf
+-                       "max number of running jobs (%i) is not the same as expected (%i)\n\
+-                        %!"
+-                       !max_running_concurrently
+-                       max_concurrent_jobs
+-                       ()
+-                 ;;
+-
+-                 let%expect_test "concurrent_jobs_target is honored" =
+-                   let concurrent_jobs_target = 100 in
+-                   let t =
+-                     create_exn ~concurrent_jobs_target ~continue_on_error:false ()
+-                   in
+-                   assert_concurrent_jobs_target_honored t concurrent_jobs_target
+-                 ;;
+-
+-                 let%expect_test "burst_size is honored when smaller than \
+-                                  concurrent_jobs_target"
+-                   =
+-                   let burst_size = 10 in
+-                   let t =
+-                     create_exn
+-                       ~concurrent_jobs_target:1_000_000
+-                       ~burst_size
+-                       ~sustained_rate_per_sec:1_000_000.
+-                       ~continue_on_error:false
+-                       ()
+-                   in
+-                   Clock_ns.after (Time_ns.Span.of_sec 0.1)
+-                   >>= fun () -> assert_concurrent_jobs_target_honored t burst_size
+-                 ;;
+-
+-                 let%expect_test "burst_size is honored when bigger than \
+-                                  concurrent_jobs_target"
+-                   =
+-                   let concurrent_jobs_target = 2 in
+-                   let burst_size = 10 in
+-                   let t =
+-                     create_exn
+-                       ~concurrent_jobs_target:2
+-                       ~burst_size
+-                       ~sustained_rate_per_sec:100.
+-                       ~continue_on_error:false
+-                       ()
+-                   in
+-                   (* enough time to generate a burst *)
+-                   Clock_ns.after (Time_ns.Span.of_sec 0.15)
+-                   >>= fun () ->
+-                   let jobs_finished = ref 0 in
+-                   let assert_job =
+-                     assert_concurrent_jobs_target_honored
+-                       t
+-                       concurrent_jobs_target
+-                       ~jobs_finished
+-                       ~total_jobs:(burst_size * 2)
+-                   in
+-                   (* before next job could be moved from hopper to bucket *)
+-                   Clock_ns.after (Time_ns.Span.of_sec 0.000_1)
+-                   >>= fun () ->
+-                   [%test_eq: int]
+-                     ~message:"finished jobs in a burst"
+-                     !jobs_finished
+-                     burst_size;
+-                   assert_job
+-                 ;;
+-
+-                 (* tests from the previous Throttle implementation *)
+-                 let%test _ =
+-                   try
+-                     ignore
+-                       (create_exn ~continue_on_error:false ~concurrent_jobs_target:0 ());
+-                     false
+-                   with
+-                   | _ -> true
+-                 ;;
+-
+-                 let%expect_test "enqueue does not start the job immediately" =
+-                   let t =
+-                     create_exn ~continue_on_error:false ~concurrent_jobs_target:1 ()
+-                   in
+-                   let i = ref 0 in
+-                   let (_ : unit Outcome.t Deferred.t) =
+-                     enqueue'
+-                       t
+-                       (fun () ->
+-                         incr i;
+-                         Deferred.unit)
+-                       ()
+-                   in
+-                   assert (!i = 0);
+-                   let%bind () = stabilize () in
+-                   assert (!i = 1);
+-                   Deferred.unit
+-                 ;;
+-
+-                 let%expect_test "jobs are started in the order they are enqueued" =
+-                   let t =
+-                     create_exn ~continue_on_error:false ~concurrent_jobs_target:2 ()
+-                   in
+-                   assert (concurrent_jobs_target t = 2);
+-                   let r = ref [] in
+-                   let job_count = ref 99 in
+-                   let finished = Ivar.create () in
+-                   for i = 0 to !job_count do
+-                     don't_wait_for
+-                       (enqueue'
+-                          t
+-                          (fun () ->
+-                            r := i :: !r;
+-                            Deferred.unit)
+-                          ()
+-                        >>| fun (_ : unit Outcome.t) -> fill_if_zero job_count finished)
+-                   done;
+-                   Ivar.read finished
+-                   >>| fun () -> assert (!r = List.rev (List.init 100 ~f:Fn.id))
+-                 ;;
+-
+-                 let%expect_test "jobs waiting to start and jobs running are sane" =
+-                   let t =
+-                     create_exn ~continue_on_error:false ~concurrent_jobs_target:2 ()
+-                   in
+-                   assert (num_jobs_waiting_to_start t = 0);
+-                   let add_job () =
+-                     let ivar = Ivar.create () in
+-                     don't_wait_for
+-                       (enqueue' t (fun () -> Ivar.read ivar) ()
+-                        >>| fun (_ : unit Outcome.t) -> ());
+-                     ivar
+-                   in
+-                   let i1 = add_job () in
+-                   assert (num_jobs_waiting_to_start t + num_jobs_running t = 1);
+-                   let%bind () = stabilize () in
+-                   assert (num_jobs_waiting_to_start t = 0);
+-                   assert (num_jobs_running t = 1);
+-                   let _i2 = add_job () in
+-                   assert (num_jobs_waiting_to_start t + num_jobs_running t = 2);
+-                   let%bind () = stabilize () in
+-                   assert (num_jobs_waiting_to_start t = 0);
+-                   assert (num_jobs_running t = 2);
+-                   let _i3 = add_job () in
+-                   assert (num_jobs_waiting_to_start t = 1);
+-                   assert (num_jobs_running t = 2);
+-                   let%bind () = stabilize () in
+-                   assert (num_jobs_waiting_to_start t = 1);
+-                   assert (num_jobs_running t = 2);
+-                   Ivar.fill_exn i1 ();
+-                   let%bind () = stabilize () in
+-                   assert (num_jobs_waiting_to_start t = 0);
+-                   assert (num_jobs_running t = 2);
+-                   Deferred.unit
+-                 ;;
+-
+-                 let%expect_test "jobs enqueued in the same cycle as kill are aborted" =
+-                   let t =
+-                     create_exn ~continue_on_error:false ~concurrent_jobs_target:1 ()
+-                   in
+-                   let r = ref false in
+-                   let d =
+-                     enqueue'
+-                       t
+-                       (fun () ->
+-                         r := true;
+-                         return ())
+-                       ()
+-                   in
+-                   kill t;
+-                   let%bind () = stabilize () in
+-                   assert (Deferred.peek d = Some Aborted);
+-                   assert (not !r);
+-                   Deferred.unit
+-                 ;;
+-
+-                 let%expect_test "jobs enqueued after kill are aborted" =
+-                   let t =
+-                     create_exn ~continue_on_error:false ~concurrent_jobs_target:1 ()
+-                   in
+-                   kill t;
+-                   let r = ref true in
+-                   let d =
+-                     enqueue'
+-                       t
+-                       (fun () ->
+-                         r := false;
+-                         return ())
+-                       ()
+-                   in
+-                   let%bind () = stabilize () in
+-                   assert (Deferred.peek d = Some Aborted);
+-                   assert !r;
+-                   Deferred.unit
+-                 ;;
+-
+-                 let%expect_test "enqueueing withing a job doesn't lead to monitor \
+-                                  nesting"
+-                   =
+-                   let seq =
+-                     create_exn ~concurrent_jobs_target:1 ~continue_on_error:false ()
+-                   in
+-                   let rec loop n =
+-                     if n = 0
+-                     then Deferred.unit
+-                     else
+-                       enqueue'
+-                         seq
+-                         (fun () ->
+-                           assert (Monitor.For_tests.depth (Monitor.current ()) < 5);
+-                           don't_wait_for (loop (n - 1));
+-                           Deferred.unit)
+-                         ()
+-                       >>| fun (_ : unit Outcome.t) -> ()
+-                   in
+-                   let d = loop 100 in
+-                   let%bind () = stabilize () in
+-                   assert (Deferred.peek d = Some ());
+-                   Deferred.unit
+-                 ;;
+-               end
+-
+-               module Resource_throttle = struct
+-                 open Resource_throttle
+-
+-                 type 'a t = 'a Resource_throttle.t [@@deriving sexp_of]
+-
+-                 let create_exn = create_exn
+-                 let enqueue_exn = enqueue_exn
+-                 let enqueue' = enqueue'
+-                 let to_limiter = to_limiter
+-                 let max_concurrent_jobs = max_concurrent_jobs
+-                 let kill = kill
+-                 let is_dead = is_dead
+-                 let to_limiter = to_limiter
+-
+-                 module Resource = struct
+-                   type t = int ref
+-
+-                   let use (t : t) =
+-                     incr t;
+-                     assert (!t = 1)
+-                   ;;
+-
+-                   let release (t : t) = decr t
+-                   let create () = ref 0
+-                 end
+-
+-                 let%expect_test "resources are never double used" =
+-                   let resources =
+-                     [ Resource.create (); Resource.create (); Resource.create () ]
+-                   in
+-                   let t = create_exn ~resources ~continue_on_error:false () in
+-                   let job_count = ref 100 in
+-                   let finished = Ivar.create () in
+-                   for _ = 1 to !job_count do
+-                     enqueue' t (fun r ->
+-                       Resource.use r;
+-                       Deferred.unit >>| fun () -> Resource.release r)
+-                     >>> function
+-                     | Ok () -> fill_if_zero job_count finished
+-                     | Aborted | Raised _ -> assert false
+-                   done;
+-                   Ivar.read finished
+-                   >>| fun () -> List.iter resources ~f:(fun r -> assert (!r = 0))
+-                 ;;
+-               end
+-
+-               module Sequencer = struct
+-                 type t = Sequencer.t [@@deriving sexp_of]
+-                 type 'a u = 'a Sequencer.u
+-
+-                 open Sequencer
+-
+-                 let create = create
+-                 let enqueue_exn = enqueue_exn
+-                 let enqueue' = enqueue'
+-                 let kill = kill
+-                 let is_dead = is_dead
+-                 let to_limiter = to_limiter
+-                 let num_jobs_waiting_to_start = num_jobs_waiting_to_start
+-               end
+-
+-               let%expect_test "sequencers run only one job at a time" =
+-                 let t = Sequencer.create ~continue_on_error:true () in
+-                 let num_jobs_run = ref 0 in
+-                 let expected_jobs = 100 in
+-                 let job_count = ref expected_jobs in
+-                 let finished = Ivar.create () in
+-                 for _ = 1 to !job_count do
+-                   Sequencer.enqueue'
+-                     t
+-                     (fun () ->
+-                       incr num_jobs_run;
+-                       assert false)
+-                     ()
+-                   >>> function
+-                   | Ok _ | Aborted -> assert false
+-                   | Raised _ -> fill_if_zero job_count finished
+-                 done;
+-                 Ivar.read finished >>| fun () -> assert (!num_jobs_run = expected_jobs)
+-               ;;
+-
+-               let%expect_test "jobs can kill the throttle" =
+-                 let t = Sequencer.create () in
+-                 let num_ok = ref 0 in
+-                 let num_aborted = ref 0 in
+-                 let jobs_remaining = ref 100 in
+-                 let all_jobs_returned = Ivar.create () in
+-                 let num_jobs_run = ref 0 in
+-                 for _ = 1 to !jobs_remaining do
+-                   Sequencer.enqueue'
+-                     t
+-                     (fun () ->
+-                       incr num_jobs_run;
+-                       if !num_jobs_run = 1 then Sequencer.kill t;
+-                       Deferred.unit)
+-                     ()
+-                   >>> fun res ->
+-                   decr jobs_remaining;
+-                   if !jobs_remaining = 0 then Ivar.fill_exn all_jobs_returned ();
+-                   match res with
+-                   | Ok () -> incr num_ok
+-                   | Aborted -> incr num_aborted
+-                   | Raised _ -> assert false
+-                 done;
+-                 Ivar.read all_jobs_returned
+-                 >>| fun () ->
+-                 assert (!num_ok = 1);
+-                 assert (!num_aborted = 99)
+-               ;;
+-
+-               let%expect_test "num_jobs_waiting_to_start is accurate" =
+-                 let t = Sequencer.create () in
+-                 (* enqueue the first job, which won't run until we yield.  We expect to have
++  struct
++    open Limiter
++    module Outcome = Outcome
++
++    type t = Limiter.t [@@deriving sexp_of]
++    type limiter = t [@@deriving sexp_of]
++
++    module type Common = Common
++
++    let fill_if_zero r i =
++      decr r;
++      if !r <= 0 then Ivar.fill_if_empty i ()
++    ;;
++
++    module Token_bucket = struct
++      open Token_bucket
++
++      type t = Token_bucket.t [@@deriving sexp_of]
++      type 'a u = 'a Token_bucket.u
++
++      let create_exn = create_exn
++      let enqueue_exn = enqueue_exn
++      let enqueue' = enqueue'
++      let kill = kill
++      let is_dead = is_dead
++      let to_limiter = to_limiter
++
++      let%expect_test "rate limit is honored" =
++        let rate_per_second = 1000. in
++        let t =
++          create_exn
++            ~burst_size:1
++            ~sustained_rate_per_sec:rate_per_second
++            ~continue_on_error:false
++            ()
++        in
++        let job_count = rate_per_second /. 2. in
++        let start_time = Time_ns.now () in
++        let min_time = Time_ns.add start_time (Time_ns.Span.of_sec 0.5) in
++        let jobs_remaining = ref (Float.to_int job_count) in
++        let finished = Ivar.create () in
++        for _ = 1 to !jobs_remaining do
++          enqueue_exn t 1 (fun () -> fill_if_zero jobs_remaining finished) ()
++        done;
++        Ivar.read finished >>| fun () -> assert (Time_ns.( >= ) (Time_ns.now ()) min_time)
++      ;;
++
++      let%expect_test "burst rate is honored" =
++        let rate_per_second = 1000. in
++        let burst_size = 100 in
++        let t =
++          create_exn
++            ~burst_size
++            ~sustained_rate_per_sec:rate_per_second
++            ~continue_on_error:false
++            ~initial_burst_size:burst_size
++            ()
++        in
++        let job_count = ref (burst_size * 2) in
++        let hit_burst_rate = ref false in
++        let current_job_count = ref 0 in
++        let finished = Ivar.create () in
++        for _ = 1 to !job_count do
++          enqueue'
++            t
++            1
++            (fun () ->
++              incr current_job_count;
++              if !current_job_count = burst_size then hit_burst_rate := true;
++              assert (!current_job_count <= burst_size);
++              Deferred.unit
++              >>| fun () ->
++              decr current_job_count;
++              fill_if_zero job_count finished)
++            ()
++          >>> function
++          | Ok () -> ()
++          | Aborted | Raised _ -> assert false
++        done;
++        Ivar.read finished >>| fun () -> assert !hit_burst_rate
++      ;;
++
++      let%expect_test "allow_immediate_run is honored" =
++        let t =
++          create_exn
++            ~burst_size:1
++            ~sustained_rate_per_sec:(1. /. 100.)
++            ~continue_on_error:false
++            ~initial_burst_size:1
++            ()
++        in
++        let num_jobs_run = ref 0 in
++        let job () = incr num_jobs_run in
++        enqueue_exn t ~allow_immediate_run:true 1 job ();
++        enqueue_exn t ~allow_immediate_run:true 1 job ();
++        assert (!num_jobs_run = 1);
++        Deferred.unit
++      ;;
++    end
++
++    module Throttle = struct
++      open Throttle
++
++      type t = Throttle.t [@@deriving sexp_of]
++      type 'a u = 'a Throttle.u
++
++      let create_exn = create_exn
++      let enqueue_exn = enqueue_exn
++      let enqueue' = enqueue'
++      let concurrent_jobs_target = concurrent_jobs_target
++      let num_jobs_running = num_jobs_running
++      let num_jobs_waiting_to_start = num_jobs_waiting_to_start
++      let kill = kill
++      let is_dead = is_dead
++      let to_limiter = to_limiter
++
++      let assert_concurrent_jobs_target_honored
++        (t : t)
++        ?jobs_finished
++        ?total_jobs
++        max_concurrent_jobs
++        =
++        let max_running_concurrently = ref 0 in
++        let num_running = ref 0 in
++        let job_count =
++          ref (Option.value total_jobs ~default:(max_concurrent_jobs * 3))
++        in
++        let finished = Ivar.create () in
++        for _ = 1 to !job_count do
++          enqueue'
++            t
++            (fun () ->
++              incr num_running;
++              max_running_concurrently := Int.max !max_running_concurrently !num_running;
++              Deferred.unit >>| fun () -> decr num_running)
++            ()
++          >>> function
++          | Ok () ->
++            Option.iter jobs_finished ~f:incr;
++            fill_if_zero job_count finished
++          | Aborted -> assert false
++          | Raised e -> raise e
++        done;
++        Ivar.read finished
++        >>| fun () ->
++        if !max_running_concurrently <> max_concurrent_jobs
++        then
++          failwithf
++            "max number of running jobs (%i) is not the same as expected (%i)\n%!"
++            !max_running_concurrently
++            max_concurrent_jobs
++            ()
++      ;;
++
++      let%expect_test "concurrent_jobs_target is honored" =
++        let concurrent_jobs_target = 100 in
++        let t = create_exn ~concurrent_jobs_target ~continue_on_error:false () in
++        assert_concurrent_jobs_target_honored t concurrent_jobs_target
++      ;;
++
++      let%expect_test "burst_size is honored when smaller than concurrent_jobs_target" =
++        let burst_size = 10 in
++        let t =
++          create_exn
++            ~concurrent_jobs_target:1_000_000
++            ~burst_size
++            ~sustained_rate_per_sec:1_000_000.
++            ~continue_on_error:false
++            ()
++        in
++        Clock_ns.after (Time_ns.Span.of_sec 0.1)
++        >>= fun () -> assert_concurrent_jobs_target_honored t burst_size
++      ;;
++
++      let%expect_test "burst_size is honored when bigger than concurrent_jobs_target" =
++        let concurrent_jobs_target = 2 in
++        let burst_size = 10 in
++        let t =
++          create_exn
++            ~concurrent_jobs_target:2
++            ~burst_size
++            ~sustained_rate_per_sec:100.
++            ~continue_on_error:false
++            ()
++        in
++        (* enough time to generate a burst *)
++        Clock_ns.after (Time_ns.Span.of_sec 0.15)
++        >>= fun () ->
++        let jobs_finished = ref 0 in
++        let assert_job =
++          assert_concurrent_jobs_target_honored
++            t
++            concurrent_jobs_target
++            ~jobs_finished
++            ~total_jobs:(burst_size * 2)
++        in
++        (* before next job could be moved from hopper to bucket *)
++        Clock_ns.after (Time_ns.Span.of_sec 0.000_1)
++        >>= fun () ->
++        [%test_eq: int] ~message:"finished jobs in a burst" !jobs_finished burst_size;
++        assert_job
++      ;;
++
++      (* tests from the previous Throttle implementation *)
++      let%test _ =
++        try
++          ignore (create_exn ~continue_on_error:false ~concurrent_jobs_target:0 ());
++          false
++        with
++        | _ -> true
++      ;;
++
++      let%expect_test "enqueue does not start the job immediately" =
++        let t = create_exn ~continue_on_error:false ~concurrent_jobs_target:1 () in
++        let i = ref 0 in
++        let (_ : unit Outcome.t Deferred.t) =
++          enqueue'
++            t
++            (fun () ->
++              incr i;
++              Deferred.unit)
++            ()
++        in
++        assert (!i = 0);
++        let%bind () = stabilize () in
++        assert (!i = 1);
++        Deferred.unit
++      ;;
++
++      let%expect_test "jobs are started in the order they are enqueued" =
++        let t = create_exn ~continue_on_error:false ~concurrent_jobs_target:2 () in
++        assert (concurrent_jobs_target t = 2);
++        let r = ref [] in
++        let job_count = ref 99 in
++        let finished = Ivar.create () in
++        for i = 0 to !job_count do
++          don't_wait_for
++            (enqueue'
++               t
++               (fun () ->
++                 r := i :: !r;
++                 Deferred.unit)
++               ()
++             >>| fun (_ : unit Outcome.t) -> fill_if_zero job_count finished)
++        done;
++        Ivar.read finished >>| fun () -> assert (!r = List.rev (List.init 100 ~f:Fn.id))
++      ;;
++
++      let%expect_test "jobs waiting to start and jobs running are sane" =
++        let t = create_exn ~continue_on_error:false ~concurrent_jobs_target:2 () in
++        assert (num_jobs_waiting_to_start t = 0);
++        let add_job () =
++          let ivar = Ivar.create () in
++          don't_wait_for
++            (enqueue' t (fun () -> Ivar.read ivar) () >>| fun (_ : unit Outcome.t) -> ());
++          ivar
++        in
++        let i1 = add_job () in
++        assert (num_jobs_waiting_to_start t + num_jobs_running t = 1);
++        let%bind () = stabilize () in
++        assert (num_jobs_waiting_to_start t = 0);
++        assert (num_jobs_running t = 1);
++        let _i2 = add_job () in
++        assert (num_jobs_waiting_to_start t + num_jobs_running t = 2);
++        let%bind () = stabilize () in
++        assert (num_jobs_waiting_to_start t = 0);
++        assert (num_jobs_running t = 2);
++        let _i3 = add_job () in
++        assert (num_jobs_waiting_to_start t = 1);
++        assert (num_jobs_running t = 2);
++        let%bind () = stabilize () in
++        assert (num_jobs_waiting_to_start t = 1);
++        assert (num_jobs_running t = 2);
++        Ivar.fill_exn i1 ();
++        let%bind () = stabilize () in
++        assert (num_jobs_waiting_to_start t = 0);
++        assert (num_jobs_running t = 2);
++        Deferred.unit
++      ;;
++
++      let%expect_test "jobs enqueued in the same cycle as kill are aborted" =
++        let t = create_exn ~continue_on_error:false ~concurrent_jobs_target:1 () in
++        let r = ref false in
++        let d =
++          enqueue'
++            t
++            (fun () ->
++              r := true;
++              return ())
++            ()
++        in
++        kill t;
++        let%bind () = stabilize () in
++        assert (Deferred.peek d = Some Aborted);
++        assert (not !r);
++        Deferred.unit
++      ;;
++
++      let%expect_test "jobs enqueued after kill are aborted" =
++        let t = create_exn ~continue_on_error:false ~concurrent_jobs_target:1 () in
++        kill t;
++        let r = ref true in
++        let d =
++          enqueue'
++            t
++            (fun () ->
++              r := false;
++              return ())
++            ()
++        in
++        let%bind () = stabilize () in
++        assert (Deferred.peek d = Some Aborted);
++        assert !r;
++        Deferred.unit
++      ;;
++
++      let%expect_test "enqueueing withing a job doesn't lead to monitor nesting" =
++        let seq = create_exn ~concurrent_jobs_target:1 ~continue_on_error:false () in
++        let rec loop n =
++          if n = 0
++          then Deferred.unit
++          else
++            enqueue'
++              seq
++              (fun () ->
++                assert (Monitor.For_tests.depth (Monitor.current ()) < 5);
++                don't_wait_for (loop (n - 1));
++                Deferred.unit)
++              ()
++            >>| fun (_ : unit Outcome.t) -> ()
++        in
++        let d = loop 100 in
++        let%bind () = stabilize () in
++        assert (Deferred.peek d = Some ());
++        Deferred.unit
++      ;;
++    end
++
++    module Resource_throttle = struct
++      open Resource_throttle
++
++      type 'a t = 'a Resource_throttle.t [@@deriving sexp_of]
++
++      let create_exn = create_exn
++      let enqueue_exn = enqueue_exn
++      let enqueue' = enqueue'
++      let to_limiter = to_limiter
++      let max_concurrent_jobs = max_concurrent_jobs
++      let kill = kill
++      let is_dead = is_dead
++      let to_limiter = to_limiter
++
++      module Resource = struct
++        type t = int ref
++
++        let use (t : t) =
++          incr t;
++          assert (!t = 1)
++        ;;
++
++        let release (t : t) = decr t
++        let create () = ref 0
++      end
++
++      let%expect_test "resources are never double used" =
++        let resources = [ Resource.create (); Resource.create (); Resource.create () ] in
++        let t = create_exn ~resources ~continue_on_error:false () in
++        let job_count = ref 100 in
++        let finished = Ivar.create () in
++        for _ = 1 to !job_count do
++          enqueue' t (fun r ->
++            Resource.use r;
++            Deferred.unit >>| fun () -> Resource.release r)
++          >>> function
++          | Ok () -> fill_if_zero job_count finished
++          | Aborted | Raised _ -> assert false
++        done;
++        Ivar.read finished >>| fun () -> List.iter resources ~f:(fun r -> assert (!r = 0))
++      ;;
++    end
++
++    module Sequencer = struct
++      type t = Sequencer.t [@@deriving sexp_of]
++      type 'a u = 'a Sequencer.u
++
++      open Sequencer
++
++      let create = create
++      let enqueue_exn = enqueue_exn
++      let enqueue' = enqueue'
++      let kill = kill
++      let is_dead = is_dead
++      let to_limiter = to_limiter
++      let num_jobs_waiting_to_start = num_jobs_waiting_to_start
++    end
++
++    let%expect_test "sequencers run only one job at a time" =
++      let t = Sequencer.create ~continue_on_error:true () in
++      let num_jobs_run = ref 0 in
++      let expected_jobs = 100 in
++      let job_count = ref expected_jobs in
++      let finished = Ivar.create () in
++      for _ = 1 to !job_count do
++        Sequencer.enqueue'
++          t
++          (fun () ->
++            incr num_jobs_run;
++            assert false)
++          ()
++        >>> function
++        | Ok _ | Aborted -> assert false
++        | Raised _ -> fill_if_zero job_count finished
++      done;
++      Ivar.read finished >>| fun () -> assert (!num_jobs_run = expected_jobs)
++    ;;
++
++    let%expect_test "jobs can kill the throttle" =
++      let t = Sequencer.create () in
++      let num_ok = ref 0 in
++      let num_aborted = ref 0 in
++      let jobs_remaining = ref 100 in
++      let all_jobs_returned = Ivar.create () in
++      let num_jobs_run = ref 0 in
++      for _ = 1 to !jobs_remaining do
++        Sequencer.enqueue'
++          t
++          (fun () ->
++            incr num_jobs_run;
++            if !num_jobs_run = 1 then Sequencer.kill t;
++            Deferred.unit)
++          ()
++        >>> fun res ->
++        decr jobs_remaining;
++        if !jobs_remaining = 0 then Ivar.fill_exn all_jobs_returned ();
++        match res with
++        | Ok () -> incr num_ok
++        | Aborted -> incr num_aborted
++        | Raised _ -> assert false
++      done;
++      Ivar.read all_jobs_returned
++      >>| fun () ->
++      assert (!num_ok = 1);
++      assert (!num_aborted = 99)
++    ;;
++
++    let%expect_test "num_jobs_waiting_to_start is accurate" =
++      let t = Sequencer.create () in
++      (* enqueue the first job, which won't run until we yield.  We expect to have
+           enqueued a second job by then, and so expect that we will have 1 job
+           waiting to start when this job actually runs. *)
+-                 let res1 =
+-                   Sequencer.enqueue'
+-                     t
+-                     (fun () ->
+-                       assert (Sequencer.num_jobs_waiting_to_start t = 1);
+-                       Deferred.unit)
+-                     ()
+-                 in
+-                 let res2 =
+-                   Sequencer.enqueue'
+-                     t
+-                     (fun () ->
+-                       assert (Sequencer.num_jobs_waiting_to_start t = 0);
+-                       Deferred.unit)
+-                     ()
+-                 in
+-                 Deferred.all [ res1; res2 ]
+-                 >>| function
+-                 | [ Ok (); Ok () ] -> ()
+-                 | err_list ->
+-                   raise_s
+-                     [%message "unexpected results" (err_list : unit Outcome.t list)]
+-               ;;
+-
+-               module Expert = struct
+-                 open Expert
+-
+-                 let cost_of_jobs_waiting_to_start = cost_of_jobs_waiting_to_start
+-                 let to_jane_limiter = to_jane_limiter
+-                 let is_dead = is_dead
+-                 let kill = kill
+-               end
+-             end
+-             (* This signature constraint is here to remind us to add a unit test whenever the
++      let res1 =
++        Sequencer.enqueue'
++          t
++          (fun () ->
++            assert (Sequencer.num_jobs_waiting_to_start t = 1);
++            Deferred.unit)
++          ()
++      in
++      let res2 =
++        Sequencer.enqueue'
++          t
++          (fun () ->
++            assert (Sequencer.num_jobs_waiting_to_start t = 0);
++            Deferred.unit)
++          ()
++      in
++      Deferred.all [ res1; res2 ]
++      >>| function
++      | [ Ok (); Ok () ] -> ()
++      | err_list ->
++        raise_s [%message "unexpected results" (err_list : unit Outcome.t list)]
++    ;;
++
++    module Expert = struct
++      open Expert
++
++      let cost_of_jobs_waiting_to_start = cost_of_jobs_waiting_to_start
++      let to_jane_limiter = to_jane_limiter
++      let is_dead = is_dead
++      let kill = kill
++    end
++  end
++  (* This signature constraint is here to remind us to add a unit test whenever the
+       interface to [Limiter] changes. *) :
+-               module type of Limiter))
++    module type of Limiter))
+ ;;
+diff --git a/persistent_connection_kernel/src/dune b/persistent_connection_kernel/src/dune
+index 30c8c05..c98aa9d 100644
+--- a/persistent_connection_kernel/src/dune
++++ b/persistent_connection_kernel/src/dune
+@@ -1,6 +1,6 @@
+ (library
+  (name persistent_connection_kernel)
+  (public_name async_kernel.persistent_connection_kernel)
+- (libraries async_kernel core_kernel.bus)
++ (libraries async_kernel core_kernel.bus core)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/persistent_connection_kernel/src/persistent_connection_kernel.ml b/persistent_connection_kernel/src/persistent_connection_kernel.ml
+index f6f6deb..68c3e60 100644
+--- a/persistent_connection_kernel/src/persistent_connection_kernel.ml
++++ b/persistent_connection_kernel/src/persistent_connection_kernel.ml
+@@ -239,36 +239,36 @@ module Make' (Conn_err : Connection_error) (Conn : Closable) = struct
+          leave [t.conn] filled with [`Close_started]. *)
+       don't_wait_for
+       @@ Deferred.repeat_until_finished () (fun () ->
+-           let%bind () = handle_event t Attempting_to_connect in
+-           match%bind try_connecting_until_successful t with
+-           | `Close_started -> return (`Finished ())
+-           | `Don't_reconnect ->
+-             abort_reconnecting_with_no_active_connection t;
+-             return (`Finished ())
+-           | `Ok (conn, ready_to_retry_connecting) ->
+-             let%bind () = handle_event t (Connected conn) in
+-             let%bind () = Conn.close_finished conn in
+-             t.conn <- Ivar.create ();
+-             let%bind () = handle_event t Disconnected in
+-             (* waits until [retry_delay ()] time has passed since the time just before we last
++        let%bind () = handle_event t Attempting_to_connect in
++        match%bind try_connecting_until_successful t with
++        | `Close_started -> return (`Finished ())
++        | `Don't_reconnect ->
++          abort_reconnecting_with_no_active_connection t;
++          return (`Finished ())
++        | `Ok (conn, ready_to_retry_connecting) ->
++          let%bind () = handle_event t (Connected conn) in
++          let%bind () = Conn.close_finished conn in
++          t.conn <- Ivar.create ();
++          let%bind () = handle_event t Disconnected in
++          (* waits until [retry_delay ()] time has passed since the time just before we last
+              tried to connect rather than the time we noticed being disconnected, so that if
+              a long-lived connection dies, we will attempt to reconnect immediately. *)
+-             let%map () =
+-               Deferred.any
+-                 [ ready_to_retry_connecting
+-                 ; Ivar.read t.close_started
+-                 ; Ivar.read t.don't_reconnect
+-                 ]
+-             in
+-             if Ivar.is_full t.close_started
+-             then (
+-               Ivar.fill_exn t.conn `Close_started;
+-               `Finished ())
+-             else if Ivar.is_full t.don't_reconnect
+-             then (
+-               abort_reconnecting_with_no_active_connection t;
+-               `Finished ())
+-             else `Repeat ());
++          let%map () =
++            Deferred.any
++              [ ready_to_retry_connecting
++              ; Ivar.read t.close_started
++              ; Ivar.read t.don't_reconnect
++              ]
++          in
++          if Ivar.is_full t.close_started
++          then (
++            Ivar.fill_exn t.conn `Close_started;
++            `Finished ())
++          else if Ivar.is_full t.don't_reconnect
++          then (
++            abort_reconnecting_with_no_active_connection t;
++            `Finished ())
++          else `Repeat ());
+       t
+     ;;
+ 
+@@ -297,8 +297,8 @@ module Make' (Conn_err : Connection_error) (Conn : Closable) = struct
+         | None ->
+           d
+           >>= (function
+-          | `Close_started -> Deferred.never ()
+-          | `Ok conn -> return conn)
++           | `Close_started -> Deferred.never ()
++           | `Ok conn -> return conn)
+         | Some `Close_started -> Deferred.never ()
+         | Some (`Ok conn) ->
+           if Conn.is_closed conn
+diff --git a/src/async_kernel_scheduler.ml b/src/async_kernel_scheduler.ml
+index 923cefa..c5eabba 100644
+--- a/src/async_kernel_scheduler.ml
++++ b/src/async_kernel_scheduler.ml
+@@ -5,7 +5,7 @@ include Scheduler
+ let enqueue_job execution_context f a = enqueue (t ()) execution_context f a
+ 
+ let thread_safe_enqueue_job execution_context f a =
+-  thread_safe_enqueue_external_job (t ()) execution_context f a
++  thread_safe_enqueue_external_job (t_without_checking_access ()) execution_context f a
+ ;;
+ 
+ let current_execution_context () = current_execution_context (t ())
+diff --git a/src/async_kernel_scheduler.mli b/src/async_kernel_scheduler.mli
+index 74789c3..d3300ad 100644
+--- a/src/async_kernel_scheduler.mli
++++ b/src/async_kernel_scheduler.mli
+@@ -35,7 +35,7 @@ val within_v : ((unit -> 'a) -> 'a option) with_options
+ val with_local : 'a Univ_map.Key.t -> 'a option -> f:(unit -> 'b) -> 'b
+ 
+ (** [find_local key] returns the value associated to [key] in the current execution
+-    context. *)
++    context, if one exists. *)
+ val find_local : 'a Univ_map.Key.t -> 'a option
+ 
+ (** Just like [within'], but instead of running the thunk right now, adds
+diff --git a/src/async_stream.ml b/src/async_stream.ml
+index 5ccfb80..855c7cb 100644
+--- a/src/async_stream.ml
++++ b/src/async_stream.ml
+@@ -214,10 +214,10 @@ let take_until t d =
+       upon
+         (choose [ choice d (fun () -> `Stop); choice (next t) (fun z -> `Next z) ])
+         (function
+-         | `Stop | `Next Nil -> Tail.close_exn tail
+-         | `Next (Cons (x, t)) ->
+-           Tail.extend tail x;
+-           loop t)
++          | `Stop | `Next Nil -> Tail.close_exn tail
++          | `Next (Cons (x, t)) ->
++            Tail.extend tail x;
++            loop t)
+     in
+     loop t)
+ ;;
+diff --git a/src/clock_intf.ml b/src/clock_intf.ml
+index b5cacc3..b5b4cde 100644
+--- a/src/clock_intf.ml
++++ b/src/clock_intf.ml
+@@ -300,31 +300,31 @@ module type Clock_deprecated = sig
+   end
+ 
+   val run_at : Time.t -> ('a -> unit) -> 'a -> unit
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val run_after : Time.Span.t -> ('a -> unit) -> 'a -> unit
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val at : Time.t -> unit Deferred.t [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val after : Time.Span.t -> unit Deferred.t
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val with_timeout : Time.Span.t -> 'a Deferred.t -> 'a Or_timeout.t Deferred.t
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val with_timeout_exn : Time.Span.t -> 'a Deferred.t -> error:Error.t -> 'a Deferred.t
+-    [@@deprecated "[since 2023-11] Use [Time_source]"]
++  [@@deprecated "[since 2023-11] Use [Time_source]"]
+ 
+   module Event : sig
+     type ('a, 'h) t [@@deriving sexp_of]
+     type t_unit = (unit, unit) t [@@deriving sexp_of]
+ 
+     val invariant : 'a Invariant.t -> 'b Invariant.t -> ('a, 'b) t Invariant.t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     val scheduled_at : (_, _) t -> Time.t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     module Status : sig
+       type ('a, 'h) t =
+@@ -335,56 +335,56 @@ module type Clock_deprecated = sig
+     end
+ 
+     val status : ('a, 'h) t -> ('a, 'h) Status.t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     val run_at : Time.t -> ('z -> 'h) -> 'z -> (_, 'h) t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     val run_after : Time.Span.t -> ('z -> 'h) -> 'z -> (_, 'h) t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     module Abort_result = Time_source.Event.Abort_result
+ 
+     val abort : ('a, 'h) t -> 'a -> ('a, 'h) Abort_result.t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     val abort_exn : ('a, 'h) t -> 'a -> unit
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     val abort_if_possible : ('a, _) t -> 'a -> unit
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     module Fired = Time_source.Event.Fired
+ 
+     val fired : ('a, 'h) t -> ('a, 'h) Fired.t Deferred.t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     module Reschedule_result = Time_source.Event.Reschedule_result
+ 
+     val reschedule_at : ('a, 'h) t -> Time.t -> ('a, 'h) Reschedule_result.t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     val reschedule_after : ('a, 'h) t -> Time.Span.t -> ('a, 'h) Reschedule_result.t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     val at : Time.t -> (_, unit) t [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+     val after : Time.Span.t -> (_, unit) t
+-      [@@deprecated "[since 2016-02] Use [Time_source]"]
++    [@@deprecated "[since 2016-02] Use [Time_source]"]
+   end
+ 
+   val at_varying_intervals
+     :  ?stop:unit Deferred.t
+     -> (unit -> Time.Span.t)
+     -> unit Async_stream.t
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val at_intervals
+     :  ?start:Time.t
+     -> ?stop:unit Deferred.t
+     -> Time.Span.t
+     -> unit Async_stream.t
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val every'
+     :  ?start:unit Deferred.t (** default is [return ()] *)
+@@ -394,7 +394,7 @@ module type Clock_deprecated = sig
+     -> Time.Span.t
+     -> (unit -> unit Deferred.t)
+     -> unit
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val every
+     :  ?start:unit Deferred.t (** default is [return ()] *)
+@@ -403,7 +403,7 @@ module type Clock_deprecated = sig
+     -> Time.Span.t
+     -> (unit -> unit)
+     -> unit
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val run_at_intervals'
+     :  ?start:Time.t (** default is [Time.now ()] *)
+@@ -412,7 +412,7 @@ module type Clock_deprecated = sig
+     -> Time.Span.t
+     -> (unit -> unit Deferred.t)
+     -> unit
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val run_at_intervals
+     :  ?start:Time.t (** default is [Time.now ()] *)
+@@ -421,18 +421,18 @@ module type Clock_deprecated = sig
+     -> Time.Span.t
+     -> (unit -> unit)
+     -> unit
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val duration_of : (unit -> 'a Deferred.t) -> ('a * Time.Span.t) Deferred.t
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ end
+ 
+ (** @inline *)
+ include (
+-  struct
+-    [@@@warning "-3"]
++struct
++  [@@@warning "-3"]
+ 
+-    module _ (C : Clock) : Clock_deprecated = C
+-    module _ (C : Clock_deprecated) : Clock = C
+-  end :
+-    sig end)
++  module _ (C : Clock) : Clock_deprecated = C
++  module _ (C : Clock_deprecated) : Clock = C
++end :
++sig end)
+diff --git a/src/deferred1.ml b/src/deferred1.ml
+index 98195de..3522464 100644
+--- a/src/deferred1.ml
++++ b/src/deferred1.ml
+@@ -8,18 +8,18 @@ include Deferred0
+ let never () = Ivar.read (Ivar.create ())
+ 
+ module M = Monad.Make (struct
+-  include Deferred0
++    include Deferred0
+ 
+-  let map t ~f =
+-    (* We manually inline [Deferred.create] here, because the non-flambda compiler isn't
++    let map t ~f =
++      (* We manually inline [Deferred.create] here, because the non-flambda compiler isn't
+          able to optimize away the closure that would be be created. *)
+-    let result = Ivar.create () in
+-    upon t (fun a -> Ivar.fill_exn result (f a));
+-    of_ivar result
+-  ;;
++      let result = Ivar.create () in
++      upon t (fun a -> Ivar.fill_exn result (f a));
++      of_ivar result
++    ;;
+ 
+-  let map = `Custom map
+-end)
++    let map = `Custom map
++  end)
+ 
+ include M
+ 
+@@ -111,8 +111,8 @@ let enabled choices =
+   in
+   let execution_context = Scheduler.(current_execution_context (t ())) in
+   unregisters
+-    := List.fold choices ~init:Unregister.Nil ~f:(fun acc (Choice.T (t, f)) ->
+-         Cons (t, f, Deferred0.add_handler t ready execution_context, acc));
++  := List.fold choices ~init:Unregister.Nil ~f:(fun acc (Choice.T (t, f)) ->
++       Cons (t, f, Deferred0.add_handler t ready execution_context, acc));
+   Ivar.read result
+ ;;
+ 
+diff --git a/src/deferred_array.ml b/src/deferred_array.ml
+index d1e5d28..d90bccf 100644
+--- a/src/deferred_array.ml
++++ b/src/deferred_array.ml
+@@ -35,14 +35,24 @@ let all_unit ds = Deferred.ignore_m (fold ds ~init:() ~f:(fun () d -> d))
+ let iteri ~how t ~f =
+   match how with
+   | (`Parallel | `Max_concurrent_jobs _) as how ->
+-    all_unit (Array.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++    all_unit
++      (Array.mapi
++         t
++         ~f:
++           (unstage
++              (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+   | `Sequential -> foldi t ~init:() ~f:(fun i () x -> f i x)
+ ;;
+ 
+ let mapi ~how t ~f =
+   match how with
+   | (`Parallel | `Max_concurrent_jobs _) as how ->
+-    all (Array.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++    all
++      (Array.mapi
++         t
++         ~f:
++           (unstage
++              (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+   | `Sequential -> seqmapi t ~f
+ ;;
+ 
+diff --git a/src/deferred_list.ml b/src/deferred_list.ml
+index cce06ca..867d099 100644
+--- a/src/deferred_list.ml
++++ b/src/deferred_list.ml
+@@ -27,7 +27,12 @@ let all_unit ds = Deferred.ignore_m (fold ds ~init:() ~f:(fun () d -> d))
+ let iteri ~how t ~f =
+   match how with
+   | `Parallel as how ->
+-    all_unit (List.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++    all_unit
++      (List.mapi
++         t
++         ~f:
++           (unstage
++              (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+   | `Max_concurrent_jobs job_count ->
+     let rec gen_computation idx = function
+       | x :: xs ->
+@@ -44,7 +49,12 @@ let iteri ~how t ~f =
+ let mapi ~how t ~f =
+   match how with
+   | `Parallel as how ->
+-    all (List.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++    all
++      (List.mapi
++         t
++         ~f:
++           (unstage
++              (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+   | `Max_concurrent_jobs job_count ->
+     let rec gen_computation idx = function
+       | x :: xs ->
+diff --git a/src/deferred_memo.ml b/src/deferred_memo.ml
+index 9c1816f..b664fcb 100644
+--- a/src/deferred_memo.ml
++++ b/src/deferred_memo.ml
+@@ -11,10 +11,9 @@ module Make (M : Monad.Infix with type 'a t = 'a Deferred1.t) :
+     | Error exn -> Exn.reraise exn "caught exception in memoized function"
+   ;;
+ 
+-  let general' (type a) ~run (hashable : (module Hashable.S_plain with type t = a)) f =
+-    let module Hashable = (val hashable) in
++  let general' (type a) ~run (key : (module Hashtbl.Key_plain with type t = a)) f =
+     let f =
+-      Memo.general ~hashable:Hashable.hashable (fun a ->
++      Memo.general ~hashable:(Base.Hashable.of_key key) (fun a ->
+         Monitor.try_with ~rest:`Log ~run (fun () -> f a))
+     in
+     Staged.stage (fun a -> f a >>| reraise)
+@@ -22,7 +21,8 @@ module Make (M : Monad.Infix with type 'a t = 'a Deferred1.t) :
+ 
+   let general hashable f = general' ~run:`Now hashable f
+ 
+-  let recursive (type a) (hashable : (module Hashable.S_plain with type t = a)) f_onestep =
++  let recursive (type a) (hashable : (module Hashtbl.Key_plain with type t = a)) f_onestep
++    =
+     let rec memoized =
+       lazy
+         (general'
+diff --git a/src/deferred_memo_intf.ml b/src/deferred_memo_intf.ml
+index c43030f..90bb79c 100644
+--- a/src/deferred_memo_intf.ml
++++ b/src/deferred_memo_intf.ml
+@@ -21,7 +21,7 @@ module type S = sig
+       Unlike [Core.Memo.general], this [general] takes a required [Hashable]
+       module argument, to avoid unintentional use of polymorphic comparison. *)
+   val general
+-    :  (module Hashable.S_plain with type t = 'a)
++    :  (module Hashtbl.Key_plain with type t = 'a)
+     -> ('a -> 'b deferred)
+     -> ('a -> 'b deferred) Staged.t
+ 
+@@ -29,7 +29,7 @@ module type S = sig
+       We do not implement Async-aware dependency cycle detection, so if recursion is not
+       well-founded then the computation will just deadlock. *)
+   val recursive
+-    :  (module Hashable.S_plain with type t = 'a)
++    :  (module Hashtbl.Key_plain with type t = 'a)
+     -> (('a -> 'b deferred) -> 'a -> 'b deferred)
+     -> ('a -> 'b deferred) Staged.t
+ 
+diff --git a/src/deferred_option.ml b/src/deferred_option.ml
+index b376530..f68c06e 100644
+--- a/src/deferred_option.ml
++++ b/src/deferred_option.ml
+@@ -8,16 +8,16 @@ end
+ include T
+ 
+ include Monad.Make (struct
+-  include T
++    include T
+ 
+-  let return a = Deferred.return (Some a)
++    let return a = Deferred.return (Some a)
+ 
+-  let bind t ~f =
+-    Deferred.bind t ~f:(function
+-      | Some a -> f a
+-      | None -> Deferred.return None)
+-  ;;
++    let bind t ~f =
++      Deferred.bind t ~f:(function
++        | Some a -> f a
++        | None -> Deferred.return None)
++    ;;
+ 
+-  let map t ~f = Deferred.map t ~f:(fun r -> Option.map r ~f)
+-  let map = `Custom map
+-end)
++    let map t ~f = Deferred.map t ~f:(fun r -> Option.map r ~f)
++    let map = `Custom map
++  end)
+diff --git a/src/deferred_or_error.ml b/src/deferred_or_error.ml
+index c1ab3de..cf35e24 100644
+--- a/src/deferred_or_error.ml
++++ b/src/deferred_or_error.ml
+@@ -13,20 +13,20 @@ include (Deferred_result : Monad.S2 with type ('a, 'b) t := ('a, 'b) Deferred_re
+ type 'a t = 'a Or_error.t Deferred.t
+ 
+ include Applicative.Make (struct
+-  type nonrec 'a t = 'a t
++    type nonrec 'a t = 'a t
+ 
+-  let return = return
++    let return = return
+ 
+-  let apply f x =
+-    Deferred_result.combine
+-      f
+-      x
+-      ~ok:(fun f x -> f x)
+-      ~err:(fun e1 e2 -> Error.of_list [ e1; e2 ])
+-  ;;
++    let apply f x =
++      Deferred_result.combine
++        f
++        x
++        ~ok:(fun f x -> f x)
++        ~err:(fun e1 e2 -> Error.of_list [ e1; e2 ])
++    ;;
+ 
+-  let map = `Custom map
+-end)
++    let map = `Custom map
++  end)
+ 
+ module Let_syntax = struct
+   let return = return
+@@ -84,55 +84,95 @@ let find_map_ok l ~f =
+ 
+ let ok_unit = return ()
+ 
+-let try_with ?extract_exn ?run ?rest ?here ?name f =
+-  Deferred.map (Monitor.try_with ?extract_exn ?run ?rest ?here ?name f) ~f:(function
++let try_with ?extract_exn ?run ?rest ?(here = Stdlib.Lexing.dummy_pos) ?name f =
++  Deferred.map (Monitor.try_with ?extract_exn ?run ?rest ~here ?name f) ~f:(function
+     | Error exn -> Error (Error.of_exn exn)
+     | Ok _ as ok -> ok)
+ ;;
+ 
+-let try_with_join ?extract_exn ?run ?rest ?here ?name f =
+-  Deferred.map (try_with ?extract_exn ?run ?rest ?here ?name f) ~f:Or_error.join
++let try_with_join ?extract_exn ?run ?rest ?(here = Stdlib.Lexing.dummy_pos) ?name f =
++  Deferred.map (try_with ?extract_exn ?run ?rest ~here ?name f) ~f:Or_error.join
+ ;;
+ 
+-module List = struct
+-  let foldi list ~init:acc ~f =
+-    let rec loop i acc = function
+-      | [] -> return acc
+-      | hd :: tl ->
+-        let%bind acc = f i acc hd in
+-        loop (i + 1) acc tl
+-    in
+-    loop 0 acc list
+-  ;;
++module type Extras = sig
++  type 'a deferred_or_error := 'a t
++  type 'a t
++
++  val seqmapi : 'a t -> f:(int -> 'a -> 'b deferred_or_error) -> 'b t deferred_or_error
++
++  val find_mapi
++    :  'a t
++    -> f:(int -> 'a -> 'b option deferred_or_error)
++    -> 'b option deferred_or_error
++
++  (* We could define [foldi] in terms of [Container.foldi], but we use a custom definition
++     in order to preserve legacy binding pattern of [Deferred.List.foldi]. *)
++  val foldi
++    :  'a t
++    -> init:'acc
++    -> f:(int -> 'acc -> 'a -> 'acc deferred_or_error)
++    -> 'acc deferred_or_error
++end
++
++module Make_indexed_container
++    (Container : sig
++       type 'a t
++
++       include
++         Base.Indexed_container.Generic_with_creators
++         with type ('a, _, _) t := 'a t
++          and type ('a, _, _) concat := 'a list
++          and type 'a elt := 'a
++     end)
++    (Monadic_container : Monad_sequence.S
++                         with type 'a t := 'a Container.t
++                          and type 'a monad := 'a Deferred.t)
++    (Extras : Extras with type 'a t := 'a Container.t) :
++  Monad_sequence.S with type 'a t := 'a Container.t and type 'a monad := 'a t = struct
++  include Extras
+ 
+   let fold t ~init ~f = foldi t ~init ~f:(fun _ a x -> f a x)
+ 
+-  let seqmapi t ~f =
+-    foldi t ~init:[] ~f:(fun i bs a ->
+-      let%map b = f i a in
+-      b :: bs)
+-    >>| List.rev
++  let all t =
++    match%map.Deferred
++      Monadic_container.all t
++      |> Deferred.map ~f:(Container.partition_map ~f:Result.to_either)
++    with
++    | ok, errors when Container.is_empty errors -> Ok ok
++    | _, errors -> Error (errors |> Container.to_list |> Error.of_list)
+   ;;
+ 
+-  let all = all
+-  let all_unit = all_unit
++  let all_unit ts =
++    Monadic_container.all ts
++    |> Deferred.map ~f:(fun xs -> Container.to_list xs |> Or_error.all_unit)
++  ;;
+ 
+   let iteri ~how t ~f =
+     match how with
+     | (`Parallel | `Max_concurrent_jobs _) as how ->
+-      all_unit (List.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++      all_unit
++        (Container.mapi
++           t
++           ~f:
++             (unstage
++                (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+     | `Sequential -> foldi t ~init:() ~f:(fun i () x -> f i x)
+   ;;
+ 
+   let mapi ~how t ~f =
+     match how with
+     | (`Parallel | `Max_concurrent_jobs _) as how ->
+-      all (List.mapi t ~f:(unstage (Throttle.monad_sequence_how2 ~how ~f)))
++      all
++        (Container.mapi
++           t
++           ~f:
++             (unstage
++                (Throttle.monad_sequence_how2 ~on_error:(`Abort `Never_return) ~how ~f)))
+     | `Sequential -> seqmapi t ~f
+   ;;
+ 
+-  let filter_mapi ~how t ~f = mapi t ~how ~f >>| List.filter_opt
+-  let concat_mapi ~how t ~f = mapi t ~how ~f >>| List.concat
++  let filter_mapi ~how t ~f = mapi t ~how ~f >>| Container.filter_map ~f:Fn.id
++  let concat_mapi ~how t ~f = mapi t ~how ~f >>| Container.concat_map ~f:Fn.id
+ 
+   let filteri ~how t ~f =
+     filter_mapi ~how t ~f:(fun i x ->
+@@ -140,18 +180,6 @@ module List = struct
+       if b then Some x else None)
+   ;;
+ 
+-  let find_mapi t ~f =
+-    let rec find_mapi t ~f i =
+-      match t with
+-      | [] -> return None
+-      | hd :: tl ->
+-        (match%bind f i hd with
+-         | None -> find_mapi tl ~f (i + 1)
+-         | Some _ as some -> return some)
+-    in
+-    find_mapi t ~f 0
+-  ;;
+-
+   let find_map t ~f = find_mapi t ~f:(fun _ a -> f a)
+ 
+   let findi t ~f =
+@@ -194,9 +222,82 @@ module List = struct
+   let find_map t ~f = find_mapi t ~f:(fun _ a -> f a)
+   let exists t ~f = existsi t ~f:(fun _ a -> f a)
+   let for_all t ~f = for_alli t ~f:(fun _ a -> f a)
+-  let init ~how n ~f = map ~how (List.init n ~f:Fn.id) ~f
++  let init ~how n ~f = map ~how (Container.init n ~f:Fn.id) ~f
+ end
+ 
++module Array =
++  Make_indexed_container (Array) (Deferred_array)
++    (struct
++      let seqmapi t ~f =
++        if Array.is_empty t
++        then return [||]
++        else (
++          let%bind x0 = f 0 (Array.unsafe_get t 0) in
++          let a = Array.create ~len:(Array.length t) x0 in
++          let rec loop i =
++            if i = Array.length t
++            then return ()
++            else (
++              let%bind x = f i (Array.unsafe_get t i) in
++              Array.unsafe_set a i x;
++              loop (i + 1))
++          in
++          let%bind () = loop 1 in
++          return a)
++      ;;
++
++      let find_mapi t ~f =
++        let rec loop i =
++          if i = Array.length t
++          then return None
++          else (
++            match%bind f i (Array.unsafe_get t i) with
++            | None -> loop (i + 1)
++            | Some _ as some -> return some)
++        in
++        loop 0
++      ;;
++
++      let foldi t ~init ~f =
++        Array.foldi t ~init:(return init) ~f:(fun n acc elt ->
++          let%bind acc = acc in
++          f n acc elt)
++      ;;
++    end)
++
++module List =
++  Make_indexed_container (List) (Deferred_list)
++    (struct
++      let find_mapi t ~f =
++        let rec find_mapi t ~f i =
++          match t with
++          | [] -> return None
++          | hd :: tl ->
++            (match%bind f i hd with
++             | None -> find_mapi tl ~f (i + 1)
++             | Some _ as some -> return some)
++        in
++        find_mapi t ~f 0
++      ;;
++
++      let foldi t ~init ~f =
++        let rec loop i acc = function
++          | [] -> return acc
++          | hd :: tl ->
++            let%bind acc = f i acc hd in
++            loop (i + 1) acc tl
++        in
++        loop 0 init t
++      ;;
++
++      let seqmapi t ~f =
++        foldi t ~init:[] ~f:(fun i bs a ->
++          let%map b = f i a in
++          b :: bs)
++        >>| List.rev
++      ;;
++    end)
++
+ let rec repeat_until_finished state f =
+   match%bind f state with
+   | `Repeat state -> repeat_until_finished state f
+diff --git a/src/deferred_or_error.mli b/src/deferred_or_error.mli
+index 7df132c..63a2ed1 100644
+--- a/src/deferred_or_error.mli
++++ b/src/deferred_or_error.mli
+@@ -86,7 +86,7 @@ val try_with
+   :  ?extract_exn:bool (** default is [false] *)
+   -> ?run:[ `Now | `Schedule ] (** default is [`Now] *)
+   -> ?rest:[ `Log | `Raise | `Call of exn -> unit ] (** default is [`Raise] *)
+-  -> ?here:Lexing.position
++  -> ?here:Stdlib.Lexing.position
+   -> ?name:string
+   -> (unit -> 'a Deferred.t)
+   -> 'a t
+@@ -95,17 +95,18 @@ val try_with_join
+   :  ?extract_exn:bool (** default is [false] *)
+   -> ?run:[ `Now | `Schedule ] (** default is [`Now] *)
+   -> ?rest:[ `Log | `Raise | `Call of exn -> unit ] (** default is [`Raise] *)
+-  -> ?here:Lexing.position
++  -> ?here:Stdlib.Lexing.position
+   -> ?name:string
+   -> (unit -> 'a t)
+   -> 'a t
+ 
+-(** All of the [List] functions that take a [how] argument treat it the following way:
++(** All of the [Array] and [List] functions that take a [how] argument treat it the
++    following way:
+ 
+     [`Sequential] indicates both sequential evaluation of the deferreds, and
+     sequential combination of the results.  This means that if [f] returns an
+     [Error] on an element, that [Error] will be returned and [f] won't be
+-    called on the remaining elements of the [List].
++    called on the remaining elements of the [Array] or [List].
+ 
+     [`Parallel] indicates parallel evaluation of the deferreds (in the sense that they are
+     all in the scheduler at the same time), and parallel combination of the results. For
+@@ -115,6 +116,8 @@ val try_with_join
+ 
+     [`Max_concurrent_jobs n] acts like [`Parallel] in the way it combines the results, but
+     only evaluates [n] of the deferreds at a time. *)
++
++module Array : Monad_sequence.S with type 'a monad := 'a t with type 'a t := 'a array
+ module List : Monad_sequence.S with type 'a monad := 'a t with type 'a t := 'a list
+ 
+ (** [repeat_until_finished initial_state f] works just like
+diff --git a/src/deferred_result.ml b/src/deferred_result.ml
+index 8584ca0..438a095 100644
+--- a/src/deferred_result.ml
++++ b/src/deferred_result.ml
+@@ -15,20 +15,110 @@ let combine t1 t2 ~ok ~err =
+ ;;
+ 
+ include Monad.Make2 (struct
+-  include T
++    include T
+ 
+-  let return a = Deferred.return (Ok a)
++    let return a = Deferred.return (Ok a)
+ 
+-  let bind t ~f =
+-    Deferred.bind t ~f:(function
+-      | Ok a -> f a
+-      | Error _ as error -> Deferred.return error)
+-  ;;
++    let bind t ~f =
++      Deferred.bind t ~f:(function
++        | Ok a -> f a
++        | Error _ as error -> Deferred.return error)
++    ;;
+ 
+-  let map t ~f = Deferred.map t ~f:(fun r -> Result.map r ~f)
+-  let map = `Custom map
+-end)
++    let map t ~f = Deferred.map t ~f:(fun r -> Result.map r ~f)
++    let map = `Custom map
++  end)
+ 
+ let fail x = Deferred.return (Error x)
+ let failf format = Printf.ksprintf fail format
+ let map_error t ~f = Deferred.map t ~f:(fun r -> Result.map_error r ~f)
++
++module List = struct
++  open Let_syntax
++
++  let foldi list ~init:acc ~f =
++    let rec loop i acc = function
++      | [] -> return acc
++      | hd :: tl ->
++        let%bind acc = f i acc hd in
++        loop (i + 1) acc tl
++    in
++    loop 0 acc list
++  ;;
++
++  let fold t ~init ~f = foldi t ~init ~f:(fun _ a x -> f a x)
++
++  let seqmapi t ~f =
++    foldi t ~init:[] ~f:(fun i bs a ->
++      let%map b = f i a in
++      b :: bs)
++    >>| List.rev
++  ;;
++
++  let iteri t ~f = foldi t ~init:() ~f:(fun i () x -> f i x)
++  let mapi t ~f = seqmapi t ~f
++  let filter_mapi t ~f = mapi t ~f >>| List.filter_opt
++  let concat_mapi t ~f = mapi t ~f >>| List.concat
++
++  let filteri t ~f =
++    filter_mapi t ~f:(fun i x ->
++      let%map b = f i x in
++      if b then Some x else None)
++  ;;
++
++  let find_mapi t ~f =
++    let rec find_mapi t ~f i =
++      match t with
++      | [] -> return None
++      | hd :: tl ->
++        (match%bind f i hd with
++         | None -> find_mapi tl ~f (i + 1)
++         | Some _ as some -> return some)
++    in
++    find_mapi t ~f 0
++  ;;
++
++  let find_map t ~f = find_mapi t ~f:(fun _ a -> f a)
++
++  let findi t ~f =
++    find_mapi t ~f:(fun i elt ->
++      let%map b = f i elt in
++      if b then Some (i, elt) else None)
++  ;;
++
++  let find t ~f =
++    find_map t ~f:(fun elt ->
++      let%map b = f elt in
++      if b then Some elt else None)
++  ;;
++
++  let existsi t ~f =
++    match%map
++      find_mapi t ~f:(fun i elt ->
++        let%map b = f i elt in
++        if b then Some () else None)
++    with
++    | Some () -> true
++    | None -> false
++  ;;
++
++  let for_alli t ~f =
++    match%map
++      find_mapi t ~f:(fun i elt ->
++        let%map b = f i elt in
++        if not b then Some () else None)
++    with
++    | Some () -> false
++    | None -> true
++  ;;
++
++  let iter t ~f = iteri t ~f:(fun _ a -> f a)
++  let map t ~f = mapi t ~f:(fun _ a -> f a)
++  let filter t ~f = filteri t ~f:(fun _ a -> f a)
++  let filter_map t ~f = filter_mapi t ~f:(fun _ a -> f a)
++  let concat_map t ~f = concat_mapi t ~f:(fun _ a -> f a)
++  let find_map t ~f = find_mapi t ~f:(fun _ a -> f a)
++  let exists t ~f = existsi t ~f:(fun _ a -> f a)
++  let for_all t ~f = for_alli t ~f:(fun _ a -> f a)
++  let init n ~f = map (List.init n ~f:Fn.id) ~f
++end
+diff --git a/src/deferred_result.mli b/src/deferred_result.mli
+index c644e63..a143290 100644
+--- a/src/deferred_result.mli
++++ b/src/deferred_result.mli
+@@ -16,3 +16,8 @@ val combine
+   -> ok:('ok1 -> 'ok2 -> 'ok3)
+   -> err:('err -> 'err -> 'err)
+   -> ('ok3, 'err) t
++
++module List :
++  Monad_sequence.S2_result
++  with type ('a, 'e) monad := ('a, 'e) t
++  with type 'a t := 'a list
+diff --git a/src/dune b/src/dune
+index c52aa92..3c84e90 100644
+--- a/src/dune
++++ b/src/dune
+@@ -2,7 +2,7 @@
+  (name async_kernel)
+  (public_name async_kernel)
+  (libraries async_kernel_config core core_kernel.moption
+-   core_kernel.pairing_heap core_kernel.sexp_hidden_in_test
++   core_kernel.pairing_heap core_kernel.sexp_hidden_in_test sexplib
+    core_kernel.thread_pool_cpu_affinity core_kernel.thread_safe_queue
+    core_kernel.timing_wheel core_kernel.tuple_pool)
+  (preprocess
+diff --git a/src/execution_context.ml b/src/execution_context.ml
+index 0cefeed..f6d2198 100644
+--- a/src/execution_context.ml
++++ b/src/execution_context.ml
+@@ -35,7 +35,9 @@ let create_like ?monitor ?priority ?local_storage t =
+     }
+ ;;
+ 
++let has_local t key = Univ_map.mem t.local_storage key
+ let find_local t key = Univ_map.find t.local_storage key
++let find_local_exn t key = Univ_map.find_exn t.local_storage key
+ 
+ let with_local t key data =
+   match data with
+diff --git a/src/execution_context.mli b/src/execution_context.mli
+index e34814c..6825a54 100644
+--- a/src/execution_context.mli
++++ b/src/execution_context.mli
+@@ -22,6 +22,8 @@ val create_like
+   -> t
+   -> t
+ 
++val has_local : t -> 'a Univ_map.Key.t -> bool
+ val find_local : t -> 'a Univ_map.Key.t -> 'a option
++val find_local_exn : t -> 'a Univ_map.Key.t -> 'a
+ val with_local : t -> 'a Univ_map.Key.t -> 'a option -> t
+ val record_backtrace : t -> t
+diff --git a/src/ivar0.ml b/src/ivar0.ml
+index 309d4e0..c5e8fa4 100644
+--- a/src/ivar0.ml
++++ b/src/ivar0.ml
+@@ -387,7 +387,7 @@ let upon t run =
+   | Empty -> t.cell <- Empty_one_handler (run, execution_context)
+   | Empty_one_handler (run', execution_context') ->
+     t.cell
+-      <- cell_of_handler (Handler.create2 run execution_context run' execution_context')
++    <- cell_of_handler (Handler.create2 run execution_context run' execution_context')
+   | Empty_one_or_more_handlers _ as handler ->
+     ignore (Handler.add handler run execution_context : _ Handler.t)
+ ;;
+diff --git a/src/job_or_event.ml b/src/job_or_event.ml
+index 22aef26..52ac86f 100644
+--- a/src/job_or_event.ml
++++ b/src/job_or_event.ml
+@@ -25,8 +25,8 @@ end
+ 
+ module _ : sig end = struct
+   module Ensure_private_int (M : sig
+-    type t = private int
+-  end) =
++      type t = private int
++    end) =
+   struct
+     type _t = M.t
+   end
+diff --git a/src/job_queue.ml b/src/job_queue.ml
+index 606cef2..6e9044c 100644
+--- a/src/job_queue.ml
++++ b/src/job_queue.ml
+@@ -138,17 +138,23 @@ let can_run_a_job t = t.length > 0 && t.jobs_left_this_cycle > 0
+ let run_job t (scheduler : Scheduler.t) execution_context f a =
+   t.num_jobs_run <- t.num_jobs_run + 1;
+   Scheduler.set_execution_context scheduler execution_context;
++  (* Note: If you are here because you have hit a segmentation fault on the following
++     line, the most likely reason for this is that some part of the program is enqueueing
++     jobs onto the async job queue (including e.g. by filling an ivar) in a non-thread
++     safe way. If using the [Async_unix] scheduler, running the program with
++     [ASYNC_CONFIG='((detect_invalid_access_from_thread true))'] will validate
++     accesses and show where the invalid access is coming from if there is one. *)
+   f a
+ ;;
+ 
+ let run_external_jobs t (scheduler : Scheduler.t) =
+   let external_jobs = scheduler.external_jobs in
+-  while Thread_safe_queue.length external_jobs > 0 do
+-    let (External_job.T (execution_context, f, a)) =
+-      Thread_safe_queue.dequeue_exn external_jobs
+-    in
++  let[@inline] run_external_job (External_job.T (execution_context, f, a)) =
+     run_job t scheduler execution_context f a
+-  done
++  in
++  (Thread_safe_queue.dequeue_until_empty [@inlined hint])
++    ~f:run_external_job
++    external_jobs [@nontail]
+ ;;
+ 
+ let run_jobs (type a) t scheduler =
+diff --git a/src/monad_sequence.ml b/src/monad_sequence.ml
+index 0b39878..0f734cc 100644
+--- a/src/monad_sequence.ml
++++ b/src/monad_sequence.ml
+@@ -47,3 +47,38 @@ module type S = sig
+   val concat_map : how:how -> 'a t -> f:('a -> 'b t monad) -> 'b t monad
+   val concat_mapi : how:how -> 'a t -> f:(int -> 'a -> 'b t monad) -> 'b t monad
+ end
++
++(** [Monad_sequence.S2_result] is a generic interface specifying functions that deal with
++    a container and a monad similar to Result.t or Result.t Deferred.t that contains both
++    a value and an error. Unlike [Monad_sequence.S], it does not support the parallelism in
++    container iterators, and they will always return the first error encountered. *)
++
++module type S2_result = sig
++  type ('a, 'e) monad
++  type 'a t
++
++  val foldi : 'a t -> init:'b -> f:(int -> 'b -> 'a -> ('b, 'e) monad) -> ('b, 'e) monad
++  val fold : 'a t -> init:'b -> f:('b -> 'a -> ('b, 'e) monad) -> ('b, 'e) monad
++  val find : 'a t -> f:('a -> (bool, 'e) monad) -> ('a option, 'e) monad
++  val findi : 'a t -> f:(int -> 'a -> (bool, 'e) monad) -> ((int * 'a) option, 'e) monad
++  val find_map : 'a t -> f:('a -> ('b option, 'e) monad) -> ('b option, 'e) monad
++  val find_mapi : 'a t -> f:(int -> 'a -> ('b option, 'e) monad) -> ('b option, 'e) monad
++  val exists : 'a t -> f:('a -> (bool, 'e) monad) -> (bool, 'e) monad
++  val existsi : 'a t -> f:(int -> 'a -> (bool, 'e) monad) -> (bool, 'e) monad
++  val for_all : 'a t -> f:('a -> (bool, 'e) monad) -> (bool, 'e) monad
++  val for_alli : 'a t -> f:(int -> 'a -> (bool, 'e) monad) -> (bool, 'e) monad
++
++  (** {2 Deferred iterators} *)
++
++  val init : int -> f:(int -> ('a, 'e) monad) -> ('a t, 'e) monad
++  val iter : 'a t -> f:('a -> (unit, 'e) monad) -> (unit, 'e) monad
++  val iteri : 'a t -> f:(int -> 'a -> (unit, 'e) monad) -> (unit, 'e) monad
++  val map : 'a t -> f:('a -> ('b, 'e) monad) -> ('b t, 'e) monad
++  val mapi : 'a t -> f:(int -> 'a -> ('b, 'e) monad) -> ('b t, 'e) monad
++  val filter : 'a t -> f:('a -> (bool, 'e) monad) -> ('a t, 'e) monad
++  val filteri : 'a t -> f:(int -> 'a -> (bool, 'e) monad) -> ('a t, 'e) monad
++  val filter_map : 'a t -> f:('a -> ('b option, 'e) monad) -> ('b t, 'e) monad
++  val filter_mapi : 'a t -> f:(int -> 'a -> ('b option, 'e) monad) -> ('b t, 'e) monad
++  val concat_map : 'a t -> f:('a -> ('b t, 'e) monad) -> ('b t, 'e) monad
++  val concat_mapi : 'a t -> f:(int -> 'a -> ('b t, 'e) monad) -> ('b t, 'e) monad
++end
+diff --git a/src/monitor.ml b/src/monitor.ml
+index d48b37b..c9b1292 100644
+--- a/src/monitor.ml
++++ b/src/monitor.ml
+@@ -52,7 +52,7 @@ let detach_and_iter_errors t ~f =
+          raise inner_exn)
+   in
+   handler_state_ref
+-    := Running (Bag.add t.handlers_for_all_errors (execution_context, run_f))
++  := Running (Bag.add t.handlers_for_all_errors (execution_context, run_f))
+ ;;
+ 
+ let detach_and_get_error_stream t =
+@@ -69,9 +69,9 @@ let detach_and_get_next_error t =
+   get_next_error t
+ ;;
+ 
+-let create ?here ?info ?name () =
++let create ?(here = Stdlib.Lexing.dummy_pos) ?info ?name () =
+   let parent = current () in
+-  create_with_parent ?here ?info ?name (Some parent)
++  create_with_parent ~here ?info ?name (Some parent)
+ ;;
+ 
+ module Monitor_exn = struct
+@@ -116,9 +116,14 @@ module Monitor_exn = struct
+         | s -> Some s
+       in
+       let pos =
+-        match monitor.here with
+-        | None -> None
+-        | Some here ->
++        match
++          Source_code_position.is_dummy monitor.here
++          || !Backtrace.elide
++          || not (Backtrace.Exn.am_recording ())
++        with
++        | true -> None
++        | false ->
++          let here = monitor.here in
+           (* We display the full filename, whereas backtraces only have basenames, but
+              perhaps that's what should change. *)
+           let column = here.pos_cnum - here.pos_bol in
+@@ -190,7 +195,10 @@ let extract_exn exn =
+ let send_exn t ?(backtrace = `Get) exn =
+   let exn =
+     match exn with
+-    | Monitor_exn _ -> exn
++    | Monitor_exn _ ->
++      (* [backtrace] is dropped here, on the assumption that the backtrace recorded
++         originally is the more useful one. It'd be better to keep both backtraces. *)
++      exn
+     | _ ->
+       let backtrace =
+         match backtrace with
+@@ -322,12 +330,17 @@ module Ok_and_exns = struct
+     }
+   [@@deriving sexp_of]
+ 
+-  let create ?here ?info ?name ~run f =
++  let monitor_and_exns ?(here = Stdlib.Lexing.dummy_pos) ?info ?name () =
+     (* We call [create_with_parent None] because [monitor] does not need a parent.  It
+        does not because we call [detach_and_get_error_stream monitor] and deal with the
+        errors explicitly, thus [send_exn] would never propagate an exn past [monitor]. *)
+-    let monitor = create_with_parent ?here ?info ?name None in
++    let monitor = create_with_parent ~here ?info ?name None in
+     let exns = detach_and_get_error_stream monitor in
++    monitor, exns
++  ;;
++
++  let create ?(here = Stdlib.Lexing.dummy_pos) ?info ?name ~run f =
++    let monitor, exns = monitor_and_exns ~here ?info ?name () in
+     let ok =
+       match run with
+       | `Now -> within' ~monitor f
+@@ -335,19 +348,13 @@ module Ok_and_exns = struct
+     in
+     { ok; exns }
+   ;;
+-end
+ 
+-let fill_result_and_handle_background_errors
+-  result_filler
+-  result
+-  exns
+-  handle_exns_after_result
+-  =
+-  if Ivar_filler.is_empty result_filler
+-  then (
+-    Ivar_filler.fill result_filler result;
+-    handle_exns_after_result exns)
+-;;
++  let create_local ?(here = Stdlib.Lexing.dummy_pos) ?info ?name f =
++    let monitor, exns = monitor_and_exns ~here ?info ?name () in
++    let ok = within' ~monitor f in
++    { ok; exns }
++  ;;
++end
+ 
+ module Expert = struct
+   let try_with_log_exn : (exn -> unit) ref =
+@@ -369,16 +376,23 @@ let make_handle_exn rest =
+     fun exn -> within ~monitor:parent (fun () -> f exn)
+ ;;
+ 
+-let try_with
+-  ?here
+-  ?info
+-  ?(name = "")
++let fill_result_and_handle_background_errors
++  result_filler
++  result
++  exns
++  handle_exns_after_result
++  =
++  if Ivar_filler.is_empty result_filler
++  then (
++    Ivar_filler.fill result_filler result;
++    handle_exns_after_result exns)
++;;
++
++let try_with_aux
+   ?extract_exn:(do_extract_exn = false)
+-  ?(run = `Now)
+   ?(rest = `Raise)
+-  f
++  { Ok_and_exns.ok; exns }
+   =
+-  let { Ok_and_exns.ok; exns } = Ok_and_exns.create ?here ?info ~name ~run f in
+   let handle_exn = make_handle_exn rest in
+   let handle_exns_after_result exns = stream_iter exns ~f:handle_exn in
+   (* We run [within' ~monitor:main] to avoid holding on to references to the evaluation
+@@ -398,39 +412,83 @@ let try_with
+           (Ok res)
+           exns
+           handle_exns_after_result);
+-      upon (Stream.next exns) (function
+-        | Nil -> assert false
++      let handle_next_exn = function
++        | Stream.Nil -> assert false
+         | Cons (exn, exns) ->
+           let exn = if do_extract_exn then extract_exn exn else exn in
+           fill_result_and_handle_background_errors
+             result_filler
+             (Error exn)
+             exns
+-            handle_exns_after_result);
++            handle_exns_after_result
++      in
++      let next_exn = Stream.next exns in
++      if Deferred.is_determined next_exn
++      then handle_next_exn (Deferred.value_exn next_exn)
++      else upon next_exn handle_next_exn;
+       result))
+ ;;
+ 
+-let try_with_or_error ?here ?info ?(name = "try_with_or_error") ?extract_exn ?rest f =
+-  try_with f ?here ?info ~name ?extract_exn ~run:`Now ?rest >>| Or_error.of_exn_result
++let try_with
++  ?(here = Stdlib.Lexing.dummy_pos)
++  ?info
++  ?(name = "")
++  ?extract_exn
++  ?(run = `Now)
++  ?rest
++  f
++  =
++  Ok_and_exns.create ~here ?info ~name ~run f |> try_with_aux ?extract_exn ?rest
++;;
++
++let try_with_local
++  ?(here = Stdlib.Lexing.dummy_pos)
++  ?info
++  ?(name = "")
++  ?extract_exn
++  ?rest
++  f
++  =
++  Ok_and_exns.create_local ~here ?info ~name f |> try_with_aux ?extract_exn ?rest
++;;
++
++let try_with_or_error
++  ?(here = Stdlib.Lexing.dummy_pos)
++  ?info
++  ?(name = "try_with_or_error")
++  ?extract_exn
++  ?rest
++  f
++  =
++  try_with f ~here ?info ~name ?extract_exn ~run:`Now ?rest >>| Or_error.of_exn_result
+ ;;
+ 
+ let try_with_join_or_error
+-  ?here
++  ?(here = Stdlib.Lexing.dummy_pos)
+   ?info
+   ?(name = "try_with_join_or_error")
+   ?extract_exn
+   ?rest
+   f
+   =
+-  try_with_or_error f ?here ?info ~name ?extract_exn ?rest >>| Or_error.join
++  try_with_or_error f ~here ?info ~name ?extract_exn ?rest >>| Or_error.join
+ ;;
+ 
+-let protect ?here ?info ?(name = "Monitor.protect") ?extract_exn ?run ?rest f ~finally =
+-  let%bind r = try_with ?extract_exn ?here ?info ?run ?rest ~name f in
++let protect
++  ?(here = Stdlib.Lexing.dummy_pos)
++  ?info
++  ?(name = "Monitor.protect")
++  ?extract_exn
++  ?run
++  ?rest
++  f
++  ~finally
++  =
++  let%bind r = try_with ?extract_exn ~here ?info ?run ?rest ~name f in
+   let%map fr =
+     try_with
+       ~extract_exn:false
+-      ?here
++      ~here
+       ?info
+       ~run:`Schedule (* consider [~run:`Now] *)
+       ?rest
+@@ -444,28 +502,30 @@ let protect ?here ?info ?(name = "Monitor.protect") ?extract_exn ?run ?rest f ~f
+   | Ok r, Ok () -> r
+ ;;
+ 
+-let handle_errors ?here ?info ?name f handler =
+-  let { Ok_and_exns.ok; exns } = Ok_and_exns.create ?here ?info ?name ~run:`Now f in
++let handle_errors ?(here = Stdlib.Lexing.dummy_pos) ?info ?name f handler =
++  let { Ok_and_exns.ok; exns } = Ok_and_exns.create ~here ?info ?name ~run:`Now f in
+   stream_iter exns ~f:handler;
+   ok
+ ;;
+ 
+-let catch_stream ?here ?info ?name f =
++let catch_stream ?(here = Stdlib.Lexing.dummy_pos) ?info ?name f =
+   let { Ok_and_exns.exns; _ } =
+-    Ok_and_exns.create ?here ?info ?name ~run:`Now (fun () ->
++    Ok_and_exns.create ~here ?info ?name ~run:`Now (fun () ->
+       f ();
+       return ())
+   in
+   exns
+ ;;
+ 
+-let catch ?here ?info ?name f =
+-  match%map Stream.next (catch_stream ?here ?info ?name f) with
++let catch ?(here = Stdlib.Lexing.dummy_pos) ?info ?name f =
++  match%map Stream.next (catch_stream ~here ?info ?name f) with
+   | Cons (x, _) -> x
+   | Nil -> raise_s [%message "Monitor.catch got unexpected empty stream"]
+ ;;
+ 
+-let catch_error ?here ?info ?name f = catch ?here ?info ?name f >>| Error.of_exn
++let catch_error ?(here = Stdlib.Lexing.dummy_pos) ?info ?name f =
++  catch ~here ?info ?name f >>| Error.of_exn
++;;
+ 
+ module For_tests = struct
+   let parent t =
+diff --git a/src/monitor.mli b/src/monitor.mli
+index a139e00..1475a49 100644
+--- a/src/monitor.mli
++++ b/src/monitor.mli
+@@ -45,7 +45,7 @@ type t = Monitor0.t [@@deriving sexp_of]
+ include Invariant.S with type t := t
+ 
+ type 'a with_optional_monitor_name :=
+-  ?here:Source_code_position.t -> ?info:Info.t -> ?name:string -> 'a
++  ?here:Stdlib.Lexing.position -> ?info:Info.t -> ?name:string -> 'a
+ 
+ (** [create ()] returns a new monitor whose parent is the current monitor. *)
+ val create : (unit -> t) with_optional_monitor_name
+@@ -92,11 +92,11 @@ val get_next_error : t -> exn Deferred.t
+ module Monitor_exn : sig
+   type t
+ 
+-  (** Extract the exception as it was originally received by an async monitor. *)
++  (** Extract the exception as it was originally received by a monitor. *)
+   val extract_exn : t -> exn
+ 
+   (** Extract the backtrace originally captured at the point the exception was received
+-      by an async monitor. *)
++      by a monitor. *)
+   val backtrace : t -> Backtrace.t option
+ end
+ 
+@@ -139,7 +139,15 @@ val try_with
+      -> ?rest:[ `Log | `Raise | `Call of exn -> unit ] (** default is [`Raise] *)
+      -> (unit -> 'a Deferred.t)
+      -> ('a, exn) Result.t Deferred.t)
+-    with_optional_monitor_name
++      with_optional_monitor_name
++
++(** [try_with_local] is like [try_with] but always runs [f] now, so [f] can be local. *)
++val try_with_local
++  : (?extract_exn:bool (** default is [false] *)
++     -> ?rest:[ `Log | `Raise | `Call of exn -> unit ] (** default is [`Raise] *)
++     -> (unit -> 'a Deferred.t)
++     -> ('a, exn) Result.t Deferred.t)
++      with_optional_monitor_name
+ 
+ (** [try_with_or_error] is like [try_with] but returns ['a Or_error.t Deferred.t]
+     instead of [('a,exn) Result.t Deferred.t].  More precisely:
+@@ -152,7 +160,7 @@ val try_with_or_error
+      -> ?rest:[ `Log | `Raise | `Call of exn -> unit ] (** default is [`Raise] *)
+      -> (unit -> 'a Deferred.t)
+      -> 'a Or_error.t Deferred.t)
+-    with_optional_monitor_name
++      with_optional_monitor_name
+ 
+ (** [try_with_join_or_error f = try_with_or_error f >>| Or_error.join]. *)
+ val try_with_join_or_error
+@@ -160,7 +168,7 @@ val try_with_join_or_error
+      -> ?rest:[ `Log | `Raise | `Call of exn -> unit ] (** default is [`Raise] *)
+      -> (unit -> 'a Or_error.t Deferred.t)
+      -> 'a Or_error.t Deferred.t)
+-    with_optional_monitor_name
++      with_optional_monitor_name
+ 
+ (** [handle_errors ?name f handler] runs [f ()] inside a new monitor with the optionally
+     supplied name, and calls [handler error] on every error raised to that monitor.  Any
+@@ -197,7 +205,7 @@ val protect
+      -> (unit -> 'a Deferred.t)
+      -> finally:(unit -> unit Deferred.t)
+      -> 'a Deferred.t)
+-    with_optional_monitor_name
++      with_optional_monitor_name
+ 
+ (** This is the initial monitor and is the root of the monitor tree.  Unhandled exceptions
+     are raised to this monitor. *)
+diff --git a/src/monitor0.ml b/src/monitor0.ml
+index a371b8c..20c12d8 100644
+--- a/src/monitor0.ml
++++ b/src/monitor0.ml
+@@ -7,7 +7,7 @@ module Forwarding = Types.Forwarding
+ 
+ type t = Types.Monitor.t =
+   { name : Info.t
+-  ; here : Source_code_position.t option
++  ; here : Source_code_position.t
+   ; id : int
+   ; mutable next_error : exn Types.Ivar.t
+   ; (* [Monitor.send_exn] schedules a job for each element of [handlers_for_all_errors]. *)
+@@ -20,9 +20,13 @@ type t = Types.Monitor.t =
+ [@@deriving fields ~getters ~iterators:iter]
+ 
+ let description t =
+-  match t.here with
+-  | None -> [%sexp (t.name : Info.t)]
+-  | Some here -> [%sexp (t.name : Info.t), (here : Source_code_position.t)]
++  match
++    Source_code_position.is_dummy t.here
++    || !Backtrace.elide
++    || not (Backtrace.Exn.am_recording ())
++  with
++  | true -> [%sexp (t.name : Info.t)]
++  | false -> [%sexp (t.name : Info.t), (t.here : Source_code_position.t)]
+ ;;
+ 
+ let descriptions =
+@@ -44,7 +48,7 @@ let next_id =
+     !r
+ ;;
+ 
+-let create_with_parent ?here ?info ?name parent =
++let create_with_parent ?(here = Stdlib.Lexing.dummy_pos) ?info ?name parent =
+   let id = next_id () in
+   let name =
+     match info, name with
+diff --git a/src/pipe.ml b/src/pipe.ml
+index 43823a1..a59b26d 100644
+--- a/src/pipe.ml
++++ b/src/pipe.ml
+@@ -15,14 +15,18 @@ module Flushed_result = struct
+ 
+   let equal = [%compare.equal: t]
+ 
+-  let combine (l : t Deferred.t list) =
++  let combine (l : t list) =
++    match List.mem l `Reader_closed ~equal with
++    | true -> `Reader_closed
++    | false -> `Ok
++  ;;
++
++  let wait_and_combine (l : t Deferred.t list) =
+     match l with
+     | [ x ] -> x
+     | l ->
+       let%map l = Deferred.all l in
+-      (match List.mem l `Reader_closed ~equal with
+-       | true -> `Reader_closed
+-       | false -> `Ok)
++      combine l
+   ;;
+ end
+ 
+@@ -63,8 +67,7 @@ end = struct
+     { pipe_id : int
+     ; (* [values_read] reflects whether values the consumer has read from the pipe have been
+          sent downstream or if not, holds an ivar that is to be filled when they are. *)
+-      mutable
+-        values_read :
++      mutable values_read :
+         [ `Have_been_sent_downstream | `Have_not_been_sent_downstream of unit Ivar.t ]
+     ; (* [downstream_flushed ()] returns when all prior values that the consumer has
+          passed downstream have been flushed all the way down the chain of pipes. *)
+@@ -231,7 +234,7 @@ type ('a, 'phantom) t =
+   ; (* [closed] is filled when we close the write end of the pipe. *)
+     closed : unit Ivar.t
+   ; (* [read_closed] is filled when we close the read end of the pipe. *)
+-    read_closed : unit Ivar.t
++    read_closed : [ `Closed_while_empty | `Closed_while_not_empty ] Set_once.t
+   ; (* [consumers] is a list of all consumers that may be handling values read from the
+        pipe. *)
+     mutable consumers : Consumer.t list
+@@ -251,7 +254,7 @@ let hash t = Hashtbl.hash t.id
+ let equal (t1 : (_, _) t) t2 = phys_equal t1 t2
+ let compare t1 t2 = Int.compare t1.id t2.id
+ let is_closed t = Ivar.is_full t.closed
+-let is_read_closed t = Ivar.is_full t.read_closed
++let is_read_closed t = Set_once.is_some t.read_closed
+ let closed t = Ivar.read t.closed
+ let pushback t = Ivar.read t.pushback
+ let length t = Queue.length t.buffer
+@@ -330,7 +333,7 @@ let create_internal ~size_budget ~info ~initial_buffer =
+     { id = !id_ref
+     ; info
+     ; closed = Ivar.create ()
+-    ; read_closed = Ivar.create ()
++    ; read_closed = Set_once.create ()
+     ; size_budget
+     ; reserved_space = 0
+     ; pushback = Ivar.create ()
+@@ -384,14 +387,57 @@ let close t =
+     update_pushback t)
+ ;;
+ 
++let consumed_values_sent_downstream_and_flushed t =
++  let closed_while_not_empty =
++    (* Since we've dropped some values from the pipe without sending them to
++       consumers, the consumers will not be aware of the pipe not having been fully
++       consumed.
++       Hence, we're overriding the result with [`Reader_closed] in that case.
++
++       An argument can be made that the consumer should always return
++       `Reader_closed if they've closed the reader, but this code makes sure that
++       the less confusing result is returned regardless.
++    *)
++    Set_once.get t.read_closed
++    |> Option.map ~f:(function
++      | `Closed_while_empty -> `Ok
++      | `Closed_while_not_empty -> `Reader_closed)
++    |> Option.to_list
++  in
++  if List.is_empty t.consumers
++  then return (Flushed_result.combine (`Ok :: closed_while_not_empty))
++  else
++    Flushed_result.wait_and_combine
++      (List.map closed_while_not_empty ~f:Deferred.return
++       @ List.map t.consumers ~f:Consumer.values_sent_downstream_and_flushed)
++;;
++
++let eager_upon def f =
++  match Deferred.peek def with
++  | None -> upon def f
++  | Some value -> f value
++;;
++
++let fill_blocked_flushes_on_read_closed t =
++  if not (Queue.is_empty t.blocked_flushes)
++  then (
++    let blocked_flushes = Queue.copy t.blocked_flushes in
++    Queue.clear t.blocked_flushes;
++    let values_flushed = consumed_values_sent_downstream_and_flushed t in
++    eager_upon values_flushed (fun (_ : Flushed_result.t) ->
++      Queue.iter blocked_flushes ~f:(fun flush -> Blocked_flush.fill flush `Reader_closed)))
++;;
++
+ let close_read t =
+   if !show_debug_messages then eprints "close_read" t [%sexp_of: (_, _) t];
+   if !check_invariant then invariant t;
+   if not (is_read_closed t)
+   then (
+-    Ivar.fill_exn t.read_closed ();
+-    Queue.iter t.blocked_flushes ~f:(fun flush -> Blocked_flush.fill flush `Reader_closed);
+-    Queue.clear t.blocked_flushes;
++    Set_once.set_exn
++      t.read_closed
++      [%here]
++      (if is_empty t then `Closed_while_empty else `Closed_while_not_empty);
++    fill_blocked_flushes_on_read_closed t;
+     Queue.clear t.buffer;
+     t.reserved_space <- 0;
+     update_pushback t;
+@@ -430,20 +476,6 @@ let create_writer ?size_budget f =
+   w
+ ;;
+ 
+-let consumed_values_sent_downstream_and_flushed t =
+-  if List.is_empty t.consumers
+-  then return `Ok
+-  else
+-    Flushed_result.combine
+-      (List.map t.consumers ~f:Consumer.values_sent_downstream_and_flushed)
+-;;
+-
+-let eager_upon d f =
+-  match Deferred.peek d with
+-  | Some v -> f v
+-  | None -> upon d f
+-;;
+-
+ let values_were_read t consumer =
+   Option.iter consumer ~f:Consumer.start;
+   let values_flushed = lazy (consumed_values_sent_downstream_and_flushed t) in
+@@ -741,7 +773,7 @@ let upstream_flushed t =
+   else
+     Bag.to_list t.upstream_flusheds
+     |> List.map ~f:(fun f -> f ())
+-    |> Flushed_result.combine
++    |> Flushed_result.wait_and_combine
+ ;;
+ 
+ let add_upstream_flushed t upstream_flushed = Bag.add t.upstream_flusheds upstream_flushed
+@@ -1069,7 +1101,18 @@ let map' ?max_queue_length input ~f =
+   map_gen (read_now' ?max_queue_length) write' input ~f:(fun q k -> f q >>> k)
+ ;;
+ 
+-let map input ~f = map_gen read_now write input ~f:(fun a k -> k (f a))
++let map ?(max_batch_size = 1) input ~f =
++  if max_batch_size = 1
++  then map_gen read_now write input ~f:(fun a k -> k (f a))
++  else
++    map_gen (read_now' ~max_queue_length:max_batch_size) write' input ~f:(fun q k ->
++      (* The implementation is inlined here to avoid allocating a
++         bunch of options to return to filter_map in the happy path. *)
++      let result = Queue.create () in
++      Queue.iter q ~f:(fun a ->
++        if not (is_read_closed input) then Queue.enqueue result (f a));
++      k result)
++;;
+ 
+ let concat_map_list ?max_queue_length input ~f =
+   map_gen (read_now' ?max_queue_length) write' input ~f:(fun q k ->
+@@ -1304,13 +1347,14 @@ let fork t ~pushback_uses =
+     add_consumer t ~downstream_flushed:(fun () ->
+       let some_reader_was_closed = !some_reader_was_closed in
+       match%map
+-        Flushed_result.combine [ downstream_flushed writer0; downstream_flushed writer1 ]
++        Flushed_result.wait_and_combine
++          [ downstream_flushed writer0; downstream_flushed writer1 ]
+       with
+       | `Reader_closed -> `Reader_closed
+       | `Ok ->
+         (* In this case, there could have been no pending items in [writer0] nor in
+            [writer1], in which case we could have had a closed pipe that missed some
+-           writes, but [Flushed_result.combine] would still have returned [`Ok] *)
++           writes, but [Flushed_result.wait_and_combine] would still have returned [`Ok] *)
+         if some_reader_was_closed then `Reader_closed else `Ok)
+   in
+   don't_wait_for
+diff --git a/src/pipe.mli b/src/pipe.mli
+index bdfe3e4..b3943cf 100644
+--- a/src/pipe.mli
++++ b/src/pipe.mli
+@@ -142,8 +142,9 @@ val close : _ Writer.t -> unit
+ (** [close_read t] closes both the read and write ends of the pipe.  It does everything
+     [close] does, and in addition:
+ 
+-    - all pending flushes become determined with [`Reader_closed].
+     - the pipe buffer is cleared.
++    - all flushes pending on data that was still in the pipe will wait for all previously
++      read values to become flushed and then become determined with [`Reader_closed]
+     - all subsequent reads will get [`Eof]. *)
+ val close_read : _ Reader.t -> unit
+ 
+@@ -355,7 +356,8 @@ val write_when_ready
+       if not (is_closed w) then (write w x) else (return ()) ]}
+ 
+     Note the difference in allocation and potential side effects when [w] is closed and
+-    [e] is a complex expression.
++    [e] is a complex expression. Additionally, note that due to this equivalency, if [w]
++    is closed, [downstream_flushed] may still return [`Ok] even if [e] was dropped.
+ 
+     [write_without_pushback_if_open] is the same as [write_if_open], except it calls
+     [write_without_pushback] instead of [write]. *)
+@@ -420,7 +422,7 @@ val read_exactly
+      | `Fewer of 'a Queue.t (** [0 < Q.length q < num_values] *)
+      | `Exactly of 'a Queue.t (** [Q.length q = num_values] *)
+      ]
+-     Deferred.t
++       Deferred.t
+ 
+ (** [read_now' reader] reads values from [reader] that are immediately available.  If
+     [reader] is empty, [read_now'] returns [`Eof] if [reader] is closed and
+@@ -506,7 +508,8 @@ module Flushed : sig
+   [@@deriving sexp_of]
+ end
+ 
+-(** Issues: {ul
++(** Issues:
++    {ul
+     {- Scalar & batch sequence processing:
+ 
+     Each of the sequence functions ([fold], [iter], [transfer], [map]) comes in two
+@@ -633,8 +636,15 @@ val map'
+   -> f:('a Queue.t -> 'b Queue.t Deferred.t)
+   -> 'b Reader.t
+ 
+-(** [map] is like [map'], except that it processes one element at a time. *)
+-val map : 'a Reader.t -> f:('a -> 'b) -> 'b Reader.t
++(** [map] is like [map'], except that it processes one element at a time. [max_batch_size]
++    controls the maximum number of elements that can be processed in sequence before
++    yielding to the async scheduler. Increasing this parameter may improve performance
++    when there are many elements in the pipe and the mapping function is cheap. *)
++val map
++  :  ?max_batch_size:int (** default is 1 *)
++  -> 'a Reader.t
++  -> f:('a -> 'b)
++  -> 'b Reader.t
+ 
+ (** [concat_map_list] is like [List.concat_map].  It produces the same result as
+     [map' ~f:(fun q -> return (Queue.concat_map q ~f))] *)
+diff --git a/src/require_explicit_time_source.ml b/src/require_explicit_time_source.ml
+index 26407c3..d68351a 100644
+--- a/src/require_explicit_time_source.ml
++++ b/src/require_explicit_time_source.ml
+@@ -10,3 +10,4 @@ let after = Clock_ns.after
+ let at = Clock_ns.at
+ let every = Clock_ns.every
+ let with_timeout = Clock_ns.with_timeout
++let with_timeout_exn = Clock_ns.with_timeout_exn
+diff --git a/src/require_explicit_time_source.mli b/src/require_explicit_time_source.mli
+index 8d29045..75d849b 100644
+--- a/src/require_explicit_time_source.mli
++++ b/src/require_explicit_time_source.mli
+@@ -39,7 +39,7 @@ module Async_kernel_scheduler : sig
+   val cycle_start : unit -> Time.t [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+   val cycle_start_ns : unit -> Time_ns.t
+-    [@@deprecated "[since 2016-02] Use [Time_source]"]
++  [@@deprecated "[since 2016-02] Use [Time_source]"]
+ end
+ 
+ module Date : sig
+@@ -53,7 +53,7 @@ end
+ val at : Time_ns.t -> unit Deferred.t [@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+ val after : Time_ns.Span.t -> unit Deferred.t
+-  [@@deprecated "[since 2016-02] Use [Time_source]"]
++[@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+ val every
+   :  ?start:unit Deferred.t
+@@ -62,10 +62,13 @@ val every
+   -> Time_ns.Span.t
+   -> (unit -> unit)
+   -> unit
+-  [@@deprecated "[since 2016-02] Use [Time_source]"]
++[@@deprecated "[since 2016-02] Use [Time_source]"]
+ 
+ val with_timeout
+   :  Time_ns.Span.t
+   -> 'a Deferred.t
+   -> [ `Timeout | `Result of 'a ] Deferred.t
+-  [@@deprecated "[since 2016-02] Use [Time_source]"]
++[@@deprecated "[since 2016-02] Use [Time_source]"]
++
++val with_timeout_exn : Time_ns.Span.t -> 'a Deferred.t -> error:Error.t -> 'a Deferred.t
++[@@deprecated "[since 2024-04] Use [Time_source]"]
+diff --git a/src/scheduler.ml b/src/scheduler.ml
+index b8923c7..26e92dc 100644
+--- a/src/scheduler.ml
++++ b/src/scheduler.ml
+@@ -28,9 +28,13 @@ let can_run_a_job t =
+   || Bvar.has_any_waiters t.yield_until_no_jobs_remain
+ ;;
+ 
+-let has_upcoming_event t = not (Timing_wheel.is_empty (events t))
+-let next_upcoming_event t = Timing_wheel.next_alarm_fires_at (events t)
+-let next_upcoming_event_exn t = Timing_wheel.next_alarm_fires_at_exn (events t)
++let has_upcoming_event t = Synchronous_time_source.has_next_alarm t.time_source
++let next_upcoming_event t = Synchronous_time_source.next_alarm_runs_at t.time_source
++
++let next_upcoming_event_exn t =
++  Synchronous_time_source.next_alarm_runs_at_exn t.time_source
++;;
++
+ let event_precision t = Timing_wheel.alarm_precision (events t)
+ let cycle_start t = t.cycle_start
+ 
+@@ -120,7 +124,7 @@ let cycle_count t = t.cycle_count
+ 
+ let set_max_num_jobs_per_priority_per_cycle t int =
+   t.max_num_jobs_per_priority_per_cycle
+-    <- Max_num_jobs_per_priority_per_cycle.create_exn int
++  <- Max_num_jobs_per_priority_per_cycle.create_exn int
+ ;;
+ 
+ let max_num_jobs_per_priority_per_cycle t =
+@@ -275,9 +279,9 @@ let run_cycles_until_no_jobs_remain () =
+ let make_async_unusable () =
+   let t = !t_ref in
+   t.check_access
+-    <- Some
+-         (fun () ->
+-           raise_s [%sexp "Async scheduler is unusable due to [make_async_unusable]"])
++  <- Some
++       (fun () ->
++         raise_s [%sexp "Async scheduler is unusable due to [make_async_unusable]"])
+ ;;
+ 
+ let reset_in_forked_process () =
+diff --git a/src/scheduler.mli b/src/scheduler.mli
+index e788d46..c4ab4c3 100644
+--- a/src/scheduler.mli
++++ b/src/scheduler.mli
+@@ -8,6 +8,13 @@ type t = Types.Scheduler.t [@@deriving sexp_of]
+ 
+ val t : unit -> t
+ 
++(** [t_without_checking_access] bypasses checks like [make_async_unusable] and the invalid
++    thread access checks. This should only be used in cases where we intentionally need to
++    bypass one of those checks, like [thread_safe_enqueue_external_job]. It's a bit
++    unfortunate that these different checks are tied together, but that seems like an
++    acceptable tradeoff. *)
++val t_without_checking_access : unit -> t
++
+ include Invariant.S with type t := t
+ 
+ val current_execution_context : t -> Execution_context.t
+diff --git a/src/scheduler1.ml b/src/scheduler1.ml
+index bdb8459..a784d79 100644
+--- a/src/scheduler1.ml
++++ b/src/scheduler1.ml
+@@ -108,8 +108,7 @@ type t = Scheduler0.t =
+   ; mutable job_queued_hook : (Priority.t -> unit) option
+   ; mutable event_added_hook : (Time_ns.t -> unit) option
+   ; mutable yield : ((unit, read_write) Types.Bvar.t[@sexp.opaque])
+-  ; mutable
+-      yield_until_no_jobs_remain :
++  ; mutable yield_until_no_jobs_remain :
+       ((unit, read_write) Types.Bvar.t[@sexp.opaque] (* configuration*))
+   ; mutable check_invariants : bool
+   ; mutable max_num_jobs_per_priority_per_cycle : Max_num_jobs_per_priority_per_cycle.t
+@@ -312,8 +311,10 @@ let check_access t =
+   | Some f -> f ()
+ ;;
+ 
++let t_without_checking_access () = !t_ref
++
+ let t () =
+-  let t = !t_ref in
++  let t = t_without_checking_access () in
+   check_access t;
+   t
+ ;;
+diff --git a/src/synchronous_time_source.mli b/src/synchronous_time_source.mli
+index 153ac99..4238bb2 100644
+--- a/src/synchronous_time_source.mli
++++ b/src/synchronous_time_source.mli
+@@ -196,6 +196,11 @@ val wall_clock : unit -> t
+ (** [length t] returns the number of alarms in the underlying [Timing_wheel]. *)
+ val length : [> write ] T1.t -> int
+ 
++(** [has_next_alarm t] returns true if there are any alarms in the time source, either
++    that have already fired and are waiting to run, or that are scheduled in the future.
++*)
++val has_next_alarm : t -> bool
++
+ (** [next_alarm_runs_at t] returns a time to which the clock can be advanced
+     such that an alarm will fire, or [None] if [t] has no alarms that can ever fire.
+ 
+@@ -208,8 +213,11 @@ val length : [> write ] T1.t -> int
+ *)
+ val next_alarm_runs_at : [> write ] T1.t -> Time_ns.t option
+ 
++(** Like [next_alarm_runs_at], but raises if [has_next_alarm t] is false. *)
++val next_alarm_runs_at_exn : [> write ] T1.t -> Time_ns.t
++
+ val next_alarm_fires_at : [> write ] T1.t -> Time_ns.t option
+-  [@@deprecated "[since 2021-06] Use [next_alarm_runs_at]"]
++[@@deprecated "[since 2021-06] Use [next_alarm_runs_at]"]
+ 
+ (** [advance_by_alarms t ~to_] advances [t]'s time to [to_], running callbacks for all
+     alarms in [t] whose [at <= to_].  Callbacks run in nondecreasing order of [at].  If
+diff --git a/src/synchronous_time_source0.ml b/src/synchronous_time_source0.ml
+index b86caae..a7f4a69 100644
+--- a/src/synchronous_time_source0.ml
++++ b/src/synchronous_time_source0.ml
+@@ -313,7 +313,7 @@ module T1 = struct
+       [%message "" (now : Time_ns.t) (events : Job_or_event.t list)])
+   ;;
+ 
+-  let timing_wheel_now t = Timing_wheel.now t.events
++  let[@zero_alloc] timing_wheel_now t = Timing_wheel.now t.events
+ 
+   let is_in_fired_events =
+     let rec search current ~target_event =
+@@ -441,15 +441,23 @@ let fire t (event : Event.t) =
+ 
+ let alarm_precision t = Timing_wheel.alarm_precision t.events
+ let next_alarm_fires_at t = Timing_wheel.next_alarm_fires_at t.events
++let has_events_to_run t = Event.Option.is_some t.fired_events
++let has_next_alarm t = has_events_to_run t || not (Timing_wheel.is_empty t.events)
+ 
+ let next_alarm_runs_at t =
+-  if Event.Option.is_some t.fired_events
++  if has_events_to_run t
+   then Some (timing_wheel_now t)
+   else Timing_wheel.next_alarm_fires_at t.events
+ ;;
+ 
++let next_alarm_runs_at_exn t =
++  if has_events_to_run t
++  then timing_wheel_now t
++  else Timing_wheel.next_alarm_fires_at_exn t.events
++;;
++
+ let now t = if t.is_wall_clock then Time_ns.now () else timing_wheel_now t
+-let timing_wheel_now = timing_wheel_now
++let[@zero_alloc] timing_wheel_now t = timing_wheel_now t
+ 
+ let schedule t (event : Event.t) =
+   Event.set_status event Scheduled;
+@@ -670,10 +678,13 @@ let run_fired_events t ~(send_exn : send_exn option) =
+             a periodic event if its callback raises. *)
+          (match event.callback () with
+           | exception exn ->
++            let backtrace = Backtrace.Exn.most_recent () in
+             (match send_exn with
+-             | None -> t.advance_errors <- Error.of_exn exn :: t.advance_errors
++             | None ->
++               t.advance_errors
++               <- Error.of_exn ~backtrace:(`This (Backtrace.to_string backtrace)) exn
++                  :: t.advance_errors
+              | Some send_exn ->
+-               let backtrace = Backtrace.Exn.most_recent () in
+                send_exn event.execution_context.monitor exn ~backtrace:(`This backtrace));
+             Event.set_status_if ~is:Happening_periodic_event event Unscheduled
+           | () ->
+@@ -685,11 +696,11 @@ let run_fired_events t ~(send_exn : send_exn option) =
+                  (* The event's callback did not reschedule the event. So reschedule the
+                     repeating timer based on the last [at] time. *)
+                  event.at
+-                   <- Time_ns.next_multiple
+-                        ()
+-                        ~base:event.at
+-                        ~after:(timing_wheel_now t)
+-                        ~interval;
++                 <- Time_ns.next_multiple
++                      ()
++                      ~base:event.at
++                      ~after:(timing_wheel_now t)
++                      ~interval;
+                  schedule t event)));
+          true)
+   do
+@@ -799,5 +810,3 @@ let duration_of t f =
+ let max_alarm_time_in_min_timing_wheel_interval t =
+   Timing_wheel.max_alarm_time_in_min_interval t.events
+ ;;
+-
+-let has_events_to_run t = Event.Option.is_some t.fired_events
+diff --git a/src/throttle.ml b/src/throttle.ml
+index 796184a..eb68ba0 100644
+--- a/src/throttle.ml
++++ b/src/throttle.ml
+@@ -60,7 +60,7 @@ end = struct
+ end
+ 
+ type 'a t =
+-  { continue_on_error : bool
++  { on_error : [ `Continue | `Abort of [ `Raise | `Never_return ] ]
+   ; rest : [ `Log | `Raise | `Call of exn -> unit ]
+   ; max_concurrent_jobs : int
+   ; (* [job_resources_not_in_use] holds resources that are not currently in use by a
+@@ -75,9 +75,9 @@ type 'a t =
+        [maybe_start_job] will fill [ivar] when capacity becomes available, i.e. when
+        [jobs_waiting_to_start] is empty and [num_jobs_running < max_concurrent_jobs]. *)
+     mutable capacity_available : unit Ivar.t option
+-  ; (* [is_dead] is true if [t] was killed due to a job raising an exception or [kill t]
++  ; (* [is_dead] is Some if [t] was killed due to a job raising an exception or [kill t]
+        being called. *)
+-    mutable is_dead : bool
++    mutable is_dead : [ `Raise | `Never_return ] option
+   ; (* [cleans] holds functions that will be called to clean each resource when [t] is
+        killed. *)
+     mutable cleans : ('a -> unit Deferred.t) list
+@@ -96,7 +96,7 @@ let invariant invariant_a t : unit =
+   try
+     let check f field = f (Field.get field t) in
+     Fields.iter
+-      ~continue_on_error:ignore
++      ~on_error:ignore
+       ~rest:ignore
+       ~max_concurrent_jobs:
+         (check (fun max_concurrent_jobs -> assert (max_concurrent_jobs > 0)))
+@@ -105,10 +105,13 @@ let invariant invariant_a t : unit =
+            Stack_or_counter.iter job_resources_not_in_use ~f:invariant_a;
+            assert (
+              Stack_or_counter.length job_resources_not_in_use
+-             = if t.is_dead then 0 else t.max_concurrent_jobs - t.num_jobs_running)))
++             =
++             if Option.is_some t.is_dead
++             then 0
++             else t.max_concurrent_jobs - t.num_jobs_running)))
+       ~jobs_waiting_to_start:
+         (check (function jobs_waiting_to_start ->
+-           if t.is_dead then assert (Queue.is_empty jobs_waiting_to_start)))
++           if Option.is_some t.is_dead then assert (Queue.is_empty jobs_waiting_to_start)))
+       ~num_jobs_running:
+         (check (fun num_jobs_running ->
+            assert (num_jobs_running >= 0);
+@@ -125,7 +128,8 @@ let invariant invariant_a t : unit =
+         (check (fun num_resources_not_cleaned ->
+            assert (num_resources_not_cleaned >= 0);
+            assert (num_resources_not_cleaned <= t.max_concurrent_jobs);
+-           if num_resources_not_cleaned < t.max_concurrent_jobs then assert t.is_dead))
++           if num_resources_not_cleaned < t.max_concurrent_jobs
++           then assert (Option.is_some t.is_dead)))
+       ~cleaned:
+         (check (fun cleaned ->
+            if Ivar.is_full cleaned then assert (t.num_resources_not_cleaned = 0)))
+@@ -148,16 +152,20 @@ let clean_resource t a =
+   if t.num_resources_not_cleaned = 0 then Ivar.fill_exn t.cleaned ()
+ ;;
+ 
+-let kill t =
+-  if not t.is_dead
++let kill_internal t how =
++  if Option.is_none t.is_dead
+   then (
+-    t.is_dead <- true;
+-    Queue.iter t.jobs_waiting_to_start ~f:Internal_job.abort;
++    t.is_dead <- Some how;
++    (match how with
++     | `Never_return -> ()
++     | `Raise -> Queue.iter t.jobs_waiting_to_start ~f:Internal_job.abort);
+     Queue.clear t.jobs_waiting_to_start;
+     Stack_or_counter.iter t.job_resources_not_in_use ~f:(fun a -> clean_resource t a);
+     Stack_or_counter.clear t.job_resources_not_in_use)
+ ;;
+ 
++let kill t = kill_internal t `Raise
++
+ let at_kill t f =
+   (* We preserve the execution context so that exceptions raised by [f] go to the monitor
+      in effect when [at_kill] was called. *)
+@@ -168,7 +176,7 @@ let at_kill t f =
+ let cleaned t = Ivar.read t.cleaned
+ 
+ let rec start_job t =
+-  assert (not t.is_dead);
++  assert (Option.is_none t.is_dead);
+   assert (t.num_jobs_running < t.max_concurrent_jobs);
+   assert (not (Queue.is_empty t.jobs_waiting_to_start));
+   let job = Queue.dequeue_exn t.jobs_waiting_to_start in
+@@ -179,8 +187,11 @@ let rec start_job t =
+   t.num_jobs_running <- t.num_jobs_running - 1;
+   (match res with
+    | `Ok -> ()
+-   | `Raised -> if not t.continue_on_error then kill t);
+-  if t.is_dead
++   | `Raised ->
++     (match t.on_error with
++      | `Continue -> ()
++      | `Abort how -> kill_internal t how));
++  if Option.is_some t.is_dead
+   then clean_resource t job_resource
+   else (
+     Stack_or_counter.push t.job_resources_not_in_use job_resource;
+@@ -194,24 +205,29 @@ let rec start_job t =
+         t.capacity_available <- None))
+ ;;
+ 
+-let create_internal ~continue_on_error ~rest job_resources =
++let create_internal ~on_error ~rest job_resources =
+   let max_concurrent_jobs = Stack_or_counter.length job_resources in
+-  { continue_on_error
++  { on_error
+   ; rest
+   ; max_concurrent_jobs
+   ; job_resources_not_in_use = job_resources
+   ; jobs_waiting_to_start = Queue.create ()
+   ; num_jobs_running = 0
+   ; capacity_available = None
+-  ; is_dead = false
++  ; is_dead = None
+   ; cleans = []
+   ; num_resources_not_cleaned = max_concurrent_jobs
+   ; cleaned = Ivar.create ()
+   }
+ ;;
+ 
++let on_error_old ~continue_on_error =
++  if continue_on_error then `Continue else `Abort `Raise
++;;
++
+ let create_with' ~rest ~continue_on_error job_resources =
+-  create_internal ~rest ~continue_on_error (Stack_or_counter.of_list job_resources)
++  let on_error = on_error_old ~continue_on_error in
++  create_internal ~rest ~on_error (Stack_or_counter.of_list job_resources)
+ ;;
+ 
+ let create_with ~continue_on_error job_resources =
+@@ -233,9 +249,23 @@ let create' ~rest ~continue_on_error ~max_concurrent_jobs =
+       [%message
+         "Throttle.create requires positive max_concurrent_jobs, but got"
+           (max_concurrent_jobs : int)];
++  let on_error = on_error_old ~continue_on_error in
+   create_internal
+     ~rest
+-    ~continue_on_error
++    ~on_error
++    (Stack_or_counter.create_counter ~length:max_concurrent_jobs)
++;;
++
++let create'' ~rest ~on_error ~max_concurrent_jobs =
++  if max_concurrent_jobs <= 0
++  then
++    raise_s
++      [%message
++        "Throttle.create requires positive max_concurrent_jobs, but got"
++          (max_concurrent_jobs : int)];
++  create_internal
++    ~rest
++    ~on_error
+     (Stack_or_counter.create_counter ~length:max_concurrent_jobs)
+ ;;
+ 
+@@ -260,11 +290,12 @@ end
+ 
+ let enqueue_internal t f enqueue =
+   let job = Job.create ~rest:t.rest f in
+-  if t.is_dead
+-  then Job.abort job
+-  else (
+-    enqueue t.jobs_waiting_to_start job.internal_job;
+-    if t.num_jobs_running < t.max_concurrent_jobs then start_job t);
++  (match t.is_dead with
++   | Some `Never_return -> ()
++   | Some `Raise -> Job.abort job
++   | None ->
++     enqueue t.jobs_waiting_to_start job.internal_job;
++     if t.num_jobs_running < t.max_concurrent_jobs then start_job t);
+   Job.result job
+ ;;
+ 
+@@ -299,7 +330,7 @@ let enqueue_exclusive t f =
+   handle_enqueue_result result
+ ;;
+ 
+-let monad_sequence_how ~how ~f =
++let monad_sequence_how ~how ~on_error ~f =
+   stage
+     (match how with
+      | `Parallel -> f
+@@ -309,11 +340,11 @@ let monad_sequence_how ~how ~f =
+          | `Sequential -> 1
+          | `Max_concurrent_jobs max_concurrent_jobs -> max_concurrent_jobs
+        in
+-       let t = create ~continue_on_error:false ~max_concurrent_jobs in
++       let t = create'' ~rest:`Log ~on_error ~max_concurrent_jobs in
+        fun a -> enqueue t (fun () -> f a))
+ ;;
+ 
+-let monad_sequence_how2 ~how ~f =
++let monad_sequence_how2 ~how ~on_error ~f =
+   stage
+     (match how with
+      | `Parallel -> f
+@@ -323,7 +354,7 @@ let monad_sequence_how2 ~how ~f =
+          | `Sequential -> 1
+          | `Max_concurrent_jobs max_concurrent_jobs -> max_concurrent_jobs
+        in
+-       let t = create ~continue_on_error:false ~max_concurrent_jobs in
++       let t = create'' ~rest:`Log ~on_error ~max_concurrent_jobs in
+        fun a1 a2 -> enqueue t (fun () -> f a1 a2))
+ ;;
+ 
+@@ -351,3 +382,5 @@ let capacity_available t =
+     | Some ivar -> Ivar.read ivar
+     | None -> Deferred.create (fun ivar -> t.capacity_available <- Some ivar))
+ ;;
++
++let is_dead t = Option.is_some t.is_dead
+diff --git a/src/throttle.mli b/src/throttle.mli
+index 27f3ae7..e317eef 100644
+--- a/src/throttle.mli
++++ b/src/throttle.mli
+@@ -61,6 +61,17 @@ val create'
+     [create' ~rest:`Log ~continue_on_error ~max_concurrent_jobs] *)
+ val create : continue_on_error:bool -> max_concurrent_jobs:int -> unit t
+ 
++(** [create''] expands the options for [continue_on_error:false]. If [on_error:(`Abort
++    how)] is provided, an exception in a job will kill the throttle. Any remaining jobs
++    that haven't started yet will be dropped. If [how] is [`Raise], an exception will be
++    raised to the monitor in effect when [enqueue] was called for each job. If [how] is
++    [`Never_return], the jobs will be silently dropped. *)
++val create''
++  :  rest:[ `Log | `Raise | `Call of exn -> unit ]
++  -> on_error:[ `Continue | `Abort of [ `Raise | `Never_return ] ]
++  -> max_concurrent_jobs:int
++  -> unit t
++
+ (** [create_with ~continue_on_error job_resources] returns a throttle that will run up to
+     [List.length job_resources] concurrently, and will ensure that all running jobs are
+     supplied distinct elements of [job_resources]. *)
+@@ -107,11 +118,13 @@ val enqueue_exclusive : ('a, _) T2.t -> (unit -> 'b Deferred.t) -> 'b Deferred.t
+     simultaneously.  The throttle has [continue_on_error = false]. *)
+ val monad_sequence_how
+   :  how:Monad_sequence.how
++  -> on_error:[ `Continue | `Abort of [ `Raise | `Never_return ] ]
+   -> f:('a -> 'b Deferred.t)
+   -> ('a -> 'b Deferred.t) Staged.t
+ 
+ val monad_sequence_how2
+   :  how:Monad_sequence.how
++  -> on_error:[ `Continue | `Abort of [ `Raise | `Never_return ] ]
+   -> f:('a1 -> 'a2 -> 'b Deferred.t)
+   -> ('a1 -> 'a2 -> 'b Deferred.t) Staged.t
+ 
+diff --git a/src/time_source_intf.ml b/src/time_source_intf.ml
+index f5c4d3a..4379d53 100644
+--- a/src/time_source_intf.ml
++++ b/src/time_source_intf.ml
+@@ -76,16 +76,15 @@ module type Time_source = sig
+   val advance_directly : [> write ] T1.t -> to_:Time_ns.t -> unit
+ 
+   val advance : [> write ] T1.t -> to_:Time_ns.t -> unit
+-    [@@deprecated
+-      "[since 2019-06] Use [advance_directly] (to preserve behavior) or \
+-       [advance_by_alarms]"]
++  [@@deprecated
++    "[since 2019-06] Use [advance_directly] (to preserve behavior) or [advance_by_alarms]"]
+ 
+   val advance_directly_by : [> write ] T1.t -> Time_ns.Span.t -> unit
+ 
+   val advance_by : [> write ] T1.t -> Time_ns.Span.t -> unit
+-    [@@deprecated
+-      "[since 2019-06] Use [advance_directly_by] (to preserve behavior) or \
+-       [advance_by_alarms_by]"]
++  [@@deprecated
++    "[since 2019-06] Use [advance_directly_by] (to preserve behavior) or \
++     [advance_by_alarms_by]"]
+ 
+   val fire_past_alarms : [> write ] T1.t -> unit
+ 
+@@ -114,9 +113,9 @@ module type Time_source = sig
+     -> [> write ] T1.t
+     -> to_:Time_ns.t
+     -> unit Deferred.t
+-    [@@deprecated
+-      "[since 2021-12] This is the old implementation of [advance_by_alarms], kept in \
+-       case the new implementation causes problems."]
++  [@@deprecated
++    "[since 2021-12] This is the old implementation of [advance_by_alarms], kept in case \
++     the new implementation causes problems."]
+ 
+   (** [advance_by_alarms_by ?wait_for t by] is equivalent to:
+       [advance_by_alarms ?wait_for t ~to_:(Time_ns.add (now t) by)] *)
+diff --git a/src/types.ml b/src/types.ml
+index 491ff15..e312560 100644
+--- a/src/types.ml
++++ b/src/types.ml
+@@ -76,7 +76,7 @@ end =
+ and Monitor : sig
+   type t =
+     { name : Info.t
+-    ; here : Source_code_position.t option
++    ; here : Source_code_position.t
+     ; id : int
+     ; mutable next_error : exn Ivar.t
+     ; mutable handlers_for_all_errors : (Execution_context.t * (exn -> unit)) Bag.t
+diff --git a/weak_hashtbl_async/src/dune b/weak_hashtbl_async/src/dune
+index 447134f..b005d44 100644
+--- a/weak_hashtbl_async/src/dune
++++ b/weak_hashtbl_async/src/dune
+@@ -1,6 +1,6 @@
+ (library
+  (name weak_hashtbl_async)
+  (public_name async_kernel.weak_hashtbl_async)
+- (libraries async_kernel core_kernel.weak_hashtbl)
++ (libraries async_kernel core core_kernel.weak_hashtbl)
+  (preprocess
+   (pps ppx_jane)))
+diff --git a/weak_hashtbl_async/test/dune b/weak_hashtbl_async/test/dune
+index 605b8f3..886bf18 100644
+--- a/weak_hashtbl_async/test/dune
++++ b/weak_hashtbl_async/test/dune
+@@ -1,5 +1,5 @@
+ (library
+  (name weak_hashtbl_async_test)
+- (libraries async weak_hashtbl_async)
++ (libraries async core weak_hashtbl_async)
+  (preprocess
+   (pps ppx_jane)))
