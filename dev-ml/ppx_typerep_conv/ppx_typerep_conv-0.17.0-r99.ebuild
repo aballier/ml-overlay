@@ -10,13 +10,9 @@ HOMEPAGE="https://github.com/janestreet/ppx_typerep_conv"
 SRC_URI="https://github.com/janestreet/${PN}/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="Apache-2.0"
-SLOT="0/${PV}-1"
+SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-
-PATCHES=(
-	"${FILESDIR}/upd.patch"
-)
