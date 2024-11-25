@@ -1,0 +1,365 @@
+From d62e3a3f54306542696c89586f2fc1bf6e2187e6 Mon Sep 17 00:00:00 2001
+From: public-release <as-public-release@janestreet.com>
+Date: Tue, 8 Oct 2024 20:31:01 +0100
+Subject: [PATCH] v0.18~preview.130.00+55
+
+---
+ expander/expand_of_sexp.ml                    |  13 +--
+ expander/expand_sexp_of.ml                    |  13 +--
+ expander/ppx_sexp_conv_expander.ml            |  40 +++++--
+ test/expansion.mli                            |  18 +--
+ test/lib/conv_test.ml                         | 104 +++++++++---------
+ .../test_polymorphic_variants.mlt             |  10 +-
+ 6 files changed, 107 insertions(+), 91 deletions(-)
+
+diff --git a/expander/expand_of_sexp.ml b/expander/expand_of_sexp.ml
+index b4a679c..01db84b 100644
+--- a/expander/expand_of_sexp.ml
++++ b/expander/expand_of_sexp.ml
+@@ -198,14 +198,11 @@ module Str_generate_of_sexp = struct
+          variant_of_sexp ~error_source ~typevars ?full_type (loc, row_fields)
+        | { ptyp_desc = Ptyp_poly (parms, poly_tp); _ } ->
+          poly_of_sexp ~error_source ~typevars parms poly_tp
+-       | { ptyp_desc = Ptyp_unboxed_tuple _; _ }
+-       | { ptyp_desc = Ptyp_variant (_, Open, _); _ }
+-       | { ptyp_desc = Ptyp_object (_, _); _ }
+-       | { ptyp_desc = Ptyp_class (_, _); _ }
+-       | { ptyp_desc = Ptyp_alias (_, _); _ }
+-       | { ptyp_desc = Ptyp_package _; _ }
+-       | { ptyp_desc = Ptyp_extension _; _ } ->
+-         Location.raise_errorf ~loc "Type unsupported for ppx [of_sexp] conversion")
++       | core_type ->
++         Location.raise_errorf
++           ~loc
++           "Type unsupported for ppx [of_sexp] conversion (%s)"
++           (Ppxlib_jane.Language_feature_name.of_core_type_desc core_type.ptyp_desc))
+ 
+   (* Conversion of (unlabeled) tuples *)
+   and tuple_of_sexp ~error_source ~typevars (loc, tps) =
+diff --git a/expander/expand_sexp_of.ml b/expander/expand_sexp_of.ml
+index 8e7e252..7ce51bd 100644
+--- a/expander/expand_sexp_of.ml
++++ b/expander/expand_sexp_of.ml
+@@ -88,14 +88,11 @@ module Str_generate_sexp_of = struct
+          sexp_of_variant ~renaming (loc, row_fields)
+        | { ptyp_desc = Ptyp_poly (parms, poly_tp); _ } ->
+          sexp_of_poly ~renaming parms poly_tp
+-       | { ptyp_desc = Ptyp_unboxed_tuple _; _ }
+-       | { ptyp_desc = Ptyp_variant (_, Open, _); _ }
+-       | { ptyp_desc = Ptyp_object (_, _); _ }
+-       | { ptyp_desc = Ptyp_class (_, _); _ }
+-       | { ptyp_desc = Ptyp_alias (_, _); _ }
+-       | { ptyp_desc = Ptyp_package _; _ }
+-       | { ptyp_desc = Ptyp_extension _; _ } ->
+-         Location.raise_errorf ~loc "Type unsupported for ppx [sexp_of] conversion")
++       | core_type ->
++         Location.raise_errorf
++           ~loc
++           "Type unsupported for ppx [sexp_of] conversion (%s)"
++           (Ppxlib_jane.Language_feature_name.of_core_type_desc core_type.ptyp_desc))
+ 
+   (* Conversion of (unlabeled) tuples *)
+   and sexp_of_tuple ~renaming (loc, tps) =
+diff --git a/expander/ppx_sexp_conv_expander.ml b/expander/ppx_sexp_conv_expander.ml
+index 8097108..f5998d1 100644
+--- a/expander/ppx_sexp_conv_expander.ml
++++ b/expander/ppx_sexp_conv_expander.ml
+@@ -42,13 +42,39 @@ module Sig_sexp = struct
+   ;;
+ 
+   let sig_type_decl ~loc ~path ((_rf, tds) as decls) =
+-    match
+-      mk_named_sig
+-        ~loc
+-        ~sg_name:"Sexplib0.Sexpable.S"
+-        ~handle_polymorphic_variant:false
+-        tds
+-    with
++    let include_infos =
++      match tds with
++      | [] | _ :: _ :: _ -> None
++      | [ td ] ->
++        let sg_name =
++          let open struct
++            type is_value =
++              | Value
++              | Maybe_non_value
++          end in
++          let has_jkind_annotation =
++            match Ppxlib_jane.Jane_syntax.Layouts.of_type_declaration td with
++            | None -> None
++            | Some (jkind, _) ->
++              (match jkind.txt with
++               | Default -> None (* [t : _] *)
++               | Abbreviation { txt = "value"; _ } -> Some Value (* [t : value] *)
++               | _ -> Some Maybe_non_value)
++          in
++          let is_value =
++            match td.ptype_kind, td.ptype_manifest with
++            | (Ptype_variant _ | Ptype_record _ | Ptype_open), _ -> Value
++            | Ptype_abstract, Some _ ->
++              Option.value has_jkind_annotation ~default:Maybe_non_value
++            | Ptype_abstract, None -> Option.value has_jkind_annotation ~default:Value
++          in
++          match is_value with
++          | Value -> "Sexplib0.Sexpable.S"
++          | Maybe_non_value -> "Sexplib0.Sexpable.S_any"
++        in
++        mk_named_sig ~loc ~sg_name ~handle_polymorphic_variant:false [ td ]
++    in
++    match include_infos with
+     | Some include_infos -> [ psig_include ~loc include_infos ]
+     | None -> mk_sig ~loc ~path decls
+   ;;
+diff --git a/test/expansion.mli b/test/expansion.mli
+index 4adfeb3..ef6112b 100644
+--- a/test/expansion.mli
++++ b/test/expansion.mli
+@@ -19,7 +19,7 @@ module Tuple : sig
+   include sig
+     [@@@ocaml.warning "-32"]
+ 
+-    include Sexplib0.Sexpable.S with type t := t
++    include Sexplib0.Sexpable.S_any with type t := t
+   end
+   [@@ocaml.doc "@inline"]
+ 
+@@ -150,7 +150,7 @@ module Nonrecursive : sig
+   include sig
+     [@@@ocaml.warning "-32"]
+ 
+-    include Sexplib0.Sexpable.S with type t := t
++    include Sexplib0.Sexpable.S_any with type t := t
+   end
+   [@@ocaml.doc "@inline"]
+ 
+@@ -195,7 +195,7 @@ module Alias : sig
+   include sig
+     [@@@ocaml.warning "-32"]
+ 
+-    include Sexplib0.Sexpable.S with type t := t
++    include Sexplib0.Sexpable.S_any with type t := t
+   end
+   [@@ocaml.doc "@inline"]
+ 
+@@ -224,7 +224,7 @@ module Unary : sig
+   include sig
+     [@@@ocaml.warning "-32"]
+ 
+-    include Sexplib0.Sexpable.S1 with type 'a t := 'a t
++    include Sexplib0.Sexpable.S_any1 with type 'a t := 'a t
+   end
+   [@@ocaml.doc "@inline"]
+ 
+@@ -237,7 +237,7 @@ module Binary : sig
+   include sig
+     [@@@ocaml.warning "-32"]
+ 
+-    include Sexplib0.Sexpable.S2 with type ('a, 'b) t := ('a, 'b) t
++    include Sexplib0.Sexpable.S_any2 with type ('a, 'b) t := ('a, 'b) t
+   end
+   [@@ocaml.doc "@inline"]
+ 
+@@ -250,7 +250,7 @@ module First_order : sig
+   include sig
+     [@@@ocaml.warning "-32"]
+ 
+-    include Sexplib0.Sexpable.S1 with type 'a t := 'a t
++    include Sexplib0.Sexpable.S_any1 with type 'a t := 'a t
+   end
+   [@@ocaml.doc "@inline"]
+ 
+@@ -264,7 +264,7 @@ module Second_order : sig
+   include sig
+     [@@@ocaml.warning "-32"]
+ 
+-    include Sexplib0.Sexpable.S2 with type ('a, 'b) t := ('a, 'b) t
++    include Sexplib0.Sexpable.S_any2 with type ('a, 'b) t := ('a, 'b) t
+   end
+   [@@ocaml.doc "@inline"]
+ 
+@@ -277,7 +277,7 @@ module Named_arguments : sig
+   include sig
+     [@@@ocaml.warning "-32"]
+ 
+-    include Sexplib0.Sexpable.S with type t := t
++    include Sexplib0.Sexpable.S_any with type t := t
+   end
+   [@@ocaml.doc "@inline"]
+ 
+@@ -442,7 +442,7 @@ module Opaque : sig
+   include sig
+     [@@@ocaml.warning "-32"]
+ 
+-    include Sexplib0.Sexpable.S with type t := t
++    include Sexplib0.Sexpable.S_any with type t := t
+   end
+   [@@ocaml.doc "@inline"]
+ 
+diff --git a/test/lib/conv_test.ml b/test/lib/conv_test.ml
+index 32392dc..796860a 100644
+--- a/test/lib/conv_test.ml
++++ b/test/lib/conv_test.ml
+@@ -1,63 +1,59 @@
+ open Ppx_sexp_conv_lib
+ open Conv
+ 
+-let%test_module "Exceptions" =
+-  (module struct
+-    let check_sexp exn string =
+-      match sexp_of_exn_opt exn with
+-      | None -> raise exn
+-      | Some sexp ->
+-        let sexp_as_string = Ppx_sexp_conv_lib.Sexp.to_string sexp in
+-        if sexp_as_string <> string then failwith sexp_as_string
+-    ;;
++module%test Exceptions = struct
++  let check_sexp exn string =
++    match sexp_of_exn_opt exn with
++    | None -> raise exn
++    | Some sexp ->
++      let sexp_as_string = Ppx_sexp_conv_lib.Sexp.to_string sexp in
++      if sexp_as_string <> string then failwith sexp_as_string
++  ;;
+ 
+-    (* first global exceptions, checking different arities since they
++  (* first global exceptions, checking different arities since they
+        don't have the same representation *)
+-    exception Arg0 [@@deriving sexp]
+-    exception Arg1 of int [@@deriving sexp]
+-    exception Arg2 of int * int [@@deriving sexp]
++  exception Arg0 [@@deriving sexp]
++  exception Arg1 of int [@@deriving sexp]
++  exception Arg2 of int * int [@@deriving sexp]
+ 
+-    let%test_unit _ = check_sexp Arg0 "conv_test.ml.Arg0"
+-    let%test_unit _ = check_sexp (Arg1 1) "(conv_test.ml.Arg1 1)"
+-    let%test_unit _ = check_sexp (Arg2 (2, 3)) "(conv_test.ml.Arg2 2 3)"
++  let%test_unit _ = check_sexp Arg0 "conv_test.ml.Arg0"
++  let%test_unit _ = check_sexp (Arg1 1) "(conv_test.ml.Arg1 1)"
++  let%test_unit _ = check_sexp (Arg2 (2, 3)) "(conv_test.ml.Arg2 2 3)"
+ 
+-    (* now local exceptions *)
+-    let exn (type a) a sexp_of_a =
+-      let module M = struct
+-        exception E of a [@@deriving sexp]
+-      end
+-      in
+-      M.E a
+-    ;;
++  (* now local exceptions *)
++  let exn (type a) a sexp_of_a =
++    let module M = struct
++      exception E of a [@@deriving sexp]
++    end
++    in
++    M.E a
++  ;;
+ 
+-    let%test_unit "incompatible exceptions with the same name" =
+-      let e_int = exn 1 sexp_of_int in
+-      let e_string = exn "a" sexp_of_string in
+-      check_sexp e_int "(conv_test.ml.E 1)";
+-      check_sexp e_string "(conv_test.ml.E a)"
+-    ;;
++  let%test_unit "incompatible exceptions with the same name" =
++    let e_int = exn 1 sexp_of_int in
++    let e_string = exn "a" sexp_of_string in
++    check_sexp e_int "(conv_test.ml.E 1)";
++    check_sexp e_string "(conv_test.ml.E a)"
++  ;;
+ 
+-    let%test_unit "sexp converters are finalized properly for local exceptions" =
+-      Gc.compact ();
+-      Gc.compact ();
+-      let size_before =
+-        Ppx_sexp_conv_lib.Conv.Exn_converter.For_unit_tests_only.size ()
+-      in
+-      let e = exn 2.5 sexp_of_float in
+-      let size_after_local_exn =
+-        Ppx_sexp_conv_lib.Conv.Exn_converter.For_unit_tests_only.size ()
+-      in
+-      let e_finalized = ref false in
+-      Gc.finalise (fun _ -> e_finalized := true) e;
+-      check_sexp e "(conv_test.ml.E 2.5)";
+-      Gc.compact ();
+-      Gc.compact ();
+-      assert !e_finalized;
+-      let size_after_gc =
+-        Ppx_sexp_conv_lib.Conv.Exn_converter.For_unit_tests_only.size ()
+-      in
+-      assert (size_before + 1 = size_after_local_exn);
+-      assert (size_before = size_after_gc)
+-    ;;
+-  end)
+-;;
++  let%test_unit "sexp converters are finalized properly for local exceptions" =
++    Gc.compact ();
++    Gc.compact ();
++    let size_before = Ppx_sexp_conv_lib.Conv.Exn_converter.For_unit_tests_only.size () in
++    let e = exn 2.5 sexp_of_float in
++    let size_after_local_exn =
++      Ppx_sexp_conv_lib.Conv.Exn_converter.For_unit_tests_only.size ()
++    in
++    let e_finalized = ref false in
++    Gc.finalise (fun _ -> e_finalized := true) e;
++    check_sexp e "(conv_test.ml.E 2.5)";
++    Gc.compact ();
++    Gc.compact ();
++    assert !e_finalized;
++    let size_after_gc =
++      Ppx_sexp_conv_lib.Conv.Exn_converter.For_unit_tests_only.size ()
++    in
++    assert (size_before + 1 = size_after_local_exn);
++    assert (size_before = size_after_gc)
++  ;;
++end
+diff --git a/test/sexp_grammar/test_polymorphic_variants.mlt b/test/sexp_grammar/test_polymorphic_variants.mlt
+index f38aef2..e7f3187 100644
+--- a/test/sexp_grammar/test_polymorphic_variants.mlt
++++ b/test/sexp_grammar/test_polymorphic_variants.mlt
+@@ -24,7 +24,7 @@ type t = [> `A ] [@@deriving sexp]
+ [%%expect
+   {|
+ Line _, characters _-_:
+-Error: Type unsupported for ppx [of_sexp] conversion
++Error: Type unsupported for ppx [of_sexp] conversion (open polymorphic variant type)
+ |}]
+ 
+ type t = [> `A ] [@@deriving sexp_grammar]
+@@ -58,7 +58,7 @@ type 'a t = [< `A ] as 'a [@@deriving sexp]
+ [%%expect
+   {|
+ Line _, characters _-_:
+-Error: Type unsupported for ppx [of_sexp] conversion
++Error: Type unsupported for ppx [of_sexp] conversion (type alias)
+ |}]
+ 
+ type 'a t = [< `A ] as 'a [@@deriving sexp_grammar]
+@@ -74,7 +74,7 @@ type a = A : [> ] -> a [@@deriving sexp]
+ [%%expect
+   {|
+ Line _, characters _-_:
+-Error: Type unsupported for ppx [of_sexp] conversion
++Error: Type unsupported for ppx [of_sexp] conversion (open polymorphic variant type)
+ |}]
+ 
+ type a = A : [> ] -> a [@@deriving sexp_of]
+@@ -82,7 +82,7 @@ type a = A : [> ] -> a [@@deriving sexp_of]
+ [%%expect
+   {|
+ Line _, characters _-_:
+-Error: Type unsupported for ppx [sexp_of] conversion
++Error: Type unsupported for ppx [sexp_of] conversion (open polymorphic variant type)
+ |}]
+ 
+ type a = [ `A ] [@@deriving sexp];;
+@@ -101,7 +101,7 @@ let f = [%of_sexp: [> a ]]
+ [%%expect
+   {|
+ Line _, characters _-_:
+-Error: Type unsupported for ppx [of_sexp] conversion
++Error: Type unsupported for ppx [of_sexp] conversion (open polymorphic variant type)
+ |}]
+ 
+ let f = [%of_sexp: [ | a ]]
