@@ -18,7 +18,3 @@ RDEPEND=""
 DEPEND="${RDEPEND}"
 RDEPEND="${RDEPEND}
 	!dev-ml/bigstring-unix"
-
-PATCHES=(
-	"${FILESDIR}/upd.patch"
-)
