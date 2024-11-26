@@ -16,6 +16,3 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-PATCHES=(
-	"${FILESDIR}/upd.patch"
-)
