@@ -1,0 +1,33 @@
+Index: virtual_dom-0.17.0/src/global_listeners.ml
+===================================================================
+--- virtual_dom-0.17.0.orig/src/global_listeners.ml
++++ virtual_dom-0.17.0/src/global_listeners.ml
+@@ -103,7 +103,7 @@ let beforeunload f =
+       event##.returnValue := Js.string "this string can be anything";
+       Effect.Ignore
+     | `Do_nothing -> Effect.Ignore
+-    | `Custom_best_effort effect -> effect
++    | `Custom_best_effort x -> x
+   in
+   Beforeunload.create f |> Attr.create_hook "global-beforeunload-listener"
+ ;;
+Index: virtual_dom-0.17.0/ui_effect/ui_effect_intf.ml
+===================================================================
+--- virtual_dom-0.17.0.orig/ui_effect/ui_effect_intf.ml
++++ virtual_dom-0.17.0/ui_effect/ui_effect_intf.ml
+@@ -103,12 +103,12 @@ module type Effect = sig
+ 
+   module Private : sig
+     module Callback : sig
+-      type 'a effect := 'a t
++      type 'a eff := 'a t
+       type ('a, 'b) t
+ 
+-      val make : request:'a -> on_response:('b -> unit effect) -> ('a, 'b) t
++      val make : request:'a -> on_response:('b -> unit eff) -> ('a, 'b) t
+       val request : ('a, 'b) t -> 'a
+-      val respond_to : ('a, 'b) t -> 'b -> unit effect
++      val respond_to : ('a, 'b) t -> 'b -> unit eff
+     end
+ 
+     val make : request:'a -> evaluator:(('a, 'b) Callback.t -> unit) -> 'b t
