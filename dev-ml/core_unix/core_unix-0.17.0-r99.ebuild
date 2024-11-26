@@ -18,5 +18,5 @@ RDEPEND=""
 DEPEND="${RDEPEND}"
 RDEPEND="${RDEPEND}"
 PATCHES=(
-	"${FILESDIR}/upd.patch"
+	"${FILESDIR}/oc53.patch"
 )
