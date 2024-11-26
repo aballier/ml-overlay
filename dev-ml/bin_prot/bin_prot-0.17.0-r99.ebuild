@@ -10,12 +10,9 @@ HOMEPAGE="https://github.com/janestreet/bin_prot"
 SRC_URI="https://github.com/janestreet/bin_prot/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="Apache-2.0"
-SLOT="0/${PV}-1"
+SLOT="0/${PV}"
 KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND="!dev-ml/bin-prot"
 DEPEND="${RDEPEND}"
-PATCHES=(
-	"${FILESDIR}/upd.patch"
-)
