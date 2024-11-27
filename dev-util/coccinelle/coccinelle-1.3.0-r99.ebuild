@@ -14,18 +14,17 @@ SRC_URI="https://github.com/coccinelle/coccinelle/archive/${PV}.tar.gz -> ${P}.t
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64"
-IUSE="doc emacs ocaml +ocamlopt pcre test vim-syntax"
+IUSE="doc emacs +ocamlopt pcre test vim-syntax"
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
-# ocaml enables ocaml scripting (uses findlib)
 CDEPEND=">=dev-lang/ocaml-3.12:=[ocamlopt?]
 	dev-ml/sexplib:=
 	dev-ml/menhir:=
 	dev-ml/parmap:=
 	dev-ml/pyml:=
-		dev-ml/stdcompat:=
+	dev-ml/stdcompat:=
+	dev-ml/findlib:=
 	emacs? ( app-editors/emacs:* )
-	ocaml? ( dev-ml/findlib:= )
 	pcre? ( dev-ml/pcre:= )
 	${PYTHON_DEPS}"
 
@@ -44,9 +43,6 @@ DEPEND="${CDEPEND}
 DOCS=( authors.txt bugs.txt changes.txt credits.txt readme.txt )
 
 S=${WORKDIR}/${MY_P}
-PATCHES=(
-	"${FILESDIR}/pcre.patch"
-)
 
 SITEFILE=50coccinelle-gentoo.el
 
@@ -56,12 +52,6 @@ pkg_setup() {
 
 src_prepare() {
 	default
-
-	# See: https://github.com/coccinelle/coccinelle/pull/199
-	sed -e 's/Ast[.]/Ast_cocci./g' \
-		-e 's/Ast0[.]/Ast0_cocci./g' \
-		-i parsing_cocci/parser_cocci_menhir.mly || die
-
 	eautoreconf
 
 	# fix python install location
@@ -70,15 +60,13 @@ src_prepare() {
 
 	export VERBOSE=yes
 
-	sed -e 's#:= bundles/stdcompat#:= $(shell ocamlfind query stdcompat)#' -i Makefile || die
-
 	cp "${FILESDIR}/SCORE_expected.sexp" tests/ || die
 }
 
 src_configure() {
 	econf \
 		--enable-python \
-		$(use_enable ocaml) \
+		--enable-ocaml \
 		$(use_enable pcre) \
 		$(use_enable pcre pcre-syntax) \
 		$(use_enable ocamlopt opt)
