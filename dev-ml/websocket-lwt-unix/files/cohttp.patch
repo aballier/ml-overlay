@@ -1,0 +1,62 @@
+Index: websocket-2.17/lwt/websocket_cohttp_lwt.ml
+===================================================================
+--- websocket-2.17.orig/lwt/websocket_cohttp_lwt.ml
++++ websocket-2.17/lwt/websocket_cohttp_lwt.ml
+@@ -53,7 +53,7 @@ let upgrade_connection request incoming_
+   in
+   let resp =
+     Cohttp.Response.make ~status:`Switching_protocols
+-      ~encoding:Cohttp.Transfer.Unknown ~headers:response_headers ~flush:true ()
++      ~encoding:Cohttp.Transfer.Unknown ~headers:response_headers ()
+   in
+   let frames_out_stream, frames_out_fn = Lwt_stream.create () in
+   let f ic oc =
+Index: websocket-2.17/lwt/websocket_lwt_unix.ml
+===================================================================
+--- websocket-2.17.orig/lwt/websocket_lwt_unix.ml
++++ websocket-2.17/lwt/websocket_lwt_unix.ml
+@@ -37,7 +37,7 @@ let fail_unless eq f = if not eq then f
+ let fail_if eq f = if eq then f () else Lwt.return_unit
+ 
+ let drain_handshake req ic oc nonce =
+-  Request.write (fun _writer -> Lwt.return ()) req oc >>= fun () ->
++  Request.write (fun _writer -> Lwt.return ()) req oc ~flush:true >>= fun () ->
+   (Response.read ic >>= function
+    | `Ok r -> Lwt.return r
+    | `Eof -> Lwt.fail End_of_file
+@@ -84,7 +84,7 @@ let connect ctx client url nonce extra_h
+   Conduit_lwt_unix.connect ~ctx client >>= fun (flow, ic, oc) ->
+   set_tcp_nodelay flow;
+   Lwt.catch
+-    (fun () -> drain_handshake req ic oc nonce)
++    (fun () -> drain_handshake req (Cohttp_lwt_unix__Input_channel.create ic) oc nonce)
+     (fun exn -> Lwt_io.close ic >>= fun () -> Lwt.fail exn)
+   >>= fun () ->
+   Lwt_log.info_f ~section "Connected to %s" (Uri.to_string url) >>= fun () ->
+@@ -105,7 +105,7 @@ let connect ?(extra_headers = Cohttp.Hea
+     ?(ctx = Lazy.force Conduit_lwt_unix.default_ctx) ?buf client url =
+   let nonce = Base64.encode_exn (random_string 16) in
+   connect ctx client url nonce extra_headers >|= fun (ic, oc) ->
+-  let read_frame = make_read_frame ?buf ~mode:(Client random_string) ic oc in
++  let read_frame = make_read_frame ?buf ~mode:(Client random_string) (Cohttp_lwt_unix__Input_channel.create ic) oc in
+   let read_frame () =
+     Lwt.catch read_frame (fun exn ->
+         Lwt.async (fun () -> Lwt_io.close ic);
+@@ -179,7 +179,7 @@ let server_fun ?read_buf ?write_buf chec
+     Cohttp.Response.make ~status:`Switching_protocols
+       ~encoding:Cohttp.Transfer.Unknown ~headers:response_headers ()
+   in
+-  Response.write (fun _writer -> Lwt.return_unit) response oc >>= fun () ->
++  Response.write (fun _writer -> Lwt.return_unit) response oc ~flush:true >>= fun () ->
+   let client =
+     Connected_client.create ?read_buf ?write_buf request flow ic oc
+   in
+@@ -196,7 +196,7 @@ let establish_server ?read_buf ?write_bu
+         (fun () ->
+           server_fun ?read_buf ?write_buf check_request
+             (Conduit_lwt_unix.endp_of_flow flow)
+-            ic oc react)
++            (Cohttp_lwt_unix__Input_channel.create ic) oc react)
+         (function
+           | End_of_file -> Lwt.return_unit
+           | HTTP_Error _ -> Lwt.return_unit

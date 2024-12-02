@@ -17,4 +17,7 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/websocket-${PV}"
-PATCHES=( "${FILESDIR}/sexplib.patch" )
+PATCHES=(
+	"${FILESDIR}/sexplib.patch"
+	"${FILESDIR}/cohttp.patch"
+)
