@@ -25,6 +25,3 @@ IUSE=""
 
 RDEPEND="!<dev-ml/js_of_ocaml-3.0.1"
 DEPEND="${RDEPEND}"
-PATCHES=(
-	"${FILESDIR}/oc53.patch"
-)
