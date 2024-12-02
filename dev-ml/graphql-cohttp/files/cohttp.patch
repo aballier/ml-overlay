@@ -1,0 +1,13 @@
+Index: ocaml-graphql-server-0.14.0/graphql-cohttp/src/graphql_websocket.ml
+===================================================================
+--- ocaml-graphql-server-0.14.0.orig/graphql-cohttp/src/graphql_websocket.ml
++++ ocaml-graphql-server-0.14.0/graphql-cohttp/src/graphql_websocket.ml
+@@ -345,7 +345,7 @@ module Connection = struct
+       let rsp =
+         Cohttp.Response.make ~status:`Switching_protocols
+           ~encoding:Cohttp.Transfer.Unknown ~headers:response_headers
+-          ~flush:true ()
++          ()
+       in
+       let io_handler ic oc =
+         let client = create ?read_buf ?write_buf ~mode:Server request ic oc in
