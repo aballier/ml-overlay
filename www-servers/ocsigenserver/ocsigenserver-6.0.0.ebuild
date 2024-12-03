@@ -35,6 +35,13 @@ pkg_setup() {
 	enewuser ocsigenserver -1 -1 /var/www ocsigenserver
 }
 
+src_prepare() {
+	mv src/http src/ocsihttp || die
+	sed -e 's/http/ocsihttp/' -i src/Makefile || die
+	eapply "${FILESDIR}/cohttp.patch"
+	jbuilder_src_prepare
+}
+
 src_configure() {
 	sh configure \
 		--prefix "${EPREFIX}/usr" \
@@ -49,7 +56,11 @@ src_configure() {
 		--ocsigen-user ocsigenserver  \
 		--name ocsigenserver \
 		|| die "Error : configure failed!"
+}
+
+src_compile() {
 	emake
+	jbuilder_src_compile
 }
 
 src_install() {

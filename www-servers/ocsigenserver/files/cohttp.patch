@@ -1,0 +1,63 @@
+Index: ocsigenserver-6.0.0/Makefile.options
+===================================================================
+--- ocsigenserver-6.0.0.orig/Makefile.options
++++ ocsigenserver-6.0.0/Makefile.options
+@@ -33,5 +33,5 @@ INITPACKAGE := \"$(shell ${OCAMLFIND} qu
+ 	       \"ocsigenserver.cookies\";      \
+ 	       \"ocsigenserver.baselib.base\"; \
+ 	       \"ocsigenserver.baselib\";      \
+-	       \"ocsigenserver.http\";         \
++	       \"ocsigenserver.ocsihttp\";         \
+ 	       \"ocsigenserver\";              \
+Index: ocsigenserver-6.0.0/src/extensions/deflatemod.ml
+===================================================================
+--- ocsigenserver-6.0.0.orig/src/extensions/deflatemod.ml
++++ ocsigenserver-6.0.0/src/extensions/deflatemod.ml
+@@ -267,8 +267,7 @@ let stream_filter contentencoding url de
+                          contentencoding
+                      in
+                      { response with
+-                       Cohttp.Response.headers
+-                     ; Cohttp.Response.encoding = Cohttp.Transfer.Chunked }
++                       Cohttp.Response.headers }
+                    and body =
+                      Cohttp_lwt.Body.to_stream body
+                      |> Ocsigen_stream.of_lwt_stream |> compress deflate
+Index: ocsigenserver-6.0.0/src/extensions/dune
+===================================================================
+--- ocsigenserver-6.0.0.orig/src/extensions/dune
++++ ocsigenserver-6.0.0/src/extensions/dune
+@@ -20,7 +20,7 @@
+   (name deflatemod)
+   (public_name ocsigenserver.ext.deflatemod)
+   (modules deflatemod)
+-  (libraries camlzip ocsigenserver))
++  (libraries camlzip http ocsigenserver))
+ 
+ (library
+   (name extendconfiguration)
+Index: ocsigenserver-6.0.0/src/ocsihttp/dune
+===================================================================
+--- ocsigenserver-6.0.0.orig/src/ocsihttp/dune
++++ ocsigenserver-6.0.0/src/ocsihttp/dune
+@@ -5,8 +5,8 @@
+   (libraries ocsigen_lib_base))
+ 
+ (library
+-  (name http)
+-  (public_name ocsigenserver.http)
++  (name ocsihttp)
++  (public_name ocsigenserver.ocsihttp)
+   (wrapped false)
+   (modules ocsigen_charset_mime ocsigen_header)
+   (libraries cohttp-lwt-unix baselib))
+Index: ocsigenserver-6.0.0/src/server/dune
+===================================================================
+--- ocsigenserver-6.0.0.orig/src/server/dune
++++ ocsigenserver-6.0.0/src/server/dune
+@@ -8,4 +8,4 @@
+   polytables
+   ocsigen_cookie_map
+   baselib
+-  http))
++  ocsihttp))
