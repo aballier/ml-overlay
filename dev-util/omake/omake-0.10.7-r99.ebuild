@@ -5,7 +5,7 @@ EAPI=8
 
 DESCRIPTION="Make replacement"
 HOMEPAGE="http://projects.camlcity.org/projects/omake.html"
-SRC_URI="http://download.camlcity.org/download/${P}.tar.gz"
+SRC_URI="https://github.com/ocaml-omake/omake/archive/refs/tags/${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
@@ -21,8 +21,9 @@ RDEPEND="${DEPEND}"
 
 PATCHES=(
 	"${FILESDIR}/${PN}-0.10.2-cflags.patch"
-	"${FILESDIR}/oc53.patch"
 )
+
+S="${WORKDIR}/omake-${P}"
 
 src_configure() {
 	./configure \
