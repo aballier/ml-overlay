@@ -17,6 +17,3 @@ IUSE="+ocamlopt"
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/reason-${PV}"
-PATCHES=(
-	"${FILESDIR}/oc53.patch"
-)
