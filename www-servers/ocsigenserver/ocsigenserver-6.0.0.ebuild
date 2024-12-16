@@ -38,7 +38,9 @@ pkg_setup() {
 src_prepare() {
 	mv src/http src/ocsihttp || die
 	sed -e 's/http/ocsihttp/' -i src/Makefile || die
-	eapply "${FILESDIR}/cohttp.patch"
+	eapply \
+		"${FILESDIR}/cohttp.patch" \
+		"${FILESDIR}/cohttp2.patch"
 	jbuilder_src_prepare
 }
 

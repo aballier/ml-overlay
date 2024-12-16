@@ -1,0 +1,14 @@
+Index: ocsigenserver-6.0.0/src/server/ocsigen_cohttp.ml
+===================================================================
+--- ocsigenserver-6.0.0.orig/src/server/ocsigen_cohttp.ml
++++ ocsigenserver-6.0.0/src/server/ocsigen_cohttp.ml
+@@ -208,8 +208,7 @@ let handler ~ssl ~address ~port ~connect
+ 
+ let conn_closed (_flow, conn) =
+   try
+-    Lwt_log.ign_debug_f ~section "Connection closed:\n%s"
+-      (Cohttp.Connection.to_string conn);
++    Lwt_log.ign_debug_f ~section "Connection closed";
+     Lwt.wakeup (snd (Hashtbl.find connections conn)) ();
+     Hashtbl.remove connections conn;
+     Lwt.async decr_connected
