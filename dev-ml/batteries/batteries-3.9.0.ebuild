@@ -20,7 +20,6 @@ DEPEND="${RDEPEND}"
 DOCS=( "ChangeLog" "FAQ" "README.folders" "README.md" )
 
 S="${WORKDIR}/${PN}-included-${PV}"
-PATCHES=( "${FILESDIR}/oc53.patch" )
 
 src_prepare() {
 	sed -e 's/oUnit/ounit2/' -i testsuite/dune || die
