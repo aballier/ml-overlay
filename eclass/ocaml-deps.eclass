@@ -157,7 +157,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ezjsonm]="jsonm sexplib0 hex"
 	[ezjsonm-lwt]="ezjsonm jsonm sexplib hex lwt"
 	[fiat-p256]="bigarray-compat cstruct dune-configurator eqaf hex"
-	[fileutils]="stdlib-shims seq"
+	[fileutils]=""
 	[fieldslib]="base"
 	[findlib]=""
 	[fix]=""
