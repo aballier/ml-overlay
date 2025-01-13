@@ -5,7 +5,7 @@ EAPI=8
 
 inherit jbuilder
 
-OCV=502
+OCV=503
 
 DESCRIPTION="Context sensitive completion for OCaml in Vim and Emacs"
 HOMEPAGE="https://github.com/ocaml/merlin"
@@ -19,4 +19,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/merlin-${PV}-${OCV/-/\~}"
-PATCHES=( "${FILESDIR}/oc53.patch" )
