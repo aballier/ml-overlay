@@ -1,0 +1,151 @@
+Index: gettext-v0.4.2/src/bin/ocaml-xgettext/xgettext.ml
+===================================================================
+--- gettext-v0.4.2.orig/src/bin/ocaml-xgettext/xgettext.ml
++++ gettext-v0.4.2/src/bin/ocaml-xgettext/xgettext.ml
+@@ -121,11 +121,15 @@ let visit_expr (iterator : Ast_iterator.
+   | Pexp_apply
+       ( { pexp_desc = Pexp_ident { Asttypes.txt = lid; _ }; _ },
+         ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++          { pexp_desc = Pexp_constant ({pconst_desc = Pconst_string (singular, _, _); _}); _ } )
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+           { pexp_desc = Pexp_constant (Pconst_string (singular, _, _)); _ } )
+ #else
+           { pexp_desc = Pexp_constant (Pconst_string (singular, _)); _ } )
+ #endif
++#endif
+         :: _ )
+     when is_like lid [ "s_"; "f_" ] ->
+       (* Add a singular / default domain string *)
+@@ -133,17 +137,25 @@ let visit_expr (iterator : Ast_iterator.
+   | Pexp_apply
+       ( { pexp_desc = Pexp_ident { Asttypes.txt = lid; _ }; _ },
+         ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++          { pexp_desc = Pexp_constant ({pconst_desc = Pconst_string (singular, _, _); _}); _ } )
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+           { pexp_desc = Pexp_constant (Pconst_string (singular, _, _)); _ } )
+ #else
+           { pexp_desc = Pexp_constant (Pconst_string (singular, _)); _ } )
+ #endif
++#endif
+         :: ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++             { pexp_desc = Pexp_constant ({ pconst_desc = Pconst_string (plural, _, _); _}); _ } )
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+              { pexp_desc = Pexp_constant (Pconst_string (plural, _, _)); _ } )
+ #else
+              { pexp_desc = Pexp_constant (Pconst_string (plural, _)); _ } )
+ #endif
++#endif
+            :: _ )
+     when is_like lid [ "sn_"; "fn_" ] ->
+       (* Add a plural / default domain string *)
+@@ -152,11 +164,15 @@ let visit_expr (iterator : Ast_iterator.
+       ( { pexp_desc = Pexp_ident { Asttypes.txt = lid; _ }; _ },
+         _
+         :: ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++             { pexp_desc = Pexp_constant ({ pconst_desc = Pconst_string (singular, _, _); _ }); _ } )
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+              { pexp_desc = Pexp_constant (Pconst_string (singular, _, _)); _ } )
+ #else
+              { pexp_desc = Pexp_constant (Pconst_string (singular, _)); _ } )
+ #endif
++#endif
+            :: _ )
+     when is_like lid [ "gettext"; "fgettext" ] ->
+       (* Add a singular / default domain string *)
+@@ -165,17 +181,25 @@ let visit_expr (iterator : Ast_iterator.
+       ( { pexp_desc = Pexp_ident { Asttypes.txt = lid; _ }; _ },
+         _
+         :: ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++             { pexp_desc = Pexp_constant ({ pconst_desc = Pconst_string (domain, _, _); _}); _ } )
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+              { pexp_desc = Pexp_constant (Pconst_string (domain, _, _)); _ } )
+ #else
+              { pexp_desc = Pexp_constant (Pconst_string (domain, _)); _ } )
+ #endif
++#endif
+            :: ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++                { pexp_desc = Pexp_constant ({ pconst_desc = Pconst_string (singular, _, _); _}); _ }
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+                 { pexp_desc = Pexp_constant (Pconst_string (singular, _, _)); _ }
+ #else
+                 { pexp_desc = Pexp_constant (Pconst_string (singular, _)); _ }
+ #endif
++#endif
+               )
+               :: _ )
+     when is_like lid [ "dgettext"; "fdgettext"; "dcgettext"; "fdcgettext" ] ->
+@@ -185,17 +209,25 @@ let visit_expr (iterator : Ast_iterator.
+       ( { pexp_desc = Pexp_ident { Asttypes.txt = lid; _ }; _ },
+         _
+         :: ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++             { pexp_desc = Pexp_constant ({ pconst_desc = Pconst_string (singular, _, _); _ }); _ } )
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+              { pexp_desc = Pexp_constant (Pconst_string (singular, _, _)); _ } )
+ #else
+              { pexp_desc = Pexp_constant (Pconst_string (singular, _)); _ } )
+ #endif
++#endif
+            :: ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++                { pexp_desc = Pexp_constant ({ pconst_desc = Pconst_string (plural, _, _); _ }); _ } )
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+                 { pexp_desc = Pexp_constant (Pconst_string (plural, _, _)); _ } )
+ #else
+                 { pexp_desc = Pexp_constant (Pconst_string (plural, _)); _ } )
+ #endif
++#endif
+               :: _ )
+     when is_like lid [ "ngettext"; "fngettext" ] ->
+       (* Add a plural / default domain string *)
+@@ -204,24 +236,36 @@ let visit_expr (iterator : Ast_iterator.
+       ( { pexp_desc = Pexp_ident { Asttypes.txt = lid; _ }; _ },
+         _
+         :: ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++             { pexp_desc = Pexp_constant ({ pconst_desc = Pconst_string (domain, _, _); _ }); _ } )
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+              { pexp_desc = Pexp_constant (Pconst_string (domain, _, _)); _ } )
+ #else
+              { pexp_desc = Pexp_constant (Pconst_string (domain, _)); _ } )
+ #endif
++#endif
+            :: ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++                { pexp_desc = Pexp_constant ({ pconst_desc = Pconst_string (singular, _, _); _ }); _ }
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+                 { pexp_desc = Pexp_constant (Pconst_string (singular, _, _)); _ }
+ #else
+                 { pexp_desc = Pexp_constant (Pconst_string (singular, _)); _ }
+ #endif
++#endif
+               )
+               :: ( Asttypes.Nolabel,
++#if OCAML_VERSION >= (5, 3, 0)
++                   { pexp_desc = Pexp_constant ({ pconst_desc = Pconst_string (plural, _, _); _ }); _ }
++#else
+ #if OCAML_VERSION >= (4, 11, 0)
+                    { pexp_desc = Pexp_constant (Pconst_string (plural, _, _)); _ }
+ #else
+                    { pexp_desc = Pexp_constant (Pconst_string (plural, _)); _ }
+ #endif
++#endif
+                  )
+                  :: _ )
+     when is_like lid [ "dngettext"; "fdngettext"; "dcngettext"; "fdcngettext" ]
