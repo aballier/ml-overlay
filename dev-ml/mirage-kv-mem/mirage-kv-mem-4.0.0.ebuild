@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="In-memory key value store for MirageOS"
 HOMEPAGE="https://github.com/mirage/mirage-kv-mem"
-SRC_URI="https://github.com/mirage/mirage-kv-mem/releases/download/v${PV}/${PN}-v${PV}.tbz"
+SRC_URI="https://github.com/mirage/mirage-kv-mem/releases/download/v${PV}/${P}.tbz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
@@ -16,4 +16,3 @@ KEYWORDS="~amd64 ~x86"
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-S="${WORKDIR}/${PN}-v${PV}"
