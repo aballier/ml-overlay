@@ -16,4 +16,7 @@ IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/jsoo.patch" )
+PATCHES=(
+	"${FILESDIR}/jsoo.patch"
+	"${FILESDIR}/jsoo2.patch"
+)
