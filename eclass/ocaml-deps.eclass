@@ -282,6 +282,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ocamlformat-rpc-lib]="csexp"
 	[ocamlgraph]="stdlib-shims"
 	[ocamlgraph_gtk]="stdlib-shims lablgtk ocamlgraph"
+	[ocamlify]="camlp-streams"
 	[ocamlnet]="camlp-streams"
 	[ocaml-compiler-libs]=""
 	[ocaml-index]="merlin-lib"
