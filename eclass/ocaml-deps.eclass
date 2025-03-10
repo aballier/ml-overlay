@@ -76,7 +76,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[cohttp]="re uri uri-sexp sexplib0 stringext base64 ppx_sexp_conv http logs"
 	[cohttp-async]="async ppx_sexp_conv uri-sexp async_kernel async_unix base cohttp conduit-async
 magic-mime logs fmt sexplib0 uri ipaddr core_unix http"
-	[cohttp-lwt]="cohttp lwt sexplib0 ppx_sexp_conv logs uri http"
+	[cohttp-lwt]="cohttp lwt sexplib0 ppx_sexp_conv logs uri http ipaddr"
 	[cohttp-lwt-jsoo]="cohttp cohttp-lwt lwt js_of_ocaml js_of_ocaml-ppx js_of_ocaml-lwt logs http"
 	[cohttp-lwt-unix]="conduit-lwt conduit-lwt-unix ppx_sexp_conv cmdliner magic-mime logs fmt cohttp-lwt lwt http cohttp"
 	[cohttp-lwt-unix-nossl]="ca-certs cmdliner cohttp-lwt conduit-lwt fmt logs lwt magic-mime"
