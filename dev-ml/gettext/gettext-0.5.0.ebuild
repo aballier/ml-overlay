@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Provides support for internationalization of OCaml program"
 HOMEPAGE="https://github.com/gildor478/ocaml-gettext"
-SRC_URI="https://github.com/gildor478/ocaml-gettext/releases/download/v${PV}/gettext-v${PV}.tbz"
+SRC_URI="https://github.com/gildor478/ocaml-gettext/releases/download/v${PV}/gettext-${PV}.tbz"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
@@ -16,11 +16,4 @@ IUSE=""
 
 RDEPEND="sys-devel/gettext"
 DEPEND="${RDEPEND}"
-S="${WORKDIR}/gettext-v${PV}"
-
-PATCHES=(
-	"${FILESDIR}/ounit2.patch"
-	"${FILESDIR}/camomile.patch"
-	"${FILESDIR}/camlstring.patch"
-	"${FILESDIR}/oc53.patch"
-)
+S="${WORKDIR}/gettext-${PV}"
