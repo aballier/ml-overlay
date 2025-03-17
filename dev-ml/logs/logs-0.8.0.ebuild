@@ -15,7 +15,7 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="javascript +fmt +cli +lwt test"
 
 RDEPEND="
-	javascript? ( dev-ml/js_of_ocaml:= )
+	javascript? ( dev-ml/js_of_ocaml-compiler:= )
 	fmt? ( dev-ml/fmt:= )
 	cli? ( dev-ml/cmdliner:=[ocamlopt] )
 	lwt? ( dev-ml/lwt:= )
@@ -25,7 +25,7 @@ OPAM_FILE=opam
 
 src_compile() {
 	ocaml pkg/pkg.ml build \
-		--with-js_of_ocaml $(usex javascript true false) \
+		--with-js_of_ocaml-compiler $(usex javascript true false) \
 		--with-fmt $(usex fmt true false) \
 		--with-cmdliner $(usex cli true false) \
 		--with-lwt $(usex fmt true false) \
