@@ -1,0 +1,2 @@
+move dev-ml/coqide dev-ml/rocqide
+move dev-ml/coq-stdlib dev-ml/rocq-stdlib
