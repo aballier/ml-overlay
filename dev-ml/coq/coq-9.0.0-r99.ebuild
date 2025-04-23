@@ -5,9 +5,9 @@ EAPI=8
 
 inherit jbuilder
 
-DESCRIPTION="The Coq Proof Assistant"
+DESCRIPTION="The Coq Proof Assistant -- Core Binaries and Tools"
 HOMEPAGE="http://coq.inria.fr/"
-SRC_URI="https://github.com/coq/coq/archive/V${PV}.tar.gz -> coq-${PV}.tar.gz"
+SRC_URI="https://github.com/rocq-prover/rocq/releases/download/V${PV}/rocq-${PV}.tar.gz"
 
 LICENSE="LGPL-2.1"
 SLOT="0/${PV}"
@@ -17,12 +17,15 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}
 	!<sci-mathematics/coq-8.14.1
+	!<dev-ml/coq-core-9
 "
 BDEPEND=""
 S="${WORKDIR}/coq-${PV}"
 
 src_configure() {
 	ocaml_lib=$(ocamlc -where)
+	# not compatible with ocaml5
+	# -native-compiler $(usex ocamlopt yes no)
 	local myconf=(
 		-prefix /usr
 		-libdir /usr/$(get_libdir)/ocaml/coq
