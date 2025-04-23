@@ -17,6 +17,7 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}
 	!<sci-mathematics/coq-8.14.1
+	!<dev-ml/coq-core-9
 "
 BDEPEND=""
 S="${WORKDIR}/coq-${PV}"
