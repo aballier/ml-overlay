@@ -13,8 +13,8 @@ KEYWORDS="~amd64 ~x86"
 IUSE="gtk"
 
 RDEPEND="
-	dev-ml/coq
-	gtk? ( dev-ml/coqide )
+	dev-ml/rocq-prover
+	gtk? ( dev-ml/rocqide )
 "
 DEPEND=""
 BDEPEND=""
