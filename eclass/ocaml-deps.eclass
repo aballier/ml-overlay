@@ -92,11 +92,11 @@ magic-mime logs fmt sexplib0 uri ipaddr core_unix http"
 	[conduit-lwt-tls]="conduit-lwt conduit-tls mirage-crypto-rng"
 	[conduit-tls]="conduit ke tls logs bigstringaf"
 	[containers]="dune-configurator either"
-	[coq]="coq-core coq-stdlib coqide-server"
-	[coq-core]="zarith findlib memtrace"
+	[coq]="coq-core coq-stdlib coqide-server rocq-prover"
+	[coq-core]="rocq-runtime"
 	[coq-stdlib]="coq-core"
 	[coqide]="coqide-server lablgtk3-sourceview3 cairo2"
-	[coqide-server]="coq-core"
+	[coqide-server]="rocq-runtime"
 	[core]="base base_bigstring base_quickcheck bin_prot fieldslib jane-street-headers jst-config ppx_assert ppx_base
 ppx_hash ppx_inline_test ppx_jane ppx_sexp_conv ppx_sexp_message sexplib splittable_random stdio time_now typerep
 variantslib ppx_optcomp ppx_diff"
@@ -214,7 +214,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[js_of_ocaml-toplevel]="js_of_ocaml-compiler findlib ppxlib"
 	[js_of_ocaml-tyxml]="tyxml reactiveData js_of_ocaml js_of_ocaml-ppx react"
 	[js_of_ocaml_patches]="js_of_ocaml js_of_ocaml-ppx"
-	[junit]="ptime tyxml"
+	[junit]="ptime tyxml ocamlformat"
 	[junit_alcotest]="junit alcotest"
 	[junit_ounit]="junit ounit2"
 	[kdf]="digestif mirage-crypto"
@@ -426,6 +426,13 @@ ppx_ignore_instrumentation ppx_log ppx_string_conv"
 	[res]=""
 	[resource-pooling]="lwt lwt_log"
 	[result]=""
+	[rocq]="rocq-core rocq-stdlib rocqide-server"
+	[rocq-core]="rocq-runtime"
+	[rocq-prover]="rocq-core rocq-stdlib"
+	[rocq-runtime]="findlib zarith memtrace"
+	[rocq-stdlib]="rocq-core rocq-runtime"
+	[rocqide]="coqide-server lablgtk3-sourceview3 cairo2"
+	[rocqide-server]="rocq-core"
 	[rresult]="result"
 	[rtop]="cppo reason utop"
 	[safepass]=""
@@ -539,6 +546,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 	[pyml]="findlib"
 	[react]="findlib topkg ocamlbuild"
 	[reason]="findlib"
+	[rocqide]="findlib"
 	[rresult]="findlib topkg ocamlbuild"
 	[utop]=""
 	[uucd]="findlib topkg ocamlbuild"
@@ -579,7 +587,6 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[cohttp-lwt-unix-ssl]="ounit2"
 	[conduit-lwt-unix]="lwt_log lwt_ssl ssl"
 	[containers]="csexp gen iter yojson uutf qcheck-core"
-	[coq]="ounit2"
 	[crowbar]="calendar fpath uucp uunf uutf pprint"
 	[crunch]="lwt mirage-kv mirage-kv-mem fmt"
 	[cstruct]="alcotest crowbar"
@@ -680,6 +687,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[re]="ounit2 ppx_expect"
 	[redis-lwt]="containers ounit2"
 	[redis-sync]="containers ounit2"
+	[rocq-prover]="ounit2"
 	[sedlex]="ppx_expect"
 	[sha]="ounit2"
 	[spawn]="ppx_expect"
@@ -844,6 +852,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-zlib") -> ()
 	| String (_,"conf-zstd") -> ()
 	| String (_,"coq-native") -> ()
+	| String (_,"rocq-native") -> ()
 	| String (_,"mirage-xen-ocaml") -> ()
 	| String (_,"memprof-limits") -> ()
 	| String (_,"z3") -> ()
