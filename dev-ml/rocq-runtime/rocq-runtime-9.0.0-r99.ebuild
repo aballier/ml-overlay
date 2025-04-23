@@ -35,5 +35,4 @@ src_configure() {
 		)
 
 	./configure ${myconf[@]} || die "configure failed"
-	emake COQ_SPLIT=1 DUNESTRAPOPT="-p ${PN}"
 }
