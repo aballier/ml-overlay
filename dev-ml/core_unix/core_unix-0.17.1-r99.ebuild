@@ -17,6 +17,3 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 RDEPEND="${RDEPEND}"
-PATCHES=(
-	"${FILESDIR}/oc53.patch"
-)
