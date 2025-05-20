@@ -19,7 +19,6 @@ SLOT="0"
 LICENSE="BSD"
 KEYWORDS="~amd64 ~ppc ~x86"
 S="${WORKDIR}/${PN}-${PN}-$(ver_rs 0- '-')"
-PATCHES=( "${FILESDIR}/camlp.patch" )
 
 src_compile() {
 	emake -j1 all
