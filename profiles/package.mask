@@ -1,3 +1,8 @@
+# ppxlib api break
+>=dev-ml/ppxlib-0.36.0
+>=dev-ml/ppx_deriving-6.1.0
+
+
 -dev-ml/odoc-parser
 
 -dev-ml/opam-client
