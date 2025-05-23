@@ -215,7 +215,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[js_of_ocaml-tyxml]="tyxml reactiveData js_of_ocaml js_of_ocaml-ppx react"
 	[js_of_ocaml_patches]="js_of_ocaml js_of_ocaml-ppx"
 	[junit]="ptime tyxml ocamlformat"
-	[junit_alcotest]="junit alcotest"
+	[junit_alcotest]="junit alcotest ocamlformat"
 	[junit_ounit]="junit ounit2"
 	[kdf]="digestif mirage-crypto"
 	[ke]="fmt bigarray-compat"
