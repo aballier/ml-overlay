@@ -1,0 +1,38 @@
+From abd88051c46fe1a305fea7150b0ac8d9a74f6fe5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Antonin=20D=C3=A9cimo?= <antonin@tarides.com>
+Date: Thu, 10 Apr 2025 15:00:08 +0200
+Subject: [PATCH] Update to Alcotest 1.9.0
+
+Use exposed Alcotest_engine.V1.Core.Skip exception.
+See https://github.com/mirage/alcotest/pull/416.
+---
+ alcotest/junit_alcotest.ml | 2 +-
+ junit_alcotest.opam        | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/alcotest/junit_alcotest.ml b/alcotest/junit_alcotest.ml
+index 200ada9..00e092d 100644
+--- a/alcotest/junit_alcotest.ml
++++ b/alcotest/junit_alcotest.ml
+@@ -32,7 +32,7 @@ let wrap_test ?classname handle_result (name, s, test) =
+         exn_msg
+       |> handle_result;
+       reraise exn
+-    | Alcotest_engine__Core.Skip as exn ->
++    | Alcotest_engine.V1.Core.Skip as exn ->
+       Junit.Testcase.skipped ~name ~classname ~time:0. |> handle_result;
+       reraise exn
+     | exn ->
+diff --git a/junit_alcotest.opam b/junit_alcotest.opam
+index 0573061..17567f2 100644
+--- a/junit_alcotest.opam
++++ b/junit_alcotest.opam
+@@ -10,7 +10,7 @@ tags: ["junit" "jenkins" "alcotest"]
+ depends: [
+   "dune" {>= "3.0"}
+   "odoc" {with-doc & >= "1.1.1"}
+-  "alcotest" {>= "1.8.0"}
++  "alcotest" {>= "1.9.0"}
+   "junit" {= version}
+   "ocamlformat" {= "0.27.0" & with-dev-setup}
+ ]

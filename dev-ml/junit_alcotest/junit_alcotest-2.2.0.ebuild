@@ -18,6 +18,7 @@ DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
 S="${WORKDIR}/${BASE_PN}-${PV}"
+PATCHES=( "${FILESDIR}/alcotest.patch" )
 
 src_prepare() {
 	jbuilder_src_prepare
