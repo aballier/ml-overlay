@@ -1,0 +1,33 @@
+From 2dd7ddf0ffd0ea203c4bf47fa2aa980c3d45b714 Mon Sep 17 00:00:00 2001
+From: Hugo Heuzard <hugo.heuzard@gmail.com>
+Date: Wed, 5 Mar 2025 15:15:05 +0100
+Subject: [PATCH] remove logic for old IE
+
+---
+ src/lib/eliom_request.client.ml | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
+
+diff --git a/src/lib/eliom_request.client.ml b/src/lib/eliom_request.client.ml
+index cdcf5467f..d3834fbcf 100644
+--- a/src/lib/eliom_request.client.ml
++++ b/src/lib/eliom_request.client.ml
+@@ -222,18 +222,7 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
+     let headers =
+       if expecting_process_page
+       then
+-        let content_type =
+-          if Dom_html.onIE
+-             && not
+-                  (Js.Optdef.test
+-                     (Js.Unsafe.coerce Dom_html.document)##.adoptNode)
+-          then
+-            (* ie < 9 does not know xhtml+xml content type, but ie 9
+-               can use it and need it to use adoptNode *)
+-            "application/xml"
+-          else "application/xhtml+xml"
+-        in
+-        ("Accept", content_type)
++        ("Accept", "application/xhtml+xml")
+         :: ( Eliom_common.expecting_process_page_name
+            , encode_header_value ~typ:[%json: bool] true )
+         :: headers

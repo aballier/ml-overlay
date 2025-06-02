@@ -1,0 +1,45 @@
+From b6fd126bc7ef5435227a658eead705d38e0f4ef4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Vouillon?= <jerome.vouillon@gmail.com>
+Date: Fri, 13 Dec 2024 16:59:28 +0100
+Subject: [PATCH] Adapt to Dom_html changes
+
+---
+ src/lib/eliom_content.client.mli | 2 +-
+ src/lib/eliom_content_.client.ml | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/lib/eliom_content.client.mli b/src/lib/eliom_content.client.mli
+index 51c793da5a..f06f51b624 100644
+--- a/src/lib/eliom_content.client.mli
++++ b/src/lib/eliom_content.client.mli
+@@ -758,7 +758,7 @@ module Html : sig
+       val minHeightPx : 'a elt -> int
+       val minWidth : 'a elt -> string
+       val minWidthPx : 'a elt -> int
+-      val opacity : 'a elt -> string option
++      val opacity : 'a elt -> string
+       val outline : 'a elt -> string
+       val outlineColor : 'a elt -> string
+       val outlineOffset : 'a elt -> string
+diff --git a/src/lib/eliom_content_.client.ml b/src/lib/eliom_content_.client.ml
+index 25e2e75883..03d7ef4757 100644
+--- a/src/lib/eliom_content_.client.ml
++++ b/src/lib/eliom_content_.client.ml
+@@ -963,7 +963,7 @@ module Html = struct
+ 
+       let opacity elt =
+         let elt = get_unique_elt "Css.opacity" elt in
+-        Option.map Js.to_bytestring (Js.Optdef.to_option elt##.style##.opacity)
++        Js.to_bytestring elt##.style##.opacity
+ 
+       let outline elt =
+         let elt = get_unique_elt "Css.outline" elt in
+@@ -1406,7 +1406,7 @@ module Html = struct
+ 
+       let opacity elt v =
+         let elt = get_unique_elt "SetCss.opacity" elt in
+-        elt##.style##.opacity := Js.def (Js.bytestring v)
++        elt##.style##.opacity := Js.bytestring v
+ 
+       let outline elt v =
+         let elt = get_unique_elt "SetCss.outline" elt in

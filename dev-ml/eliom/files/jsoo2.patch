@@ -1,0 +1,65 @@
+From 92d79d95025a64ab9617c2e58c6fab8f90c04549 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Vouillon?= <jerome.vouillon@gmail.com>
+Date: Wed, 27 Nov 2024 15:00:02 +0100
+Subject: [PATCH] Scroll positions are now floats
+
+Adapt to Dom_html API change
+(https://github.com/ocsigen/js_of_ocaml/pull/1747).
+
+diff --git a/src/lib/client/eliommod_dom.ml b/src/lib/client/eliommod_dom.ml
+index 1d8c9f4bf8..5a0279a37c 100644
+--- a/src/lib/client/eliommod_dom.ml
++++ b/src/lib/client/eliommod_dom.ml
+@@ -687,18 +687,18 @@ let preload_css (doc : Dom_html.element Js.t) =
+ [@@@warning "-39"]
+ 
+ type position =
+-  {html_top : int; html_left : int; body_top : int; body_left : int}
++  {html_top : float; html_left : float; body_top : float; body_left : float}
+ [@@deriving json]
+ 
+ [@@@warning "+39"]
+ 
+-let top_position = {html_top = 0; html_left = 0; body_top = 0; body_left = 0}
++let top_position = {html_top = 0.; html_left = 0.; body_top = 0.; body_left = 0.}
+ 
+ let createDocumentScroll () =
+-  { html_top = Dom_html.document##.documentElement##.scrollTop
+-  ; html_left = Dom_html.document##.documentElement##.scrollLeft
+-  ; body_top = Dom_html.document##.body##.scrollTop
+-  ; body_left = Dom_html.document##.body##.scrollLeft }
++  { html_top = Js.to_float Dom_html.document##.documentElement##.scrollTop
++  ; html_left = Js.to_float Dom_html.document##.documentElement##.scrollLeft
++  ; body_top = Js.to_float Dom_html.document##.body##.scrollTop
++  ; body_left = Js.to_float Dom_html.document##.body##.scrollLeft }
+ 
+ (* With firefox, the scroll position is restored before to fire the
+    popstate event. We maintain our own position. *)
+@@ -719,10 +719,10 @@ let _ =
+ let getDocumentScroll () = !current_position
+ 
+ let setDocumentScroll pos =
+-  Dom_html.document##.documentElement##.scrollTop := pos.html_top;
+-  Dom_html.document##.documentElement##.scrollLeft := pos.html_left;
+-  Dom_html.document##.body##.scrollTop := pos.body_top;
+-  Dom_html.document##.body##.scrollLeft := pos.body_left;
++  Dom_html.document##.documentElement##.scrollTop := Js.float pos.html_top;
++  Dom_html.document##.documentElement##.scrollLeft := Js.float pos.html_left;
++  Dom_html.document##.body##.scrollTop := Js.float pos.body_top;
++  Dom_html.document##.body##.scrollLeft := Js.float pos.body_left;
+   current_position := pos
+ 
+ (* UGLY HACK for Opera bug: Opera seem does not always take into
+diff --git a/src/lib/client/eliommod_dom.mli b/src/lib/client/eliommod_dom.mli
+index 5c849d137e..27400a9ad1 100644
+--- a/src/lib/client/eliommod_dom.mli
++++ b/src/lib/client/eliommod_dom.mli
+@@ -86,7 +86,7 @@ val iter_attrList :
+ (** Window scrolling. *)
+ 
+ type position =
+-  {html_top : int; html_left : int; body_top : int; body_left : int}
++  {html_top : float; html_left : float; body_top : float; body_left : float}
+ [@@deriving json]
+ 
+ val top_position : position
