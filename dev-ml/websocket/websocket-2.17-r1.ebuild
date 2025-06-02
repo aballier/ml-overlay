@@ -10,9 +10,10 @@ HOMEPAGE="https://github.com/vbmithr/ocaml-websocket"
 SRC_URI="https://github.com/vbmithr/ocaml-websocket/releases/download/${PV}/${P}.tbz -> ocaml-websocket-${PV}.tbz"
 
 LICENSE="ISC"
-SLOT="0/${PV}-conduit3"
+SLOT="0/${PV}-conduit6"
 KEYWORDS="~amd64"
 IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/cohttp.patch" )
