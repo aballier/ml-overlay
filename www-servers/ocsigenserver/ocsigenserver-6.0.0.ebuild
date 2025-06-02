@@ -40,7 +40,8 @@ src_prepare() {
 	sed -e 's/http/ocsihttp/' -i src/Makefile || die
 	eapply \
 		"${FILESDIR}/cohttp.patch" \
-		"${FILESDIR}/cohttp2.patch"
+		"${FILESDIR}/cohttp2.patch" \
+		"${FILESDIR}/conduit.patch"
 	jbuilder_src_prepare
 }
 
