@@ -19,5 +19,5 @@ DEPEND="${RDEPEND}"
 S="${WORKDIR}/websocket-${PV}"
 PATCHES=(
 	"${FILESDIR}/sexplib.patch"
-	"${FILESDIR}/cohttp.patch"
+	"${FILESDIR}/cohttp5.patch"
 )
