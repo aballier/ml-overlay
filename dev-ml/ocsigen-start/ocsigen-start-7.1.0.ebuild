@@ -24,6 +24,7 @@ fi
 RDEPEND=""
 DEPEND="${RDEPEND}"
 OPAM_FILE=opam
+PATCHES=( "${FILESDIR}/jsoo.patch" )
 
 src_install() {
 	findlib_src_preinst
