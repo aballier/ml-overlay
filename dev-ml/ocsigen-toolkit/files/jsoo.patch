@@ -1,0 +1,855 @@
+From 9307cbcb6b4cf81e2f49dda29fa099148b01ed2a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Vouillon?= <jerome.vouillon@gmail.com>
+Date: Thu, 28 Nov 2024 13:59:53 +0100
+Subject: [PATCH] Adapt to Dom_html changes
+
+---
+ opam                                  |  2 +-
+ src/widgets/ot_carousel.eliom         | 50 ++++++++++--------
+ src/widgets/ot_drawer.eliom           | 50 +++++++++---------
+ src/widgets/ot_noderesize.eliom       | 16 +++---
+ src/widgets/ot_picture_uploader.eliom | 74 ++++++++++++---------------
+ src/widgets/ot_popup.eliom            |  2 +-
+ src/widgets/ot_pulltorefresh.eliom    | 27 +++++-----
+ src/widgets/ot_swipe.eliom            | 51 +++++++++---------
+ src/widgets/ot_swipe.eliomi           | 10 ++--
+ src/widgets/ot_time_picker.eliom      | 14 +++--
+ src/widgets/ot_tongue.eliom           | 44 ++++++++--------
+ 11 files changed, 174 insertions(+), 166 deletions(-)
+
+diff --git a/src/widgets/ot_carousel.eliom b/src/widgets/ot_carousel.eliom
+index b60c09c1..dfa82059 100644
+--- a/src/widgets/ot_carousel.eliom
++++ b/src/widgets/ot_carousel.eliom
+@@ -76,8 +76,9 @@ let average_time = 0.1
+ 
+ type status =
+   | Stopped
+-  | Start of (int * int * float) (* Just started, x, y positions, timestamp *)
+-  | Ongoing of (int * int * int * float * int * float)
++  | Start of (float * float * float)
++    (* Just started, x, y positions, timestamp *)
++  | Ongoing of (float * float * int * float * float * float)
+ 
+ (* Ongoing swipe, (x start position,
+                        y start position,
+@@ -189,7 +190,7 @@ let%shared make ?(a = []) ?(vertical = false) ?(position = 0)
+        let maxi () = ~%maxi - React.S.value ~%nb_visible_elements + 1 in
+        let pos_signal = ~%pos_signal in
+        let pos_set = ~%pos_set in
+-       let action = ref (`Move (0, 0)) in
++       let action = ref (`Move (0., 0)) in
+        let animation_frame_requested = ref false in
+        (**********************
+        setting class active on visible pages (only)
+@@ -349,17 +350,21 @@ let%shared make ?(a = []) ?(vertical = false) ?(position = 0)
+                            React.S.value ~%pos_signal * width_element
+                          in
+                          let m = (-width_element * maxi ()) + global_delta in
+-                         min global_delta (max delta m)
++                         min (float global_delta) (max delta (float m))
+                      in
+                      let pos = Eliom_shared.React.S.value pos_signal in
+-                     ~%swipe_pos_set (-.float delta /. float width_element);
+-                     let s = ~%make_transform ~vertical ~delta pos in
++                     ~%swipe_pos_set (-.delta /. float width_element);
++                     let s =
++                       ~%make_transform ~vertical
++                         ~delta:(int_of_float (delta +. 0.5))
++                         pos
++                     in
+                      (Js.Unsafe.coerce d2'##.style)##.transform := s;
+                      (Js.Unsafe.coerce d2'##.style)##.webkitTransform := s
+                  | `Goback position | `Change position ->
+                      Manip.Class.add ~%d2 ot_swiping;
+                      set_top_margin ();
+-                     action := `Move (0, 0);
++                     action := `Move (0., 0);
+                      set_position ~transitionend:unset_top_margin position);
+                  Lwt.return_unit)
+                else Lwt.return_unit)
+@@ -373,7 +378,7 @@ let%shared make ?(a = []) ?(vertical = false) ?(position = 0)
+            if delta_t = 0.
+            then prev_speed
+            else
+-             let cur_speed = (float delta -. float prev_delta) /. delta_t in
++             let cur_speed = (delta -. prev_delta) /. delta_t in
+              if delta_t >= average_time
+              then cur_speed
+              else
+@@ -386,14 +391,17 @@ let%shared make ?(a = []) ?(vertical = false) ?(position = 0)
+        let onpan ev _ =
+          (match !status with
+          | Start (startx, starty, prev_timestamp) ->
+-             let move = if vertical then clY ev - starty else clX ev - startx in
++             let move =
++               if vertical then clY ev -. starty else clX ev -. startx
++             in
+              status :=
+-               if abs (if vertical then clX ev - startx else clY ev - starty)
+-                  >= abs move
++               if abs_float
++                    (if vertical then clX ev -. startx else clY ev -. starty)
++                  >= abs_float move
+                then
+                  Stopped
+                  (* swiping in wrong direction (vertical/horizontal) *)
+-               else if abs move > Ot_swipe.threshold
++               else if abs_float move > Ot_swipe.threshold
+                then (
+                  (* We decide to take the event *)
+                  (* We send a touchcancel to the parent
+@@ -404,9 +412,7 @@ let%shared make ?(a = []) ?(vertical = false) ?(position = 0)
+                  remove_transition d2';
+                  let timestamp = now () in
+                  let delta_t = timestamp -. prev_timestamp in
+-                 let speed =
+-                   if delta_t = 0. then 0. else float move /. delta_t
+-                 in
++                 let speed = if delta_t = 0. then 0. else move /. delta_t in
+                  Ongoing
+                    (startx, starty, width_element (), speed, move, timestamp))
+                else !status
+@@ -424,7 +430,7 @@ let%shared make ?(a = []) ?(vertical = false) ?(position = 0)
+              (* in case there is a carousel
+                                          in a carousel, e.g. *)
+              let delta =
+-               if vertical then clY ev - starty else clX ev - startx
++               if vertical then clY ev -. starty else clX ev -. startx
+              in
+              let timestamp, speed =
+                compute_speed prev_speed prev_delta prev_timestamp delta
+@@ -445,16 +451,18 @@ let%shared make ?(a = []) ?(vertical = false) ?(position = 0)
+          status := Stopped;
+          let width, delta =
+            if vertical
+-           then d2'##.offsetHeight, clY ev - starty
+-           else d2'##.offsetWidth, clX ev - startx
++           then d2'##.offsetHeight, clY ev -. starty
++           else d2'##.offsetWidth, clX ev -. startx
+          in
+          let timestamp, speed =
+            compute_speed prev_speed prev_delta prev_timestamp delta
+          in
+          let pos = Eliom_shared.React.S.value pos_signal in
+          let delta =
+-           delta
+-           + (int_of_float (speed *. ~%transition_duration *. ~%inertia) / 2)
++           int_of_float
++             (delta
++             +. (speed *. ~%transition_duration *. ~%inertia /. 2.)
++             +. 0.5)
+          in
+          let rem = delta mod width in
+          let nbpages =
+@@ -475,7 +483,7 @@ let%shared make ?(a = []) ?(vertical = false) ?(position = 0)
+        let touchend ev _ =
+          match !status with
+          | Start (startx, starty, timestamp) ->
+-             do_end ev startx starty 0. 0 timestamp
++             do_end ev startx starty 0. 0. timestamp
+          | Ongoing (startx, starty, _width, speed, delta, timestamp) ->
+              do_end ev startx starty speed delta timestamp
+          | _ -> Lwt.return_unit
+diff --git a/src/widgets/ot_drawer.eliom b/src/widgets/ot_drawer.eliom
+index 3ef2eee1..4a80b235 100644
+--- a/src/widgets/ot_drawer.eliom
++++ b/src/widgets/ot_drawer.eliom
+@@ -30,14 +30,14 @@ type%client status = Stopped | Start | Aborted | In_progress
+ let%client clX ev =
+   Js.Optdef.case
+     ev ##. changedTouches ## (item 0)
+-    (fun () -> 0)
+-    (fun a -> a##.clientX)
++    (fun () -> 0.)
++    (fun a -> Js.to_float a##.clientX)
+ 
+ let%client clY ev =
+   Js.Optdef.case
+     ev ##. changedTouches ## (item 0)
+-    (fun () -> 0)
+-    (fun a -> a##.clientY)
++    (fun () -> 0.)
++    (fun a -> Js.to_float a##.clientY)
+ 
+ let%client bind_click_outside bckgrnd elt close =
+   Lwt.async (fun () ->
+@@ -79,7 +79,7 @@ let%shared drawer ?(a = []) ?(position = `Left) ?(opened = false)
+     ?(onopen : (unit -> unit) Eliom_client_value.t option)
+     ?(wrap_close = fun f -> f) ?(wrap_open = fun f -> f) content
+   =
+-  let scroll_pos = ref 0 in
++  let scroll_pos = ref 0. in
+   let a = (a :> Html_types.div_attrib attrib list) in
+   let toggle_button =
+     D.Form.button_no_value ~button_type:`Button
+@@ -112,7 +112,7 @@ let%shared drawer ?(a = []) ?(position = `Left) ?(opened = false)
+     [%client
+       (fun () ->
+          Dom_html.document##.body##.style##.top := Js.string "";
+-         Dom_html.window##scroll 0 !(~%scroll_pos)
++         Dom_html.window##scrollTo (Js.float 0.) (Js.float !(~%scroll_pos))
+        : unit -> unit)]
+   in
+   let stop_open_event =
+@@ -141,11 +141,11 @@ let%shared drawer ?(a = []) ?(position = `Left) ?(opened = false)
+   let open_ =
+     [%client
+       (fun () ->
+-         ~%scroll_pos := (Js.Unsafe.coerce Dom_html.window)##.pageYOffset;
++         ~%scroll_pos := Js.to_float Dom_html.window##.scrollY;
+          add_class ~%bckgrnd "open";
+          Eliom_lib.Option.iter (fun f -> f ()) ~%onopen;
+          Dom_html.document##.body##.style##.top
+-         := Js.string (Printf.sprintf "%dpx" (- !(~%scroll_pos)));
++         := Js.string (Printf.sprintf "%.2fpx" (-. !(~%scroll_pos)));
+          add_class ~%bckgrnd "opening";
+          Lwt.cancel !(~%touch_thread);
+          Lwt.async (fun () ->
+@@ -195,7 +195,7 @@ let%shared drawer ?(a = []) ?(position = `Left) ?(opened = false)
+          let bckgrnd' = To_dom.of_element ~%bckgrnd in
+          let cl = ~%close in
+          let animation_frame_requested = ref false in
+-         let action = ref (`Move 0) in
++         let action = ref (`Move 0.) in
+          let perform_animation a =
+            if !action = `Close && a = `Open
+            then
+@@ -216,7 +216,7 @@ let%shared drawer ?(a = []) ?(position = `Left) ?(opened = false)
+                        | `Right -> "translateX(calc(-100% + "
+                        | `Bottom -> "translateY(calc(-100% + "
+                        | `Left -> "translateX(calc(100% + ")
+-                     |> (fun t -> Printf.sprintf "%s%dpx" t delta)
++                     |> (fun t -> Printf.sprintf "%s%.2fdpx" t delta)
+                      |> Js.string
+                    in
+                    (Js.Unsafe.coerce dr##.style)##.transform := s;
+@@ -247,24 +247,24 @@ let%shared drawer ?(a = []) ?(position = `Left) ?(opened = false)
+              else Lwt.return_unit)
+          in
+          (* let hammer = Hammer.make_hammer bckgrnd in *)
+-         let startx = ref 0 (* position when touch starts *) in
+-         let starty = ref 0 (* position when touch starts *) in
++         let startx = ref 0. (* position when touch starts *) in
++         let starty = ref 0. (* position when touch starts *) in
+          let status = ref Stopped in
+          let onpan ev _ =
+-           let left = clX ev - !startx in
+-           let top = clY ev - !starty in
++           let left = clX ev -. !startx in
++           let top = clY ev -. !starty in
+            if !status = Start
+            then
+              status :=
+                if (~%position = `Top || ~%position = `Bottom)
+-                  && abs left > abs top
++                  && abs_float left > abs_float top
+                   || (~%position = `Left || ~%position = `Right)
+-                     && abs top > abs left
++                     && abs_float top > abs_float left
+                then Aborted (* Orthogonal scrolling *)
+                else if (~%position = `Top || ~%position = `Bottom)
+-                       && abs top <= Ot_swipe.threshold
++                       && abs_float top <= Ot_swipe.threshold
+                        || (~%position = `Left || ~%position = `Right)
+-                          && abs left <= Ot_swipe.threshold
++                          && abs_float left <= Ot_swipe.threshold
+                then !status
+                else (
+                  (* We decide to take the event *)
+@@ -276,20 +276,20 @@ let%shared drawer ?(a = []) ?(position = `Left) ?(opened = false)
+            then (
+              Dom.preventDefault ev;
+              Dom_html.stopPropagation ev;
+-             let move = ref 0 in
+-             if ~%position = `Top && top <= 0
++             let move = ref 0. in
++             if ~%position = `Top && top <= 0.
+                 &&
+                 (move := top;
+                  true)
+-                || ~%position = `Right && left >= 0
++                || ~%position = `Right && left >= 0.
+                    &&
+                    (move := left;
+                     true)
+-                || ~%position = `Bottom && top >= 0
++                || ~%position = `Bottom && top >= 0.
+                    &&
+                    (move := top;
+                     true)
+-                || ~%position = `Left && left <= 0
++                || ~%position = `Left && left <= 0.
+                    &&
+                    (move := left;
+                     true)
+@@ -304,8 +304,8 @@ let%shared drawer ?(a = []) ?(position = `Left) ?(opened = false)
+              (Js.Unsafe.coerce dr##.style)##.transition
+              := Js.string "-webkit-transform .35s, transform .35s";
+              let width = dr##.offsetWidth in
+-             let deltaX = float_of_int (clX ev - !startx) in
+-             let deltaY = float_of_int (clY ev - !starty) in
++             let deltaX = clX ev -. !startx in
++             let deltaY = clY ev -. !starty in
+              if (~%position = `Top && deltaY < -0.3 *. float width)
+                 || (~%position = `Right && deltaX > 0.3 *. float width)
+                 || (~%position = `Bottom && deltaY > 0.3 *. float width)
+diff --git a/src/widgets/ot_noderesize.eliom b/src/widgets/ot_noderesize.eliom
+index c0401944..3c3c2a19 100644
+--- a/src/widgets/ot_noderesize.eliom
++++ b/src/widgets/ot_noderesize.eliom
+@@ -70,20 +70,20 @@ let%client detach {watched; sensor; shrink_listener_id; grow_listener_id; _} =
+   match shrink_listener_id with Some x -> Dom.removeEventListener x | _ -> ()
+ 
+ let%client reset {grow; grow_child; shrink; _} =
+-  shrink##.scrollLeft := shrink##.scrollWidth;
+-  shrink##.scrollTop := shrink##.scrollHeight;
++  shrink##.scrollLeft := Js.float (float shrink##.scrollWidth);
++  shrink##.scrollTop := Js.float (float shrink##.scrollHeight);
+   grow_child##.style##.width
+   := Js.string (string_of_int (grow##.offsetWidth + 1) ^ "px");
+   grow_child##.style##.height
+   := Js.string (string_of_int (grow##.offsetHeight + 1) ^ "px");
+-  grow##.scrollLeft := grow##.scrollWidth;
+-  grow##.scrollTop := grow##.scrollHeight
++  grow##.scrollLeft := Js.float (float grow##.scrollWidth);
++  grow##.scrollTop := Js.float (float grow##.scrollHeight)
+ 
+ let%client reset_opt {grow; grow_child; shrink; _} =
+-  shrink##.scrollLeft := 9999;
+-  shrink##.scrollTop := 9999;
+-  grow##.scrollLeft := 9999;
+-  grow##.scrollTop := 9999
++  shrink##.scrollLeft := Js.float 9999.;
++  shrink##.scrollTop := Js.float 9999.;
++  grow##.scrollLeft := Js.float 9999.;
++  grow##.scrollTop := Js.float 9999.
+ 
+ let%client noderesize_aux reset sensor f =
+   let bind element =
+diff --git a/src/widgets/ot_picture_uploader.eliom b/src/widgets/ot_picture_uploader.eliom
+index 94e4c511..0fc24266 100644
+--- a/src/widgets/ot_picture_uploader.eliom
++++ b/src/widgets/ot_picture_uploader.eliom
+@@ -43,14 +43,10 @@ type%shared ('a, 'b) service =
+     Eliom_service.t
+ 
+ let%client process_file input callback =
+-  Js.Optdef.case input##.files
++  Js.Opt.case
++    input ##. files ## (item 0)
+     (fun () -> Lwt.return_unit)
+-    (function
+-       | files ->
+-           Js.Opt.case
+-             files ## (item 0)
+-             (fun () -> Lwt.return_unit)
+-             (fun x -> callback x))
++    (fun x -> callback x)
+ 
+ let%client file_reader file callback =
+   let reader = new%js File.fileReader in
+@@ -73,13 +69,14 @@ let%client on_animation_frame f =
+   fun x ->
+     if !last = None
+     then
+-      Dom_html._requestAnimationFrame
+-        (Js.wrap_callback (fun () ->
+-           match !last with
+-           | None -> assert false
+-           | Some x ->
+-               last := None;
+-               f x));
++      ignore
++        (Dom_html.window##requestAnimationFrame
++           (Js.wrap_callback (fun _ ->
++              match !last with
++              | None -> assert false
++              | Some x ->
++                  last := None;
++                  f x)));
+     last := Some x
+ 
+ let%shared cropper ~(image : Dom_html.element Js.t Eliom_client_value.t)
+@@ -327,8 +324,8 @@ let%shared cropper ~(image : Dom_html.element Js.t Eliom_client_value.t)
+          (fun x y ->
+             bind_handler mousedowns Dom_html.Event.mousemove
+               [Lwt_js_events.mouseup]
+-              (fun ev -> float_of_int ev##.clientX)
+-              (fun ev -> float_of_int ev##.clientY)
++              (fun ev -> Js.to_float ev##.clientX)
++              (fun ev -> Js.to_float ev##.clientY)
+               (x, y))
+          [~%crop; ~%t_c; ~%tr_c; ~%r_c; ~%br_c; ~%b_c; ~%bl_c; ~%l_c; ~%tl_c]
+          listeners;
+@@ -339,17 +336,15 @@ let%shared cropper ~(image : Dom_html.element Js.t Eliom_client_value.t)
+                  bind_handler touchstarts Dom_html.Event.touchmove
+                    [Lwt_js_events.touchend; Lwt_js_events.touchcancel]
+                    (fun ev ->
+-                      float_of_int
+-                      @@ Js.Optdef.case
+-                           (ev##.touches##item 0)
+-                           (fun () -> assert false)
+-                           (fun x -> x##.clientX))
++                      Js.Optdef.case
++                        (ev##.touches##item 0)
++                        (fun () -> assert false)
++                        (fun x -> Js.to_float x##.clientX))
+                    (fun ev ->
+-                      float_of_int
+-                      @@ Js.Optdef.case
+-                           (ev##.touches##item 0)
+-                           (fun () -> assert false)
+-                           (fun x -> x##.clientY))
++                      Js.Optdef.case
++                        (ev##.touches##item 0)
++                        (fun () -> assert false)
++                        (fun x -> Js.to_float x##.clientY))
+                    (x, y))
+               x)
+          [ [~%crop]
+@@ -429,20 +424,19 @@ let%client bind_input input preview ?container ?reset () =
+     reset;
+   Lwt.async (fun () ->
+     Lwt_js_events.changes input (fun _ _ ->
+-      Js.Optdef.case input##.files onerror (fun files ->
+-        Js.Opt.case
+-          (files##item 0)
+-          onerror
+-          (fun file ->
+-             let () =
+-               file_reader (Js.Unsafe.coerce file) (fun data ->
+-                 preview##.src := data;
+-                 Eliom_lib.Option.iter
+-                   (fun container ->
+-                      container##.classList##remove (Js.string "ot-no-file"))
+-                   container)
+-             in
+-             Lwt.return_unit))))
++      Js.Opt.case
++        (input##.files##item 0)
++        onerror
++        (fun file ->
++           let () =
++             file_reader (Js.Unsafe.coerce file) (fun data ->
++               preview##.src := data;
++               Eliom_lib.Option.iter
++                 (fun container ->
++                    container##.classList##remove (Js.string "ot-no-file"))
++                 container)
++           in
++           Lwt.return_unit)))
+ 
+ [%%shared
+ type cropping = (float * float * float * float) React.S.t
+diff --git a/src/widgets/ot_popup.eliom b/src/widgets/ot_popup.eliom
+index cf12dace..4ee75104 100644
+--- a/src/widgets/ot_popup.eliom
++++ b/src/widgets/ot_popup.eliom
+@@ -61,7 +61,7 @@ let%client disable_page_scroll, enable_page_scroll =
+       | Some pos ->
+           html_ManipClass_remove (html ()) "ot-with-popup";
+           Dom_html.document##.body##.style##.top := Js.string "";
+-          Dom_html.window##scroll 0 pos;
++          Dom_html.window##scrollTo (Js.float 0.) (Js.float (float pos));
+           scroll_pos := None )
+ 
+ let%client popup ?(a = []) ?(enable_scrolling_hack = true) ?close_button
+diff --git a/src/widgets/ot_pulltorefresh.eliom b/src/widgets/ot_pulltorefresh.eliom
+index 016debef..5a596126 100644
+--- a/src/widgets/ot_pulltorefresh.eliom
++++ b/src/widgets/ot_pulltorefresh.eliom
+@@ -27,8 +27,8 @@ end
+ 
+ module Make (Conf : CONF) = struct
+   let dragThreshold = Conf.dragThreshold
+-  let dragStart = ref (-1)
+-  let scrollXStart = ref (-1)
++  let dragStart = ref (-1.)
++  let scrollXStart = ref (-1.)
+   let distance = ref 0.
+   let scale = Conf.scale
+   let top = ref true
+@@ -41,7 +41,7 @@ module Make (Conf : CONF) = struct
+ 
+   let scroll_handler () =
+     let _, y = Dom_html.getDocumentScroll () in
+-    if y > 0 then top := false else top := true
++    if y > 0. then top := false else top := true
+ 
+   let touchstart_handler ev _ =
+     Dom_html.stopPropagation ev;
+@@ -50,8 +50,8 @@ module Make (Conf : CONF) = struct
+      else
+        let touch = ev##.changedTouches##item 0 in
+        Js.Optdef.iter touch (fun touch ->
+-         dragStart := touch##.clientY;
+-         scrollXStart := touch##.clientX);
++         dragStart := Js.to_float touch##.clientY;
++         scrollXStart := Js.to_float touch##.clientX);
+        first_move := true;
+        Manip.Class.remove container "ot-pull-refresh-transition-on");
+     Lwt.return_unit
+@@ -71,7 +71,7 @@ module Make (Conf : CONF) = struct
+     if not !scrollingX
+     then (
+       Dom_html.stopPropagation ev;
+-      if !dragStart >= 0
++      if !dragStart >= 0.
+       then
+         if !refreshFlag
+         then Dom.preventDefault ev
+@@ -79,10 +79,13 @@ module Make (Conf : CONF) = struct
+         then (
+           let target = ev##.changedTouches##item 0 in
+           Js.Optdef.iter target (fun target ->
+-            let dY = - !dragStart + target##.clientY in
+-            distance := Float.sqrt (float_of_int dY) *. scale;
++            let dY = -. !dragStart +. Js.to_float target##.clientY in
++            distance := Float.sqrt dY *. scale;
+             if !first_move
+-            then scrollingX := abs (!scrollXStart - target##.clientX) > abs dY);
++            then
++              scrollingX :=
++                abs_float (!scrollXStart -. Js.to_float target##.clientX)
++                > abs_float dY);
+           (*move the container if and only if at the top of the document and
+             the page is scrolled down*)
+           if !top && !distance > 0. && not !scrollingX
+@@ -140,7 +143,7 @@ module Make (Conf : CONF) = struct
+            (Js.float 500.)))
+ 
+   let touchend_handler ev _ =
+-    if !top && !distance > 0. && !dragStart >= 0
++    if !top && !distance > 0. && !dragStart >= 0.
+     then
+       if !refreshFlag
+       then Dom.preventDefault ev
+@@ -150,9 +153,9 @@ module Make (Conf : CONF) = struct
+         else scroll_back ();
+         (*reinitialize paramaters*)
+         joinRefreshFlag := false;
+-        dragStart := -1;
++        dragStart := -1.;
+         distance := 0.);
+-    scrollXStart := -1;
++    scrollXStart := -1.;
+     scrollingX := false;
+     Lwt.return_unit
+ 
+diff --git a/src/widgets/ot_swipe.eliom b/src/widgets/ot_swipe.eliom
+index f371d664..7077e7b0 100644
+--- a/src/widgets/ot_swipe.eliom
++++ b/src/widgets/ot_swipe.eliom
+@@ -8,7 +8,7 @@ open%client Lwt.Syntax
+ 
+ (** sensibility for detecting swipe left/right or up/down *)
+ 
+-let%client threshold = 0
++let%client threshold = 0.
+ let%client px_of_int v = Js.string (string_of_int v ^ "px")
+ 
+ let%client identifier ev =
+@@ -20,14 +20,14 @@ let%client identifier ev =
+ let%client clX ev =
+   Js.Optdef.case
+     ev ##. changedTouches ## (item 0)
+-    (fun () -> 0)
+-    (fun a -> a##.clientX)
++    (fun () -> 0.)
++    (fun a -> Js.to_float a##.clientX)
+ 
+ let%client clY ev =
+   Js.Optdef.case
+     ev ##. changedTouches ## (item 0)
+-    (fun () -> 0)
+-    (fun a -> a##.clientY)
++    (fun () -> 0.)
++    (fun a -> Js.to_float a##.clientY)
+ 
+ let%client add_transition transition_duration =
+   let s = Js.string (Printf.sprintf "%.2fs" transition_duration) in
+@@ -109,14 +109,14 @@ let%shared bind ?(transition_duration = 0.3)
+     [%client
+       (let elt = ~%elt in
+        let elt' = To_dom.of_element elt in
+-       let startx = ref 0 (* position when touch starts *) in
+-       let starty = ref 0 (* position when touch starts *) in
++       let startx = ref 0. (* position when touch starts *) in
++       let starty = ref 0. (* position when touch starts *) in
+        let status = ref Stopped in
+        let onpanend ev aa =
+          if !status <> Start
+          then (
+            add_transition ~%transition_duration elt';
+-           let left = ~%compute_final_pos ev (clX ev - !startx) in
++           let left = ~%compute_final_pos ev (truncate (clX ev -. !startx)) in
+            elt'##.style##.left := px_of_int left;
+            Eliom_lib.Option.iter (fun f -> f ev left) ~%onend;
+            Lwt.async (fun () ->
+@@ -128,25 +128,25 @@ let%shared bind ?(transition_duration = 0.3)
+        in
+        let onpanstart0 () = status := Start in
+        let onpanstart ev _ =
+-         startx := clX ev - elt'##.offsetLeft;
++         startx := clX ev -. float elt'##.offsetLeft;
+          starty := clY ev;
+          onpanstart0 ();
+          Lwt.return_unit
+        in
+        let onpan ev aa =
+-         let left = clX ev - !startx in
++         let left = clX ev -. !startx in
+          let do_pan left = elt'##.style##.left := px_of_int left in
+          if !status = Start
+          then
+            status :=
+-             if abs (clY ev - !starty) >= abs left
++             if abs_float (clY ev -. !starty) >= abs_float left
+              then Aborted (* vertical scrolling *)
+-             else if abs left > threshold
++             else if abs_float left > threshold
+              then (
+                (* We decide to take the event *)
+                Manip.Class.add elt "ot-swiping";
+                remove_transition elt';
+-               Eliom_lib.Option.iter (fun f -> f ev left) ~%onstart;
++               Eliom_lib.Option.iter (fun f -> f ev (truncate left)) ~%onstart;
+                (* We send a touchcancel to the parent (who received the start) *)
+                dispatch_event ~ev elt' "touchcancel" (clX ev) (clY ev);
+                In_progress)
+@@ -156,7 +156,7 @@ let%shared bind ?(transition_duration = 0.3)
+          if !status = In_progress
+          then (
+            match min, max with
+-           | Some min, _ when left < min ->
++           | Some min, _ when left < float min ->
+                (* min reached.
+                     We stop the movement of this element
+                     and dispatch it to the parent. *)
+@@ -164,10 +164,12 @@ let%shared bind ?(transition_duration = 0.3)
+                Eliom_lib.Option.iter (fun f -> f ev min) ~%onmove;
+                do_pan min;
+                (* We send a touchstart event to the parent *)
+-               dispatch_event ~ev elt' "touchstart" (min + !startx) (clY ev);
++               dispatch_event ~ev elt' "touchstart"
++                 (float min +. !startx)
++                 (clY ev);
+                (* We propagate *)
+                Lwt.return_unit
+-           | _, Some max when left > max ->
++           | _, Some max when left > float max ->
+                (* max reached.
+                     We stop the movement of this element
+                     and dispatch it to the parent. *)
+@@ -175,21 +177,23 @@ let%shared bind ?(transition_duration = 0.3)
+                Eliom_lib.Option.iter (fun f -> f ev max) ~%onmove;
+                do_pan max;
+                (* We send a touchstart event to the parent *)
+-               dispatch_event ~ev elt' "touchstart" (max + !startx) (clY ev);
++               dispatch_event ~ev elt' "touchstart"
++                 (float max +. !startx)
++                 (clY ev);
+                (* We propagate *)
+                Lwt.return_unit
+            | _ ->
+                Dom_html.stopPropagation ev;
+                Dom.preventDefault ev;
+-               Eliom_lib.Option.iter (fun f -> f ev left) ~%onmove;
+-               do_pan left;
++               Eliom_lib.Option.iter (fun f -> f ev (truncate left)) ~%onmove;
++               do_pan (int_of_float (left +. 0.5));
+                Lwt.return_unit)
+          else
+            (* Shall we restart swiping this element? *)
+            let restart_pos =
+              match !status, min, max with
+-             | Below, Some min, _ when left >= min -> Some min
+-             | Above, _, Some max when left <= max -> Some max
++             | Below, Some min, _ when left >= float min -> Some min
++             | Above, _, Some max when left <= float max -> Some max
+              | _ -> None
+            in
+            match restart_pos with
+@@ -198,11 +202,12 @@ let%shared bind ?(transition_duration = 0.3)
+                (* We send a touchmove event to the parent to fix
+                     its position precisely,
+                     but no touchend because it would possibly trigger a transition. *)
+-               dispatch_event ~ev elt' "touchmove" (restart_pos + !startx)
++               dispatch_event ~ev elt' "touchmove"
++                 (float restart_pos +. !startx)
+                  (clY ev);
+                onpanstart0 ( (* restart_pos + !startx *) );
+                Dom_html.stopPropagation ev;
+-               do_pan left;
++               do_pan (int_of_float (left +. 0.5));
+                Lwt.return_unit
+            | None -> (* We propagate *) Lwt.return_unit
+        in
+diff --git a/src/widgets/ot_swipe.eliomi b/src/widgets/ot_swipe.eliomi
+index c97b9a7b..e3103a21 100644
+--- a/src/widgets/ot_swipe.eliomi
++++ b/src/widgets/ot_swipe.eliomi
+@@ -33,14 +33,14 @@ val bind :
+ 
+ [%%client.start]
+ 
+-val clX : Dom_html.touchEvent Js.t -> int
+-val clY : Dom_html.touchEvent Js.t -> int
+-val threshold : int
++val clX : Dom_html.touchEvent Js.t -> float
++val clY : Dom_html.touchEvent Js.t -> float
++val threshold : float
+ 
+ val dispatch_event :
+    ev:Dom_html.touchEvent Js.t
+   -> Dom_html.element Js.t
+   -> string
+-  -> int
+-  -> int
++  -> float
++  -> float
+   -> unit
+diff --git a/src/widgets/ot_time_picker.eliom b/src/widgets/ot_time_picker.eliom
+index 63ff6be7..9057e408 100644
+--- a/src/widgets/ot_time_picker.eliom
++++ b/src/widgets/ot_time_picker.eliom
+@@ -215,11 +215,9 @@ let%client wrap_touch_aux ev f =
+   assert (oy' >= oy);
+   Js.Optdef.iter ev ##. changedTouches ## (item 0) @@ fun touch0 ->
+   let x =
+-    float_of_int (touch0##.clientX - truncate ox) *. 100. /. (ox' -. ox)
+-    |> truncate
++    (Js.to_float touch0##.clientX -. ox) *. 100. /. (ox' -. ox) |> truncate
+   and y =
+-    float_of_int (touch0##.clientY - truncate oy) *. 100. /. (oy' -. oy)
+-    |> truncate
++    (Js.to_float touch0##.clientY -. oy) *. 100. /. (oy' -. oy) |> truncate
+   in
+   f (cartesian_to_polar (x, y))
+ 
+@@ -238,12 +236,12 @@ let%client wrap_click_aux ev f =
+   and ox' = Js.to_float r##.right
+   and oy = Js.to_float r##.top
+   and oy' = Js.to_float r##.bottom
+-  and x = ev##.clientX
+-  and y = ev##.clientY in
++  and x = Js.to_float ev##.clientX
++  and y = Js.to_float ev##.clientY in
+   assert (ox' > ox);
+   assert (oy' > oy);
+-  let x = float_of_int (x - truncate ox) *. 100. /. (ox' -. ox) |> truncate
+-  and y = float_of_int (y - truncate oy) *. 100. /. (oy' -. oy) |> truncate in
++  let x = (x -. ox) *. 100. /. (ox' -. ox) |> truncate
++  and y = (y -. oy) *. 100. /. (oy' -. oy) |> truncate in
+   f (cartesian_to_polar (x, y))
+ 
+ let%client wrap_click ev (f : _ rf) =
+diff --git a/src/widgets/ot_tongue.eliom b/src/widgets/ot_tongue.eliom
+index ec3e9018..695fe745 100644
+--- a/src/widgets/ot_tongue.eliom
++++ b/src/widgets/ot_tongue.eliom
+@@ -57,14 +57,14 @@ let%client now () = Js.to_float (new%js Js.date_now)##getTime /. 1000.
+ let%client clX ev =
+   Js.Optdef.case
+     ev ##. changedTouches ## (item 0)
+-    (fun () -> 0)
+-    (fun a -> a##.clientX)
++    (fun () -> 0.)
++    (fun a -> Js.to_float a##.clientX)
+ 
+ let%client clY ev =
+   Js.Optdef.case
+     ev ##. changedTouches ## (item 0)
+-    (fun () -> 0)
+-    (fun a -> a##.clientY)
++    (fun () -> 0.)
++    (fun a -> Js.to_float a##.clientY)
+ 
+ let%client documentsize vert =
+   (if vert then snd else fst) (Ot_size.get_document_size ())
+@@ -118,10 +118,10 @@ let%shared class_of_side = function
+ let%client get_size ~side elt =
+   let w, h = Ot_size.get_document_size () in
+   match side with
+-  | `Top -> int_of_float (Ot_size.client_bottom elt)
+-  | `Bottom -> h - int_of_float (Ot_size.client_top elt)
+-  | `Left -> int_of_float (Ot_size.client_right elt)
+-  | `Right -> w - int_of_float (Ot_size.client_left elt)
++  | `Top -> Ot_size.client_bottom elt
++  | `Bottom -> float h -. Ot_size.client_top elt
++  | `Left -> Ot_size.client_right elt
++  | `Right -> float w -. Ot_size.client_left elt
+ 
+ let%client px_of_simple_stop vert tongue_elt stop =
+   let docsize = documentsize vert in
+@@ -223,15 +223,15 @@ let%client bind side stops init handle update set_before_signal set_after_signal
+   let defaultduration = (Js.Unsafe.coerce elt'##.style)##.transitionDuration in
+   let handle' = To_dom.of_element handle in
+   let vert = side = `Top || side = `Bottom in
+-  let sign = match side with `Top | `Left -> -1 | _ -> 1 in
++  let sign = match side with `Top | `Left -> -1. | _ -> 1. in
+   let cl = if vert then clY else clX in
+   let prev_speed = ref 0. in
+   let currentstop = ref init in
+-  let startpos = ref 0 in
+-  let currentpos = ref 0 in
+-  let previouspos = ref 0 in
++  let startpos = ref 0. in
++  let currentpos = ref 0. in
++  let previouspos = ref 0. in
+   let previoustimestamp = ref 0. in
+-  let startsize = ref 0 (* height or width of visible part in pixel *) in
++  let startsize = ref 0. (* height or width of visible part in pixel *) in
+   let animation_frame_requested = ref false in
+   let set speed (stop, is_attractor) =
+     let previousstop = !currentstop in
+@@ -273,9 +273,7 @@ let%client bind side stops init handle update set_before_signal set_after_signal
+       if delta_t = 0.
+       then prev_speed
+       else
+-        let cur_speed =
+-          -.(float sign *. (float delta -. float prev_delta)) /. delta_t
+-        in
++        let cur_speed = -.(sign *. (delta -. prev_delta)) /. delta_t in
+         if delta_t >= average_time
+         then cur_speed
+         else
+@@ -285,11 +283,13 @@ let%client bind side stops init handle update set_before_signal set_after_signal
+     timestamp, speed
+   in
+   let next_stop speed pos =
+-    let dpos = sign * (pos - !previouspos) in
++    let dpos = sign *. (pos -. !previouspos) in
+     let stops = px_of_stops elt vert stops in
+-    let newsize = !startsize + (sign * (!startpos - !currentpos)) in
++    let newsize =
++      truncate (!startsize +. (sign *. (!startpos -. !currentpos)))
++    in
+     let maxsize = full_size elt vert in
+-    if dpos < 0
++    if dpos < 0.
+     then stop_after ~speed ~maxsize newsize stops
+     else stop_before ~speed ~maxsize newsize stops
+   in
+@@ -319,9 +319,9 @@ let%client bind side stops init handle update set_before_signal set_after_signal
+       animation_frame_requested := true;
+       let* () = Lwt_js_events.request_animation_frame () in
+       animation_frame_requested := false;
+-      let d = sign * (!startpos - !currentpos) in
++      let d = sign *. (!startpos -. !currentpos) in
+       let maxsize = full_size elt vert in
+-      let size = min (!startsize + d) maxsize in
++      let size = min (truncate (!startsize +. d)) maxsize in
+       set_swipe_pos size; set_tongue_position size; Lwt.return_unit)
+     else Lwt.return_unit
+   in
+@@ -347,7 +347,7 @@ let%client bind side stops init handle update set_before_signal set_after_signal
+     startsize := get_size ~side elt';
+     (* To allow the user to stop the transition at the current position *)
+     (* FIXME: This doesn't work too well when an adress bar appears while swiping *)
+-    set_tongue_position !startsize;
++    set_tongue_position (truncate !startsize);
+     let a = touchmoves elt' ontouchmove in
+     let b = touchend elt' >>= ontouchend in
+     let c = touchcancel elt' >>= ontouchcancel in
