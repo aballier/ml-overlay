@@ -1,0 +1,13 @@
+Index: virtual_dom-0.17.0/src/attr.ml
+===================================================================
+--- virtual_dom-0.17.0.orig/src/attr.ml
++++ virtual_dom-0.17.0/src/attr.ml
+@@ -522,7 +522,7 @@ let on_file_input handler =
+   on Type_id.event "input" (fun ev ->
+     Js.Opt.case ev##.target const_ignore (fun target ->
+       Js.Opt.case (Dom_html.CoerceTo.input target) const_ignore (fun target ->
+-        Js.Optdef.case target##.files const_ignore (fun files -> handler ev files))))
++        handler ev target##.files)))
+ ;;
+ 
+ module Always_focus_hook = struct

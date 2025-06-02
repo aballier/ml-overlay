@@ -18,4 +18,5 @@ RDEPEND=""
 DEPEND="${RDEPEND}"
 PATCHES=(
 	"${FILESDIR}/oc53.patch"
+	"${FILESDIR}/jsoo.patch"
 )
