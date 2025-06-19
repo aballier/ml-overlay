@@ -7,7 +7,7 @@ RESTRICT="installsources"
 IUSE="+ocamlopt"
 
 DESCRIPTION="A line editor to be used with interactive commands"
-SRC_URI="https://github.com/chetmurthy/ledit/archive/${PN}-$(ver_rs 0- '-').tar.gz"
+SRC_URI="https://github.com/chetmurthy/ledit/archive/refs/tags/${PV}.tar.gz -> ${P}.tar.gz"
 HOMEPAGE="http://pauillac.inria.fr/~ddr/ledit/ https://github.com/chetmurthy/ledit"
 
 DEPEND=">=dev-lang/ocaml-3.09:=[ocamlopt?]
@@ -18,7 +18,6 @@ RDEPEND="${DEPEND}"
 SLOT="0"
 LICENSE="BSD"
 KEYWORDS="~amd64 ~ppc ~x86"
-S="${WORKDIR}/${PN}-${PN}-$(ver_rs 0- '-')"
 
 src_compile() {
 	emake -j1 all
