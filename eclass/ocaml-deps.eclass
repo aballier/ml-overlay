@@ -837,6 +837,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-libpng") -> ()
 	| String (_,"conf-libssl") -> ()
 	| String (_,"conf-libX11") -> ()
+	| String (_,"conf-libXft") -> ()
 	| String (_,"conf-linux-libc-dev") -> ()
 	| String (_,"conf-nanomsg") -> ()
 	| String (_,"conf-ncurses") -> ()
