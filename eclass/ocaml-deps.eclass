@@ -337,6 +337,7 @@ cohttp-lwt-unix re ocsigen-ppx-rpc"
 	[pbkdf]="mirage-crypto digestif"
 	[pcap-format]="cstruct ppx_cstruct"
 	[pcre]="dune-configurator"
+	[pcre2]="dune-configurator"
 	[pgocaml]="calendar csv hex ppx_sexp_conv re ppx_deriving rresult sexplib camlp-streams"
 	[pgocaml_ppx]="pgocaml ppx_optcomp ppxlib"
 	[pomap]=""
@@ -668,6 +669,7 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[pbkdf]="alcotest ohex"
 	[pcap-format]="ounit2"
 	[pcre]="ounit2"
+	[pcre2]="ounit2"
 	[pp]="ppx_expect"
 	[ppxlib]="cinaps findlib re sexplib0"
 	[ppx_blob]="alcotest"
@@ -831,6 +833,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-libgif") -> ()
 	| String (_,"conf-libjpeg") -> ()
 	| String (_,"conf-libpcre") -> ()
+	| String (_,"conf-libpcre2-8") -> ()
 	| String (_,"conf-libpng") -> ()
 	| String (_,"conf-libssl") -> ()
 	| String (_,"conf-libX11") -> ()
