@@ -18,7 +18,7 @@ IUSE="doc +ocamlopt"
 DEPEND=">=dev-lang/ocaml-3.10:=[ocamlopt?]
 	dev-ml/camlp-streams:=
 	dev-ml/re:=
-	dev-ml/pcre:=
+	dev-ml/pcre2:=
 	dev-ml/rresult:=
 	dev-ml/bos:=
 	dev-ml/fmt:=
