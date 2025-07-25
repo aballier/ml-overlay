@@ -3,21 +3,21 @@
 
 EAPI=8
 
-inherit findlib
+# Can't use opam-installer here as it is an opam dep...
+OPAM_INSTALLER_DEP=""
+
+inherit findlib opam
 
 DESCRIPTION="The transitory OCaml software packager"
 HOMEPAGE="http://erratique.ch/software/topkg https://github.com/dbuenzli/topkg"
-SRC_URI="https://github.com/dbuenzli/topkg/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://erratique.ch/software/topkg/releases/${P}.tbz"
 
 LICENSE="ISC"
 SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 IUSE=""
 
-RDEPEND="dev-ml/result:=
-	dev-ml/ocamlbuild:=
-	dev-ml/findlib:=
-	dev-lang/ocaml:="
+RDEPEND=""
 DEPEND="${RDEPEND}"
 
 src_compile() {
