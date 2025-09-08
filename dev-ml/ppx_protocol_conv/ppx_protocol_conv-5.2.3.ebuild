@@ -16,7 +16,3 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-PATCHES=(
-	"${FILESDIR}/stdio.patch"
-	"${FILESDIR}/ppxlib.patch"
-)
