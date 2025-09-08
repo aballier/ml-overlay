@@ -226,7 +226,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[lablgtk3-sourceview3]="lablgtk3"
 	[lambdasoup]="markup camlp-streams"
 	[lambda-term]="lwt_react lwt logs zed react mew_vi"
-	[ldap]="pcre ssl ocamlnet camlp-streams"
+	[ldap]="base64 ssl re camlp-streams"
 	[logs]="cmdliner fmt js_of_ocaml-compiler lwt"
 	[logs-async]="logs async_kernel"
 	[logs-async-reporter]="logs fmt async zstandard core yojson"
