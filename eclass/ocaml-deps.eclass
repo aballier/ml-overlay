@@ -467,7 +467,7 @@ ppx_ignore_instrumentation ppx_log ppx_string_conv"
 	[time_now]="base jane-street-headers jst-config ppx_base ppx_optcomp"
 	[timezone]="core ppx_jane"
 	[tls]="digestif mirage-crypto mirage-crypto-pk mirage-crypto-rng x509
-domain-name fmt mirage-crypto-ec kdf logs ipaddr ohex"
+domain-name fmt mirage-crypto-ec kdf logs ipaddr ohex ptime"
 	[tls-lwt]="tls cmdliner lwt mirage-crypto-rng ptime"
 	[topkg]="ocamlbuild"
 	[trie]=""
