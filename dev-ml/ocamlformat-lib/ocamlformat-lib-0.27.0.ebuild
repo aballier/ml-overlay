@@ -18,3 +18,4 @@ DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
 S="${WORKDIR}/ocamlformat-${PV}"
+PATCHES=( "${FILESDIR}/cmdliner.patch" )
