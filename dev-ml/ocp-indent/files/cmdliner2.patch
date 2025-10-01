@@ -1,0 +1,100 @@
+From 4b6e160c0d310417065cb04a8bf2b1645d82086d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Daniel=20B=C3=BCnzli?= <daniel.buenzli@erratique.ch>
+Date: Sun, 9 Mar 2025 18:56:56 +0100
+Subject: [PATCH] Handle cmdliner < 2.0 deprecations.
+
+---
+ src/indentArgs.ml  | 12 ++++++------
+ src/indentArgs.mli |  2 +-
+ src/indentMain.ml  | 15 ++++++++-------
+ 3 files changed, 15 insertions(+), 14 deletions(-)
+
+diff --git a/src/indentArgs.ml b/src/indentArgs.ml
+index 8d9e1255..7b9b8de9 100644
+--- a/src/indentArgs.ml
++++ b/src/indentArgs.ml
+@@ -112,21 +112,21 @@ let options =
+     let arg =
+       Arg.(value & opt_all (list string) [] & info ["syntax"] ~doc)
+     in
+-    Term.(pure List.flatten $ arg)
++    Term.(const List.flatten $ arg)
+   in
+   let load_pkgs =
+     let doc = "Load plugins." in
+     let arg =
+       Arg.(value & opt_all (list string) [] & info ["load-pkgs"] ~doc)
+     in
+-    Term.(pure List.flatten $ arg)
++    Term.(const List.flatten $ arg)
+   in
+   let load_mods =
+     let doc = "Load plugins." in
+     let arg =
+       Arg.(value & opt_all (list string) [] & info ["load-mods"] ~doc)
+     in
+-    Term.(pure List.flatten $ arg)
++    Term.(const List.flatten $ arg)
+   in
+   let files =
+     let arg = Arg.(value & pos_all file [] & info [] ~docv:"FILE") in
+@@ -134,7 +134,7 @@ let options =
+       | [] -> [InChannel stdin]
+       | l -> List.map (function "-" -> InChannel stdin | s -> File s) l
+     in
+-    Term.(pure f $ arg)
++    Term.(const f $ arg)
+   in
+   let build_t
+       indent_config debug inplace indent_empty lines
+@@ -188,7 +188,7 @@ let options =
+     )
+   in
+   let t =
+-    Term.(pure build_t
++    Term.(const build_t
+           $ config $ debug $ inplace $ indent_empty $ lines $ numeric
+           $ output $ print_config $ syntax
+           $ load_pkgs $ load_mods $ files)
+@@ -237,4 +237,4 @@ let info =
+         `LICENSE' distributed with the sources."
+   ]
+   in
+-  Term.info "ocp-indent" ~version:IndentVersion.version ~doc ~man
++  Cmd.info "ocp-indent" ~version:IndentVersion.version ~doc ~man
+diff --git a/src/indentArgs.mli b/src/indentArgs.mli
+index 1e5111dd..1003d628 100644
+--- a/src/indentArgs.mli
++++ b/src/indentArgs.mli
+@@ -33,4 +33,4 @@ type t = private {
+ 
+ val options: (t * input list) Cmdliner.Term.t
+ 
+-val info: Cmdliner.Term.info
++val info: Cmdliner.Cmd.info
+diff --git a/src/indentMain.ml b/src/indentMain.ml
+index 115589d8..01e1e75b 100644
+--- a/src/indentMain.ml
++++ b/src/indentMain.ml
+@@ -92,13 +92,14 @@ let indent_file args = function
+           close_in ic; raise e
+ 
+ let main =
+-  Cmdliner.Term.(
+-    pure (fun (args,files) -> List.iter (indent_file args) files)
+-    $ Args.options
+-  ),
+-  Args.info
++  Cmdliner.Cmd.v Args.info
++    Cmdliner.Term.(
++      const (fun (args,files) -> List.iter (indent_file args) files)
++      $ Args.options
++    )
++
+ 
+ let _ =
+-  match Cmdliner.Term.eval main with
+-  | `Error _ -> exit 1
++  match Cmdliner.Cmd.eval_value main with
++  | Error _ -> exit 1
+   | _ -> exit 0
