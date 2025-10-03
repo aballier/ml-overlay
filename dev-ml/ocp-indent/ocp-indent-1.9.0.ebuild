@@ -17,7 +17,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
-PATCHES=(
-	"${FILESDIR}/cmdliner.patch"
-	"${FILESDIR}/cmdliner2.patch"
-)
