@@ -1,0 +1,41 @@
+From 2599d9728e22eb96b5e5cd402a48696658f42fb5 Mon Sep 17 00:00:00 2001
+From: Patrick Ferris <patrick@sirref.org>
+Date: Fri, 4 Apr 2025 10:22:19 +0100
+Subject: [PATCH] Bump trunk CI to 5.4.0
+
+This also updates the easier parts of ppxlib to be compatible with 5.4.0.
+We will need to version the Location module.
+
+Signed-off-by: Patrick Ferris <patrick@sirref.org>
+---
+ .github/workflows/trunk-build.yml          | 2 +-
+ ast/supported_version/supported_version.ml | 1 +
+ astlib/config/gen.ml                       | 1 +
+ dune-project                               | 2 +-
+ ppxlib.opam                                | 2 +-
+ 5 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/ast/supported_version/supported_version.ml b/ast/supported_version/supported_version.ml
+index ae8a5d566..d0a1aa3d9 100644
+--- a/ast/supported_version/supported_version.ml
++++ b/ast/supported_version/supported_version.ml
+@@ -13,6 +13,7 @@ let all =
+     (5, 1);
+     (5, 2);
+     (5, 3);
++    (5, 4);
+   ]
+ 
+ let to_string (a, b) =
+diff --git a/astlib/config/gen.ml b/astlib/config/gen.ml
+index 9aecd3994..a23114b87 100644
+--- a/astlib/config/gen.ml
++++ b/astlib/config/gen.ml
+@@ -23,6 +23,7 @@ let () =
+     | 5, 1 -> "501"
+     | 5, 2 -> "502"
+     | 5, 3 -> "503"
++    | 5, 4 -> "504"
+     | _ ->
+         Printf.eprintf "Unknown OCaml version %s\n" ocaml_version_str;
+         exit 1)
