@@ -5,7 +5,7 @@ EAPI=8
 
 inherit jbuilder
 
-OCV=503
+OCV=504
 
 DESCRIPTION="A tool that indexes value usages from cmt files"
 HOMEPAGE="https://github.com/voodoos/ocaml-index"
