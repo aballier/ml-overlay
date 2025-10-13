@@ -16,6 +16,7 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
+PATCHES=( "${FILESDIR}/oc54.patch" )
 
 src_prepare() {
 	jbuilder_src_prepare
