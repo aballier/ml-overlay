@@ -1,0 +1,14 @@
+Index: gettext-0.5.0/src/bin/ocaml-xgettext/xgettext.ml
+===================================================================
+--- gettext-0.5.0.orig/src/bin/ocaml-xgettext/xgettext.ml
++++ gettext-0.5.0/src/bin/ocaml-xgettext/xgettext.ml
+@@ -112,7 +112,8 @@ let rec is_like lid = function
+   | [] -> false
+   | func :: functions -> (
+       match lid with
+-      | (Lident f | Ldot (_, f)) when f = func -> true
++      | Lident f when f = func -> true
++      | Ldot (_, f) when f.txt = func -> true
+       | _ -> is_like lid functions )
+ 
+ let visit_expr (iterator : Ast_iterator.iterator) expr =

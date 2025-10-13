@@ -17,3 +17,4 @@ IUSE=""
 RDEPEND="sys-devel/gettext"
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/gettext-${PV}"
+PATCHES=( "${FILESDIR}/oc54.patch" )
