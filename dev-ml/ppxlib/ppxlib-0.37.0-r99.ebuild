@@ -7,9 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Base library and tools for ppx rewriters "
 HOMEPAGE="https://github.com/ocaml-ppx/ppxlib"
-#SRC_URI="https://github.com/ocaml-ppx/ppxlib/archive/${PV}.tar.gz -> ${P}.tar.gz"
-PHASH=757f6c284b1fe748d5027eef3bbef924b6bbd7ce
-SRC_URI="https://github.com/ocaml-ppx/ppxlib/archive/${PHASH}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/ocaml-ppx/ppxlib/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="Apache-2.0"
 SLOT="0/${PV}"
@@ -18,4 +16,7 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-S="${WORKDIR}/${PN}-${PHASH}"
+PATCHES=(
+	"${FILESDIR}/oc54.patch"
+	"${FILESDIR}/oc54-2.patch"
+)
