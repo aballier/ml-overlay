@@ -1,0 +1,94 @@
+From 298d0937f103ed041a9fb2aab12dd5788d2eacd4 Mon Sep 17 00:00:00 2001
+From: Lily Rose <lily@rose.place>
+Date: Tue, 21 Oct 2025 23:01:48 +1100
+Subject: [PATCH] Fix av packages to support ffmpeg 8.X
+
+---
+ av/av_stubs.c             | 12 ++++++------
+ avcodec/avcodec_stubs.c   |  4 ++--
+ avfilter/avfilter_stubs.c |  4 ++--
+ 3 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/av/av_stubs.c b/av/av_stubs.c
+index ece3f4b..fa97d69 100644
+--- a/av/av_stubs.c
++++ b/av/av_stubs.c
+@@ -2402,12 +2402,12 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
+     snprintf(attr, sizeof(attr), "fLaC");
+   } else if (stream->codecpar->codec_id == AV_CODEC_ID_HEVC) {
+     uint8_t *data = stream->codecpar->extradata;
+-    int profile = FF_PROFILE_UNKNOWN;
+-    int level = FF_LEVEL_UNKNOWN;
++    int profile = AV_PROFILE_UNKNOWN;
++    int level = AV_PROFILE_UNKNOWN;
+ 
+-    if (stream->codecpar->profile != FF_PROFILE_UNKNOWN)
++    if (stream->codecpar->profile != AV_PROFILE_UNKNOWN)
+       profile = stream->codecpar->profile;
+-    if (stream->codecpar->level != FF_LEVEL_UNKNOWN)
++    if (stream->codecpar->level != AV_LEVEL_UNKNOWN)
+       level = stream->codecpar->level;
+ 
+     /* check the boundary of data which from current position is small than
+@@ -2445,7 +2445,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
+       data++;
+     }
+     if (stream->codecpar->codec_tag == MKTAG('h', 'v', 'c', '1') &&
+-        profile != FF_PROFILE_UNKNOWN && level != FF_LEVEL_UNKNOWN) {
++        profile != AV_PROFILE_UNKNOWN && level != AV_LEVEL_UNKNOWN) {
+       snprintf(attr, sizeof(attr), "%s.%d.4.L%d.B01",
+                av_fourcc2str(stream->codecpar->codec_tag), profile, level);
+     } else
+@@ -2456,7 +2456,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
+   } else if (stream->codecpar->codec_id == AV_CODEC_ID_MP3) {
+     snprintf(attr, sizeof(attr), "mp4a.40.34");
+   } else if (stream->codecpar->codec_id == AV_CODEC_ID_AAC) {
+-    if (stream->codecpar->profile != FF_PROFILE_UNKNOWN)
++    if (stream->codecpar->profile != AV_PROFILE_UNKNOWN)
+       snprintf(attr, sizeof(attr), "mp4a.40.%d", stream->codecpar->profile + 1);
+     else
+       goto fail;
+diff --git a/avcodec/avcodec_stubs.c b/avcodec/avcodec_stubs.c
+index 200f0e1..2868c2a 100644
+--- a/avcodec/avcodec_stubs.c
++++ b/avcodec/avcodec_stubs.c
+@@ -1058,7 +1058,7 @@ CAMLprim value ocaml_avcodec_descriptor(enum AVCodecID id) {
+ 
+   len = 0;
+   profile = (struct AVProfile *)descriptor->profiles;
+-  while (profile && profile->profile != FF_PROFILE_UNKNOWN) {
++  while (profile && profile->profile != AV_PROFILE_UNKNOWN) {
+     len++;
+     profile++;
+   }
+@@ -1066,7 +1066,7 @@ CAMLprim value ocaml_avcodec_descriptor(enum AVCodecID id) {
+   tmp = caml_alloc_tuple(len);
+   len = 0;
+   profile = (struct AVProfile *)descriptor->profiles;
+-  while (profile && profile->profile != FF_PROFILE_UNKNOWN) {
++  while (profile && profile->profile != AV_PROFILE_UNKNOWN) {
+     _profile = caml_alloc_tuple(2);
+     Store_field(_profile, 0, Val_int(profile->profile));
+     Store_field(_profile, 1, caml_copy_string(profile->name));
+diff --git a/avfilter/avfilter_stubs.c b/avfilter/avfilter_stubs.c
+index 8a7b091..92f0370 100644
+--- a/avfilter/avfilter_stubs.c
++++ b/avfilter/avfilter_stubs.c
+@@ -115,7 +115,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
+ #if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(8, 3, 100)
+                     f->inputs, avfilter_pad_count(f->inputs), f->name
+ #else
+-                    f->inputs, f->nb_inputs, f->name
++                    f->inputs, avfilter_filter_pad_count(f, 0), f->name
+ #endif
+                     ));
+     Store_field(cur, 3,
+@@ -123,7 +123,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
+ #if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(8, 3, 100)
+                     f->outputs, avfilter_pad_count(f->outputs), f->name
+ #else
+-                    f->outputs, f->nb_outputs, f->name
++                    f->outputs, avfilter_filter_pad_count(f, 1), f->name
+ #endif
+                     ));
+     Store_field(cur, 4, value_of_avclass(&tmp, f->priv_class));
