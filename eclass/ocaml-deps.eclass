@@ -279,7 +279,7 @@ js_of_ocaml-tyxml lwt_log lwt_ppx tyxml ocsigenserver ipaddr reactiveData ppxlib
 	[ocamlbuild]=""
 	[ocamlc-loc]="dyn"
 	[ocamlformat]="ocamlformat-lib re csexp"
-	[ocamlformat-lib]="astring base camlp-streams csexp dune-build-info either fix fpath menhir menhirLib menhirSdk ocaml-version stdio uuseg uutf cmdliner ocp-indent"
+	[ocamlformat-lib]="astring base camlp-streams csexp dune-build-info either fix fpath menhir menhirLib menhirSdk ocaml-version stdio uuseg uutf cmdliner"
 	[ocamlformat-rpc-lib]="csexp"
 	[ocamlgraph]="stdlib-shims"
 	[ocamlgraph_gtk]="stdlib-shims lablgtk ocamlgraph"
