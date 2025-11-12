@@ -7,7 +7,7 @@ inherit jbuilder
 
 DESCRIPTION="Apply your unified diffs in pure OCaml"
 HOMEPAGE="https://github.com/hannesm/patch"
-SRC_URI="https://github.com/hannesm/patch/releases/download/v${PV}/${P}.tar.gz"
+SRC_URI="https://github.com/hannesm/patch/releases/download/v${PV}/${P}.tbz"
 
 LICENSE="MIT"
 SLOT="0/${PV}"
