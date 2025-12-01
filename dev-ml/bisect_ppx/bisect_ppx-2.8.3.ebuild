@@ -17,4 +17,4 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 BDEPEND=""
-PATCHES=( "${FILESDIR}/ppxlib.patch" )
+PATCHES=( "${FILESDIR}/ppxlib.patch" "${FILESDIR}/cmdliner.patch" )
