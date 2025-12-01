@@ -14,8 +14,7 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~arm ~arm64"
 IUSE=""
 
-RDEPEND="!<dev-ml/opam-2.0.0_beta
-	<dev-ml/cmdliner-2"
+RDEPEND="!<dev-ml/opam-2.0.0_beta"
 DEPEND="${RDEPEND}"
 
 S="${WORKDIR}/opam-${PV/_/-}"
