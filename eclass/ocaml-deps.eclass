@@ -73,7 +73,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[chrome-trace]=""
 	[cinaps]="re"
 	[cmdliner]=""
-	[cohttp]="re uri uri-sexp sexplib0 stringext base64 ppx_sexp_conv http logs"
+	[cohttp]="re uri uri-sexp sexplib0 stringext base64 ppx_sexp_conv http logs ipaddr"
 	[cohttp-async]="async ppx_sexp_conv uri-sexp async_kernel async_unix base cohttp conduit-async
 magic-mime logs fmt sexplib0 uri ipaddr core_unix http"
 	[cohttp-lwt]="cohttp lwt sexplib0 ppx_sexp_conv logs uri http ipaddr"
