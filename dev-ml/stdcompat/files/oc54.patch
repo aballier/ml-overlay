@@ -1,0 +1,116 @@
+--- stdcompat-21.1/configure.ac.orig	2025-08-20 02:18:12.000000000 -0600
++++ stdcompat-21.1/configure.ac	2025-10-16 09:41:47.202271264 -0600
+@@ -185,6 +185,7 @@ AC_WITH_OCAML_VERSION([5_0_0], [5.0.0])
+ AC_WITH_OCAML_VERSION([5_1_0], [5.1.0])
+ AC_WITH_OCAML_VERSION([5_2_0], [5.2.0])
+ AC_WITH_OCAML_VERSION([5_3_0], [5.3.0])
++AC_WITH_OCAML_VERSION([5_4_0], [5.4.0])
+ 
+ AS_IF([test "x$target_os_type" = "xWin32"],
+   [AC_WITH_BLOCK([WIN32])],
+--- stdcompat-21.1/Makefile.in.orig	2025-08-20 02:18:12.000000000 -0600
++++ stdcompat-21.1/Makefile.in	2025-10-16 09:44:27.639556951 -0600
+@@ -450,6 +450,7 @@ BEGIN_BEFORE_5_0_0 = @BEGIN_BEFORE_5_0_0
+ BEGIN_BEFORE_5_1_0 = @BEGIN_BEFORE_5_1_0@
+ BEGIN_BEFORE_5_2_0 = @BEGIN_BEFORE_5_2_0@
+ BEGIN_BEFORE_5_3_0 = @BEGIN_BEFORE_5_3_0@
++BEGIN_BEFORE_5_4_0 = @BEGIN_BEFORE_5_4_0@
+ BEGIN_FROM_3_07_0 = @BEGIN_FROM_3_07_0@
+ BEGIN_FROM_3_08_0 = @BEGIN_FROM_3_08_0@
+ BEGIN_FROM_3_09_0 = @BEGIN_FROM_3_09_0@
+@@ -476,6 +477,7 @@ BEGIN_FROM_5_0_0 = @BEGIN_FROM_5_0_0@
+ BEGIN_FROM_5_1_0 = @BEGIN_FROM_5_1_0@
+ BEGIN_FROM_5_2_0 = @BEGIN_FROM_5_2_0@
+ BEGIN_FROM_5_3_0 = @BEGIN_FROM_5_3_0@
++BEGIN_FROM_5_4_0 = @BEGIN_FROM_5_4_0@
+ BEGIN_WITHOUT_CYGWIN = @BEGIN_WITHOUT_CYGWIN@
+ BEGIN_WITHOUT_FLAMBDA2 = @BEGIN_WITHOUT_FLAMBDA2@
+ BEGIN_WITHOUT_MAGIC = @BEGIN_WITHOUT_MAGIC@
+@@ -516,6 +518,7 @@ C_BEGIN_BEFORE_5_0_0 = @C_BEGIN_BEFORE_5
+ C_BEGIN_BEFORE_5_1_0 = @C_BEGIN_BEFORE_5_1_0@
+ C_BEGIN_BEFORE_5_2_0 = @C_BEGIN_BEFORE_5_2_0@
+ C_BEGIN_BEFORE_5_3_0 = @C_BEGIN_BEFORE_5_3_0@
++C_BEGIN_BEFORE_5_4_0 = @C_BEGIN_BEFORE_5_4_0@
+ C_BEGIN_FROM_3_07_0 = @C_BEGIN_FROM_3_07_0@
+ C_BEGIN_FROM_3_08_0 = @C_BEGIN_FROM_3_08_0@
+ C_BEGIN_FROM_3_09_0 = @C_BEGIN_FROM_3_09_0@
+@@ -542,6 +545,7 @@ C_BEGIN_FROM_5_0_0 = @C_BEGIN_FROM_5_0_0
+ C_BEGIN_FROM_5_1_0 = @C_BEGIN_FROM_5_1_0@
+ C_BEGIN_FROM_5_2_0 = @C_BEGIN_FROM_5_2_0@
+ C_BEGIN_FROM_5_3_0 = @C_BEGIN_FROM_5_3_0@
++C_BEGIN_FROM_5_4_0 = @C_BEGIN_FROM_5_4_0@
+ C_BEGIN_WITHOUT_CYGWIN = @C_BEGIN_WITHOUT_CYGWIN@
+ C_BEGIN_WITHOUT_FLAMBDA2 = @C_BEGIN_WITHOUT_FLAMBDA2@
+ C_BEGIN_WITHOUT_MAGIC = @C_BEGIN_WITHOUT_MAGIC@
+@@ -578,6 +582,7 @@ C_END_BEFORE_5_0_0 = @C_END_BEFORE_5_0_0
+ C_END_BEFORE_5_1_0 = @C_END_BEFORE_5_1_0@
+ C_END_BEFORE_5_2_0 = @C_END_BEFORE_5_2_0@
+ C_END_BEFORE_5_3_0 = @C_END_BEFORE_5_3_0@
++C_END_BEFORE_5_4_0 = @C_END_BEFORE_5_4_0@
+ C_END_FROM_3_07_0 = @C_END_FROM_3_07_0@
+ C_END_FROM_3_08_0 = @C_END_FROM_3_08_0@
+ C_END_FROM_3_09_0 = @C_END_FROM_3_09_0@
+@@ -604,6 +609,7 @@ C_END_FROM_5_0_0 = @C_END_FROM_5_0_0@
+ C_END_FROM_5_1_0 = @C_END_FROM_5_1_0@
+ C_END_FROM_5_2_0 = @C_END_FROM_5_2_0@
+ C_END_FROM_5_3_0 = @C_END_FROM_5_3_0@
++C_END_FROM_5_4_0 = @C_END_FROM_5_4_0@
+ C_END_WITHOUT_CYGWIN = @C_END_WITHOUT_CYGWIN@
+ C_END_WITHOUT_FLAMBDA2 = @C_END_WITHOUT_FLAMBDA2@
+ C_END_WITHOUT_MAGIC = @C_END_WITHOUT_MAGIC@
+@@ -644,6 +650,7 @@ END_BEFORE_5_0_0 = @END_BEFORE_5_0_0@
+ END_BEFORE_5_1_0 = @END_BEFORE_5_1_0@
+ END_BEFORE_5_2_0 = @END_BEFORE_5_2_0@
+ END_BEFORE_5_3_0 = @END_BEFORE_5_3_0@
++END_BEFORE_5_4_0 = @END_BEFORE_5_4_0@
+ END_FROM_3_07_0 = @END_FROM_3_07_0@
+ END_FROM_3_08_0 = @END_FROM_3_08_0@
+ END_FROM_3_09_0 = @END_FROM_3_09_0@
+@@ -670,6 +677,7 @@ END_FROM_5_0_0 = @END_FROM_5_0_0@
+ END_FROM_5_1_0 = @END_FROM_5_1_0@
+ END_FROM_5_2_0 = @END_FROM_5_2_0@
+ END_FROM_5_3_0 = @END_FROM_5_3_0@
++END_FROM_5_4_0 = @END_FROM_5_4_0@
+ END_WITHOUT_CYGWIN = @END_WITHOUT_CYGWIN@
+ END_WITHOUT_FLAMBDA2 = @END_WITHOUT_FLAMBDA2@
+ END_WITHOUT_MAGIC = @END_WITHOUT_MAGIC@
+--- stdcompat-21.1/stdcompat__format_s.mli.in.orig	2025-08-20 02:18:12.000000000 -0600
++++ stdcompat-21.1/stdcompat__format_s.mli.in	2025-10-16 09:52:19.515175969 -0600
+@@ -44,6 +44,9 @@ type tag = string
+ type formatter_out_functions = Format.formatter_out_functions =
+   {
+   out_string: string -> int -> int -> unit ;
++@BEGIN_FROM_5_4_0@
++  out_width: string -> pos:int -> len:int -> int;
++@END_FROM_5_4_0@
+   out_flush: unit -> unit ;
+   out_newline: unit -> unit ;
+   out_spaces: int -> unit ;
+--- stdcompat-21.1/tools/compiler_version.ml.orig	2025-08-20 02:18:12.000000000 -0600
++++ stdcompat-21.1/tools/compiler_version.ml	2025-10-16 09:42:41.457779284 -0600
+@@ -87,6 +87,7 @@ let v5_1_1 = mk 5 1 1
+ let v5_2_0 = mk 5 2 0
+ let v5_2_1 = mk 5 2 1
+ let v5_3_0 = mk 5 3 0
++let v5_4_0 = mk 5 4 0
+ 
+ let known_versions =
+ [
+@@ -133,6 +134,7 @@ let known_versions =
+   v5_2_0;
+   v5_2_1;
+   v5_3_0;
++  v5_4_0;
+ ]
+ 
+ let is_known v = List.mem v known_versions
+--- stdcompat-21.1/tools/compiler_version.mli.orig	2025-08-20 02:18:12.000000000 -0600
++++ stdcompat-21.1/tools/compiler_version.mli	2025-10-16 09:45:11.703821688 -0600
+@@ -51,6 +51,7 @@ val v5_1_1 : t
+ val v5_2_0 : t
+ val v5_2_1 : t
+ val v5_3_0 : t
++val v5_4_0 : t
+ 
+ val known_versions : t list
+ 

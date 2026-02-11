@@ -17,6 +17,7 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
+PATCHES=( "${FILESDIR}/oc54.patch" )
 
 
 src_configure() {
