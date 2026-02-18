@@ -9,7 +9,7 @@ IUSE="+ocamlopt"
 
 DESCRIPTION="Compressed file access ML library (ZIP, GZIP and JAR)"
 HOMEPAGE="https://github.com/xavierleroy/camlzip"
-SRC_URI="https://github.com/xavierleroy/camlzip/archive/rel$(ver_rs 0- '' ${PV}).tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/xavierleroy/camlzip/archive/refs/tags/v${PV}.tar.gz -> ${P}.tar.gz"
 
 SLOT="1/${PV}"
 LICENSE="LGPL-2.1"
@@ -18,8 +18,6 @@ KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~x86"
 RDEPEND=">=dev-lang/ocaml-4.02:=[ocamlopt?]
 		>=sys-libs/zlib-1.1.3"
 DEPEND="${RDEPEND}"
-
-S="${WORKDIR}/${PN}-rel$(ver_rs 0- '' ${PV})"
 
 src_compile() {
 	emake all
