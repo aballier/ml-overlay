@@ -1,0 +1,13 @@
+Index: lambda-term-3.3.2/src/lTerm_vi.ml
+===================================================================
+--- lambda-term-3.3.2.orig/src/lTerm_vi.ml
++++ lambda-term-3.3.2/src/lTerm_vi.ml
+@@ -10,7 +10,7 @@
+ module Concurrent = struct
+   module Thread= struct
+       include Lwt
+-      let run= Lwt_unix.run [@@ocaml.warning "-3"]
++      let run= Lwt_main.run [@@ocaml.warning "-3"]
+       let sleep= Lwt_unix.sleep
+     end
+   module MsgBox= struct
