@@ -35,16 +35,6 @@ pkg_setup() {
 	enewuser ocsigenserver -1 -1 /var/www ocsigenserver
 }
 
-src_prepare() {
-	mv src/http src/ocsihttp || die
-	sed -e 's/http/ocsihttp/' -i src/Makefile || die
-	eapply \
-		"${FILESDIR}/cohttp.patch" \
-		"${FILESDIR}/cohttp2.patch" \
-		"${FILESDIR}/conduit.patch"
-	jbuilder_src_prepare
-}
-
 src_configure() {
 	sh configure \
 		--prefix "${EPREFIX}/usr" \
