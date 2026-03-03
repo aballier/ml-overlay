@@ -1,0 +1,70 @@
+Index: tcpip-9.0.1/src/ipv4/static_ipv4.ml
+===================================================================
+--- tcpip-9.0.1.orig/src/ipv4/static_ipv4.ml
++++ tcpip-9.0.1/src/ipv4/static_ipv4.ml
+@@ -77,7 +77,7 @@ module Make (Ethernet: Ethernet.S) (Arpv
+         in
+         let hdr =
+           let src = match src with None -> Ipaddr.V4.Prefix.address t.cidr | Some x -> x in
+-          let id = if multiple then Randomconv.int16 Mirage_crypto_rng.generate else 0 in
++          let id = if multiple then Randomconv.int16 (fun x -> Mirage_crypto_rng.generate x |> Cstruct.of_string) else 0 in
+           Ipv4_packet.{
+             options = Cstruct.empty ;
+             src ; dst ; ttl ; off ; id ;
+Index: tcpip-9.0.1/src/ipv6/ndpv6.ml
+===================================================================
+--- tcpip-9.0.1.orig/src/ipv6/ndpv6.ml
++++ tcpip-9.0.1/src/ipv6/ndpv6.ml
+@@ -121,7 +121,7 @@ let compute_reachable_time reachable_tim
+   let factor =
+     Defaults.min_random_factor +.
+     Randomconv.float ~bound:Defaults.(max_random_factor -. min_random_factor)
+-      Mirage_crypto_rng.generate
++      (fun x -> Mirage_crypto_rng.generate x |> Cstruct.of_string)
+   in
+   Int64.of_float (factor *. Int64.to_float reachable_time)
+ 
+Index: tcpip-9.0.1/src/tcp/flow.ml
+===================================================================
+--- tcpip-9.0.1.orig/src/tcp/flow.ml
++++ tcpip-9.0.1/src/tcp/flow.ml
+@@ -509,7 +509,7 @@ struct
+     log_with_stats "process-syn" t;
+     match Hashtbl.find_opt t.listeners (WIRE.src_port id) with
+     | Some (keepalive, process) ->
+-      let tx_isn = Sequence.of_int32 (Randomconv.int32 Mirage_crypto_rng.generate) in
++      let tx_isn = Sequence.of_int32 (Randomconv.int32 (fun x -> Mirage_crypto_rng.generate x |> Cstruct.of_string)) in
+       (* TODO: make this configurable per listener *)
+       let rx_wnd = 65535 in
+       let rx_wnd_scaleoffer = wscale_default in
+@@ -702,7 +702,7 @@ struct
+ 
+   let connect ?keepalive t ~dst ~dst_port =
+     let id = getid t dst dst_port in
+-    let tx_isn = Sequence.of_int32 (Randomconv.int32 Mirage_crypto_rng.generate) in
++    let tx_isn = Sequence.of_int32 (Randomconv.int32 (fun x -> Mirage_crypto_rng.generate x |> Cstruct.of_string)) in
+     (* TODO: This is hardcoded for now - make it configurable *)
+     let rx_wnd_scaleoffer = wscale_default in
+     let options =
+@@ -750,7 +750,7 @@ struct
+   (* Construct the main TCP thread *)
+   let connect ip =
+     let localport =
+-      1024 + (Randomconv.int ~bound:(0xFFFF - 1024) Mirage_crypto_rng.generate)
++      1024 + (Randomconv.int ~bound:(0xFFFF - 1024) (fun x -> Mirage_crypto_rng.generate x |> Cstruct.of_string))
+     in
+     let listens = Hashtbl.create 1 in
+     let connects = Hashtbl.create 1 in
+Index: tcpip-9.0.1/src/udp/udp.ml
+===================================================================
+--- tcpip-9.0.1.orig/src/udp/udp.ml
++++ tcpip-9.0.1/src/udp/udp.ml
+@@ -59,7 +59,7 @@ module Make (Ip : Tcpip.Ip.S) = struct
+   let writev ?src ?src_port ?ttl ~dst ~dst_port t bufs =
+     let src_port = match src_port with
+       | None ->
+-        Randomconv.int ~bound:65535 (fun x -> Mirage_crypto_rng.generate x)
++        Randomconv.int ~bound:65535 (fun x -> Mirage_crypto_rng.generate x |> Cstruct.of_string)
+       | Some p -> p
+     in
+     let fill_hdr buf =
