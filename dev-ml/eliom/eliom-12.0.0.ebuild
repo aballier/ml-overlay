@@ -22,11 +22,5 @@ LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
 IUSE=""
 
-RDEPEND=""
+RDEPEND="dev-ml/logs[javascript]"
 DEPEND="${RDEPEND}"
-PATCHES=(
-	"${FILESDIR}/oc53.patch"
-	"${FILESDIR}/jsoo.patch"
-	"${FILESDIR}/jsoo2.patch"
-	"${FILESDIR}/jsoo3.patch"
-)
