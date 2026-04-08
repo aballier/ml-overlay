@@ -148,7 +148,7 @@ sexplib spawn timezone ppx_optcomp"
 	[eigen]="ctypes"
 	[either]=""
 	[eliom]="findlib ppx_deriving js_of_ocaml-compiler js_of_ocaml js_of_ocaml-lwt js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json
-js_of_ocaml-tyxml logs tyxml ocsigenserver ipaddr reactiveData ppxlib ocsipersist ppx_optcomp xml-light wasm_of_ocaml-compiler"
+js_of_ocaml-tyxml logs tyxml ocsigenserver ipaddr reactiveData ppxlib ocsipersist ppx_optcomp xml-light"
 	[ethernet]="cstruct logs lwt macaddr mirage-net"
 	[expect_test_helpers]="async core expect_test_helpers_kernel ppx_jane sexp_pretty"
 	[expect_test_helpers_core]="base base_quickcheck core ppx_jane re sexp_pretty stdio"
@@ -893,6 +893,7 @@ let rec print_deps is_dep = function
 	| String (_,"rocq-native") -> ()
 	| String (_,"mirage-xen-ocaml") -> ()
 	| String (_,"memprof-limits") -> ()
+	| String (_,"wasm_of_ocaml-compiler") -> ()
 	| String (_,"z3") -> ()
 	| String (_,"ounit") -> if is_dep [] then Printf.printf "ounit2\n" else ()
 	| String (_,"ocamlfind") -> if is_dep [] then Printf.printf "findlib\n" else ()
