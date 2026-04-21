@@ -25,7 +25,8 @@ S="${WORKDIR}/Zarith-release-${PV}"
 
 src_configure() {
 	tc-export CC
-	./configure \
+	# LDFLAGS passed to ocamlmklib, unrelated to gentoo variable
+	LDFLAGS="" ./configure \
 		-ocamllibdir "$(ocamlc -where)" \
 		-installdir "$(ocamlc -where)" \
 		$(usex mpir "-mpir" "-gmp") || die
