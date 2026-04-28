@@ -1,0 +1,49 @@
+Index: stdcompat-21.1/tools/compiler_version.ml
+===================================================================
+--- stdcompat-21.1.orig/tools/compiler_version.ml
++++ stdcompat-21.1/tools/compiler_version.ml
+@@ -89,6 +89,7 @@ let v5_2_1 = mk 5 2 1
+ let v5_3_0 = mk 5 3 0
+ let v5_4_0 = mk 5 4 0
+ let v5_4_1 = mk 5 4 1
++let v5_5_0 = mk 5 5 0
+ 
+ let known_versions =
+ [
+@@ -137,6 +138,7 @@ let known_versions =
+   v5_3_0;
+   v5_4_0;
+   v5_4_1;
++  v5_5_0;
+ ]
+ 
+ let is_known v = List.mem v known_versions
+Index: stdcompat-21.1/tools/compiler_version.mli
+===================================================================
+--- stdcompat-21.1.orig/tools/compiler_version.mli
++++ stdcompat-21.1/tools/compiler_version.mli
+@@ -53,6 +53,7 @@ val v5_2_1 : t
+ val v5_3_0 : t
+ val v5_4_0 : t
+ val v5_4_1 : t
++val v5_5_0 : t
+ 
+ val known_versions : t list
+ 
+Index: stdcompat-21.1/stdcompat__fun_s.mli.in
+===================================================================
+--- stdcompat-21.1.orig/stdcompat__fun_s.mli.in
++++ stdcompat-21.1/stdcompat__fun_s.mli.in
+@@ -5,7 +5,12 @@ exception Finally_raised of exn
+ val compose : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
+ (** @since 5.2.0: val compose : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c *)
+ 
++@BEGIN_FROM_5_5_0@
++val id : 'a -> 'a
++@END_FROM_5_5_0@
++@BEGIN_BEFORE_5_5_0@
+ external id : 'a -> 'a = "%identity"
++@END_BEFORE_5_5_0@
+ (** @since 4.08.0: external id : 'a -> 'a = "%identity" *)
+ 
+ val const : 'a -> 'b -> 'a
