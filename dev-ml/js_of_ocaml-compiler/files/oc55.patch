@@ -1,0 +1,361 @@
+From afde2ccdf86a834b81fd1c76c7ff6dbc7be025b5 Mon Sep 17 00:00:00 2001
+From: Hugo Heuzard <hugo.heuzard@gmail.com>
+Date: Mon, 9 Mar 2026 17:14:58 +0100
+Subject: [PATCH] Compiler: support for OCaml 5.5
+
+---
+ compiler/lib/magic_number.ml          |  2 +-
+ compiler/lib/ocaml_compiler.ml        | 31 +++++++++++++++++--------
+ compiler/tests-check-prim/gen_dune.ml |  5 +++-
+ compiler/tests-jsoo/test_gc.ml        |  2 ++
+ dune-project                          |  2 +-
+ js_of_ocaml-compiler.opam             |  2 +-
+ runtime/js/domain.js                  |  6 +++++
+ runtime/js/dynlink.js                 |  6 +++++
+ runtime/js/gc.js                      | 33 +++++++++++++++++++++++++++
+ runtime/js/sys.js                     | 19 +++++++++++++++
+ runtime/wasm/sys.wat                  | 15 ++++++++++++
+ tools/toplevel_expect/gen.ml          |  1 +
+ toplevel/test/dune                    |  7 +++++-
+ toplevel/test/test_toplevel2.ml       |  6 +++++
+ 14 files changed, 123 insertions(+), 14 deletions(-)
+
+diff --git a/compiler/lib/magic_number.ml b/compiler/lib/magic_number.ml
+index 3cff4be55b..403280afc0 100644
+--- a/compiler/lib/magic_number.ml
++++ b/compiler/lib/magic_number.ml
+@@ -68,7 +68,7 @@ let () =
+   let current = Ocaml_version.current in
+   if Ocaml_version.compare current [ 4; 13 ] < 0
+   then failwith "OCaml version unsupported. Upgrade to OCaml 4.13 or newer."
+-  else if Ocaml_version.compare current [ 5; 5 ] >= 0
++  else if Ocaml_version.compare current [ 5; 6 ] >= 0
+   then failwith "OCaml version unsupported. Upgrade js_of_ocaml."
+ 
+ let v = snd (of_string Ocaml_common.Config.exec_magic_number)
+diff --git a/compiler/lib/ocaml_compiler.ml b/compiler/lib/ocaml_compiler.ml
+index 98b5eec24a..128af71401 100644
+--- a/compiler/lib/ocaml_compiler.ml
++++ b/compiler/lib/ocaml_compiler.ml
+@@ -20,15 +20,24 @@ open! Stdlib
+ 
+ let rec constant_of_const c : Code.constant =
+   let open Lambda in
+-  let open Asttypes in
+   match c with
+-  | Const_base (Const_int i) -> Int (Targetint.of_int_warning_on_overflow i)
+-  | Const_base (Const_char c) -> Int (Targetint.of_int_exn (Char.code c))
+-  | Const_base (Const_string (s, _, _)) -> String s
+-  | Const_base (Const_float s) -> Float (Int64.bits_of_float (float_of_string s))
+-  | Const_base (Const_int32 i) -> Int32 i
+-  | Const_base (Const_int64 i) -> Int64 i
+-  | Const_base (Const_nativeint i) -> NativeInt (Int32.of_nativeint_warning_on_overflow i)
++  | ((Const_base (Const_int i)) [@if ocaml_version < (5, 5, 0)])
++  | ((Const_int i) [@if ocaml_version >= (5, 5, 0)]) ->
++      Int (Targetint.of_int_warning_on_overflow i)
++  | ((Const_base (Const_char c)) [@if ocaml_version < (5, 5, 0)])
++  | ((Const_char c) [@if ocaml_version >= (5, 5, 0)]) ->
++      Int (Targetint.of_int_exn (Char.code c))
++  | ((Const_base (Const_string (s, _, _))) [@if ocaml_version < (5, 5, 0)]) -> String s
++  | ((Const_base (Const_float s)) [@if ocaml_version < (5, 5, 0)])
++  | ((Const_float s) [@if ocaml_version >= (5, 5, 0)]) ->
++      Float (Int64.bits_of_float (float_of_string s))
++  | ((Const_base (Const_int32 i)) [@if ocaml_version < (5, 5, 0)])
++  | ((Const_int32 i) [@if ocaml_version >= (5, 5, 0)]) -> Int32 i
++  | ((Const_base (Const_int64 i)) [@if ocaml_version < (5, 5, 0)])
++  | ((Const_int64 i) [@if ocaml_version >= (5, 5, 0)]) -> Int64 i
++  | ((Const_base (Const_nativeint i)) [@if ocaml_version < (5, 5, 0)])
++  | ((Const_nativeint i) [@if ocaml_version >= (5, 5, 0)]) ->
++      NativeInt (Int32.of_nativeint_warning_on_overflow i)
+   | Const_immstring s -> String s
+   | Const_float_array sl ->
+       let l = List.map ~f:(fun f -> Int64.bits_of_float (float_of_string f)) sl in
+@@ -47,8 +56,12 @@ let rec is_module_in_summary deep ident' summary =
+   (* Unknown *)
+   | Env.Env_empty -> deep, Unknown
+   (* Module *)
++  | ((Env.Env_not_aliasable (summary, ident)) [@if ocaml_version >= (5, 5, 0)]) ->
++      if Ident.same ident ident'
++      then deep, Module
++      else is_module_in_summary (deep + 1) ident' summary
+   | Env.Env_module (summary, ident, _, _)
+-  | Env.Env_functor_arg (summary, ident)
++  | ((Env.Env_functor_arg (summary, ident)) [@if ocaml_version < (5, 5, 0)])
+   | Env.Env_persistent (summary, ident) ->
+       if Ident.same ident ident'
+       then deep, Module
+diff --git a/compiler/tests-check-prim/gen_dune.ml b/compiler/tests-check-prim/gen_dune.ml
+index 6665226ed1..4af21a1441 100644
+--- a/compiler/tests-check-prim/gen_dune.ml
++++ b/compiler/tests-check-prim/gen_dune.ml
+@@ -9,6 +9,7 @@ type version =
+   | `V5_3
+   | `V5_4
+   | `V5_5
++  | `V5_6
+   ]
+ 
+ let string_of_version : version -> string = function
+@@ -20,6 +21,7 @@ let string_of_version : version -> string = function
+   | `V5_3 -> "5.3"
+   | `V5_4 -> "5.4"
+   | `V5_5 -> "5.5"
++  | `V5_6 -> "5.6"
+ 
+ let next_version : version -> version option = function
+   | `V4_13 -> Some `V4_14
+@@ -29,7 +31,8 @@ let next_version : version -> version option = function
+   | `V5_2 -> Some `V5_3
+   | `V5_3 -> Some `V5_4
+   | `V5_4 -> Some `V5_5
+-  | `V5_5 -> None
++  | `V5_5 -> Some `V5_6
++  | `V5_6 -> None
+ 
+ type os_type =
+   | Unix
+diff --git a/compiler/tests-jsoo/test_gc.ml b/compiler/tests-jsoo/test_gc.ml
+index 454dc750e2..4e1685c06c 100644
+--- a/compiler/tests-jsoo/test_gc.ml
++++ b/compiler/tests-jsoo/test_gc.ml
+@@ -34,6 +34,7 @@ let%expect_test "stat" =
+   let s = Gc.stat () in
+   let size = Obj.size (Obj.repr s) in
+   (match size with
++  | 18 when ocaml_version >= (5, 5) -> ok ()
+   | 17 when ocaml_version >= (4, 12) -> ok ()
+   | 16 when ocaml_version < (4, 12) -> ok ()
+   | _ -> ko size);
+@@ -43,6 +44,7 @@ let%expect_test "quick_stat" =
+   let s = Gc.quick_stat () in
+   let size = Obj.size (Obj.repr s) in
+   (match size with
++  | 18 when ocaml_version >= (5, 5) -> ok ()
+   | 17 when ocaml_version >= (4, 12) -> ok ()
+   | 16 when ocaml_version < (4, 12) -> ok ()
+   | _ -> ko size);
+diff --git a/dune-project b/dune-project
+index 49979155dc..1f6094362c 100644
+--- a/dune-project
++++ b/dune-project
+@@ -18,7 +18,7 @@
+  (description
+   "Js_of_ocaml is a compiler from OCaml bytecode to JavaScript. It makes it possible to run pure OCaml programs in JavaScript environment like browsers and Node.js")
+  (depends
+-  (ocaml (and (>= 4.13) (< 5.5)))
++  (ocaml (and (>= 4.13) (< 5.6)))
+   (num :with-test)
+   (ppx_expect (and (>= v0.16.1) :with-test))
+   (ppxlib (>= 0.35))
+diff --git a/js_of_ocaml-compiler.opam b/js_of_ocaml-compiler.opam
+index 1a8bf3aeac..209a09d2a1 100644
+--- a/js_of_ocaml-compiler.opam
++++ b/js_of_ocaml-compiler.opam
+@@ -13,7 +13,7 @@ doc: "https://ocsigen.org/js_of_ocaml/latest/manual/overview"
+ bug-reports: "https://github.com/ocsigen/js_of_ocaml/issues"
+ depends: [
+   "dune" {>= "3.19"}
+-  "ocaml" {>= "4.13" & < "5.5"}
++  "ocaml" {>= "4.13" & < "5.6"}
+   "num" {with-test}
+   "ppx_expect" {>= "v0.16.1" & with-test}
+   "ppxlib" {>= "0.35"}
+diff --git a/runtime/js/domain.js b/runtime/js/domain.js
+index 65823adb86..79baa7443e 100644
+--- a/runtime/js/domain.js
++++ b/runtime/js/domain.js
+@@ -165,3 +165,9 @@ function caml_ml_domain_id(_unit) {
+ function caml_ml_domain_cpu_relax(_unit) {
+   return 0;
+ }
++
++//Provides: caml_domain_count
++//Version: >= 5.5
++function caml_domain_count(_unit) {
++  return 1;
++}
+diff --git a/runtime/js/dynlink.js b/runtime/js/dynlink.js
+index 70f9473317..b1c2f7f341 100644
+--- a/runtime/js/dynlink.js
++++ b/runtime/js/dynlink.js
+@@ -71,3 +71,9 @@ function caml_dynlink_get_current_libs() {
+   for (var i = 0; i < len; i++) a[i] = i;
+   return a;
+ }
++
++//Provides: caml_dynlink_parse_ld_conf
++//Version: >= 5.5
++function caml_dynlink_parse_ld_conf(_stdlib) {
++  return 0;
++}
+diff --git a/runtime/js/gc.js b/runtime/js/gc.js
+index 183473f4a7..9a9c6a9ea3 100644
+--- a/runtime/js/gc.js
++++ b/runtime/js/gc.js
+@@ -25,10 +25,17 @@ function caml_gc_counters(_unit) {
+   return [254, 0, 0, 0];
+ }
+ //Provides: caml_gc_quick_stat
++//Version: < 5.5
+ function caml_gc_quick_stat(_unit) {
+   return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+ }
+ 
++//Provides: caml_gc_quick_stat
++//Version: >= 5.5
++function caml_gc_quick_stat(_unit) {
++  return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
++}
++
+ //Provides: caml_gc_stat
+ //Requires: caml_gc_quick_stat
+ function caml_gc_stat(unit) {
+@@ -86,6 +93,12 @@ function caml_memprof_discard(_t) {
+   return 0;
+ }
+ 
++//Provides: caml_memprof_is_sampling
++//Version: >= 5.5
++function caml_memprof_is_sampling(_unit) {
++  return 0;
++}
++
+ //Provides: caml_eventlog_resume
+ //Version: < 5.0
+ function caml_eventlog_resume(_unit) {
+@@ -130,3 +143,23 @@ function caml_get_major_bucket(_n) {
+ function caml_get_major_credit(_n) {
+   return 0;
+ }
++
++//Provides: caml_gc_tweak_get
++//Requires: caml_invalid_argument
++//Version: >= 5.5
++function caml_gc_tweak_get(_name) {
++  caml_invalid_argument("Gc.Tweak: parameter not found");
++}
++
++//Provides: caml_gc_tweak_set
++//Requires: caml_invalid_argument
++//Version: >= 5.5
++function caml_gc_tweak_set(_name, _v) {
++  caml_invalid_argument("Gc.Tweak: parameter not found");
++}
++
++//Provides: caml_gc_tweak_list_active
++//Version: >= 5.5
++function caml_gc_tweak_list_active(_unit) {
++  return 0;
++}
+diff --git a/runtime/js/sys.js b/runtime/js/sys.js
+index 4dea9377a5..97c6fdc3fd 100644
+--- a/runtime/js/sys.js
++++ b/runtime/js/sys.js
+@@ -405,6 +405,25 @@ function caml_sys_rev_convert_signal_number(signo) {
+   return signo;
+ }
+ 
++//Provides: caml_sys_proc_self_exe
++//Version: >= 5.5
++function caml_sys_proc_self_exe(_unit) {
++  return 0;
++}
++
++//Provides: caml_sys_get_stdlib_dirs
++//Version: >= 5.5
++function caml_sys_get_stdlib_dirs(stdlib_default) {
++  return [0, stdlib_default, 0];
++}
++
++//Provides: caml_sys_const_standard_library_default
++//Requires: caml_string_of_jsstring
++//Version: >= 5.5
++function caml_sys_const_standard_library_default(_unit) {
++  return caml_string_of_jsstring("/static/cmis/");
++}
++
+ //Always
+ //Requires: caml_fatal_uncaught_exception
+ //If: !wasm
+diff --git a/runtime/wasm/sys.wat b/runtime/wasm/sys.wat
+index ff904edd50..ef9d60028b 100644
+--- a/runtime/wasm/sys.wat
++++ b/runtime/wasm/sys.wat
+@@ -95,6 +95,10 @@
+          (ref.cast (ref $block) (call $caml_js_to_string_array (call $argv)))
+          (i32.const 1)))
+ 
++   (func (export "caml_sys_proc_self_exe")
++      (param (ref eq)) (result (ref eq))
++      (ref.i31 (i32.const 0)))
++
+    (func (export "caml_sys_time") (export "caml_sys_time_include_children")
+       (param (ref eq)) (result (ref eq))
+       (struct.new $float (f64.mul (call $time) (f64.const 0.001))))
+@@ -159,6 +163,17 @@
+       (param (ref eq)) (result (ref eq))
+       (ref.i31 (i32.const 0)))
+ 
++   (func (export "caml_sys_const_standard_library_default")
++      (param (ref eq)) (result (ref eq))
++      (@string "/static/cmis"))
++
++   (func (export "caml_sys_get_stdlib_dirs")
++      (param $stdlib (ref eq)) (result (ref eq))
++      (array.new_fixed $block 3 (ref.i31 (i32.const 0))
++        (local.get $stdlib)
++        (ref.i31 (i32.const 0)))
++   )
++
+    (@string $Unix "Unix")
+    (@string $Win32 "Win32")
+ 
+diff --git a/tools/toplevel_expect/gen.ml b/tools/toplevel_expect/gen.ml
+index 7bc9db25be..c58a78f20f 100644
+--- a/tools/toplevel_expect/gen.ml
++++ b/tools/toplevel_expect/gen.ml
+@@ -55,4 +55,5 @@ let () =
+   | 5, 0 | 5, 1 | 5, 2 -> dump_file "toplevel_expect_test.ml-4.11"
+   | 5, 3 -> dump_file "toplevel_expect_test.ml-5.3"
+   | 5, 4 -> dump_file "toplevel_expect_test.ml-5.4"
++  | 5, 5 -> dump_file "toplevel_expect_test.ml-5.4"
+   | _ -> failwith ("unsupported version " ^ Sys.ocaml_version)
+diff --git a/toplevel/test/dune b/toplevel/test/dune
+index ece87b1f3e..7662f74567 100644
+--- a/toplevel/test/dune
++++ b/toplevel/test/dune
+@@ -17,6 +17,11 @@
+  (action
+   (run jsoo_mkcmis -o %{target} re)))
+ 
++(rule
++ (target stdlib.cmis.js)
++ (action
++  (run jsoo_mkcmis -o %{target} stdlib)))
++
+ (rule
+  (targets test_toplevel1.js)
+  (action
+@@ -58,7 +63,7 @@
+ 
+ (rule
+  (target test_toplevel2.actual)
+- (deps test_toplevel2.js re.cmis.js)
++ (deps test_toplevel2.js stdlib.cmis.js re.cmis.js)
+  (action
+   (with-stdout-to
+    %{target}
+diff --git a/toplevel/test/test_toplevel2.ml b/toplevel/test/test_toplevel2.ml
+index 556ef7ac70..ed68370d77 100644
+--- a/toplevel/test/test_toplevel2.ml
++++ b/toplevel/test/test_toplevel2.ml
+@@ -1,3 +1,9 @@
++let () =
++  let open Js_of_ocaml.Js in
++  Unsafe.fun_call
++    (Unsafe.js_expr "require")
++    [| Unsafe.coerce (string "./stdlib.cmis.js") |]
++
+ let () = Js_of_ocaml_toplevel.JsooTop.initialize ()
+ 
+ let fmt = Format.std_formatter
