@@ -24,3 +24,8 @@ IUSE=""
 
 RDEPEND="dev-ml/logs[javascript]"
 DEPEND="${RDEPEND}"
+
+src_prepare() {
+	has_version '>=dev-lang/ocaml-5.5.0_alpha' && eapply "${FILESDIR}/oc55.patch"
+	default
+}

@@ -1,0 +1,32 @@
+Index: eliom-12.0.1/src/ppx/ppx_eliom_utils.ml
+===================================================================
+--- eliom-12.0.1.orig/src/ppx/ppx_eliom_utils.ml
++++ eliom-12.0.1/src/ppx/ppx_eliom_utils.ml
+@@ -417,7 +417,7 @@ module Cmo = struct
+           Typ.constr ~loc
+             (mkloc (ident_of_out_ident id) loc)
+             (List.map type_of_out_type tyl)
+-      | ((Otyp_object {fields; open_row}) [@if ocaml_version >= (5, 1, 0)]) ->
++      | ((Otyp_object {fields; row }) [@if ocaml_version >= (5, 1, 0)]) ->
+           let fields =
+             List.map
+               (fun (label, ty) ->
+@@ -426,7 +426,7 @@ module Cmo = struct
+                  ; pof_attributes = [] })
+               fields
+           in
+-          Typ.object_ ~loc fields (if open_row then Open else Closed)
++          Typ.object_ ~loc fields (if row <> Orow_closed then Open else Closed)
+       | ((Otyp_object (fields, rest)) [@if ocaml_version < (5, 1, 0)]) ->
+           let fields =
+             List.map
+@@ -495,7 +495,8 @@ module Cmo = struct
+             (List.map (fun v -> mkloc (var v) loc) sl)
+             (type_of_out_type ty)
+       | Otyp_abstract | Otyp_open | Otyp_sum _ | Otyp_manifest _ | Otyp_record _
+-      | Otyp_module _ | Otyp_attribute _ | Otyp_stuff _ ->
++      | Otyp_module _ | Otyp_attribute _ | Otyp_stuff _
++      | Otyp_external _ | Otyp_functor _ ->
+           assert false
+     in
+     type_of_out_type ty
