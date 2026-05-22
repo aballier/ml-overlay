@@ -125,6 +125,8 @@ sexplib spawn timezone ppx_optcomp"
 	[ctypes]="integers dune-configurator"
 	[ctypes-foreign]="ctypes dune-configurator"
 	[cudf]=""
+	[curl]="dune-configurator"
+	[curl_lwt]="curl lwt lwt_ppx"
 	[delimited_parsing]="async core core_extended ppx_jane"
 	[digestif]="eqaf"
 	[dispatch]=""
@@ -862,6 +864,7 @@ let rec print_deps is_dep = function
 	| String (_,"conf-g++") -> ()
 	| String (_,"conf-jq") -> ()
 	| String (_,"conf-libbz2") -> ()
+	| String (_,"conf-libcurl") -> ()
 	| String (_,"conf-libev") -> ()
 	| String (_,"conf-libffi") -> ()
 	| String (_,"conf-libgif") -> ()
