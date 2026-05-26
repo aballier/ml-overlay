@@ -22,6 +22,10 @@ LICENSE="LGPL-2"
 KEYWORDS="~amd64 ~ppc ~x86"
 PATCHES=( "${FILESDIR}/mysql8.patch" )
 
+src_configure() {
+	LDFLAGS="" econf
+}
+
 src_compile()
 {
 	emake all
