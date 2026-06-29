@@ -19,4 +19,3 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 S="${WORKDIR}/merlin-${PV}-${OCV/-/\~}"
-PATCHES=( "${FILESDIR}/oc55.patch" )
