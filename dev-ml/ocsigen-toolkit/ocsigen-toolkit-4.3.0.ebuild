@@ -3,14 +3,14 @@
 
 EAPI=8
 
-inherit findlib opam
+inherit jbuilder
 
 DESCRIPTION="User interface widgets for Ocsigen applications"
 HOMEPAGE="https://github.com/ocsigen/ocsigen-toolkit"
 
 LICENSE="LGPL-2.1-with-linking-exception"
 SLOT="0/${PV}"
-IUSE="+ocamlopt debug"
+IUSE=""
 
 if [ "${PV#9999}" != "${PV}" ] ; then
 	inherit git-r3
@@ -23,18 +23,3 @@ fi
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
-OPAM_FILE=opam
-
-src_compile() {
-	emake \
-		DEBUG="$(usex debug yes no)" \
-		NATIVE="$(usex ocamlopt yes no)" \
-		all
-}
-
-src_install() {
-	findlib_src_preinst
-	OCAMLPATH="${OCAMLFIND_DESTDIR}" emake install
-	opam_src_install
-	dodoc README.md
-}
