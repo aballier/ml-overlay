@@ -317,7 +317,7 @@ syslog-message xml-light conduit-lwt-unix"
 	[ocsigen-ppx-rpc]="ppxlib"
 	[ocsigen-start]="pgocaml pgocaml_ppx safepass ocsigen-i18n eliom ocsigen-toolkit yojson resource-pooling
 cohttp-lwt-unix re ocsigen-ppx-rpc js_of_ocaml ocsipersist-pgsql-config"
-	[ocsigen-toolkit]="eliom calendar js_of_ocaml"
+	[ocsigen-toolkit]="eliom calendar js_of_ocaml lwt_ppx cmdliner ocsigen-ppx-rpc"
 	[ocsipersist]="js_of_ocaml lwt ocsipersist-lib"
 	[ocsipersist-dbm]="ocsipersist lwt logs camldbm"
 	[ocsipersist-lib]="js_of_ocaml lwt"
