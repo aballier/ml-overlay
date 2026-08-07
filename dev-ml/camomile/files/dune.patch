@@ -1,0 +1,87 @@
+From 4c0042ef874477f2ac99a42980b55c8e6f0d6135 Mon Sep 17 00:00:00 2001
+From: Shon Feder <shon.feder@gmail.com>
+Date: Wed, 24 Jun 2026 19:32:56 -0400
+Subject: [PATCH 1/2] Fix path handling from dune variable
+
+Dune `deps` variables are expanded to paths, not simple strings. The
+representation of this has changed with
+https://github.com/ocaml/dune/pull/15156, causing camomile to fail on
+the pending dune 3.24. But in general this has always been a path, so if
+we only want the basename of the path in a stable form, we need to
+derive that explicitly.
+---
+ src/tools/camomilecharmap.ml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/tools/camomilecharmap.ml b/src/tools/camomilecharmap.ml
+index c07d4f2..4839854 100644
+--- a/src/tools/camomilecharmap.ml
++++ b/src/tools/camomilecharmap.ml
+@@ -46,7 +46,7 @@ let parse_arg () =
+   Arg.parse
+     [("-d", Arg.String (( := ) dir), "[directory]\toutputpath")]
+     (fun s ->
+-      if !file <> None then failwith "Too many arguments" else file := Some s)
++      if !file <> None then failwith "Too many arguments" else file := Some (Filename.basename s))
+     helptext;
+   (!file, !dir)
+ 
+
+From 1c7c4269771d2f22d71edc4cfcbf603879760a82 Mon Sep 17 00:00:00 2001
+From: Romain Beauxis <romain.beauxis@gmail.com>
+Date: Sun, 2 Aug 2026 11:42:20 -0500
+Subject: [PATCH 2/2] camomilecharmap: take the basename only for the codeset
+ name
+
+Applying Filename.basename in parse_arg also shortened the path used to
+open the input file, so any invocation with a directory component failed:
+
+  $ camomilecharmap -d out src/charmaps/sources/EBCDIC-PT
+  Fatal error: exception Sys_error("EBCDIC-PT: No such file or directory")
+
+Only the default codeset name, used for charmaps that lack a
+<code_set_name> header, needs stripping. This matches what
+src/charmaps/dune_gen.ml already does.
+---
+ CHANGES.md                   | 6 ++++++
+ src/tools/camomilecharmap.ml | 6 ++++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/CHANGES.md b/CHANGES.md
+index 955b0d6..ffbcfe8 100644
+--- a/CHANGES.md
++++ b/CHANGES.md
+@@ -1,3 +1,9 @@
++unreleased
++----------
++
++- Fix charmap generation with dune 3.24, which expands `%{deps}` to a path
++  with a directory component (#13).
++
+ 2.0.0 (2023-03-20)
+ ------------------
+ 
+diff --git a/src/tools/camomilecharmap.ml b/src/tools/camomilecharmap.ml
+index 4839854..78c1527 100644
+--- a/src/tools/camomilecharmap.ml
++++ b/src/tools/camomilecharmap.ml
+@@ -46,7 +46,7 @@ let parse_arg () =
+   Arg.parse
+     [("-d", Arg.String (( := ) dir), "[directory]\toutputpath")]
+     (fun s ->
+-      if !file <> None then failwith "Too many arguments" else file := Some (Filename.basename s))
++      if !file <> None then failwith "Too many arguments" else file := Some s)
+     helptext;
+   (!file, !dir)
+ 
+@@ -77,7 +77,9 @@ let begin_with s s' =
+     with Break -> false)
+ 
+ let parse_header file inchan =
+-  let codeset_name = ref file in
++  (* Charmaps without a <code_set_name> header are named after the input file.
++     Dune passes it as a path, so strip the directory. *)
++  let codeset_name = ref (Option.map Filename.basename file) in
+   let aliases = ref [] in
+   let unread_line = ref None in
+   try
