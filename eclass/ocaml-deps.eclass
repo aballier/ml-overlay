@@ -79,7 +79,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 magic-mime logs fmt sexplib0 uri ipaddr core_unix http"
 	[cohttp-lwt]="cohttp lwt sexplib0 ppx_sexp_conv logs uri http ipaddr"
 	[cohttp-lwt-jsoo]="cohttp cohttp-lwt lwt js_of_ocaml js_of_ocaml-ppx js_of_ocaml-lwt logs http"
-	[cohttp-lwt-unix]="conduit-lwt conduit-lwt-unix ppx_sexp_conv cmdliner magic-mime logs fmt cohttp-lwt lwt http cohttp"
+	[cohttp-lwt-unix]="conduit-lwt conduit-lwt-unix ppx_sexp_conv magic-mime logs fmt cohttp-lwt lwt http cohttp"
 	[cohttp-lwt-unix-nossl]="ca-certs cmdliner cohttp-lwt conduit-lwt fmt logs lwt magic-mime"
 	[cohttp-lwt-unix-ssl]="ca-certs cmdliner cohttp-lwt conduit-lwt fmt logs lwt magic-mime conduit-lwt-ssl cohttp-lwt-unix-nossl"
 	[cohttp-top]="cohttp"
