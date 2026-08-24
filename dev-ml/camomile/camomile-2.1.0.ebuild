@@ -17,4 +17,3 @@ IUSE=""
 RDEPEND=""
 DEPEND="${RDEPEND}"
 S="${WORKDIR}/Camomile-${PV}"
-PATCHES=( "${FILESDIR}/dune.patch" )
