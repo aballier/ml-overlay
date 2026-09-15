@@ -24,3 +24,4 @@ IUSE=""
 
 RDEPEND="dev-ml/logs[javascript]"
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/tyxml5.patch" )

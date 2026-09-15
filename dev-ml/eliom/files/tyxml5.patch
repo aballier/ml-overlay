@@ -1,0 +1,89 @@
+From 14352fd0280943023306a9870f8a3b49af137325 Mon Sep 17 00:00:00 2001
+From: Vincent Balat <vincent.balat@tarides.com>
+Date: Mon, 31 Aug 2026 11:56:11 +0200
+Subject: [PATCH] Adapt to TyXML 5.0
+
+TyXML 5.0 adds four functions to the Wrapped_functions module types, which
+Eliom implements by hand rather than by inclusion: string_of_blocking and
+string_of_ol_type for HTML, string_of_semicolonstrings and unoption_string
+for SVG. Widen the version constraint accordingly.
+---
+ dune-project                       |  2 +-
+ eliom.opam                         |  2 +-
+ src/lib/eliom_shared_content.eliom | 16 ++++++++++++++++
+ 3 files changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/dune-project b/dune-project
+index b04a96718d..1cf1540e07 100644
+--- a/dune-project
++++ b/dune-project
+@@ -39,7 +39,7 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
+   (js_of_ocaml-ppx_deriving_json (>= 6.3.2))
+   (js_of_ocaml-tyxml (>= 6.3.2))
+   logs
+-  (tyxml (and (>= 4.6) (< 4.7)))
++  (tyxml (and (>= 5.0) (< 6.0)))
+   (ocsigenserver (and (>= 7.0) (< 8.0)))
+   (ipaddr (>= 2.1))
+   (reactiveData (>= 0.2.1))
+diff --git a/eliom.opam b/eliom.opam
+index 7e8a7a37cb..9ecfdd767b 100644
+--- a/eliom.opam
++++ b/eliom.opam
+@@ -31,7 +31,7 @@ depends: [
+   "js_of_ocaml-ppx_deriving_json" {>= "6.3.2"}
+   "js_of_ocaml-tyxml" {>= "6.3.2"}
+   "logs"
+-  "tyxml" {>= "4.6" & < "4.7"}
++  "tyxml" {>= "5.0" & < "6.0"}
+   "ocsigenserver" {>= "7.0" & < "8.0"}
+   "ipaddr" {>= "2.1"}
+   "reactiveData" {>= "0.2.1"}
+diff --git a/src/lib/eliom_shared_content.eliom b/src/lib/eliom_shared_content.eliom
+index 25d7c3bb4b..e2a9c9824d 100644
+--- a/src/lib/eliom_shared_content.eliom
++++ b/src/lib/eliom_shared_content.eliom
+@@ -231,6 +231,9 @@ module Svg = struct
+     let string_of_numbers_semicolon () =
+       [%shared Raw_wrapped_functions_svg.string_of_numbers_semicolon]
+ 
++    let string_of_semicolonstrings () =
++      [%shared Raw_wrapped_functions_svg.string_of_semicolonstrings]
++
+     let string_of_offset () =
+       ([%shared Raw_wrapped_functions_svg.string_of_offset]
+         : (Svg_types.offset -> string) Eliom_shared.Value.t
+@@ -252,6 +255,9 @@ module Svg = struct
+ 
+     let string_of_transforms () =
+       [%shared Raw_wrapped_functions_svg.string_of_transforms]
++
++    let unoption_string () =
++      [%shared Raw_wrapped_functions_svg.unoption_string]
+   end
+ 
+   module Xml = struct
+@@ -329,6 +335,11 @@ module Html = struct
+ 
+     let string_of_bool () = [%shared Raw_wrapped_functions.string_of_bool]
+ 
++    let string_of_blocking () =
++      ([%shared Raw_wrapped_functions.string_of_blocking]
++        : (Html_types.blocking_token list -> string) Eliom_shared.Value.t
++        :> ([< Html_types.blocking_token] list -> string) Eliom_shared.Value.t)
++
+     let string_of_character () =
+       [%shared Raw_wrapped_functions.string_of_character]
+ 
+@@ -359,6 +370,11 @@ module Html = struct
+ 
+     let string_of_numbers () = [%shared Raw_wrapped_functions.string_of_numbers]
+ 
++    let string_of_ol_type () =
++      ([%shared Raw_wrapped_functions.string_of_ol_type]
++        : (Html_types.ol_type -> string) Eliom_shared.Value.t
++        :> ([< Html_types.ol_type] -> string) Eliom_shared.Value.t)
++
+     let string_of_sandbox () =
+       ([%shared Raw_wrapped_functions.string_of_sandbox]
+         : (Html_types.sandbox_token list -> string) Eliom_shared.Value.t
