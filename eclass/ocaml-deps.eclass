@@ -57,6 +57,7 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[bisect_ppx]="cmdliner ppxlib"
 	[biniou]="easy-format camlp-streams"
 	[bos]="rresult astring fpath fmt logs mtime"
+	[bytesrw]=""
 	[bz2]="stdlib-shims"
 	[cairo2]="dune-configurator"
 	[cairo2-gtk]="cairo2 lablgtk"
@@ -311,7 +312,7 @@ js_of_ocaml-tyxml logs tyxml ocsigenserver ipaddr reactiveData ppxlib ocsipersis
 	[ocaml_intrinsics_kernel]=""
 	[ocplib-endian]=""
 	[ocp-indent]="cmdliner findlib"
-	[ocsigenserver]="camlzip findlib http react ssl logs logs-syslog lwt lwt_ssl lwt_react re cryptokit ipaddr cohttp-lwt-unix
+	[ocsigenserver]="bytesrw findlib http react ssl logs logs-syslog lwt lwt_ssl lwt_react re cryptokit ipaddr cohttp-lwt-unix
 syslog-message xml-light conduit-lwt-unix"
 	[ocsigen-i18n]="ppxlib"
 	[ocsigen-ppx-rpc]="ppxlib"
