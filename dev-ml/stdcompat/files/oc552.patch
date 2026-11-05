@@ -1,0 +1,32 @@
+Index: stdcompat-21.1/tools/compiler_version.ml
+===================================================================
+--- stdcompat-21.1.orig/tools/compiler_version.ml
++++ stdcompat-21.1/tools/compiler_version.ml
+@@ -91,6 +91,7 @@ let v5_4_0 = mk 5 4 0
+ let v5_4_1 = mk 5 4 1
+ let v5_5_0 = mk 5 5 0
+ let v5_5_1 = mk 5 5 1
++let v5_5_2 = mk 5 5 2
+ 
+ let known_versions =
+ [
+@@ -141,6 +142,7 @@ let known_versions =
+   v5_4_1;
+   v5_5_0;
+   v5_5_1;
++  v5_5_2;
+ ]
+ 
+ let is_known v = List.mem v known_versions
+Index: stdcompat-21.1/tools/compiler_version.mli
+===================================================================
+--- stdcompat-21.1.orig/tools/compiler_version.mli
++++ stdcompat-21.1/tools/compiler_version.mli
+@@ -55,6 +55,7 @@ val v5_4_0 : t
+ val v5_4_1 : t
+ val v5_5_0 : t
+ val v5_5_1 : t
++val v5_5_2 : t
+ 
+ val known_versions : t list
+ 

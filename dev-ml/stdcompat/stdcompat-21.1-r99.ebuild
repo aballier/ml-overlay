@@ -22,6 +22,7 @@ PATCHES=(
 	"${FILESDIR}/oc541.patch"
 	"${FILESDIR}/oc55.patch"
 	"${FILESDIR}/oc551.patch"
+	"${FILESDIR}/oc552.patch"
 )
 
 src_configure() {
