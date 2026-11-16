@@ -5,9 +5,11 @@ EAPI=8
 
 inherit jbuilder
 
+OCPV="-505"
+
 DESCRIPTION="A tool that indexes value usages from cmt files"
 HOMEPAGE="https://github.com/voodoos/ocaml-index"
-SRC_URI="https://github.com/ocaml/merlin/releases/download/v${PV}/merlin-${PV}.tbz"
+SRC_URI="https://github.com/ocaml/merlin/releases/download/v${PV}${OCPV}/merlin-${PV}${OCPV}.tbz"
 
 
 LICENSE="MIT"
