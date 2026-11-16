@@ -5,9 +5,11 @@ EAPI=8
 
 inherit jbuilder
 
+OCPV="-505"
+
 DESCRIPTION="Context sensitive completion for OCaml in Vim and Emacs"
 HOMEPAGE="https://github.com/ocaml/merlin"
-SRC_URI="https://github.com/ocaml/merlin/releases/download/v${PV}/merlin-${PV}.tbz"
+SRC_URI="https://github.com/ocaml/merlin/releases/download/v${PV}${OCPV}/merlin-${PV}${OCPV}.tbz"
 
 LICENSE="MIT"
 SLOT="0/${PV}"
@@ -16,4 +18,4 @@ IUSE=""
 
 DEPEND=""
 RDEPEND="${DEPEND}"
-S="${WORKDIR}/merlin-${PV}"
+S="${WORKDIR}/merlin-${PV}${OCPV}"
