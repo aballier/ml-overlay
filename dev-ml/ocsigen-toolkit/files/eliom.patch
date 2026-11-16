@@ -1,0 +1,3311 @@
+From c6f9f85e080c535eb6d46b15420907db623746cf Mon Sep 17 00:00:00 2001
+From: Vincent Balat <vincent.balat@vblt.org>
+Date: Fri, 29 May 2026 18:45:05 +0200
+Subject: [PATCH] Migrate to Eliom.Xxx module names
+
+---
+ src/widgets/ot_buttons.eliom           |   4 +-
+ src/widgets/ot_buttons.eliomi          |   2 +-
+ src/widgets/ot_calendar.eliom          |  14 +--
+ src/widgets/ot_calendar.eliomi         |  12 +--
+ src/widgets/ot_carousel.eliom          | 128 ++++++++++++-------------
+ src/widgets/ot_carousel.eliomi         | 128 ++++++++++++-------------
+ src/widgets/ot_color_picker.eliom      |   8 +-
+ src/widgets/ot_color_picker.eliomi     |   8 +-
+ src/widgets/ot_drawer.eliom            |  18 ++--
+ src/widgets/ot_drawer.eliomi           |  22 ++---
+ src/widgets/ot_form.eliom              | 124 ++++++++++++------------
+ src/widgets/ot_form.eliomi             |  77 ++++++++-------
+ src/widgets/ot_icons.eliom             |  16 +++-
+ src/widgets/ot_lib.eliom               |   6 +-
+ src/widgets/ot_nodeready.eliom         |   2 +-
+ src/widgets/ot_noderesize.eliom        |   4 +-
+ src/widgets/ot_page_transition.eliom   |  20 ++--
+ src/widgets/ot_page_transition.eliomi  |   6 +-
+ src/widgets/ot_picture_uploader.eliom  |  72 +++++++-------
+ src/widgets/ot_picture_uploader.eliomi |  72 +++++++-------
+ src/widgets/ot_popup.eliom             |  16 ++--
+ src/widgets/ot_popup.eliomi            |   2 +-
+ src/widgets/ot_pulltorefresh.eliom     |  14 +--
+ src/widgets/ot_pulltorefresh.eliomi    |  12 +--
+ src/widgets/ot_range.eliom             |  14 +--
+ src/widgets/ot_range.eliomi            |   2 +-
+ src/widgets/ot_size.eliom              |   4 +-
+ src/widgets/ot_spinner.eliom           |  22 ++---
+ src/widgets/ot_spinner.eliomi          |  34 +++----
+ src/widgets/ot_sticky.eliom            |  14 +--
+ src/widgets/ot_sticky.eliomi           |   2 +-
+ src/widgets/ot_style.eliom             |   2 +-
+ src/widgets/ot_style.eliomi            |   2 +-
+ src/widgets/ot_swipe.eliom             |  30 +++---
+ src/widgets/ot_swipe.eliomi            |  14 +--
+ src/widgets/ot_time_picker.eliom       |  86 ++++++++---------
+ src/widgets/ot_time_picker.eliomi      |  20 ++--
+ src/widgets/ot_tip.eliom               |   6 +-
+ src/widgets/ot_tip.eliomi              |  16 ++--
+ src/widgets/ot_toggle.eliom            |  12 +--
+ src/widgets/ot_toggle.eliomi           |   4 +-
+ src/widgets/ot_tongue.eliom            |  20 ++--
+ src/widgets/ot_tongue.eliomi           |  20 ++--
+ 43 files changed, 562 insertions(+), 549 deletions(-)
+
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_buttons.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_buttons.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_buttons.eliom
+@@ -1,7 +1,7 @@
+ [%%shared.start]
+ 
+-open Eliom_content.Html
+-open Eliom_content.Html.F
++open Eliom.Content.Html
++open Eliom.Content.Html.F
+ 
+ [%%client open Js_of_ocaml_lwt]
+ 
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_buttons.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_buttons.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_buttons.eliomi
+@@ -1,7 +1,7 @@
+ [%%shared.start]
+ 
+ open Html_types
+-open Eliom_content.Html
++open Eliom.Content.Html
+ 
+ (* [dropdown ~menu content] creates a dropdown button with [content] as the
+    button's content and [menu] as the menu's content. Note that the menu is
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_calendar.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_calendar.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_calendar.eliom
+@@ -20,7 +20,7 @@
+ 
+ [%%shared.start] (* shared by default, override as necessary *)
+ 
+-open Eliom_content.Html
++open Eliom.Content.Html
+ 
+ type dow = [`Sun | `Mon | `Tue | `Wed | `Thu | `Fri | `Sat]
+ type intl = {i_days : string list; i_months : string list; i_start : dow}
+@@ -172,7 +172,7 @@ let zeroth_displayed_day ~intl d =
+   else CalendarLib.Date.prev o `Week
+ 
+ let select_action ?(size = 1) selector action =
+-  let dom_select = Eliom_content.Html.To_dom.of_select selector in
++  let dom_select = Eliom.Content.Html.To_dom.of_select selector in
+   Lwt.async (fun () ->
+     action dom_select (fun _ _ ->
+       dom_select##.size := size;
+@@ -547,17 +547,17 @@ let make :
+         | Some action -> Lwt.async (fun () -> action y m d)
+         | None -> ()
+       in
+-      Eliom_lib.Dom_reference.retain (To_dom.of_element elt)
++      Eliom.Lib.Dom_reference.retain (To_dom.of_element elt)
+         ~keep:(React.E.map f update)
+   | None -> ());
+   elt
+ 
+ let%server make :
+    ?init:int * int * int
+-  -> ?highlight:(int -> int -> int list Lwt.t) Eliom_client_value.t
++  -> ?highlight:(int -> int -> int list Lwt.t) Eliom.Client_value.t
+   -> ?click_non_highlighted:bool
+-  -> ?update:(int * int * int) React.E.t Eliom_client_value.t
+-  -> ?action:(int -> int -> int -> unit Lwt.t) Eliom_client_value.t
++  -> ?update:(int * int * int) React.E.t Eliom.Client_value.t
++  -> ?action:(int -> int -> int -> unit Lwt.t) Eliom.Client_value.t
+   -> ?period:
+        CalendarLib.Date.field CalendarLib.Date.date
+        * CalendarLib.Date.field CalendarLib.Date.date
+@@ -593,7 +593,7 @@ let%shared make_date_picker ?init ?updat
+         let d = CalendarLib.Date.today () in
+         CalendarLib.Date.(year d, month d |> int_of_month, day_of_month d)
+   in
+-  let v, f = Eliom_shared.React.S.create init in
++  let v, f = Eliom.Shared.React.S.create init in
+   let action =
+     [%client
+       fun y m d ->
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_calendar.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_calendar.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_calendar.eliomi
+@@ -41,17 +41,17 @@ type button_labels =
+ 
+ val make :
+    ?init:int * int * int
+-  -> ?highlight:(int -> int -> int list Lwt.t) Eliom_client_value.t
++  -> ?highlight:(int -> int -> int list Lwt.t) Eliom.Client_value.t
+   -> ?click_non_highlighted:bool
+-  -> ?update:(int * int * int) React.E.t Eliom_client_value.t
+-  -> ?action:(int -> int -> int -> unit Lwt.t) Eliom_client_value.t
++  -> ?update:(int * int * int) React.E.t Eliom.Client_value.t
++  -> ?action:(int -> int -> int -> unit Lwt.t) Eliom.Client_value.t
+   -> ?period:
+        CalendarLib.Date.field CalendarLib.Date.date
+        * CalendarLib.Date.field CalendarLib.Date.date
+   -> ?button_labels:button_labels
+   -> ?intl:intl
+   -> unit
+-  -> [> `Div] Eliom_content.Html.elt
++  -> [> `Div] Eliom.Content.Html.elt
+ (** [make ?highlight ?click_any ?action] produces a calendar.
+ 
+     If a client-side function [highlight] is provided, [highlight y m]
+@@ -71,14 +71,14 @@ val make :
+ 
+ val make_date_picker :
+    ?init:int * int * int
+-  -> ?update:(int * int * int) React.E.t Eliom_client_value.t
++  -> ?update:(int * int * int) React.E.t Eliom.Client_value.t
+   -> ?button_labels:button_labels
+   -> ?intl:intl
+   -> ?period:
+        CalendarLib.Date.field CalendarLib.Date.date
+        * CalendarLib.Date.field CalendarLib.Date.date
+   -> unit
+-  -> [> `Div] Eliom_content.Html.elt * (int * int * int) Eliom_shared.React.S.t
++  -> [> `Div] Eliom.Content.Html.elt * (int * int * int) Eliom.Shared.React.S.t
+ (** [make_date_picker ?init ()] returns a client-side reactive signal
+     [(y, m, d)] corresponding to the date [d]:[m]:[y] that the user
+     clicks on. The optional parameter [init] provides an initial value
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_carousel.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_carousel.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_carousel.eliom
+@@ -37,8 +37,8 @@
+ open%client Js_of_ocaml
+ 
+ [%%client open Js_of_ocaml_lwt]
+-[%%shared open Eliom_content.Html]
+-[%%shared open Eliom_content.Html.F]
++[%%shared open Eliom.Content.Html]
++[%%shared open Eliom.Content.Html.F]
+ [%%shared open Lwt.Syntax]
+ 
+ let%client clX = Ot_swipe.clX
+@@ -89,11 +89,11 @@ type status =
+ *)]
+ 
+ type%shared 'a t =
+-  { elt : 'a Eliom_content.Html.elt
+-  ; pos : int Eliom_shared.React.S.t
+-  ; pos_post : int Eliom_shared.React.S.t
+-  ; vis_elts : int Eliom_shared.React.S.t
+-  ; swipe_pos : float React.S.t Eliom_client_value.t }
++  { elt : 'a Eliom.Content.Html.elt
++  ; pos : int Eliom.Shared.React.S.t
++  ; pos_post : int Eliom.Shared.React.S.t
++  ; vis_elts : int Eliom.Shared.React.S.t
++  ; swipe_pos : float React.S.t Eliom.Client_value.t }
+ 
+ let%shared
+     make
+@@ -105,16 +105,16 @@ let%shared
+       ?(swipeable = true)
+       ?(allow_overswipe = false)
+       ?(update :
+-         [`Goto of int | `Next | `Prev] React.event Eliom_client_value.t option)
+-      ?(disabled = Eliom_shared.React.S.const false)
++         [`Goto of int | `Next | `Prev] React.event Eliom.Client_value.t option)
++      ?(disabled = Eliom.Shared.React.S.const false)
+       ?(full_height = `No)
+       ?(make_transform = [%shared default_make_transform])
+       ?(make_page_attribute = [%shared fun ~vertical:_ _ -> []])
+       l
+   =
+   let a = (a :> Html_types.div_attrib attrib list) in
+-  let pos_signal, pos_set = Eliom_shared.React.S.create position in
+-  let pos_post, pos_post_set = Eliom_shared.React.S.create position in
++  let pos_signal, pos_set = Eliom.Shared.React.S.create position in
++  let pos_post, pos_post_set = Eliom.Shared.React.S.create position in
+   let swipe_pos_sig =
+     [%client
+       (React.S.create 0.
+@@ -137,7 +137,7 @@ let%shared
+          D.div
+            ~a:
+              (a_class clss
+-             :: Eliom_shared.Value.local make_page_attribute ~vertical i)
++             :: Eliom.Shared.Value.local make_page_attribute ~vertical i)
+            [e])
+       l
+   in
+@@ -147,7 +147,7 @@ let%shared
+     else
+       [ a_style
+           ("transform: "
+-          ^ (Eliom_shared.Value.local make_transform) ~vertical position) ]
++          ^ (Eliom.Shared.Value.local make_transform) ~vertical position) ]
+   in
+   let d2 = D.div ~a:(a_class ["ot-car2"] :: initial_translation) pages in
+   let d =
+@@ -162,7 +162,7 @@ let%shared
+   in
+   let maxi = List.length pages - 1 in
+   let nb_visible_elements, set_nb_visible_elements =
+-    Eliom_shared.React.S.create 1
++    Eliom.Shared.React.S.create 1
+   in
+   let _ =
+     [%client
+@@ -230,7 +230,7 @@ let%shared
+              | `No_header -> Some 0
+              | `Header (f : unit -> int) -> Some (f ())
+            in
+-           Eliom_lib.Option.iter
++           Option.iter
+              (fun dist ->
+                 let delta =
+                   max 0 (dist - int_of_float (Ot_size.client_top d))
+@@ -264,7 +264,7 @@ let%shared
+            | `No_header, _ -> Some 0
+            | `Header (f : unit -> int), _ -> Some (f ())
+          in
+-         Eliom_lib.Option.iter
++         Option.iter
+            (fun dist ->
+               let delta = -max 0 (dist - int_of_float (Ot_size.client_top d)) in
+               let pos = React.S.value pos_signal in
+@@ -289,7 +289,7 @@ let%shared
+              (fun e -> e)
+          and s =
+            Js.string
+-           @@ (Eliom_shared.Value.local ~%make_transform) ~vertical pos
++           @@ (Eliom.Shared.Value.local ~%make_transform) ~vertical pos
+          in
+          (Js.Unsafe.coerce d2'##.style)##.transform := s;
+          (Js.Unsafe.coerce d2'##.style)##.webkitTransform := s;
+@@ -312,7 +312,7 @@ let%shared
+                Lwt.return_unit
+              else Lwt.return_unit
+            in
+-           Eliom_lib.Option.iter (fun f -> f ()) transitionend;
++           Option.iter (fun f -> f ()) transitionend;
+            Manip.Class.remove ~%d2 ot_swiping;
+            ~%pos_post_set pos;
+            (* Remove swiping after calling f,
+@@ -323,7 +323,7 @@ let%shared
+         and when the window is resized (?).
+         Should be: every time the carousel size or content size changes
+         and/or: provide a function to recompute size *)
+-       Eliom_lib.Dom_reference.retain d
++       Eliom.Lib.Dom_reference.retain d
+          ~keep:
+            (React.S.map
+               (fun _ -> ~%set_nb_visible_elements (comp_nb_visible_elements ()))
+@@ -360,7 +360,7 @@ let%shared
+                          let m = (-width_element * maxi ()) + global_delta in
+                          min (float global_delta) (max delta (float m))
+                      in
+-                     let pos = Eliom_shared.React.S.value pos_signal in
++                     let pos = Eliom.Shared.React.S.value pos_signal in
+                      ~%swipe_pos_set (-.delta /. float width_element);
+                      let s =
+                        ~%make_transform ~vertical
+@@ -465,7 +465,7 @@ let%shared
+          let _timestamp, speed =
+            compute_speed prev_speed prev_delta prev_timestamp delta
+          in
+-         let pos = Eliom_shared.React.S.value pos_signal in
++         let pos = Eliom.Shared.React.S.value pos_signal in
+          let delta =
+            int_of_float
+              (delta
+@@ -501,7 +501,7 @@ let%shared
+          | Start _ | Ongoing _ ->
+              add_transition d2';
+              status := Stopped;
+-             let pos = Eliom_shared.React.S.value pos_signal in
++             let pos = Eliom.Shared.React.S.value pos_signal in
+              perform_animation (`Goback pos)
+          | _ -> Lwt.return_unit
+        in
+@@ -515,9 +515,9 @@ let%shared
+          Lwt.async (fun () -> Lwt_js_events.touchends d touchend);
+          Lwt.async (fun () -> Lwt_js_events.touchcancels d touchcancel));
+        ignore
+-         (Eliom_lib.Option.map
++         (Option.map
+             (fun update ->
+-               Eliom_lib.Dom_reference.retain d
++               Eliom.Lib.Dom_reference.retain d
+                  ~keep:
+                    (React.E.map
+                       (fun v ->
+@@ -534,14 +534,14 @@ let%shared
+                              perform_animation (`Change pos)
+                          | `Next ->
+                              let curpos =
+-                               Eliom_shared.React.S.value pos_signal
++                               Eliom.Shared.React.S.value pos_signal
+                              in
+                              if curpos < maxi
+                              then perform_animation (`Change (curpos + 1))
+                              else Lwt.return_unit
+                          | `Prev ->
+                              let curpos =
+-                               Eliom_shared.React.S.value pos_signal
++                               Eliom.Shared.React.S.value pos_signal
+                              in
+                              if curpos > 0
+                              then perform_animation (`Change (curpos - 1))
+@@ -559,7 +559,7 @@ let%shared
+ let%shared spinner () = D.div ~a:[a_class ["ot-icon-animation-spinning"]] []
+ 
+ let%shared default_fail_fun e =
+-  if Eliom_config.get_debugmode ()
++  if Eliom.Config.get_debugmode ()
+   then em [txt (Printexc.to_string e)]
+   else
+     let e = Printexc.to_string e in
+@@ -571,24 +571,24 @@ let%shared default_fail_fun e =
+     em ~a:[a_class ["ot-icon-error"]] []
+ 
+ let%shared default_fail_ref :
+-  (exn -> Html_types.div_content Eliom_content.Html.elt) ref
++  (exn -> Html_types.div_content Eliom.Content.Html.elt) ref
+   =
+   ref default_fail_fun
+ 
+ let%shared default_fail e =
+   (!default_fail_ref e
+-    : Html_types.div_content Eliom_content.Html.elt
+-    :> [< Html_types.div_content] Eliom_content.Html.elt)
++    : Html_types.div_content Eliom.Content.Html.elt
++    :> [< Html_types.div_content] Eliom.Content.Html.elt)
+ 
+ let%client set_default_fail f =
+   default_fail_ref :=
+     (f
+-      : exn -> [< Html_types.div_content] Eliom_content.Html.elt
+-      :> exn -> Html_types.div_content Eliom_content.Html.elt)
++      : exn -> [< Html_types.div_content] Eliom.Content.Html.elt
++      :> exn -> Html_types.div_content Eliom.Content.Html.elt)
+ 
+ let%shared generate_content generator =
+   Lwt.catch
+-    (fun () -> Eliom_shared.Value.local generator ())
++    (fun () -> Eliom.Shared.Value.local generator ())
+     (fun e -> Lwt.return (default_fail e))
+ 
+ (* on the client side we generate the contents of the initially visible page
+@@ -628,7 +628,7 @@ let%shared
+   =
+   let gen_contents =
+     (gen_contents
+-      :> (unit -> Html_types.div_content elt Lwt.t) Eliom_shared.Value.t list)
++      :> (unit -> Html_types.div_content elt Lwt.t) Eliom.Shared.Value.t list)
+   in
+   let sleeper, wakener = Lwt.wait () in
+   let mk_contents : int -> 'gen -> ('a elt * ('a elt * 'gen) option ref) Lwt.t =
+@@ -659,7 +659,7 @@ let%shared
+       (if ~%spinners_and_generators = []
+        then ()
+        else
+-         Eliom_lib.Dom_reference.retain
++         Eliom.Lib.Dom_reference.retain
+            (To_dom.of_element ~%(carousel.elt))
+            ~keep:
+              (~%carousel.pos
+@@ -680,7 +680,7 @@ let%shared
+   Lwt.return carousel
+ 
+ let%shared bullet_class i pos size =
+-  Eliom_shared.React.S.l2
++  Eliom.Shared.React.S.l2
+     [%shared
+       fun p size -> if ~%i >= p && ~%i < p + size then ["ot-active"] else []]
+     pos size
+@@ -690,10 +690,10 @@ let%shared
+       ?(a = [])
+       ?attributes
+       ~(change :
+-         ([> `Goto of int | `Next | `Prev] -> unit) Eliom_client_value.t)
++         ([> `Goto of int | `Next | `Prev] -> unit) Eliom.Client_value.t)
+       ~pos
+       ~length
+-      ?(size = Eliom_shared.React.S.const 1)
++      ?(size = Eliom.Shared.React.S.const 1)
+       ?content
+       ()
+   =
+@@ -729,12 +729,12 @@ let%shared
+     ribbon
+       ?(a = [])
+       ~(change :
+-         ([> `Goto of int | `Next | `Prev] -> unit) Eliom_client_value.t)
++         ([> `Goto of int | `Next | `Prev] -> unit) Eliom.Client_value.t)
+       ~pos
+-      ?(size = Eliom_shared.React.S.const 1)
++      ?(size = Eliom.Shared.React.S.const 1)
+       ?(initial_gap = 0)
+       ?(transition_duration = 0.6)
+-      ?(cursor : float React.S.t Eliom_client_value.t option)
++      ?(cursor : float React.S.t Eliom.Client_value.t option)
+       l
+   =
+   let a = (a :> Html_types.div_attrib attrib list) in
+@@ -751,7 +751,7 @@ let%shared
+   let nb_pages = List.length l in
+   let the_ul = D.ul ~a:[a_class ["ot-car-ribbon-list"]] l in
+   let cursor_elt =
+-    Eliom_lib.Option.map
++    Option.map
+       (fun _ -> D.div ~a:[a_class ["ot-car-cursor"]] [])
+       cursor
+   in
+@@ -768,7 +768,7 @@ let%shared
+        let container' = To_dom.of_element container in
+        let initial_gap = ~%initial_gap in
+        let the_ul' = To_dom.of_element the_ul in
+-       let cursor_elt' = Eliom_lib.Option.map To_dom.of_element ~%cursor_elt in
++       let cursor_elt' = Option.map To_dom.of_element ~%cursor_elt in
+        let containerwidth, set_containerwidth =
+          React.S.create container'##.offsetWidth
+        in
+@@ -783,7 +783,7 @@ let%shared
+          node from page and put it back.
+          As a temporary workaround, a also update containerwidth
+          when the browser window's size changes: *)
+-         Eliom_lib.Dom_reference.retain container'
++         Eliom.Lib.Dom_reference.retain container'
+            ~keep:
+              (Ot_size.width
+              |> React.S.map @@ fun _ ->
+@@ -800,7 +800,7 @@ let%shared
+                 Lwt.return_unit);
+          (* Changing the position of the ribbon when the carousel position
+          changes or when the size of the window changes: *)
+-         Eliom_lib.Dom_reference.retain container'
++         Eliom.Lib.Dom_reference.retain container'
+            ~keep:
+              (React.S.l3
+                 (fun pos size containerwidth ->
+@@ -847,7 +847,7 @@ let%shared
+          (match ~%cursor_elt, ~%cursor with
+          | Some cursor_elt, Some cursor ->
+              let moving = ref false in
+-             Eliom_lib.Dom_reference.retain container'
++             Eliom.Lib.Dom_reference.retain container'
+                ~keep:
+                  (React.S.l5
+                     (fun pos offset size curleft _ ->
+@@ -856,11 +856,11 @@ let%shared
+                          (* Carousel is being swiped.
+                       Removing transition on cursor. *)
+                          moving := true;
+-                         Eliom_lib.Option.iter remove_transition cursor_elt');
++                         Option.iter remove_transition cursor_elt');
+                        if offset = 0. && !moving
+                        then (
+                          moving := false;
+-                         Eliom_lib.Option.iter add_transition cursor_elt');
++                         Option.iter add_transition cursor_elt');
+                        let firstselectedelt = Manip.nth the_ul pos in
+                        let lastselectedelt =
+                          Manip.nth the_ul (pos + size - 1)
+@@ -929,7 +929,7 @@ let%shared
+          let* () = Ot_nodeready.nodeready container' in
+          let* () = Lwt_js_events.request_animation_frame () in
+          add_transition the_ul';
+-         Eliom_lib.Option.iter add_transition cursor_elt';
++         Option.iter add_transition cursor_elt';
+          Lwt.return_unit);
+        (* Moving the ribbon with fingers: *)
+        let fmax () = initial_gap in
+@@ -955,8 +955,8 @@ let%shared
+            let pos = max (fmin ()) pos in
+            set_curleft pos)
+          ~onstart:(fun _ _ ->
+-           Eliom_lib.Option.iter remove_transition cursor_elt')
+-         ~onend:(fun _ev _ -> Eliom_lib.Option.iter add_transition cursor_elt')
++           Option.iter remove_transition cursor_elt')
++         ~onend:(fun ev _ -> Option.iter add_transition cursor_elt')
+          the_ul;
+        Lwt.return_unit
+        : _)];
+@@ -967,17 +967,17 @@ let%shared blur = function true -> ["ot-
+ let%shared
+     previous
+       ?(a = [])
+-      ~(change : ([> `Prev | `Goto of int] -> unit) Eliom_client_value.t)
+-      ?(offset = Eliom_shared.React.S.const 1)
++      ~(change : ([> `Prev | `Goto of int] -> unit) Eliom.Client_value.t)
++      ?(offset = Eliom.Shared.React.S.const 1)
+       ~pos
+       content
+   =
+   let change =
+-    (change :> ([`Prev | `Goto of int] -> unit) Eliom_client_value.t)
++    (change :> ([`Prev | `Goto of int] -> unit) Eliom.Client_value.t)
+   in
+   Form.button_no_value ~button_type:`Button
+     ~a:
+-      (R.a_class (Eliom_shared.React.S.map [%shared fun p -> blur (p = 0)] pos)
++      (R.a_class (Eliom.Shared.React.S.map [%shared fun p -> blur (p = 0)] pos)
+       :: a_class ["ot-car-prev"]
+       :: a_onclick
+            [%client
+@@ -987,26 +987,26 @@ let%shared
+                  (if offset > 1
+                   then `Goto (React.S.value ~%pos - offset)
+                   else `Prev)]
+-      :: (a :> Html_types.button_attrib Eliom_content.Html.attrib list))
++      :: (a :> Html_types.button_attrib Eliom.Content.Html.attrib list))
+     content
+ 
+ let%shared
+     next
+       ?(a = [])
+-      ~(change : ([> `Next | `Goto of int] -> unit) Eliom_client_value.t)
+-      ?(offset = Eliom_shared.React.S.const 1)
++      ~(change : ([> `Next | `Goto of int] -> unit) Eliom.Client_value.t)
++      ?(offset = Eliom.Shared.React.S.const 1)
+       ~pos
+       ~vis_elts
+       ~length
+       content
+   =
+   let change =
+-    (change :> ([`Next | `Goto of int] -> unit) Eliom_client_value.t)
++    (change :> ([`Next | `Goto of int] -> unit) Eliom.Client_value.t)
+   in
+   Form.button_no_value ~button_type:`Button
+     ~a:
+       (R.a_class
+-         (Eliom_shared.React.S.l2
++         (Eliom.Shared.React.S.l2
+             [%shared fun p s -> blur (p + s >= ~%length)]
+             pos vis_elts)
+       :: a_class ["ot-car-next"]
+@@ -1018,7 +1018,7 @@ let%shared
+                  (if offset > 1
+                   then `Goto (React.S.value ~%pos + offset)
+                   else `Next)]
+-      :: (a :> Html_types.button_attrib Eliom_content.Html.attrib list))
++      :: (a :> Html_types.button_attrib Eliom.Content.Html.attrib list))
+     content
+ 
+ (* (\* Menu + prev/next buttons *\) *)
+@@ -1088,7 +1088,7 @@ let%shared wheel_page_attribute pos z fa
+     Printf.sprintf "transform: rotate%s(%.3fdeg) translateZ(%dpx)" v angle z
+   in
+   let cls =
+-    Eliom_shared.React.S.map
++    Eliom.Shared.React.S.map
+       [%shared
+         fun (pos, swipe_pos) ->
+           let faces = ~%faces in
+@@ -1123,7 +1123,7 @@ let%shared
+   in
+   (* I create another signal equal to pos
+      because I need pos before it is created :( *)
+-  let pos2, set_pos2 = Eliom_shared.React.S.create (position, 0.) in
++  let pos2, set_pos2 = Eliom.Shared.React.S.create (position, 0.) in
+   let c =
+     make ~a ~vertical ~position ?transition_duration ?inertia ?allow_overswipe
+       ?update ?disabled
+@@ -1133,7 +1133,7 @@ let%shared
+   in
+   let _ =
+     [%client
+-      (Eliom_lib.Dom_reference.retain
++      (Eliom.Lib.Dom_reference.retain
+          (To_dom.of_element ~%(c.elt))
+          ~keep:
+            (React.S.l2
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_carousel.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_carousel.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_carousel.eliomi
+@@ -48,33 +48,33 @@ open Js_of_ocaml
+     programs. *)
+ 
+ type 'a t =
+-  { elt : 'a Eliom_content.Html.elt
+-  ; pos : int Eliom_shared.React.S.t
+-  ; pos_post : int Eliom_shared.React.S.t
+-  ; vis_elts : int Eliom_shared.React.S.t
+-  ; swipe_pos : float React.S.t Eliom_client_value.t }
++  { elt : 'a Eliom.Content.Html.elt
++  ; pos : int Eliom.Shared.React.S.t
++  ; pos_post : int Eliom.Shared.React.S.t
++  ; vis_elts : int Eliom.Shared.React.S.t
++  ; swipe_pos : float React.S.t Eliom.Client_value.t }
+ (** see [make] *)
+ 
+ val make :
+-   ?a:[< Html_types.div_attrib] Eliom_content.Html.attrib list
++   ?a:[< Html_types.div_attrib] Eliom.Content.Html.attrib list
+   -> ?vertical:bool
+   -> ?position:int
+   -> ?transition_duration:float
+   -> ?inertia:float
+   -> ?swipeable:bool
+   -> ?allow_overswipe:bool
+-  -> ?update:[`Goto of int | `Next | `Prev] React.event Eliom_client_value.t
+-  -> ?disabled:bool Eliom_shared.React.S.t
++  -> ?update:[`Goto of int | `Next | `Prev] React.event Eliom.Client_value.t
++  -> ?disabled:bool Eliom.Shared.React.S.t
+   -> ?full_height:
+-       [`No | `No_header | `Header of (unit -> int) Eliom_client_value.t]
++       [`No | `No_header | `Header of (unit -> int) Eliom.Client_value.t]
+   -> ?make_transform:
+-       (vertical:bool -> ?delta:int -> int -> string) Eliom_shared.Value.t
++       (vertical:bool -> ?delta:int -> int -> string) Eliom.Shared.Value.t
+   -> ?make_page_attribute:
+        (vertical:bool
+         -> int
+-        -> Html_types.div_attrib Eliom_content.Html.D.attrib list)
+-         Eliom_shared.Value.t
+-  -> [< Html_types.div_content] Eliom_content.Html.elt list
++        -> Html_types.div_attrib Eliom.Content.Html.D.attrib list)
++         Eliom.Shared.Value.t
++  -> [< Html_types.div_content] Eliom.Content.Html.elt list
+   -> [> `Div] t
+ (**
+   Creates a carousel from the elements of a list.
+@@ -129,27 +129,27 @@ val make :
+ *)
+ 
+ val make_lazy :
+-   ?a:[< Html_types.div_attrib] Eliom_content.Html.attrib list
++   ?a:[< Html_types.div_attrib] Eliom.Content.Html.attrib list
+   -> ?vertical:bool
+   -> ?position:int
+   -> ?transition_duration:float
+   -> ?inertia:float
+   -> ?swipeable:bool
+   -> ?allow_overswipe:bool
+-  -> ?update:[`Goto of int | `Next | `Prev] React.event Eliom_client_value.t
+-  -> ?disabled:bool Eliom_shared.React.S.t
++  -> ?update:[`Goto of int | `Next | `Prev] React.event Eliom.Client_value.t
++  -> ?disabled:bool Eliom.Shared.React.S.t
+   -> ?full_height:
+-       [`No | `No_header | `Header of (unit -> int) Eliom_client_value.t]
++       [`No | `No_header | `Header of (unit -> int) Eliom.Client_value.t]
+   -> ?make_transform:
+-       (vertical:bool -> ?delta:int -> int -> string) Eliom_shared.Value.t
++       (vertical:bool -> ?delta:int -> int -> string) Eliom.Shared.Value.t
+   -> ?make_page_attribute:
+        (vertical:bool
+         -> int
+-        -> Html_types.div_attrib Eliom_content.Html.D.attrib list)
+-         Eliom_shared.Value.t
+-  -> ?spinner:(unit -> Html_types.div_content Eliom_content.Html.elt)
+-  -> (unit -> [< Html_types.div_content] Eliom_content.Html.elt Lwt.t)
+-       Eliom_shared.Value.t
++        -> Html_types.div_attrib Eliom.Content.Html.D.attrib list)
++         Eliom.Shared.Value.t
++  -> ?spinner:(unit -> Html_types.div_content Eliom.Content.Html.elt)
++  -> (unit -> [< Html_types.div_content] Eliom.Content.Html.elt Lwt.t)
++       Eliom.Shared.Value.t
+        list
+   -> [> `Div] t Lwt.t
+ (** same as [make] except for the last argument. Instead of supplying the
+@@ -163,20 +163,20 @@ val make_lazy :
+ *)
+ 
+ val wheel :
+-   ?a:[< Html_types.div_attrib > `Class] Eliom_content.Html.attrib list
++   ?a:[< Html_types.div_attrib > `Class] Eliom.Content.Html.attrib list
+   -> ?vertical:bool
+   -> ?position:int
+   -> ?transition_duration:float
+   -> ?inertia:float
+   -> ?allow_overswipe:bool
+-  -> ?update:[`Goto of int | `Next | `Prev] React.event Eliom_client_value.t
+-  -> ?disabled:bool Eliom_shared.React.S.t
++  -> ?update:[`Goto of int | `Next | `Prev] React.event Eliom.Client_value.t
++  -> ?disabled:bool Eliom.Shared.React.S.t
+   -> ?faces:int
+   -> ?face_size:int
+-  -> [< Html_types.div_content] Eliom_content.Html.elt list
+-  -> [> `Div] Eliom_content.Html.elt
+-     * int Eliom_shared.React.S.t
+-     * float React.S.t Eliom_client_value.t
++  -> [< Html_types.div_content] Eliom.Content.Html.elt list
++  -> [> `Div] Eliom.Content.Html.elt
++     * int Eliom.Shared.React.S.t
++     * float React.S.t Eliom.Client_value.t
+ (** Carousel with 3D effect. Faces are displayed on a cylinder.
+     Give the number of faces you want as parameter [faces] (default: 20).
+     The size of the faces (height for vertical carousel, width for horizontal)
+@@ -192,15 +192,15 @@ val wheel :
+  *)
+ 
+ val bullets :
+-   ?a:[< Html_types.ul_attrib] Eliom_content.Html.attrib list
+-  -> ?attributes:[< Html_types.li_attrib] Eliom_content.Html.attrib list list
+-  -> change:([`Goto of int | `Next | `Prev] -> unit) Eliom_client_value.t
+-  -> pos:int Eliom_shared.React.S.t
++   ?a:[< Html_types.ul_attrib] Eliom.Content.Html.attrib list
++  -> ?attributes:[< Html_types.li_attrib] Eliom.Content.Html.attrib list list
++  -> change:([`Goto of int | `Next | `Prev] -> unit) Eliom.Client_value.t
++  -> pos:int Eliom.Shared.React.S.t
+   -> length:int
+-  -> ?size:int Eliom_shared.React.S.t
+-  -> ?content:[< Html_types.li_content_fun] Eliom_content.Html.elt list list
++  -> ?size:int Eliom.Shared.React.S.t
++  -> ?content:[< Html_types.li_content_fun] Eliom.Content.Html.elt list list
+   -> unit
+-  -> [> `Ul] Eliom_content.Html.elt
++  -> [> `Ul] Eliom.Content.Html.elt
+ (** List of bullets for carousel. Current page has class ["active"].
+     [pos] is a signal corresponding to current position.
+     [change] is a function to change position of carousel.
+@@ -216,15 +216,15 @@ val bullets :
+  *)
+ 
+ val ribbon :
+-   ?a:[< Html_types.ul_attrib] Eliom_content.Html.attrib list
+-  -> change:([`Goto of int | `Next | `Prev] -> unit) Eliom_client_value.t
+-  -> pos:int Eliom_shared.React.S.t
+-  -> ?size:int Eliom_shared.React.S.t
++   ?a:[< Html_types.ul_attrib] Eliom.Content.Html.attrib list
++  -> change:([`Goto of int | `Next | `Prev] -> unit) Eliom.Client_value.t
++  -> pos:int Eliom.Shared.React.S.t
++  -> ?size:int Eliom.Shared.React.S.t
+   -> ?initial_gap:int
+   -> ?transition_duration:float
+-  -> ?cursor:float React.S.t Eliom_client_value.t
+-  -> [< Html_types.li_content_fun] Eliom_content.Html.elt list list
+-  -> [> `Div] Eliom_content.Html.elt
++  -> ?cursor:float React.S.t Eliom.Client_value.t
++  -> [< Html_types.li_content_fun] Eliom.Content.Html.elt list list
++  -> [> `Div] Eliom.Content.Html.elt
+ (** Menu (or tabs) for carousel. Current page has class ["active"].
+     [pos] is a signal corresponding to current position.
+     [change] is a function to change position of carousel.
+@@ -242,34 +242,34 @@ val ribbon :
+  *)
+ 
+ val previous :
+-   ?a:[< Html_types.button_attrib] Eliom_content.Html.attrib list
+-  -> change:([> `Prev | `Goto of int] -> unit) Eliom_client_value.t
+-  -> ?offset:int Eliom_shared.React.S.t
+-  -> pos:int Eliom_shared.React.S.t
+-  -> Html_types.button_content Eliom_content.Html.elt list
+-  -> [> `Button] Eliom_content.Html.elt
++   ?a:[< Html_types.button_attrib] Eliom.Content.Html.attrib list
++  -> change:([> `Prev | `Goto of int] -> unit) Eliom.Client_value.t
++  -> ?offset:int Eliom.Shared.React.S.t
++  -> pos:int Eliom.Shared.React.S.t
++  -> Html_types.button_content Eliom.Content.Html.elt list
++  -> [> `Button] Eliom.Content.Html.elt
+ (** Button to go to the previous page (or mores page if [offset] is present). *)
+ 
+ val next :
+-   ?a:[< Html_types.button_attrib] Eliom_content.Html.attrib list
+-  -> change:([> `Next | `Goto of int] -> unit) Eliom_client_value.t
+-  -> ?offset:int Eliom_shared.React.S.t
+-  -> pos:int Eliom_shared.React.S.t
+-  -> vis_elts:int Eliom_shared.React.S.t
++   ?a:[< Html_types.button_attrib] Eliom.Content.Html.attrib list
++  -> change:([> `Next | `Goto of int] -> unit) Eliom.Client_value.t
++  -> ?offset:int Eliom.Shared.React.S.t
++  -> pos:int Eliom.Shared.React.S.t
++  -> vis_elts:int Eliom.Shared.React.S.t
+   -> length:int
+-  -> Html_types.button_content Eliom_content.Html.elt list
+-  -> [> `Button] Eliom_content.Html.elt
++  -> Html_types.button_content Eliom.Content.Html.elt list
++  -> [> `Button] Eliom.Content.Html.elt
+ (** Button to go to the next page (or more pages if [offset] is present). *)
+ 
+ (* (\** Menu + prev/next buttons *\) *)
+ (* val nav : *)
+ (*   ?a:[< Html_types.ul_attrib > `Class `OnClick ] *)
+-(*     Eliom_content.Html.F.attrib list -> *)
+-(*   change: ([> `Goto of int | `Next | `Prev ] -> unit) Eliom_client_value.t -> *)
+-(*   pos:int Eliom_shared.React.S.t -> *)
+-(*   ?size:int Eliom_shared.React.S.t -> *)
+-(*   [< Html_types.li_content_fun ] Eliom_content.Html.F.elt list list -> *)
+-(*   [> Html_types.div ] Eliom_content.Html.F.elt *)
++(*     Eliom.Content.Html.F.attrib list -> *)
++(*   change: ([> `Goto of int | `Next | `Prev ] -> unit) Eliom.Client_value.t -> *)
++(*   pos:int Eliom.Shared.React.S.t -> *)
++(*   ?size:int Eliom.Shared.React.S.t -> *)
++(*   [< Html_types.li_content_fun ] Eliom.Content.Html.F.elt list list -> *)
++(*   [> Html_types.div ] Eliom.Content.Html.F.elt *)
+ 
+ [%%client.start]
+ 
+@@ -283,6 +283,6 @@ val bind_arrow_keys :
+   -> unit Lwt.t
+ 
+ val set_default_fail :
+-   (exn -> [< Html_types.div_content] Eliom_content.Html.elt)
++   (exn -> [< Html_types.div_content] Eliom.Content.Html.elt)
+   -> unit
+ (** Change the default function used to display error messages *)
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_color_picker.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_color_picker.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_color_picker.eliom
+@@ -21,8 +21,8 @@
+ 
+ [%%shared.start]
+ 
+-open Eliom_content.Html
+-open Eliom_shared.React.S.Infix
++open Eliom.Content.Html
++open Eliom.Shared.React.S.Infix
+ 
+ let hsv_to_rgb h s v =
+   let h = float_of_int h in
+@@ -144,7 +144,7 @@ let make
+       ()
+   =
+   let ((cp_sig, cp_set) as cp_react) =
+-    Eliom_shared.React.S.create (Option.value hsv ~default:(255, 1.0, 0.0))
++    Eliom.Shared.React.S.create (Option.value hsv ~default:(255, 1.0, 0.0))
+   in
+   let a = (a :> Html_types.div_attrib attrib list option) in
+   let elt, signal = display ?a cp_react, cp_sig in
+@@ -152,7 +152,7 @@ let make
+   ignore
+     [%client
+       (* /!\ How to avoid the effectful signal ? *)
+-      (Eliom_lib.Dom_reference.retain (To_dom.of_element ~%elt)
++      (Eliom.Lib.Dom_reference.retain (To_dom.of_element ~%elt)
+          ~keep:
+            (React.E.map (fun update -> ~%cp_set update) ~%update
+             : unit React.event)
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_color_picker.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_color_picker.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_color_picker.eliomi
+@@ -27,12 +27,12 @@ val hsv_to_rgb : int -> float -> float -
+ (** [hsv_to_rgb h s v] converts HS(V/L) colors to RGB. *)
+ 
+ val make :
+-   ?a:[< Html_types.div_attrib > `Class] Eliom_content.Html.attrib list
++   ?a:[< Html_types.div_attrib > `Class] Eliom.Content.Html.attrib list
+   -> ?hsv:int * float * float
+-  -> ?update:(int * float * float) React.E.t Eliom_client_value.t
++  -> ?update:(int * float * float) React.E.t Eliom.Client_value.t
+   -> unit
+-  -> [> `Div] Eliom_content.Html.D.elt
+-     * (int * float * float) Eliom_shared.React.S.t
++  -> [> `Div] Eliom.Content.Html.D.elt
++     * (int * float * float) Eliom.Shared.React.S.t
+ (** [make ()] produces a color picker. 
+     [?a] is an optional parameter to add html attributes to main element, by default 
+     it is the empty list 
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_drawer.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_drawer.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_drawer.eliom
+@@ -19,9 +19,9 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  *)
+-open Eliom_content.Html]
++open Eliom.Content.Html]
+ 
+-[%%shared open Eliom_content.Html.F]
++[%%shared open Eliom.Content.Html.F]
+ 
+ open%client Js_of_ocaml
+ open%client Lwt.Syntax
+@@ -83,8 +83,8 @@ let%shared
+       ?(position = `Left)
+       ?(opened = false)
+       ?(swipe = true)
+-      ?(onclose : (unit -> unit) Eliom_client_value.t option)
+-      ?(onopen : (unit -> unit) Eliom_client_value.t option)
++      ?(onclose : (unit -> unit) Eliom.Client_value.t option)
++      ?(onopen : (unit -> unit) Eliom.Client_value.t option)
+       ?(wrap_close = fun f -> f)
+       ?(wrap_open = fun f -> f)
+       content
+@@ -113,7 +113,7 @@ let%shared
+     D.div ~a:(a_class ("ot-drawer-bckgrnd" :: bckgrnd_init_class) :: a) [d]
+   in
+   let bind_touch :
+-    ((unit -> unit) Lwt.t * (unit -> unit) Lwt.u) Eliom_client_value.t
++    ((unit -> unit) Lwt.t * (unit -> unit) Lwt.u) Eliom.Client_value.t
+     =
+     [%client Lwt.wait ()]
+   in
+@@ -143,7 +143,7 @@ let%shared
+          Lwt_js_events.async (fun () ->
+            let* _ = Lwt_js_events.transitionend (To_dom.of_element ~%d) in
+            remove_class ~%bckgrnd "closing";
+-           Eliom_lib.Option.iter (fun f -> f ()) ~%onclose;
++           Option.iter (fun f -> f ()) ~%onclose;
+            Lwt.return_unit)
+        : unit -> unit)]
+   in
+@@ -153,7 +153,7 @@ let%shared
+       (fun () ->
+          ~%scroll_pos := Js.to_float Dom_html.window##.scrollY;
+          add_class ~%bckgrnd "open";
+-         Eliom_lib.Option.iter (fun f -> f ()) ~%onopen;
++         Option.iter (fun f -> f ()) ~%onopen;
+          Dom_html.document##.body##.style##.top
+          := Js.string (Printf.sprintf "%.2fpx" (-. !(~%scroll_pos)));
+          add_class ~%bckgrnd "opening";
+@@ -162,7 +162,7 @@ let%shared
+            let* bind_touch = fst ~%bind_touch in
+            bind_touch (); Lwt.return_unit);
+          bind_click_outside ~%bckgrnd ~%d ~%close;
+-         Eliom_client.Page_status.onactive ~stop:(fst ~%stop_open_event)
++         Eliom.Client.Page_status.onactive ~stop:(fst ~%stop_open_event)
+            (fun () -> html_ManipClass_add "ot-drawer-open");
+          Lwt_js_events.async (fun () ->
+            let* _ = Lwt_js_events.transitionend (To_dom.of_element ~%d) in
+@@ -173,7 +173,7 @@ let%shared
+   let open_ = wrap_open open_ in
+   let _ =
+     [%client
+-      (Eliom_client.Page_status.oninactive (fun () ->
++      (Eliom.Client.Page_status.oninactive (fun () ->
+          ~%reset_scroll_pos ();
+          html_ManipClass_remove "ot-drawer-opening";
+          html_ManipClass_remove "ot-drawer-open";
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_drawer.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_drawer.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_drawer.eliomi
+@@ -24,22 +24,22 @@
+ (** {2 Drawer menu for mobile and Web applications} *)
+ 
+ val drawer :
+-   ?a:[< Html_types.div_attrib] Eliom_content.Html.attrib list
++   ?a:[< Html_types.div_attrib] Eliom.Content.Html.attrib list
+   -> ?position:[`Top | `Right | `Bottom | `Left]
+   -> ?opened:bool
+   -> ?swipe:bool
+-  -> ?onclose:(unit -> unit) Eliom_client_value.t
+-  -> ?onopen:(unit -> unit) Eliom_client_value.t
++  -> ?onclose:(unit -> unit) Eliom.Client_value.t
++  -> ?onopen:(unit -> unit) Eliom.Client_value.t
+   -> ?wrap_close:
+-       ((unit -> unit) Eliom_client_value.t
+-        -> (unit -> unit) Eliom_client_value.t)
++       ((unit -> unit) Eliom.Client_value.t
++        -> (unit -> unit) Eliom.Client_value.t)
+   -> ?wrap_open:
+-       ((unit -> unit) Eliom_client_value.t
+-        -> (unit -> unit) Eliom_client_value.t)
+-  -> [< Html_types.div_content] Eliom_content.Html.elt list
+-  -> [> `Div] Eliom_content.Html.elt
+-     * (unit -> unit) Eliom_client_value.t
+-     * (unit -> unit) Eliom_client_value.t
++       ((unit -> unit) Eliom.Client_value.t
++        -> (unit -> unit) Eliom.Client_value.t)
++  -> [< Html_types.div_content] Eliom.Content.Html.elt list
++  -> [> `Div] Eliom.Content.Html.elt
++     * (unit -> unit) Eliom.Client_value.t
++     * (unit -> unit) Eliom.Client_value.t
+ (** Build a drawer menu on the left, right, top or bottom of the screen.
+     Returns the DOM element, and functions to open and close the menu.
+     It is also possible to open or close the menu by clicking on a button,
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_form.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_form.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_form.eliom
+@@ -20,8 +20,8 @@
+ 
+ open%client Js_of_ocaml
+ open%client Js_of_ocaml_lwt
+-open%shared Eliom_content.Html
+-open%shared Eliom_content.Html.F
++open%shared Eliom.Content.Html
++open%shared Eliom.Content.Html.F
+ open%client Lwt.Syntax
+ 
+ (* ================================================================ *)
+@@ -29,8 +29,8 @@ open%client Lwt.Syntax
+ (* ================================================================ *)
+ 
+ type%shared 'a react_component =
+-  'a Eliom_shared.React.S.t
+-  * (?step:React.step -> 'a -> unit) Eliom_shared.Value.t
++  'a Eliom.Shared.React.S.t
++  * (?step:React.step -> 'a -> unit) Eliom.Shared.Value.t
+ 
+ let%shared cons_opt opt l = match opt with Some x -> x :: l | None -> l
+ 
+@@ -76,7 +76,7 @@ let%client on_enter ~f inp =
+ let%shared disableable_button ?(a = []) ?button_type ~disabled content =
+   let button_type =
+     match button_type with
+-    | Some b -> (b :> Eliom_form_sigs.button_type)
++    | Some b -> (b :> Eliom.Form_sigs.button_type)
+     | None -> `Button
+   in
+   let a = (a :> Html_types.button_attrib attrib list) in
+@@ -91,7 +91,7 @@ let%shared
+     reactive_toggle_button
+       ?(a = [])
+       ?(init = false)
+-      ?(ctrl = Eliom_shared.React.S.create init)
++      ?(ctrl = Eliom.Shared.React.S.create init)
+       content
+   =
+   let signal, set_signal = ctrl in
+@@ -106,7 +106,7 @@ let%shared
+                ~%set_signal (not (React.S.value ~%signal))]
+         :: a_button_type `Button
+         :: R.a_class
+-             (Eliom_shared.React.S.map
++             (Eliom.Shared.React.S.map
+                 [%shared
+                   fun checked ->
+                     "ot-toggle-button"
+@@ -122,15 +122,15 @@ let%shared
+ let%shared
+     radio
+       ?(a = [])
+-      ?(disabled_s = Eliom_shared.React.S.const false)
+-      ?(checked_s = Eliom_shared.React.S.const false)
++      ?(disabled_s = Eliom.Shared.React.S.const false)
++      ?(checked_s = Eliom.Shared.React.S.const false)
+       ?name
+       ?(before = [])
+       content
+   =
+   let a_checked =
+     R.filter_attrib (a_checked ())
+-    @@ Eliom_shared.React.S.l2
++    @@ Eliom.Shared.React.S.l2
+          [%shared fun checked disabled -> if disabled then false else checked]
+          checked_s disabled_s
+   in
+@@ -151,7 +151,7 @@ let%shared
+     radio_buttons
+       ?(a = [])
+       ?(disabled_s =
+-        (Eliom_shared.React.S.const [] : int list Eliom_shared.React.S.t))
++        (Eliom.Shared.React.S.const [] : int list Eliom.Shared.React.S.t))
+       ~(selection_react : int option react_component)
+       ~name
+       contents
+@@ -159,12 +159,12 @@ let%shared
+   let a = (a :> Html_types.label_attrib attrib list) in
+   let labels = ref [] in
+   let s, set = selection_react in
+-  let initial = Eliom_shared.React.S.value s in
++  let initial = Eliom.Shared.React.S.value s in
+   let mk_radio i content =
+-    let checked = Option.map (( = ) i) (Eliom_shared.Value.local initial) in
++    let checked = Option.map (( = ) i) (Eliom.Shared.Value.local initial) in
+     let cl =
+       R.a_class
+-      @@ Eliom_shared.React.S.map
++      @@ Eliom.Shared.React.S.map
+            [%shared
+              fun disabled ->
+                if List.mem ~%i disabled
+@@ -176,13 +176,13 @@ let%shared
+     in
+     let a = cl :: a in
+     let disabled_s =
+-      Eliom_shared.React.S.map
++      Eliom.Shared.React.S.map
+         [%shared fun disabled -> List.mem ~%i disabled]
+         disabled_s
+     in
+     let label, input =
+       radio ~a ~disabled_s
+-        ?checked_s:(Option.map Eliom_shared.React.S.const checked)
++        ?checked_s:(Option.map Eliom.Shared.React.S.const checked)
+         ~name content
+     in
+     ignore
+@@ -192,7 +192,7 @@ let%shared
+          Lwt_js_events.changes input @@ fun _ _ ->
+          if Js.to_bool input##.checked
+          then (
+-           (match Eliom_shared.React.S.value ~%s with
++           (match Eliom.Shared.React.S.value ~%s with
+            | None -> ()
+            | Some p -> Manip.Class.remove (List.nth !(~%labels) p) "checked");
+            Manip.Class.add ~%label "checked";
+@@ -217,11 +217,11 @@ let%shared
+     reactify_input
+       ?(input_r : string react_component option)
+       ?(value = "")
+-      ?(validate : (string -> bool) Eliom_client_value.t option)
++      ?(validate : (string -> bool) Eliom.Client_value.t option)
+       (e : [`Input | `Textarea] elt)
+   =
+   let signal, set_signal =
+-    match input_r with Some r -> r | None -> Eliom_shared.React.S.create value
++    match input_r with Some r -> r | None -> Eliom.Shared.React.S.create value
+   in
+   let e =
+     [%client
+@@ -240,7 +240,7 @@ let%shared
+   in
+   let set_signal =
+     [%client
+-      (Eliom_lib.Dom_reference.retain ~%e
++      (Eliom.Lib.Dom_reference.retain ~%e
+          ~keep:
+            (React.S.map
+               (fun s ->
+@@ -249,7 +249,7 @@ let%shared
+               ~%signal);
+        (match ~%validate with
+        | Some f ->
+-           Eliom_lib.Dom_reference.retain ~%e
++           Eliom.Lib.Dom_reference.retain ~%e
+              ~keep:(React.S.map (fun x -> set_validity ~%e (f x)) ~%signal)
+        | None -> ());
+        let f _ _ =
+@@ -304,7 +304,7 @@ let%shared
+   in
+   let resize_onload = if resize then Some (a_onload resize_onload) else None in
+   let resize_oninput = if resize then Some (a_oninput resize_cb) else None in
+-  let a = (a :> Html_types.textarea_attrib Eliom_content.Html.attrib list) in
++  let a = (a :> Html_types.textarea_attrib Eliom.Content.Html.attrib list) in
+   let ta =
+     D.Raw.textarea
+       ~a:
+@@ -338,16 +338,16 @@ let%shared
+ 
+ let%shared
+     lwt_bind_input_enter
+-      ?(validate : (string -> bool) Eliom_client_value.t option)
++      ?(validate : (string -> bool) Eliom.Client_value.t option)
+       ?button
+       (e : Html_types.input elt)
+-      (f : (string -> unit Lwt.t) Eliom_client_value.t)
++      (f : (string -> unit Lwt.t) Eliom.Client_value.t)
+   =
+   ignore
+     [%client
+       (let e = To_dom.of_input ~%e in
+        let f =
+-         let f = ~%(f : (string -> unit Lwt.t) Eliom_client_value.t) in
++         let f = ~%(f : (string -> unit Lwt.t) Eliom.Client_value.t) in
+          match ~%validate with
+          | Some validate ->
+              fun v ->
+@@ -446,7 +446,7 @@ let%shared
+           [ (span
+                ~a:[a_class ["ot-checkbox-decoration"]]
+                [span ~a:[a_class ["ot-checkbox-sub-decoration"]] []]
+-              :> [< Html_types.span_content] Eliom_content.Html.elt)
++              :> [< Html_types.span_content] Eliom.Content.Html.elt)
+           ; span content ] ]
+   in
+   box, inp
+@@ -461,7 +461,7 @@ let%shared
+       ?disabled
+       ?style
+       ?mobile_style
+-      ?(ctrl = Eliom_shared.React.S.create checked)
++      ?(ctrl = Eliom.Shared.React.S.create checked)
+       content
+   =
+   let box, inp =
+@@ -470,17 +470,17 @@ let%shared
+   in
+   let signal, set_signal = ctrl in
+   let manually_changed, set_manually_changed =
+-    Eliom_shared.React.S.create false
++    Eliom.Shared.React.S.create false
+   in
+-  let (_ : unit Eliom_client_value.t) =
++  let (_ : unit Eliom.Client_value.t) =
+     [%client
+       let disabled = Option.value ~default:false ~%disabled in
+       if not disabled
+       then (
+         let inp' = To_dom.of_input ~%inp in
+-        Eliom_lib.Dom_reference.retain inp'
++        Eliom.Lib.Dom_reference.retain inp'
+           ~keep:
+-            (Eliom_shared.React.S.map
++            (Eliom.Shared.React.S.map
+                (fun b -> inp'##.checked := Js.bool b)
+                ~%signal);
+         Lwt.async (fun () ->
+@@ -504,37 +504,37 @@ let%shared
+       ?set_focus
+       ?(result_iter :
+          (Js_of_ocaml.Dom_html.inputElement Js_of_ocaml.Js.t -> string -> unit)
+-           Eliom_client_value.t
++           Eliom.Client_value.t
+            option)
+       ?(invalid_class = "ot-invalid")
+-      (check : (string -> (string, string) Result.t) Eliom_shared.Value.t)
++      (check : (string -> (string, string) Result.t) Eliom.Shared.Value.t)
+   =
+   let invalid_cl valid_s lazy_invalid_s =
+     R.filter_attrib (a_class [invalid_class])
+-    @@ Eliom_shared.React.S.l2
++    @@ Eliom.Shared.React.S.l2
+          [%shared fun valid lazy_invalid -> (not valid) && lazy_invalid]
+          valid_s lazy_invalid_s
+   in
+   let result_s, set_result =
+-    Eliom_shared.React.S.create
++    Eliom.Shared.React.S.create
+     @@
+     match init with
+-    | Some i -> (Eliom_shared.Value.local check) i
++    | Some i -> (Eliom.Shared.Value.local check) i
+     | None -> Ok ""
+   in
+   let init_valid =
+     match init with
+-    | Some i -> Result.is_ok @@ (Eliom_shared.Value.local check) i
++    | Some i -> Result.is_ok @@ (Eliom.Shared.Value.local check) i
+     | None -> true
+   in
+-  let valid_s, set_valid = Eliom_shared.React.S.create init_valid in
++  let valid_s, set_valid = Eliom.Shared.React.S.create init_valid in
+   let init_lazy_invalid =
+     match init with
+-    | Some i -> Result.is_error @@ (Eliom_shared.Value.local check) i
++    | Some i -> Result.is_error @@ (Eliom.Shared.Value.local check) i
+     | None -> false
+   in
+   let lazy_invalid_s, set_lazy_invalid =
+-    Eliom_shared.React.S.create init_lazy_invalid
++    Eliom.Shared.React.S.create init_lazy_invalid
+   in
+   let a_oninput_attr =
+     a_oninput
+@@ -573,11 +573,11 @@ let%shared
+   , result_s )
+ 
+ let%shared
+-    graceful_invalid_style (inp : Html_types.input Eliom_content.Html.elt)
++    graceful_invalid_style (inp : Html_types.input Eliom.Content.Html.elt)
+   =
+   ignore
+   @@ [%client
+-       (let inp = Eliom_content.Html.To_dom.of_input ~%inp in
++       (let inp = Eliom.Content.Html.To_dom.of_input ~%inp in
+         let f () = set_validity inp (Js.Unsafe.coerce inp)##checkValidity in
+         Lwt.async @@ fun () ->
+         let* _ = Lwt_js_events.blur inp in
+@@ -591,7 +591,7 @@ let%shared reactive_select ?(a = []) ~op
+   let initial =
+     match selected with Some v -> v | None -> fst (List.hd options)
+   in
+-  let signal, set_signal = Eliom_shared.React.S.create initial in
++  let signal, set_signal = Eliom.Shared.React.S.create initial in
+   let make_option (value, label_text) =
+     let a_sel = if value = initial then [a_selected ()] else [] in
+     F.option ~a:(a_value value :: a_sel) (F.txt label_text)
+@@ -603,7 +603,7 @@ let%shared reactive_select ?(a = []) ~op
+         :: (a :> Html_types.select_attrib attrib list))
+       (List.map make_option options)
+   in
+-  let (_ : unit Eliom_client_value.t) =
++  let (_ : unit Eliom.Client_value.t) =
+     [%client
+       let dom =
+         (Js.Unsafe.coerce (To_dom.of_element ~%elt)
+@@ -613,7 +613,7 @@ let%shared reactive_select ?(a = []) ~op
+         Lwt_js_events.changes (To_dom.of_element ~%elt) @@ fun _ _ ->
+         ~%set_signal (Js.to_string dom##.value);
+         Lwt.return_unit);
+-      Eliom_lib.Dom_reference.retain (To_dom.of_element ~%elt)
++      Eliom.Lib.Dom_reference.retain (To_dom.of_element ~%elt)
+         ~keep:
+           (React.S.map
+              (fun v ->
+@@ -627,8 +627,8 @@ let%shared reactive_select ?(a = []) ~op
+ let%shared debounced_input ?(a = []) ?(delay = 0.3) ?value ?validate () =
+   let input, (raw_signal, set) = reactive_input ~a ?value ?validate () in
+   let init = match value with Some v -> v | None -> "" in
+-  let debounced, set_debounced = Eliom_shared.React.S.create init in
+-  let (_ : unit Eliom_client_value.t) =
++  let debounced, set_debounced = Eliom.Shared.React.S.create init in
++  let (_ : unit Eliom.Client_value.t) =
+     [%client
+       let pending = ref Lwt.return_unit in
+       let el = To_dom.of_input ~%input in
+@@ -646,12 +646,12 @@ let%shared debounced_input ?(a = []) ?(d
+ (* -- Password input ---------------------------------------------- *)
+ 
+ let%shared password_input ?(a = []) ?placeholder () =
+-  let visible_s, set_visible = Eliom_shared.React.S.create false in
++  let visible_s, set_visible = Eliom.Shared.React.S.create false in
+   let inp =
+     D.Raw.input
+       ~a:
+         (R.a_input_type
+-           (Eliom_shared.React.S.map
++           (Eliom.Shared.React.S.map
+               [%shared fun visible -> if visible then `Text else `Password]
+               visible_s)
+         :: a_class ["ot-form-input"; "ot-password-input"]
+@@ -674,7 +674,7 @@ let%shared password_input ?(a = []) ?pla
+       [ D.span
+           ~a:
+             [ R.a_class
+-                (Eliom_shared.React.S.map
++                (Eliom.Shared.React.S.map
+                    [%shared
+                      fun visible ->
+                        if visible
+@@ -723,7 +723,7 @@ let%shared password_toggle inp =
+ (* -- Prevent double submit --------------------------------------- *)
+ 
+ let%shared prevent_double_submit ?(a = []) ?button_type ~f content =
+-  let disabled_s, set_disabled = Eliom_shared.React.S.create false in
++  let disabled_s, set_disabled = Eliom.Shared.React.S.create false in
+   let onclick =
+     [%client
+       fun _ ->
+@@ -762,7 +762,7 @@ let%shared
+       step
+   =
+   let disabled =
+-    Eliom_shared.React.S.map
++    Eliom.Shared.React.S.map
+       [%shared
+         function
+         | Error () -> true
+@@ -777,7 +777,7 @@ let%shared
+     [%client
+       fun _ ->
+         let value =
+-          match Eliom_shared.React.S.value ~%value with
++          match Eliom.Shared.React.S.value ~%value with
+           | Ok None | Error () -> pred ~%min_value
+           | Ok (Some value) -> value
+         in
+@@ -801,7 +801,7 @@ let%shared make_int_input ~min ~max ~siz
+       | None -> none_input_value
+       | Some value -> string_of_int value
+     in
+-    Eliom_shared.React.S.create initial_value
++    Eliom.Shared.React.S.create initial_value
+   in
+   let input, value =
+     let input, (value, _) =
+@@ -816,7 +816,7 @@ let%shared make_int_input ~min ~max ~siz
+           ; a_class ["ot-form-input"] ]
+         ()
+     in
+-    input, Eliom_shared.React.S.map [%shared validate_as_int] value
++    input, Eliom.Shared.React.S.map [%shared validate_as_int] value
+   in
+   let less_button, more_button =
+     let step_button =
+@@ -838,7 +838,7 @@ let%shared int_input ?(min = 0) ?(max =
+     make_int_input ~min ~max ~size ~optional:false (Some initial_value)
+   in
+   let value =
+-    Eliom_shared.React.S.map
++    Eliom.Shared.React.S.map
+       [%shared
+         fun result ->
+           match result with
+@@ -870,7 +870,7 @@ let%shared reactive_date_input ?(a = [])
+   let initial_str =
+     match value with Some v -> string_of_date v | None -> ""
+   in
+-  let signal, set_signal = Eliom_shared.React.S.create value in
++  let signal, set_signal = Eliom.Shared.React.S.create value in
+   let inp =
+     D.Raw.input
+       ~a:
+@@ -881,7 +881,7 @@ let%shared reactive_date_input ?(a = [])
+              (a :> Html_types.input_attrib attrib list))
+       ()
+   in
+-  let (_ : unit Eliom_client_value.t) =
++  let (_ : unit Eliom.Client_value.t) =
+     [%client
+       let inp' = To_dom.of_input ~%inp in
+       Lwt.async (fun () ->
+@@ -889,7 +889,7 @@ let%shared reactive_date_input ?(a = [])
+         let v = Js.to_string inp'##.value in
+         ~%set_signal (parse_date v);
+         Lwt.return_unit);
+-      Eliom_lib.Dom_reference.retain inp'
++      Eliom.Lib.Dom_reference.retain inp'
+         ~keep:
+           (React.S.map
+              (fun v ->
+@@ -906,7 +906,7 @@ let%shared reactive_time_input ?(a = [])
+   let initial_str =
+     match value with Some v -> string_of_time v | None -> ""
+   in
+-  let signal, set_signal = Eliom_shared.React.S.create value in
++  let signal, set_signal = Eliom.Shared.React.S.create value in
+   let inp =
+     D.Raw.input
+       ~a:
+@@ -917,7 +917,7 @@ let%shared reactive_time_input ?(a = [])
+              (a :> Html_types.input_attrib attrib list))
+       ()
+   in
+-  let (_ : unit Eliom_client_value.t) =
++  let (_ : unit Eliom.Client_value.t) =
+     [%client
+       let inp' = To_dom.of_input ~%inp in
+       Lwt.async (fun () ->
+@@ -925,7 +925,7 @@ let%shared reactive_time_input ?(a = [])
+         let v = Js.to_string inp'##.value in
+         ~%set_signal (parse_time v);
+         Lwt.return_unit);
+-      Eliom_lib.Dom_reference.retain inp'
++      Eliom.Lib.Dom_reference.retain inp'
+         ~keep:
+           (React.S.map
+              (fun v ->
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_form.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_form.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_form.eliomi
+@@ -19,13 +19,13 @@
+  *)
+ 
+ open%client Js_of_ocaml
+-open%shared Eliom_content.Html
++open%shared Eliom.Content.Html
+ 
+ (** {2 Reactive form widgets} *)
+ 
+ type%shared 'a react_component =
+-  'a Eliom_shared.React.S.t
+-  * (?step:React.step -> 'a -> unit) Eliom_shared.Value.t
++  'a Eliom.Shared.React.S.t
++  * (?step:React.step -> 'a -> unit) Eliom.Shared.Value.t
+ (** A reactive component: a signal and its setter. *)
+ 
+ (** {3 Client-side utilities} *)
+@@ -60,8 +60,8 @@ val%client on_enter :
+ 
+ val%shared disableable_button :
+    ?a:[< Html_types.button_attrib] attrib list
+-  -> ?button_type:[< Eliom_form_sigs.button_type]
+-  -> disabled:bool Eliom_shared.React.S.t
++  -> ?button_type:[< Eliom.Form_sigs.button_type]
++  -> disabled:bool Eliom.Shared.React.S.t
+   -> [< Html_types.button_content] elt list
+   -> [> `Button] elt
+ (** A button that can be reactively disabled. *)
+@@ -82,8 +82,8 @@ val%shared reactive_toggle_button :
+ 
+ val%shared radio :
+    ?a:[< Html_types.label_attrib] attrib list
+-  -> ?disabled_s:bool Eliom_shared.React.S.t
+-  -> ?checked_s:bool Eliom_shared.React.S.t
++  -> ?disabled_s:bool Eliom.Shared.React.S.t
++  -> ?checked_s:bool Eliom.Shared.React.S.t
+   -> ?name:string
+   -> ?before:[< Html_types.label_content_fun > `Input `Span] elt list
+   -> [< Html_types.span_content] elt list
+@@ -92,7 +92,7 @@ val%shared radio :
+ 
+ val%shared radio_buttons :
+    ?a:[< Html_types.label_attrib] attrib list
+-  -> ?disabled_s:int list Eliom_shared.React.S.t
++  -> ?disabled_s:int list Eliom.Shared.React.S.t
+   -> selection_react:int option react_component
+   -> name:string
+   -> [< Html_types.span_content] elt list list
+@@ -113,9 +113,9 @@ val%shared radio_selector :
+ val%shared reactify_input :
+    ?input_r:string react_component
+   -> ?value:string
+-  -> ?validate:(string -> bool) Eliom_client_value.t
++  -> ?validate:(string -> bool) Eliom.Client_value.t
+   -> [`Input | `Textarea] elt
+-  -> string Eliom_shared.React.S.t * (string -> unit) Eliom_client_value.t
++  -> string Eliom.Shared.React.S.t * (string -> unit) Eliom.Client_value.t
+ (** Make an existing input or textarea element reactive.
+     Returns a signal tracking the current value and a setter. *)
+ 
+@@ -123,10 +123,10 @@ val%shared reactive_input :
+    ?a:[< Html_types.input_attrib] attrib list
+   -> ?input_r:string react_component
+   -> ?value:string
+-  -> ?validate:(string -> bool) Eliom_client_value.t
++  -> ?validate:(string -> bool) Eliom.Client_value.t
+   -> unit
+   -> [> `Input] elt
+-     * (string Eliom_shared.React.S.t * (string -> unit) Eliom_client_value.t)
++     * (string Eliom.Shared.React.S.t * (string -> unit) Eliom.Client_value.t)
+ (** Create a reactive text input. Returns the element and
+     a (signal, setter) pair. *)
+ 
+@@ -145,10 +145,10 @@ val%shared reactive_textarea :
+   -> ?resize:bool
+   -> ?a_placeholder:string
+   -> ?value:string
+-  -> ?validate:(string -> bool) Eliom_client_value.t
++  -> ?validate:(string -> bool) Eliom.Client_value.t
+   -> unit
+   -> [> `Textarea] elt
+-     * (string Eliom_shared.React.S.t * (string -> unit) Eliom_client_value.t)
++     * (string Eliom.Shared.React.S.t * (string -> unit) Eliom.Client_value.t)
+ (** Create a reactive textarea. *)
+ 
+ (** {3 Debounced input} *)
+@@ -157,12 +157,12 @@ val%shared debounced_input :
+    ?a:[< Html_types.input_attrib] attrib list
+   -> ?delay:float
+   -> ?value:string
+-  -> ?validate:(string -> bool) Eliom_client_value.t
++  -> ?validate:(string -> bool) Eliom.Client_value.t
+   -> unit
+   -> [> `Input] elt
+-     * (string Eliom_shared.React.S.t
+-       * string Eliom_shared.React.S.t
+-       * (string -> unit) Eliom_client_value.t)
++     * (string Eliom.Shared.React.S.t
++       * string Eliom.Shared.React.S.t
++       * (string -> unit) Eliom.Client_value.t)
+ (** A reactive input where the debounced signal updates only after
+     [delay] seconds (default 0.3) of inactivity. Returns
+     [(input, (raw_signal, debounced_signal, setter))].
+@@ -172,10 +172,10 @@ val%shared debounced_input :
+ (** {3 Enter key binding} *)
+ 
+ val%shared lwt_bind_input_enter :
+-   ?validate:(string -> bool) Eliom_client_value.t
++   ?validate:(string -> bool) Eliom.Client_value.t
+   -> ?button:[`Button] elt
+   -> [`Input] elt
+-  -> (string -> unit Lwt.t) Eliom_client_value.t
++  -> (string -> unit Lwt.t) Eliom.Client_value.t
+   -> unit
+ (** Bind an Lwt action to an existing input, triggered on Enter key
+     or optional button click. *)
+@@ -183,8 +183,8 @@ val%shared lwt_bind_input_enter :
+ val%shared lwt_bound_input_enter :
+    ?a:[< Html_types.input_attrib] attrib list
+   -> ?button:[`Button] elt
+-  -> ?validate:(string -> bool) Eliom_client_value.t
+-  -> (string -> unit Lwt.t) Eliom_client_value.t
++  -> ?validate:(string -> bool) Eliom.Client_value.t
++  -> (string -> unit Lwt.t) Eliom.Client_value.t
+   -> [> `Input] elt
+ (** Create an input with an Lwt action triggered on Enter key. *)
+ 
+@@ -217,13 +217,13 @@ val%shared reactive_checkbox :
+   -> ?style:checkbox_style
+   -> ?mobile_style:checkbox_style
+   -> ?ctrl:
+-       bool Eliom_shared.React.S.t
+-       * (?step:React.step -> bool -> unit) Eliom_shared.Value.t
++       bool Eliom.Shared.React.S.t
++       * (?step:React.step -> bool -> unit) Eliom.Shared.Value.t
+   -> [< Html_types.span_content] elt list
+   -> < label : [> `Label] elt
+      ; input : [> `Input] elt
+-     ; value : bool Eliom_shared.React.S.t
+-     ; manually_changed : bool Eliom_shared.React.S.t >
++     ; value : bool Eliom.Shared.React.S.t
++     ; manually_changed : bool Eliom.Shared.React.S.t >
+ (** A reactive checkbox. The returned object provides:
+     - [label]: the label element
+     - [input]: the input element
+@@ -234,15 +234,15 @@ val%shared reactive_checkbox :
+ 
+ val%shared input_validation_tools :
+    ?init:string
+-  -> ?set_focus:(bool -> unit) Eliom_client_value.t
++  -> ?set_focus:(bool -> unit) Eliom.Client_value.t
+   -> ?result_iter:
+        (Js_of_ocaml.Dom_html.inputElement Js_of_ocaml.Js.t -> string -> unit)
+-         Eliom_client_value.t
++         Eliom.Client_value.t
+   -> ?invalid_class:string
+-  -> (string -> (string, string) Result.t) Eliom_shared.Value.t
++  -> (string -> (string, string) Result.t) Eliom.Shared.Value.t
+   -> [> Html_types.input_attrib] attrib list
+      * [> `Class] attrib
+-     * (string, string) Result.t Eliom_shared.React.S.t
++     * (string, string) Result.t Eliom.Shared.React.S.t
+ (** Given a validation function, builds the necessary [oninput] and [onblur]
+     attributes for an input, a reactive class attribute for error states,
+     and a signal with the validation result.
+@@ -261,7 +261,7 @@ val%shared optional_int_input :
+   -> ?max:int
+   -> ?size:int
+   -> int option
+-  -> [> `Div] elt * (int option, unit) result Eliom_shared.React.S.t
++  -> [> `Div] elt * (int option, unit) result Eliom.Shared.React.S.t
+ (** An integer input with +/- buttons that can be empty (None).
+     Displays ["-"] when empty. *)
+ 
+@@ -270,7 +270,7 @@ val%shared int_input :
+   -> ?max:int
+   -> ?size:int
+   -> int
+-  -> [> `Div] elt * (int, unit) result Eliom_shared.React.S.t
++  -> [> `Div] elt * (int, unit) result Eliom.Shared.React.S.t
+ (** An integer input with +/- buttons. Always contains a value. *)
+ 
+ (** {3 Password input} *)
+@@ -288,7 +288,12 @@ val%shared password_input :
+ 
+ (** {3 Password toggle (non-reactive)} *)
+ 
+-val%shared password_toggle : [< Html_types.input] elt -> [> `Div] elt
++(* TODO: restore the polymorphic input type [< Html_types.input] once the
++   Eliom PPX no longer produces a weak type variable for wrapped HTML
++   modules. *)
++val%shared password_toggle :
++  [`Input] Eliom.Content.Html.elt
++  -> [> `Div] Eliom.Content.Html.elt
+ (** [password_toggle inp] wraps an existing password input element [inp]
+     in a container with a visibility toggle button.
+     Unlike {!password_input}, this does not use reactive signals: it
+@@ -301,8 +306,8 @@ val%shared password_toggle : [< Html_typ
+ 
+ val%shared prevent_double_submit :
+    ?a:[< Html_types.button_attrib] attrib list
+-  -> ?button_type:[< Eliom_form_sigs.button_type]
+-  -> f:(unit -> unit Lwt.t) Eliom_client_value.t
++  -> ?button_type:[< Eliom.Form_sigs.button_type]
++  -> f:(unit -> unit Lwt.t) Eliom.Client_value.t
+   -> [< Html_types.button_content] elt list
+   -> [> `Button] elt
+ (** A button that disables itself while the action [f] is running,
+@@ -335,7 +340,7 @@ val%shared none_input_value : string
+ 
+ val%shared reactive_fieldset :
+    ?a:[< Html_types.fieldset_attrib] attrib list
+-  -> disabled:bool Eliom_shared.React.S.t
++  -> disabled:bool Eliom.Shared.React.S.t
+   -> [< Html_types.fieldset_content] elt list
+   -> [> `Fieldset] elt
+ (** A fieldset that can be reactively disabled.
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_icons.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_icons.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_icons.eliom
+@@ -4,7 +4,15 @@
+  *)
+ 
+ [%%shared
+-module Make (A : module type of Eliom_content.Html.F) = struct
++module type ICON_HTML = sig
++  val i :
++     ?a:[< Html_types.i_attrib] Eliom.Content.Html.attrib list
++    -> [< Html_types.i_content_fun] Eliom.Content.Html.elt list
++    -> [> Html_types.i] Eliom.Content.Html.elt
++  val a_class : Html_types.nmtokens -> [> `Class] Eliom.Content.Html.attrib
++end
++
++module Make (A : ICON_HTML) = struct
+   (** [icon classes] create an icon HTML attribute with "ot-icon" and [classes]
+    * as CSS classes.
+    * The optional parameter is at the end to be able to add other CSS classes
+@@ -12,7 +20,7 @@ module Make (A : module type of Eliom_co
+    *)
+   let icon
+         classes
+-        ?(a = ([] : Html_types.i_attrib Eliom_content.Html.attrib list))
++        ?(a = ([] : Html_types.i_attrib Eliom.Content.Html.attrib list))
+         ()
+     =
+     A.i ~a:(A.a_class ("ot-icon" :: classes) :: a) []
+@@ -28,5 +36,5 @@ module Make (A : module type of Eliom_co
+   let question = icon ["ot-icon-question"]
+ end
+ 
+-module F = Make (Eliom_content.Html.F)
+-module D = Make (Eliom_content.Html.D)]
++module F = Make (Eliom.Content.Html.F)
++module D = Make (Eliom.Content.Html.D)]
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_lib.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_lib.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_lib.eliom
+@@ -25,12 +25,12 @@ open Lwt.Syntax]
+ [%%client open Js_of_ocaml_lwt]
+ 
+ let%client onloads handler =
+-  let rec loop () = Eliom_client.onload @@ fun () -> handler (); loop () in
++  let rec loop () = Eliom.Client.onload @@ fun () -> handler (); loop () in
+   loop ()
+ 
+ let%client onresizes handler =
+   let stop, stop_thread = React.E.create () in
+-  Eliom_client.Page_status.while_active ~stop (fun () ->
++  Eliom.Client.Page_status.while_active ~stop (fun () ->
+     Lwt_js_events.onresizes handler);
+   Lwt.finalize
+     (fun () -> fst @@ Lwt.wait ())
+@@ -42,7 +42,7 @@ let%client window_scroll ?use_capture ()
+ let%client window_scrolls ?(ios_html_scroll_hack = false) ?use_capture handler =
+   let stop, stop_thread = React.E.create () in
+   let cur = ref Lwt.return_unit in
+-  Eliom_client.Page_status.while_active ~stop (fun () ->
++  Eliom.Client.Page_status.while_active ~stop (fun () ->
+     cur :=
+       if ios_html_scroll_hack
+       then
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_nodeready.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_nodeready.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_nodeready.eliom
+@@ -93,7 +93,7 @@ let nodeready n =
+         log ~n "put node in document";
+         stop_ondead ()
+       in
+-      Eliom_client.Page_status.ondead ~stop (fun () ->
++      Eliom.Client.Page_status.ondead ~stop (fun () ->
+         let instances_of_node, rest =
+           List.partition (fun {node; _} -> Js.strict_equals n node) !watched
+         in
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_noderesize.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_noderesize.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_noderesize.eliom
+@@ -20,8 +20,8 @@
+  *)
+ open Js_of_ocaml]
+ 
+-[%%client open Eliom_content.Html]
+-[%%client open Eliom_content.Html.F]
++[%%client open Eliom.Content.Html]
++[%%client open Eliom.Content.Html.F]
+ 
+ type%client resize_sensor =
+   { watched : Dom_html.element Js.t
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_page_transition.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_page_transition.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_page_transition.eliom
+@@ -2,7 +2,7 @@
+ 
+ open Js_of_ocaml
+ open Js_of_ocaml_lwt
+-open Eliom_content
++open Eliom.Content
+ open Html
+ open Html.D
+ open Lwt.Syntax
+@@ -14,7 +14,7 @@ module type PAGE_TRANSITION_CONF = sig
+ 
+   val screenshot_container :
+      screenshot option
+-    -> Html_types.div_content Eliom_content.Html.elt
++    -> Html_types.div_content Eliom.Content.Html.elt
+ end
+ 
+ module URI : PAGE_TRANSITION_CONF with type screenshot = string = struct
+@@ -68,7 +68,7 @@ module Make (Conf : PAGE_TRANSITION_CONF
+           Some screenshot_wrapper, Some screenshot_container
+       | None -> None, None
+     in
+-    Eliom_client.lock_request_handling ();
++    Eliom.Client.lock_request_handling ();
+     Option.may Manip.appendToBody screenshot_wrapper;
+     Manip.Class.add body cl_body_pre_forward;
+     let* () = Lwt_js_events.request_animation_frame () in
+@@ -81,12 +81,12 @@ module Make (Conf : PAGE_TRANSITION_CONF
+     let* () = Lwt_js.sleep transition_duration in
+     Option.may Manip.removeSelf screenshot_wrapper;
+     style##.transitionDuration := initial_transition_duration;
+-    Eliom_client.unlock_request_handling ();
++    Eliom.Client.unlock_request_handling ();
+     Lwt.return_unit
+ 
+   let forward_animation ?(transition_duration = 0.5) take_screenshot =
+     let wait_for_page_change, trigger_page_change = Lwt.wait () in
+-    Eliom_client.Page_status.oninactive ~once:true (fun () ->
++    Eliom.Client.Page_status.oninactive ~once:true (fun () ->
+       Lwt.wakeup trigger_page_change ());
+     let fa ss =
+       Lwt.async @@ fun () ->
+@@ -103,19 +103,19 @@ module Make (Conf : PAGE_TRANSITION_CONF
+         ~a:[a_class ["ot-page-transition-wrapper-backward"]]
+         ~transition_duration ~screenshot ()
+     in
+-    Eliom_client.lock_request_handling ();
++    Eliom.Client.lock_request_handling ();
+     Manip.appendToBody screenshot_wrapper;
+     let* () = Lwt_js_events.request_animation_frame () in
+     let* () = Lwt_js_events.request_animation_frame () in
+     Manip.Class.add screenshot_wrapper cl_wrapper_post_backward;
+     let* () = Lwt_js.sleep transition_duration in
+     Manip.removeSelf screenshot_wrapper;
+-    Eliom_client.unlock_request_handling ();
++    Eliom.Client.unlock_request_handling ();
+     Lwt.return_unit
+ 
+   let backward_animation ?(transition_duration = 0.5) take_screenshot =
+     let wait_for_page_change, trigger_page_change = Lwt.wait () in
+-    Eliom_client.Page_status.oninactive ~once:true (fun () ->
++    Eliom.Client.Page_status.oninactive ~once:true (fun () ->
+       Lwt.wakeup trigger_page_change ());
+     let ba ss =
+       Lwt.async @@ fun () ->
+@@ -133,13 +133,13 @@ module Make (Conf : PAGE_TRANSITION_CONF
+         ()
+     =
+     let rec hc_handler ev =
+-      Eliom_client.onchangepage hc_handler;
++      Eliom.Client.onchangepage hc_handler;
+       match animation_type ev with
+       | Nil -> Lwt.return_unit
+       | Forward -> forward_animation ?transition_duration take_screenshot
+       | Backward -> backward_animation ?transition_duration take_screenshot
+     in
+-    Eliom_client.onchangepage hc_handler
++    Eliom.Client.onchangepage hc_handler
+ end
+ 
+ let install_global_handler_withURI =
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_page_transition.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_page_transition.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_page_transition.eliomi
+@@ -19,7 +19,7 @@ module type PAGE_TRANSITION_CONF = sig
+ 
+   val screenshot_container :
+      screenshot option
+-    -> Html_types.div_content Eliom_content.Html.elt
++    -> Html_types.div_content Eliom.Content.Html.elt
+ end
+ 
+ (** [install_global_handler t take_screenshot animation_type]
+@@ -40,7 +40,7 @@ module Make
+     val install_global_handler :
+        ?transition_duration:float
+       -> take_screenshot:((screenshot -> unit) -> unit)
+-      -> animation_type:(Eliom_client.changepage_event -> animation)
++      -> animation_type:(Eliom.Client.changepage_event -> animation)
+       -> unit
+       -> unit
+   end
+@@ -49,7 +49,7 @@ module Make
+ val install_global_handler_withURI :
+    ?transition_duration:float
+   -> take_screenshot:((string -> unit) -> unit)
+-  -> animation_type:(Eliom_client.changepage_event -> animation)
++  -> animation_type:(Eliom.Client.changepage_event -> animation)
+   -> unit
+   -> unit
+ (** [install_global_handler_withURI] enables you to skip the step of
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_picture_uploader.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_picture_uploader.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_picture_uploader.eliom
+@@ -22,25 +22,25 @@ open Js_of_ocaml]
+ 
+ [%%client open Js_of_ocaml_lwt]
+ [%%client open Lwt.Syntax]
+-[%%shared open Eliom_content.Html]
+-[%%shared open Eliom_content.Html.F]
++[%%shared open Eliom.Content.Html]
++[%%shared open Eliom.Content.Html.F]
+ 
+ type%shared ('a, 'b) service =
+   ( unit
+-    , 'a * ((float * float * float * float) option * Eliom_lib.file_info)
+-    , Eliom_service.post
+-    , Eliom_service.non_att
+-    , Eliom_service.co
+-    , Eliom_service.non_ext
+-    , Eliom_service.reg
++    , 'a * ((float * float * float * float) option * Eliom.Lib.file_info)
++    , Eliom.Service.post
++    , Eliom.Service.non_att
++    , Eliom.Service.co
++    , Eliom.Service.non_ext
++    , Eliom.Service.reg
+     , [`WithoutSuffix]
+     , unit
+-    , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name
+-      * ([`One of (float * float * float * float) option Eliom_parameter.ocaml]
+-           Eliom_parameter.param_name
+-        * [`One of Eliom_lib.file_info] Eliom_parameter.param_name)
+-    , 'b Eliom_service.ocaml )
+-    Eliom_service.t
++    , [`One of 'a Eliom.Parameter.ocaml] Eliom.Parameter.param_name
++      * ([`One of (float * float * float * float) option Eliom.Parameter.ocaml]
++           Eliom.Parameter.param_name
++        * [`One of Eliom.Lib.file_info] Eliom.Parameter.param_name)
++    , 'b Eliom.Service.ocaml )
++    Eliom.Service.t
+ 
+ let%client process_file input callback =
+   Js.Opt.case
+@@ -85,7 +85,7 @@ let%client on_animation_frame f =
+ 
+ let%shared
+     cropper
+-      ~(image : Dom_html.element Js.t Eliom_client_value.t)
++      ~(image : Dom_html.element Js.t Eliom.Client_value.t)
+       ?(ratio : float option)
+       ()
+   =
+@@ -116,12 +116,12 @@ let%shared
+       ~a:[a_class ["ot-pup-ctrls"]]
+       [t_c; tr_c; r_c; br_c; b_c; bl_c; l_c; tl_c]
+   in
+-  let left, set_left = Eliom_shared.React.S.create 0. in
+-  let right, set_right = Eliom_shared.React.S.create 0. in
+-  let top, set_top = Eliom_shared.React.S.create 0. in
+-  let bottom, set_bottom = Eliom_shared.React.S.create 0. in
+-  let img_w, set_img_w = Eliom_shared.React.S.create 0. in
+-  let img_h, set_img_h = Eliom_shared.React.S.create 0. in
++  let left, set_left = Eliom.Shared.React.S.create 0. in
++  let right, set_right = Eliom.Shared.React.S.create 0. in
++  let top, set_top = Eliom.Shared.React.S.create 0. in
++  let bottom, set_bottom = Eliom.Shared.React.S.create 0. in
++  let img_w, set_img_w = Eliom.Shared.React.S.create 0. in
++  let img_h, set_img_h = Eliom.Shared.React.S.create 0. in
+   let _ =
+     [%client
+       (let open Lwt_js_events in
+@@ -136,7 +136,7 @@ let%shared
+        let tl_f = To_dom.of_element ~%tl_f in
+        let x = ref 0. in
+        let y = ref 0. in
+-       Eliom_lib.Dom_reference.retain crop
++       Eliom.Lib.Dom_reference.retain crop
+          ~keep:
+            (React.S.map
+               ( on_animation_frame @@ fun x ->
+@@ -148,7 +148,7 @@ let%shared
+                 let () = r_f##.style##.top := top in
+                 crop##.style##.top := top )
+               ~%top);
+-       Eliom_lib.Dom_reference.retain crop
++       Eliom.Lib.Dom_reference.retain crop
+          ~keep:
+            (React.S.map
+               ( on_animation_frame @@ fun x ->
+@@ -160,7 +160,7 @@ let%shared
+                 let () = r_f##.style##.bottom := bottom in
+                 crop##.style##.bottom := bottom )
+               ~%bottom);
+-       Eliom_lib.Dom_reference.retain crop
++       Eliom.Lib.Dom_reference.retain crop
+          ~keep:
+            (React.S.map
+               ( on_animation_frame @@ fun x ->
+@@ -172,7 +172,7 @@ let%shared
+                 let () = b_f##.style##.right := right in
+                 crop##.style##.right := right )
+               ~%right);
+-       Eliom_lib.Dom_reference.retain crop
++       Eliom.Lib.Dom_reference.retain crop
+          ~keep:
+            (React.S.map
+               ( on_animation_frame @@ fun x ->
+@@ -390,7 +390,7 @@ let%shared
+        : unit -> unit)]
+   in
+   ( reset
+-  , Eliom_shared.React.S.l4
++  , Eliom.Shared.React.S.l4
+       [%shared fun x y w h -> x, y, w, h]
+       top right bottom left
+   , div
+@@ -420,13 +420,13 @@ let%client loads ?cancel_handler ?use_ca
+ 
+ let%client bind_input input preview ?container ?reset () =
+   let onerror () =
+-    Eliom_lib.Option.iter
++    Option.iter
+       (fun container -> container##.classList##add (Js.string "ot-no-file"))
+       container;
+     preview##.src := Js.string "";
+     Lwt.return_unit
+   in
+-  Eliom_lib.Option.iter
++  Option.iter
+     (fun f ->
+        Lwt.async (fun () -> loads preview (fun _ _ -> Lwt.return @@ f ())))
+     reset;
+@@ -443,7 +443,7 @@ let%client bind_input input preview ?con
+                 let () =
+                   file_reader (Js.Unsafe.coerce file) (fun data ->
+                     preview##.src := data;
+-                    Eliom_lib.Option.iter
++                    Option.iter
+                       (fun container ->
+                          container##.classList##remove
+                            (Js.string "ot-no-file"))
+@@ -461,8 +461,8 @@ type 'a upload =
+   -> 'a Lwt.t]
+ 
+ let%client ocaml_service_upload ~service ~arg ?progress ?cropping file =
+-  Eliom_client.call_ocaml_service ~service () ?upload_progress:progress
+-    (arg, (Eliom_lib.Option.map React.S.value cropping, file))
++  Eliom.Client.call_ocaml_service ~service () ?upload_progress:progress
++    (arg, (Option.map React.S.value cropping, file))
+ 
+ let%client do_submit input ?progress ?cropping ~upload () =
+   process_file input @@ fun file ->
+@@ -471,7 +471,7 @@ let%client do_submit input ?progress ?cr
+ 
+ let%client
+     bind_submit
+-      (input : Dom_html.inputElement Js.t Eliom_client_value.t)
++      (input : Dom_html.inputElement Js.t Eliom.Client_value.t)
+       button
+       ?cropping
+       ~upload
+@@ -496,11 +496,11 @@ let%client
+   ()
+ 
+ let%server mk_service name arg_deriver =
+-  Eliom_service.create_ocaml ~name ~path:Eliom_service.No_path
++  Eliom.Service.create_ocaml ~name ~path:Eliom.Service.No_path
+     ~meth:
+-      (Eliom_service.Post
+-         ( Eliom_parameter.unit
+-         , let open Eliom_parameter in
++      (Eliom.Service.Post
++         ( Eliom.Parameter.unit
++         , let open Eliom.Parameter in
+            ocaml "service_arg" arg_deriver
+            ** ocaml "cropping" [%json: (float * float * float * float) option]
+            ** file "f" ))
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_picture_uploader.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_picture_uploader.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_picture_uploader.eliomi
+@@ -40,20 +40,20 @@ type 'a upload =
+ 
+ type ('a, 'b) service =
+   ( unit
+-    , 'a * ((float * float * float * float) option * Eliom_lib.file_info)
+-    , Eliom_service.post
+-    , Eliom_service.non_att
+-    , Eliom_service.co
+-    , Eliom_service.non_ext
+-    , Eliom_service.reg
++    , 'a * ((float * float * float * float) option * Eliom.Lib.file_info)
++    , Eliom.Service.post
++    , Eliom.Service.non_att
++    , Eliom.Service.co
++    , Eliom.Service.non_ext
++    , Eliom.Service.reg
+     , [`WithoutSuffix]
+     , unit
+-    , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name
+-      * ([`One of (float * float * float * float) option Eliom_parameter.ocaml]
+-           Eliom_parameter.param_name
+-        * [`One of Eliom_lib.file_info] Eliom_parameter.param_name)
+-    , 'b Eliom_service.ocaml )
+-    Eliom_service.t
++    , [`One of 'a Eliom.Parameter.ocaml] Eliom.Parameter.param_name
++      * ([`One of (float * float * float * float) option Eliom.Parameter.ocaml]
++           Eliom.Parameter.param_name
++        * [`One of Eliom.Lib.file_info] Eliom.Parameter.param_name)
++    , 'b Eliom.Service.ocaml )
++    Eliom.Service.t
+ (** a service that implements a function with type ['a -> 'b] *)
+ 
+ [%%client.start]
+@@ -61,19 +61,19 @@ type ('a, 'b) service =
+ val ocaml_service_upload : service:('a, 'b) service -> arg:'a -> 'b upload
+ 
+ val cropper :
+-   image:Dom_html.element Js.t Eliom_client_value.t
++   image:Dom_html.element Js.t Eliom.Client_value.t
+   -> ?ratio:float
+   -> unit
+-  -> (unit -> unit) * cropping * [> `Div] Eliom_content.Html.elt
++  -> (unit -> unit) * cropping * [> `Div] Eliom.Content.Html.elt
+ (** [ let (reset, cropping, cropper_dom) = cropper ~image () ]
+     [ reset ] is function to call to reset the current cropper status
+     [ cropping ] are current cropping parameters
+     [ cropper_dom ] is the div containing cropping controllers *)
+ 
+ val bind_input :
+-   Dom_html.inputElement Js.t Eliom_client_value.t
+-  -> Dom_html.imageElement Js.t Eliom_client_value.t
+-  -> ?container:#Dom_html.element Js.t Eliom_client_value.t
++   Dom_html.inputElement Js.t Eliom.Client_value.t
++  -> Dom_html.imageElement Js.t Eliom.Client_value.t
++  -> ?container:#Dom_html.element Js.t Eliom.Client_value.t
+   -> ?reset:(unit -> unit)
+   -> unit
+   -> unit
+@@ -84,7 +84,7 @@ val bind_input :
+     [?reset] is called when the [input] value changes. *)
+ 
+ val do_submit :
+-   Dom_html.inputElement Js.t Eliom_client_value.t
++   Dom_html.inputElement Js.t Eliom.Client_value.t
+   -> ?progress:(int -> int -> unit)
+   -> ?cropping:cropping
+   -> upload:unit upload
+@@ -96,8 +96,8 @@ val do_submit :
+     [upload] function to upload the file *)
+ 
+ val bind_submit :
+-   Dom_html.inputElement Js.t Eliom_client_value.t
+-  -> #Dom_html.eventTarget Js.t Eliom_client_value.t
++   Dom_html.inputElement Js.t Eliom.Client_value.t
++  -> #Dom_html.eventTarget Js.t Eliom.Client_value.t
+   -> ?cropping:cropping
+   -> upload:unit upload
+   -> after_submit:(unit -> unit Lwt.t)
+@@ -108,11 +108,11 @@ val bind_submit :
+     call [ do_submit ] which uploads the file; then call [ after_submit ] *)
+ 
+ val bind :
+-   ?container:#Dom_html.element Js.t Eliom_client_value.t
+-  -> input:Dom_html.inputElement Js.t Eliom_client_value.t
++   ?container:#Dom_html.element Js.t Eliom.Client_value.t
++  -> input:Dom_html.inputElement Js.t Eliom.Client_value.t
+   -> preview:Dom_html.imageElement Js.t
+   -> ?crop:(unit -> unit) * cropping
+-  -> submit:#Dom_html.eventTarget Js.t Eliom_client_value.t
++  -> submit:#Dom_html.eventTarget Js.t Eliom.Client_value.t
+   -> upload:unit upload
+   -> after_submit:(unit -> unit Lwt.t)
+   -> unit
+@@ -122,36 +122,36 @@ val bind :
+ [%%shared.start]
+ 
+ val input :
+-   ?a:[< Html_types.label_attrib > `Class] Eliom_content.Html.attrib list
+-  -> [< Html_types.label_content_fun] Eliom_content.Html.elt list
+-  -> [> `Input] Eliom_content.Html.elt * [> `Label] Eliom_content.Html.elt
++   ?a:[< Html_types.label_attrib > `Class] Eliom.Content.Html.attrib list
++  -> [< Html_types.label_content_fun] Eliom.Content.Html.elt list
++  -> [> `Input] Eliom.Content.Html.elt * [> `Label] Eliom.Content.Html.elt
+ (** Create a file input element with good input type [ot-pup-input] class
+     and wrap it into a label.
+     Return (input node, label node) *)
+ 
+ val preview :
+-   ?a:[< Html_types.img_attrib > `Class] Eliom_content.Html.attrib list
++   ?a:[< Html_types.img_attrib > `Class] Eliom.Content.Html.attrib list
+   -> unit
+-  -> [> `Img] Eliom_content.Html.elt
++  -> [> `Img] Eliom.Content.Html.elt
+ (** Create a img element with no src, no alt and [ot-pup-preview] class. *)
+ 
+ val submit :
+-   ?a:[< Html_types.button_attrib > `Class] Eliom_content.Html.attrib list
+-  -> [< Html_types.button_content] Eliom_content.Html.elt list
+-  -> [> `Button] Eliom_content.Html.elt
++   ?a:[< Html_types.button_attrib > `Class] Eliom.Content.Html.attrib list
++  -> [< Html_types.button_content] Eliom.Content.Html.elt list
++  -> [> `Button] Eliom.Content.Html.elt
+ (** Create a button with [ot-pup-sumit] clas *)
+ 
+ val mk_form :
+    ?after_submit:(unit -> unit Lwt.t)
+   -> ?crop:float option
+   -> ?input:
+-       [< Html_types.label_attrib > `Class] Eliom_content.Html.attrib list
+-       * [< Html_types.label_content_fun] Eliom_content.Html.elt list
++       [< Html_types.label_attrib > `Class] Eliom.Content.Html.attrib list
++       * [< Html_types.label_content_fun] Eliom.Content.Html.elt list
+   -> ?submit:
+-       [< Html_types.button_attrib > `Class] Eliom_content.Html.attrib list
+-       * [< Html_types.button_content_fun] Eliom_content.Html.elt list
++       [< Html_types.button_attrib > `Class] Eliom.Content.Html.attrib list
++       * [< Html_types.button_content_fun] Eliom.Content.Html.elt list
+   -> unit upload
+-  -> [> `Form] Eliom_content.Html.elt Lwt.t
++  -> [> `Form] Eliom.Content.Html.elt Lwt.t
+ (** Ready-to-use form. Customizable with
+     [input], the input button content, [submit], the submit button content.
+     If [crop] is present, cropping is enable, with the optional ratio it is.
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_popup.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_popup.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_popup.eliom
+@@ -19,9 +19,9 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  *)
+-open Eliom_content.Html]
++open Eliom.Content.Html]
+ 
+-[%%shared open Eliom_content.Html.F]
++[%%shared open Eliom.Content.Html.F]
+ 
+ open%client Js_of_ocaml
+ open%client Lwt.Syntax
+@@ -83,7 +83,7 @@ let%client
+   in
+   let popup = ref None in
+   let stop, stop_thread = React.E.create () in
+-  Eliom_client.Page_status.onactive ~stop (fun () ->
++  Eliom.Client.Page_status.onactive ~stop (fun () ->
+     if enable_scrolling_hack then disable_page_scroll ());
+   let reset () = if enable_scrolling_hack then enable_page_scroll () in
+   let do_close () =
+@@ -91,10 +91,10 @@ let%client
+       (Dom_html.document##getElementsByClassName (Js.string "ot-popup"))##.length
+       = 1
+     then reset ();
+-    let () = Eliom_lib.Option.iter Manip.removeSelf !popup in
++    let () = Option.iter Manip.removeSelf !popup in
+     stop_thread (); onclose ()
+   in
+-  Eliom_client.Page_status.oninactive ~stop reset;
++  Eliom.Client.Page_status.oninactive ~stop reset;
+   let close () =
+     match confirmation_onclose with
+     | None -> do_close ()
+@@ -124,16 +124,16 @@ let%client
+   in
+   let pop = D.div ~a:[a_class ["ot-popup"]] content in
+   let box = D.div ~a:(a_class ["ot-popup-background"] :: a) [pop] in
+-  let box_dom = Eliom_content.Html.To_dom.of_element box in
++  let box_dom = Eliom.Content.Html.To_dom.of_element box in
+   if close_on_background_click
+   then
+-    Eliom_client.Page_status.while_active ~stop (fun () ->
++    Eliom.Client.Page_status.while_active ~stop (fun () ->
+       (* Close the popup when user clicks on background *)
+       let* event = Lwt_js_events.click box_dom in
+       if event##.target = Js.some box_dom then close () else Lwt.return_unit);
+   if close_on_escape
+   then
+-    Eliom_client.Page_status.while_active ~stop (fun () ->
++    Eliom.Client.Page_status.while_active ~stop (fun () ->
+       Lwt_js_events.keydowns Dom_html.window @@ fun ev _ ->
+       if ev##.keyCode = 27 then close () else Lwt.return_unit);
+   popup := Some box;
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_popup.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_popup.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_popup.eliomi
+@@ -23,7 +23,7 @@
+ 
+ (** Popup widget *)
+ 
+-open Eliom_content.Html
++open Eliom.Content.Html
+ open Html_types
+ 
+ val hcf :
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_pulltorefresh.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_pulltorefresh.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_pulltorefresh.eliom
+@@ -2,9 +2,9 @@
+ 
+ type state = Pulling | Ready | Loading | Succeeded | Failed
+ 
+-[%%client open Eliom_content.Html]
++[%%client open Eliom.Content.Html]
+ 
+-module H = Eliom_content.Html
++module H = Eliom.Content.Html
+ open H.D
+ 
+ let%shared default_header : state option -> [> `Div] H.elt list =
+@@ -176,20 +176,20 @@ let make
+       ?(refresh_timeout = 20.)
+       ?(header = [%shared default_header])
+       ~(content : Html_types.div_content H.elt)
+-      (afterPull : (unit -> bool Lwt.t) Eliom_client_value.t)
++      (afterPull : (unit -> bool Lwt.t) Eliom.Client_value.t)
+   =
+-  if app_only && not (Eliom_client.is_client_app ())
++  if app_only && not (Eliom.Client.is_client_app ())
+   then div ~a [content]
+   else
+-    let state_s, set_state = Eliom_shared.React.S.create None in
++    let state_s, set_state = Eliom.Shared.React.S.create None in
+     let headContainer =
+       H.R.node
+-      @@ Eliom_shared.React.S.map
++      @@ Eliom.Shared.React.S.map
+            [%shared
+              let open H in
+              fun s ->
+                D.div ~a:[D.a_class ["ot-pull-refresh-head-container"]]
+-               @@ Eliom_shared.Value.local ~%header
++               @@ Eliom.Shared.Value.local ~%header
+                @@ s]
+            state_s
+     in
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_pulltorefresh.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_pulltorefresh.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_pulltorefresh.eliomi
+@@ -14,17 +14,17 @@
+ type state = Pulling | Ready | Loading | Succeeded | Failed
+ 
+ val make :
+-   ?a:[< Html_types.div_attrib > `Class] Eliom_content.Html.attrib list
++   ?a:[< Html_types.div_attrib > `Class] Eliom.Content.Html.attrib list
+   -> ?app_only:bool
+   -> ?scale:float
+   -> ?dragThreshold:float
+   -> ?refresh_timeout:float
+   -> ?header:
+-       (state option -> Html_types.div_content Eliom_content.Html.elt list)
+-         Eliom_shared.Value.t
+-  -> content:Html_types.div_content Eliom_content.Html.elt
+-  -> (unit -> bool Lwt.t) Eliom_client_value.t
+-  -> [> `Div] Eliom_content.Html.elt
++       (state option -> Html_types.div_content Eliom.Content.Html.elt list)
++         Eliom.Shared.Value.t
++  -> content:Html_types.div_content Eliom.Content.Html.elt
++  -> (unit -> bool Lwt.t) Eliom.Client_value.t
++  -> [> `Div] Eliom.Content.Html.elt
+ (**
+    Creates a pull-to-refresh container from an html element.
+    [?a] is the attribute array of the returned element
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_range.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_range.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_range.eliom
+@@ -20,21 +20,21 @@
+ 
+ [%%shared.start] (* shared by default, override as necessary *)
+ 
+-open Eliom_content.Html
+-open Eliom_shared.React.S.Infix
++open Eliom.Content.Html
++open Eliom.Shared.React.S.Infix
+ 
+ let display_aux (_, _, a) v =
+   let v = match a with Some a -> a.(v) | None -> string_of_int v
+   and a = [D.a_class ["ot-r-value"]] in
+   D.div ~a [D.txt v]
+ 
+-let%client go_up (lb, ub, _a) r (f : ?step:_ -> _) =
+-  let v = Eliom_shared.React.S.value r in
++let%client go_up (lb, ub, a) r (f : ?step:_ -> _) =
++  let v = Eliom.Shared.React.S.value r in
+   assert (v <= ub - 1);
+   f (if v = ub - 1 then lb else v + 1)
+ 
+-let%client go_down (lb, ub, _a) r (f : ?step:_ -> _) =
+-  let v = Eliom_shared.React.S.value r in
++let%client go_down (lb, ub, a) r (f : ?step:_ -> _) =
++  let v = Eliom.Shared.React.S.value r in
+   assert (v >= lb);
+   f (if v = lb then ub - 1 else v - 1)
+ 
+@@ -58,7 +58,7 @@ let display ?(txt_up = "up") ?(txt_down
+ 
+ let make ?txt_up ?txt_down ?f ?(lb = 0) ub =
+   assert (ub > lb);
+-  let ((v, _) as rp) = Eliom_shared.React.S.create lb
++  let ((v, _) as rp) = Eliom.Shared.React.S.create lb
+   and a =
+     match f with
+     | Some f ->
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_range.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_range.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_range.eliomi
+@@ -28,7 +28,7 @@ val make :
+   -> ?f:(int -> string)
+   -> ?lb:int
+   -> int
+-  -> [> `Div] Eliom_content.Html.elt * int Eliom_shared.React.S.t
++  -> [> `Div] Eliom.Content.Html.elt * int Eliom.Shared.React.S.t
+ (** [make ?txt_up ?txt_down ~f ~lb ub] produces a widget for picking
+     one of the values in [\[lb, ub)] via "up" and "down" buttons marked
+     with the text [txt_up] and [txt_down]. [f i] provides the text
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_size.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_size.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_size.eliom
+@@ -68,7 +68,7 @@ let width_height, width, height =
+   wh, w, h
+ 
+ let set_adaptative_width elt f =
+-  Eliom_lib.Dom_reference.retain elt
++  Eliom.Lib.Dom_reference.retain elt
+     ~keep:
+       (React.S.map
+          (fun w ->
+@@ -76,7 +76,7 @@ let set_adaptative_width elt f =
+          height)
+ 
+ let set_adaptative_height elt f =
+-  Eliom_lib.Dom_reference.retain elt
++  Eliom.Lib.Dom_reference.retain elt
+     ~keep:
+       (React.S.map
+          (fun w ->
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_spinner.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_spinner.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_spinner.eliom
+@@ -21,13 +21,13 @@
+ 
+ open%client Js_of_ocaml
+ 
+-[%%shared open Eliom_content.Html]
++[%%shared open Eliom.Content.Html]
+ [%%shared open Lwt.Syntax]
+-[%%shared open Eliom_content.Html.F]
+-[%%client open Eliom_shared]
++[%%shared open Eliom.Content.Html.F]
++[%%client open Eliom.Shared]
+ 
+ let%shared default_fail_fun e =
+-  [ (if Eliom_config.get_debugmode ()
++  [ (if Eliom.Config.get_debugmode ()
+      then em [txt (Printexc.to_string e)]
+      else
+        let e = Printexc.to_string e in
+@@ -39,20 +39,20 @@ let%shared default_fail_fun e =
+        em ~a:[a_class ["ot-icon-error"]] []) ]
+ 
+ let%shared default_fail_ref :
+-  (exn -> Html_types.div_content Eliom_content.Html.elt list) ref
++  (exn -> Html_types.div_content Eliom.Content.Html.elt list) ref
+   =
+   ref default_fail_fun
+ 
+ let%shared default_fail e =
+   (!default_fail_ref e
+-    : Html_types.div_content Eliom_content.Html.elt list
+-    :> [< Html_types.div_content] Eliom_content.Html.elt list)
++    : Html_types.div_content Eliom.Content.Html.elt list
++    :> [< Html_types.div_content] Eliom.Content.Html.elt list)
+ 
+ let%client set_default_fail f =
+   default_fail_ref :=
+     (f
+-      : exn -> [< Html_types.div_content] Eliom_content.Html.elt list
+-      :> exn -> Html_types.div_content Eliom_content.Html.elt list)
++      : exn -> [< Html_types.div_content] Eliom.Content.Html.elt list
++      :> exn -> Html_types.div_content Eliom.Content.Html.elt list)
+ 
+ let%server with_spinner ?(a = []) ?spinner:_ ?fail thread =
+   let a = (a :> Html_types.div_attrib attrib list) in
+@@ -100,8 +100,8 @@ let replace_content ?fail elt thread =
+     match fail with
+     | Some fail ->
+         (fail
+-          : exn -> [< Html_types.div_content] Eliom_content.Html.elt list Lwt.t
+-          :> exn -> Html_types.div_content Eliom_content.Html.elt list Lwt.t)
++          : exn -> [< Html_types.div_content] Eliom.Content.Html.elt list Lwt.t
++          :> exn -> Html_types.div_content Eliom.Content.Html.elt list Lwt.t)
+     | None -> fun e -> Lwt.return (default_fail e)
+   in
+   inc_active_spinners ();
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_spinner.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_spinner.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_spinner.eliomi
+@@ -24,11 +24,11 @@
+ (** {2 Spinner widget} *)
+ 
+ val with_spinner :
+-   ?a:[< Html_types.div_attrib] Eliom_content.Html.attrib list
+-  -> ?spinner:[< Html_types.div_content] Eliom_content.Html.elt list
+-  -> ?fail:(exn -> [< Html_types.div_content] Eliom_content.Html.elt list Lwt.t)
+-  -> [< Html_types.div_content] Eliom_content.Html.elt list Lwt.t
+-  -> [> `Div] Eliom_content.Html.elt Lwt.t
++   ?a:[< Html_types.div_attrib] Eliom.Content.Html.attrib list
++  -> ?spinner:[< Html_types.div_content] Eliom.Content.Html.elt list
++  -> ?fail:(exn -> [< Html_types.div_content] Eliom.Content.Html.elt list Lwt.t)
++  -> [< Html_types.div_content] Eliom.Content.Html.elt list Lwt.t
++  -> [> `Div] Eliom.Content.Html.elt Lwt.t
+ (** On client side, [with_spinner th] returns immediately a spinner
+     while Lwt thread [th] is not finished, that will automatically
+     be replaced by the result of [th] when finished.
+@@ -37,7 +37,7 @@ val with_spinner :
+     returning its result (and never display a spinner).
+ 
+     If you want the spinner on both sides, you can use [with_spinner_no_lwt]
+-    and [Eliom_content.Html.C.node].
++    and [Eliom.Content.Html.C.node].
+ 
+     Function [fail] will be used to display block in case an exception is
+     raised.
+@@ -51,32 +51,32 @@ val with_spinner :
+ [%%client.start]
+ 
+ val with_spinner_no_lwt :
+-   ?a:[< Html_types.div_attrib] Eliom_content.Html.attrib list
+-  -> ?spinner:[< Html_types.div_content] Eliom_content.Html.elt list
+-  -> ?fail:(exn -> [< Html_types.div_content] Eliom_content.Html.elt list)
+-  -> [< Html_types.div_content] Eliom_content.Html.elt list Lwt.t
+-  -> [> `Div] Eliom_content.Html.elt
++   ?a:[< Html_types.div_attrib] Eliom.Content.Html.attrib list
++  -> ?spinner:[< Html_types.div_content] Eliom.Content.Html.elt list
++  -> ?fail:(exn -> [< Html_types.div_content] Eliom.Content.Html.elt list)
++  -> [< Html_types.div_content] Eliom.Content.Html.elt list Lwt.t
++  -> [> `Div] Eliom.Content.Html.elt
+ (** Same as [with_spinner] but returns immediately.
+     Client only (as we must wait for the thread to terminate on server
+     before sending the page). *)
+ 
+ val replace_content :
+-   ?fail:(exn -> [< Html_types.div_content] Eliom_content.Html.elt list Lwt.t)
+-  -> 'a Eliom_content.Html.elt
+-  -> Html_types.div_content Eliom_content.Html.elt list Lwt.t
++   ?fail:(exn -> [< Html_types.div_content] Eliom.Content.Html.elt list Lwt.t)
++  -> 'a Eliom.Content.Html.elt
++  -> Html_types.div_content Eliom.Content.Html.elt list Lwt.t
+   -> unit Lwt.t
+ (** [replace_content elt thread] replaces the contents of [elt] by the content
+     generated by [thread]. The [elt] has be a D-node. Until [thread] is
+     finished [elt] is transformed into a spinner. *)
+ 
+-val num_active_spinners : int Eliom_shared.React.S.t
++val num_active_spinners : int Eliom.Shared.React.S.t
+ (** the number of spinners currently spinning *)
+ 
+-val onloaded : unit Eliom_shared.React.E.t
++val onloaded : unit Eliom.Shared.React.E.t
+ (**  [onloaded] is an event that fires when all spinners have finished loading.
+     This can occur multiple times. *)
+ 
+ val set_default_fail :
+-   (exn -> [< Html_types.div_content] Eliom_content.Html.elt list)
++   (exn -> [< Html_types.div_content] Eliom.Content.Html.elt list)
+   -> unit
+ (** Change the default function used to display error messages *)
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_sticky.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_sticky.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_sticky.eliom
+@@ -1,6 +1,6 @@
+ [%%client.start]
+ 
+-open Eliom_content.Html
++open Eliom.Content.Html
+ open Html_types
+ open Js_of_ocaml
+ open Js_of_ocaml_lwt
+@@ -155,7 +155,7 @@ let make_sticky
+     in
+     init ();
+     let onloaded_thread = Ot_spinner.onloaded |> React.E.map init in
+-    Eliom_lib.Dom_reference.retain (To_dom.of_element fixed)
++    Eliom.Lib.Dom_reference.retain (To_dom.of_element fixed)
+       ~keep:onloaded_thread;
+     let scroll_thread =
+       Ot_lib.window_scrolls ~ios_html_scroll_hack @@ fun _ _ ->
+@@ -166,7 +166,7 @@ let make_sticky
+       |> React.S.map @@ fun (width, height) ->
+          synchronise glue; update_state glue; width, height
+     in
+-    Eliom_lib.Dom_reference.retain (To_dom.of_element fixed) ~keep:resize_thread;
++    Eliom.Lib.Dom_reference.retain (To_dom.of_element fixed) ~keep:resize_thread;
+     let dissolve () =
+       Lwt.cancel scroll_thread;
+       React.S.stop resize_thread;
+@@ -175,7 +175,7 @@ let make_sticky
+       Manip.removeSelf glue.fixed;
+       Manip.Class.remove glue.inline "ot-sticky-inline"
+     in
+-    Eliom_client.onunload (fun () -> dissolve ());
++    Eliom.Client.onunload (fun () -> dissolve ());
+     Lwt.return_some {glue with scroll_thread; resize_thread; dissolve}
+ 
+ (* This is about functionality built on top of position:sticky / the polyfill *)
+@@ -212,7 +212,7 @@ let keep_in_sight ~dir ?ios_html_scroll_
+         | None -> Ot_size.width_height
+         | Some glue -> glue.resize_thread
+       in
+-      Eliom_lib.Dom_reference.retain (To_dom.of_element elt) ~keep:resize_thread;
++      Eliom.Lib.Dom_reference.retain (To_dom.of_element elt) ~keep:resize_thread;
+       let init () =
+         let doIt () = compute_top_left @@ React.S.value Ot_size.width_height in
+         (* the additional initialisation after some delay is due to the inexplicable
+@@ -224,11 +224,11 @@ let keep_in_sight ~dir ?ios_html_scroll_
+       in
+       init ();
+       let onload_thread = React.E.map init Ot_spinner.onloaded in
+-      Eliom_lib.Dom_reference.retain (To_dom.of_element elt) ~keep:onload_thread;
++      Eliom.Lib.Dom_reference.retain (To_dom.of_element elt) ~keep:onload_thread;
+       let stop () =
+         React.E.stop onload_thread;
+         React.S.stop resize_thread;
+         match glue with Some g -> g.dissolve () | None -> ()
+       in
+-      Eliom_client.onunload (fun () -> stop ());
++      Eliom.Client.onunload (fun () -> stop ());
+       Lwt.return stop
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_sticky.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_sticky.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_sticky.eliomi
+@@ -1,6 +1,6 @@
+ [%%client.start]
+ 
+-open Eliom_content.Html
++open Eliom.Content.Html
+ open Html_types
+ 
+ val is_position_sticky : 'a elt -> bool
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_style.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_style.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_style.eliom
+@@ -18,7 +18,7 @@ val parse_px : Js.js_string Js.t -> floa
+ [%%client.start]
+ 
+ open Js_of_ocaml
+-open Eliom_content.Html
++open Eliom.Content.Html
+ 
+ let parse_px str =
+   let str = Js.to_string str in
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_style.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_style.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_style.eliomi
+@@ -3,7 +3,7 @@
+ (** This module is an interface to getComputedStyle. *)
+ 
+ open Js_of_ocaml
+-open Eliom_content.Html
++open Eliom.Content.Html
+ 
+ val parse_px : Js.js_string Js.t -> float option
+ val float_of_px : Js.js_string Js.t -> float
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_swipe.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_swipe.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_swipe.eliom
+@@ -3,10 +3,10 @@
+ [%%shared open Js_of_ocaml]
+ [%%client open Js_of_ocaml_lwt]
+ 
+-open%client Eliom_content.Html
++open%client Eliom.Content.Html
+ open%client Lwt.Syntax
+ 
+-[%%shared open Eliom_content.Html.F]
++[%%shared open Eliom.Content.Html.F]
+ 
+ (** sensibility for detecting swipe left/right or up/down *)
+ 
+@@ -97,16 +97,16 @@ let%client dispatch_event ~ev elt name x
+ let%shared
+     bind
+       ?(transition_duration = 0.3)
+-      ?(min : (unit -> int) Eliom_client_value.t option)
+-      ?(max : (unit -> int) Eliom_client_value.t option)
++      ?(min : (unit -> int) Eliom.Client_value.t option)
++      ?(max : (unit -> int) Eliom.Client_value.t option)
+       ~(compute_final_pos :
+-         (Dom_html.touchEvent Js.t -> int -> int) Eliom_client_value.t)
++         (Dom_html.touchEvent Js.t -> int -> int) Eliom.Client_value.t)
+       ?(onstart :
+-         (Dom_html.touchEvent Js.t -> int -> unit) Eliom_client_value.t option)
++         (Dom_html.touchEvent Js.t -> int -> unit) Eliom.Client_value.t option)
+       ?(onmove :
+-         (Dom_html.touchEvent Js.t -> int -> unit) Eliom_client_value.t option)
++         (Dom_html.touchEvent Js.t -> int -> unit) Eliom.Client_value.t option)
+       ?(onend :
+-         (Dom_html.touchEvent Js.t -> int -> unit) Eliom_client_value.t option)
++         (Dom_html.touchEvent Js.t -> int -> unit) Eliom.Client_value.t option)
+       (elt : Html_types.div_content elt)
+   =
+   ignore
+@@ -128,7 +128,7 @@ let%shared
+            add_transition ~%transition_duration elt';
+            let left = ~%compute_final_pos ev (truncate (clX ev -. !startx)) in
+            elt'##.style##.left := px_of_int left;
+-           Eliom_lib.Option.iter (fun f -> f ev left) ~%onend;
++           Option.iter (fun f -> f ev left) ~%onend;
+            Lwt.async (fun () ->
+              let* _ = Lwt_js_events.transitionend elt' in
+              Manip.Class.remove elt "ot-swiping";
+@@ -156,13 +156,13 @@ let%shared
+                (* We decide to take the event *)
+                Manip.Class.add elt "ot-swiping";
+                remove_transition elt';
+-               Eliom_lib.Option.iter (fun f -> f ev (truncate left)) ~%onstart;
++               Option.iter (fun f -> f ev (truncate left)) ~%onstart;
+                (* We send a touchcancel to the parent (who received the start) *)
+                dispatch_event ~ev elt' "touchcancel" (clX ev) (clY ev);
+                In_progress)
+              else !status;
+-         let min = Eliom_lib.Option.map (fun f -> f ()) ~%min in
+-         let max = Eliom_lib.Option.map (fun f -> f ()) ~%max in
++         let min = Option.map (fun f -> f ()) ~%min in
++         let max = Option.map (fun f -> f ()) ~%max in
+          if !status = In_progress
+          then (
+            match min, max with
+@@ -171,7 +171,7 @@ let%shared
+                     We stop the movement of this element
+                     and dispatch it to the parent. *)
+                status := Below;
+-               Eliom_lib.Option.iter (fun f -> f ev min) ~%onmove;
++               Option.iter (fun f -> f ev min) ~%onmove;
+                do_pan min;
+                (* We send a touchstart event to the parent *)
+                dispatch_event ~ev elt' "touchstart"
+@@ -184,7 +184,7 @@ let%shared
+                     We stop the movement of this element
+                     and dispatch it to the parent. *)
+                status := Above;
+-               Eliom_lib.Option.iter (fun f -> f ev max) ~%onmove;
++               Option.iter (fun f -> f ev max) ~%onmove;
+                do_pan max;
+                (* We send a touchstart event to the parent *)
+                dispatch_event ~ev elt' "touchstart"
+@@ -195,7 +195,7 @@ let%shared
+            | _ ->
+                Dom_html.stopPropagation ev;
+                Dom.preventDefault ev;
+-               Eliom_lib.Option.iter (fun f -> f ev (truncate left)) ~%onmove;
++               Option.iter (fun f -> f ev (truncate left)) ~%onmove;
+                do_pan (int_of_float (left +. 0.5));
+                Lwt.return_unit)
+          else
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_swipe.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_swipe.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_swipe.eliomi
+@@ -4,14 +4,14 @@ open Js_of_ocaml
+ 
+ val bind :
+    ?transition_duration:float
+-  -> ?min:(unit -> int) Eliom_client_value.t
+-  -> ?max:(unit -> int) Eliom_client_value.t
++  -> ?min:(unit -> int) Eliom.Client_value.t
++  -> ?max:(unit -> int) Eliom.Client_value.t
+   -> compute_final_pos:
+-       (Dom_html.touchEvent Js.t -> int -> int) Eliom_client_value.t
+-  -> ?onstart:(Dom_html.touchEvent Js.t -> int -> unit) Eliom_client_value.t
+-  -> ?onmove:(Dom_html.touchEvent Js.t -> int -> unit) Eliom_client_value.t
+-  -> ?onend:(Dom_html.touchEvent Js.t -> int -> unit) Eliom_client_value.t
+-  -> Html_types.div_content Eliom_content.Html.elt
++       (Dom_html.touchEvent Js.t -> int -> int) Eliom.Client_value.t
++  -> ?onstart:(Dom_html.touchEvent Js.t -> int -> unit) Eliom.Client_value.t
++  -> ?onmove:(Dom_html.touchEvent Js.t -> int -> unit) Eliom.Client_value.t
++  -> ?onend:(Dom_html.touchEvent Js.t -> int -> unit) Eliom.Client_value.t
++  -> Html_types.div_content Eliom.Content.Html.elt
+   -> unit
+ (**
+    [bind ~compute_final_pos elt] makes [elt] left-right
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_time_picker.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_time_picker.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_time_picker.eliom
+@@ -20,8 +20,8 @@
+ 
+ [%%shared.start] (* shared by default, override as necessary *)
+ 
+-open Eliom_shared.React.S.Infix
+-open Eliom_content.Html
++open Eliom.Shared.React.S.Infix
++open Eliom.Content.Html
+ open%client Js_of_ocaml
+ 
+ [%%client open Js_of_ocaml_lwt]
+@@ -118,10 +118,10 @@ let cartesian_of_i ?(radius = 40) de i =
+   let e = i * de in
+   polar_to_cartesian (radius, e)
+ 
+-let clock_reactive_hand ?(radius = Eliom_shared.React.S.const 31) e =
++let clock_reactive_hand ?(radius = Eliom.Shared.React.S.const 31) e =
+   let a =
+     let d =
+-      Eliom_shared.React.S.l2
++      Eliom.Shared.React.S.l2
+         [%shared
+           (fun r e ->
+              let x, y = polar_to_cartesian (r, e) in
+@@ -129,18 +129,18 @@ let clock_reactive_hand ?(radius = Eliom
+            : int -> int -> string)]
+         radius e
+     in
+-    Eliom_content.Svg.[D.a_class ["ot-tp-hand"]; R.a_d d]
++    Eliom.Content.Svg.[D.a_class ["ot-tp-hand"]; R.a_d d]
+   in
+-  Eliom_content.Svg.D.path ~a []
++  Eliom.Content.Svg.D.path ~a []
+ 
+ let clock_reactive_hand_circle
+       ?(radius = 9)
+-      ?(at_radius = Eliom_shared.React.S.const 40)
++      ?(at_radius = Eliom.Shared.React.S.const 40)
+       e
+   =
+   let a =
+     let cx =
+-      Eliom_shared.React.S.l2
++      Eliom.Shared.React.S.l2
+         [%shared
+           (fun r e ->
+              let x, _ = polar_to_cartesian (r, e) in
+@@ -148,7 +148,7 @@ let clock_reactive_hand_circle
+            : int -> int -> Svg_types.Unit.length)]
+         at_radius e
+     and cy =
+-      Eliom_shared.React.S.l2
++      Eliom.Shared.React.S.l2
+         [%shared
+           (fun r e ->
+              let _, y = polar_to_cartesian (r, e) in
+@@ -156,16 +156,16 @@ let clock_reactive_hand_circle
+            : int -> int -> Svg_types.Unit.length)]
+         at_radius e
+     in
+-    let open Eliom_content.Svg in
++    let open Eliom.Content.Svg in
+     [ D.a_class ["ot-tp-hand-circle"]
+     ; D.a_r (float_of_int radius, Some `Px)
+     ; R.a_cx cx
+     ; R.a_cy cy ]
+   in
+-  Eliom_content.Svg.(D.circle ~a [D.title (D.txt "")])
++  Eliom.Content.Svg.(D.circle ~a [D.title (D.txt "")])
+ 
+ let make_clock_point ?(zero_is_12 = false) extra_attributes radius de step i =
+-  let open Eliom_content.Svg.F in
++  let open Eliom.Content.Svg.F in
+   let x, y = cartesian_of_i ~radius de i in
+   let a =
+     a_class ["ot-tp-text"]
+@@ -182,7 +182,7 @@ let clock_svg
+       ?(extra_attributes = [])
+       ?(n = 12)
+       ?(step = 1)
+-      (e : int Eliom_shared.React.S.t)
++      (e : int Eliom.Shared.React.S.t)
+   =
+   assert (n >= 0 && 360 mod n = 0);
+   let de = 360 / n in
+@@ -190,7 +190,7 @@ let clock_svg
+     make_clock_point ?zero_is_12 extra_attributes 40 de step |> list_init n
+   and h1 = clock_reactive_hand e
+   and h2 = clock_reactive_hand_circle e in
+-  Eliom_content.Svg.D.g (h1 :: h2 :: l)
++  Eliom.Content.Svg.D.g (h1 :: h2 :: l)
+ 
+ let clock_svg_24h ?(extra_attributes = []) b h =
+   let de = 30 in
+@@ -205,7 +205,7 @@ let clock_svg_24h ?(extra_attributes = [
+     let at_radius = b >|= [%shared function true, _ -> 30 | _ -> 42] in
+     clock_reactive_hand_circle ~radius:6 ~at_radius h
+   in
+-  Eliom_content.Svg.D.g ((h1 :: h2 :: l1) @ l2)
++  Eliom.Content.Svg.D.g ((h1 :: h2 :: l1) @ l2)
+ 
+ let convert_24h is_am h = if is_am then h else h + 12
+ let%client ( >>! ) = Js.Opt.iter
+@@ -258,20 +258,20 @@ let%client wrap_click_24h ev f_e f_b =
+     f_b r;
+     f_e (e, true))
+ 
+-let clock_html_wrap ?(classes = []) s (f : (int * bool) rf Eliom_client_value.t)
++let clock_html_wrap ?(classes = []) s (f : (int * bool) rf Eliom.Client_value.t)
+   =
+   let e =
+     let a =
+-      let open Eliom_content.Svg.F in
++      let open Eliom.Content.Svg.F in
+       [ a_class ("ot-tp-clock" :: "ot-tp-click-anywhere" :: classes)
+       ; a_viewBox (0., 0., 100., 100.)
+       ; a_onclick [%client fun ev -> wrap_click ev ~%f] ]
+     in
+-    Eliom_content.Html.D.svg ~a [s]
++    Eliom.Content.Html.D.svg ~a [s]
+   in
+   let _ =
+     [%client
+-      (let e = Eliom_content.Html.To_dom.of_element ~%e in
++      (let e = Eliom.Content.Html.To_dom.of_element ~%e in
+        ( Lwt.async @@ fun () ->
+          Lwt_js_events.touchends e @@ fun ev _ ->
+          Lwt.return (wrap_touch ~ends:true ev ~%f) );
+@@ -297,14 +297,14 @@ let clock_html_wrap_24h ?(classes = [])
+             wrap_click_24h ev (~%f_e ?step) f_b;
+             React.Step.execute step']
+       in
+-      let open Eliom_content.Svg.F in
++      let open Eliom.Content.Svg.F in
+       [ a_class
+           ("ot-tp-clock" :: "ot-tp-clock-24h" :: "ot-tp-click-anywhere"
+          :: classes)
+       ; a_viewBox (0., 0., 100., 100.)
+       ; a_onclick f ]
+     in
+-    Eliom_content.Html.D.svg ~a [s]
++    Eliom.Content.Html.D.svg ~a [s]
+   in
+   ignore
+   @@ [%client
+@@ -313,7 +313,7 @@ let clock_html_wrap_24h ?(classes = [])
+           let f_b (r, b) = ~%f_b ~step (r <= 35, b) in
+           wrap_touch_24h ~ends ev (~%f_e ~step) f_b;
+           React.Step.execute step
+-        and e = Eliom_content.Html.To_dom.of_element ~%e in
++        and e = Eliom.Content.Html.To_dom.of_element ~%e in
+         ( Lwt.async @@ fun () ->
+           Lwt_js_events.touchends e @@ fun ev _ -> Lwt.return (f ~ends:true ev)
+         );
+@@ -367,9 +367,9 @@ let display_hours_minutes_seq ?(h24 = fa
+ 
+ let combine_inputs_hours_minutes ?round_5 e_h e_m z_e_h z_e_m is_am =
+   let f = [%shared fun (x, b) -> if b then Some x else None] in
+-  let e_h = Eliom_shared.React.S.fmap f [%shared ~%z_e_h] e_h
+-  and e_m = Eliom_shared.React.S.fmap f [%shared ~%z_e_m] e_m in
+-  Eliom_shared.React.S.l3
++  let e_h = Eliom.Shared.React.S.fmap f [%shared ~%z_e_h] e_h
++  and e_m = Eliom.Shared.React.S.fmap f [%shared ~%z_e_m] e_m in
++  Eliom.Shared.React.S.l3
+     [%shared
+       fun e_h e_m is_am ->
+         let h = angle_to_hours e_h |> convert_24h is_am
+@@ -378,10 +378,10 @@ let combine_inputs_hours_minutes ?round_
+     e_h e_m is_am
+ 
+ let display_hours_minutes_seq ?h24 f =
+-  Eliom_shared.React.S.l2 [%shared display_hours_minutes_seq ?h24:~%h24 ~%f]
++  Eliom.Shared.React.S.l2 [%shared display_hours_minutes_seq ?h24:~%h24 ~%f]
+ 
+ let show_minutes_aux
+-      ?(action : (int * int -> unit Lwt.t) Eliom_client_value.t option)
++      ?(action : (int * int -> unit Lwt.t) Eliom.Client_value.t option)
+       e_m
+       hm
+       f_e_m
+@@ -399,7 +399,7 @@ let show_minutes_aux
+        : (int * bool) rf)]
+ 
+ let get_angle_signal ?round =
+-  Eliom_shared.React.S.map
++  Eliom.Shared.React.S.map
+     [%shared
+       fun (e, b) ->
+         match b, ~%round with
+@@ -407,22 +407,22 @@ let get_angle_signal ?round =
+         | _, _ -> e]
+ 
+ let make_hours_minutes_seq_24h
+-      ?(action : (int * int -> unit Lwt.t) Eliom_client_value.t option)
++      ?(action : (int * int -> unit Lwt.t) Eliom.Client_value.t option)
+       ?(init = 0, 0)
+-      ?(update : (int * int) React.E.t Eliom_client_value.t option)
++      ?(update : (int * int) React.E.t Eliom.Client_value.t option)
+       ?round_5
+       ()
+   =
+   let i_h, i_m = init in
+   let i_m = round_5_minutes ?round_5 i_m in
+   let z_e_h = i_h mod 12 * 30 and z_e_m = i_m * 6 and z_am = i_h < 12 in
+-  let e_h, f_e_h = Eliom_shared.React.S.create (z_e_h, true)
+-  and e_m, f_e_m = Eliom_shared.React.S.create (z_e_m, true)
+-  and is_am, f_is_am = Eliom_shared.React.S.create (z_am, true) in
+-  let b, f_b = Eliom_shared.React.S.create true in
++  let e_h, f_e_h = Eliom.Shared.React.S.create (z_e_h, true)
++  and e_m, f_e_m = Eliom.Shared.React.S.create (z_e_m, true)
++  and is_am, f_is_am = Eliom.Shared.React.S.create (z_am, true) in
++  let b, f_b = Eliom.Shared.React.S.create true in
+   let hm =
+     let is_am =
+-      Eliom_shared.React.S.fmap
++      Eliom.Shared.React.S.fmap
+         [%shared fun (x, b) -> if b then Some x else None]
+         [%shared ~%z_am] is_am
+     in
+@@ -431,8 +431,8 @@ let make_hours_minutes_seq_24h
+   let g_h =
+     let e_h' = get_angle_signal ~round:true e_h
+     and f_e_h =
+-      Eliom_shared.Value.create
+-        (Eliom_shared.Value.local f_e_h)
++      Eliom.Shared.Value.create
++        (Eliom.Shared.Value.local f_e_h)
+         [%client
+           fun ?step ((_, b) as p) ->
+             ~%f_e_h ?step p;
+@@ -462,7 +462,7 @@ let make_hours_minutes_seq_24h
+              ~%f_e_m (m * 6, true);
+              ~%f_is_am (b, true)
+            in
+-           Eliom_lib.Dom_reference.retain (To_dom.of_element ~%elt)
++           Eliom.Lib.Dom_reference.retain (To_dom.of_element ~%elt)
+              ~keep:(React.E.map f ~%update)
+            : unit)]
+   | None -> ());
+@@ -472,9 +472,9 @@ let make_hours_minutes_seq ?action ?(ini
+   let i_h, i_m = init in
+   let i_m = round_5_minutes ?round_5 i_m in
+   let z_e_h = i_h mod 12 * 30 and z_e_m = i_m * 6 in
+-  let e_h, f_e_h = Eliom_shared.React.S.create (z_e_h, true)
+-  and e_m, f_e_m = Eliom_shared.React.S.create (z_e_m, true)
+-  and b, f_b = Eliom_shared.React.S.create true in
++  let e_h, f_e_h = Eliom.Shared.React.S.create (z_e_h, true)
++  and e_m, f_e_m = Eliom.Shared.React.S.create (z_e_m, true)
++  and b, f_b = Eliom.Shared.React.S.create true in
+   let witness = D.div [] in
+   let c, is_am =
+     let update =
+@@ -486,7 +486,7 @@ let make_hours_minutes_seq ?action ?(ini
+                 ~%f_e_h (h * 30, true));
+                ~%f_e_m (m * 6, true)
+              in
+-             Eliom_lib.Dom_reference.retain
++             Eliom.Lib.Dom_reference.retain
+                (To_dom.of_element ~%witness)
+                ~keep:(React.E.map f ~%update)
+              : unit)]
+@@ -500,7 +500,7 @@ let make_hours_minutes_seq ?action ?(ini
+   in
+   let hm = combine_inputs_hours_minutes ?round_5 e_h e_m z_e_h z_e_m is_am in
+   let g_h =
+-    let e_h' = Eliom_shared.React.S.map [%shared fst] e_h
++    let e_h' = Eliom.Shared.React.S.map [%shared fst] e_h
+     and f_e_h =
+       [%client
+         fun ?step ((_, b) as p) ->
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_time_picker.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_time_picker.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_time_picker.eliomi
+@@ -23,15 +23,15 @@
+ (** This module implements a clock-style time picker. *)
+ 
+ val make :
+-   ?action:(int * int -> unit Lwt.t) Eliom_client_value.t
++   ?action:(int * int -> unit Lwt.t) Eliom.Client_value.t
+   -> ?init:int * int
+-  -> ?update:(int * int) React.E.t Eliom_client_value.t
++  -> ?update:(int * int) React.E.t Eliom.Client_value.t
+   -> ?round_5:bool
+   -> ?h24:bool
+   -> unit
+-  -> [> `Div] Eliom_content.Html.elt
+-     * (int * int) Eliom_shared.React.S.t
+-     * (unit -> unit) Eliom_client_value.t
++  -> [> `Div] Eliom.Content.Html.elt
++     * (int * int) Eliom.Shared.React.S.t
++     * (unit -> unit) Eliom.Client_value.t
+ (** [make ?action ?round_5 ?h24 ()] produces a clock-style time picker
+     for hours and minutes. The user is first asked to pick hours, then
+     minutes with a separate clock.
+@@ -56,13 +56,13 @@ val make :
+     is a function that can be called to go back to hours selection. *)
+ 
+ val make_hours_minutes_seq :
+-   ?action:(int * int -> unit Lwt.t) Eliom_client_value.t
++   ?action:(int * int -> unit Lwt.t) Eliom.Client_value.t
+   -> ?init:int * int
+-  -> ?update:(int * int) React.E.t Eliom_client_value.t
++  -> ?update:(int * int) React.E.t Eliom.Client_value.t
+   -> ?round_5:bool
+   -> ?h24:bool
+   -> unit
+-  -> [> `Div] Eliom_content.Html.elt
+-     * (int * int) Eliom_shared.React.S.t
+-     * (unit -> unit) Eliom_client_value.t
++  -> [> `Div] Eliom.Content.Html.elt
++     * (int * int) Eliom.Shared.React.S.t
++     * (unit -> unit) Eliom.Client_value.t
+ (** Alias of [make]. Deprecated. *)
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_tip.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_tip.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_tip.eliom
+@@ -21,8 +21,8 @@
+  *)
+ open Js_of_ocaml]
+ 
+-[%%client open Eliom_content.Html]
+-[%%client open Eliom_content.Html.F]
++[%%client open Eliom.Content.Html]
++[%%client open Eliom.Content.Html.F]
+ 
+ let%client
+     display
+@@ -37,7 +37,7 @@ let%client
+       ?(onclose = fun _ _ -> ())
+       ~(content :
+          (unit -> unit)
+-         -> [< Html_types.div_content_fun > `Div] Eliom_content.Html.elt list)
++         -> [< Html_types.div_content_fun > `Div] Eliom.Content.Html.elt list)
+       ()
+   =
+   let close = ref @@ fun () -> () in
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_tip.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_tip.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_tip.eliomi
+@@ -70,23 +70,23 @@ open Js_of_ocaml
+  *)
+ 
+ val display :
+-   ?container_a:[< Html_types.div_attrib > `Class] Eliom_content.Html.attrib list
++   ?container_a:[< Html_types.div_attrib > `Class] Eliom.Content.Html.attrib list
+   -> ?filter_a:
+-       [< Html_types.div_attrib > `Class `OnClick] Eliom_content.Html.attrib
++       [< Html_types.div_attrib > `Class `OnClick] Eliom.Content.Html.attrib
+          list
+   -> ?position:[`Forced_top | `Top | `Ratio of float | `Bottom | `Forced_bottom]
+   -> ?side:[`Left | `Right | `Center]
+   -> origin:Dom_html.element Js.t
+   -> ?onopen:
+-       ([> Html_types.div] Eliom_content.Html.elt
+-        -> [> Html_types.div] Eliom_content.Html.elt
++       ([> Html_types.div] Eliom.Content.Html.elt
++        -> [> Html_types.div] Eliom.Content.Html.elt
+         -> unit)
+   -> ?onclose:
+-       ([> Html_types.div] Eliom_content.Html.elt
+-        -> [> Html_types.div] Eliom_content.Html.elt
++       ([> Html_types.div] Eliom.Content.Html.elt
++        -> [> Html_types.div] Eliom.Content.Html.elt
+         -> unit)
+   -> content:
+        ((unit -> unit)
+-        -> [< Html_types.div_content_fun > `Div] Eliom_content.Html.elt list)
++        -> [< Html_types.div_content_fun > `Div] Eliom.Content.Html.elt list)
+   -> unit
+-  -> [> Html_types.div] Eliom_content.Html.elt * (unit -> unit)
++  -> [> Html_types.div] Eliom.Content.Html.elt * (unit -> unit)
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_toggle.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_toggle.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_toggle.eliom
+@@ -20,8 +20,8 @@
+ 
+ [%%shared.start] (* shared by default, override as necessary *)
+ 
+-open Eliom_content.Html
+-open Eliom_shared.React.S.Infix
++open Eliom.Content.Html
++open Eliom.Shared.React.S.Infix
+ 
+ type t = T_Up | T_Down
+ 
+@@ -53,10 +53,10 @@ let make
+       ?(init_up = false)
+       ?up_txt
+       ?down_txt
+-      ?(update : bool React.E.t Eliom_client_value.t option)
++      ?(update : bool React.E.t Eliom.Client_value.t option)
+       ()
+   =
+-  let e, f = Eliom_shared.React.S.create (if init_up then T_Up else T_Down) in
++  let e, f = Eliom.Shared.React.S.create (if init_up then T_Up else T_Down) in
+   let elt =
+     D.div
+       [ e
+@@ -68,8 +68,8 @@ let make
+       ignore
+       @@ [%client
+            (let f b = ~%f (up_for_true b) in
+-            Eliom_lib.Dom_reference.retain (To_dom.of_element ~%elt)
+-              ~keep:(Eliom_shared.React.E.map f ~%update)
++            Eliom.Lib.Dom_reference.retain (To_dom.of_element ~%elt)
++              ~keep:(Eliom.Shared.React.E.map f ~%update)
+             : unit)]
+   | None -> ());
+   elt, e >|= [%shared function T_Up -> true | _ -> false]
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_toggle.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_toggle.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_toggle.eliomi
+@@ -26,9 +26,9 @@ val make :
+    ?init_up:bool
+   -> ?up_txt:string
+   -> ?down_txt:string
+-  -> ?update:bool React.E.t Eliom_client_value.t
++  -> ?update:bool React.E.t Eliom.Client_value.t
+   -> unit
+-  -> [> `Div] Eliom_content.Html.elt * bool Eliom_shared.React.S.t
++  -> [> `Div] Eliom.Content.Html.elt * bool Eliom.Shared.React.S.t
+ (** [make ?init_up ?up_txt ?down_txt ()] produces a binary toggle. If
+     [init_up] is true, the toggle is originally up (default: down). The
+     buttons for the "up" and "down" positions are marked with [up_txt]
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_tongue.eliom
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_tongue.eliom
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_tongue.eliom
+@@ -1,6 +1,6 @@
+ [%%shared
+-open Eliom_content.Html
+-open Eliom_content.Html.F]
++open Eliom.Content.Html
++open Eliom.Content.Html.F]
+ 
+ [%%client
+ open Lwt.Infix
+@@ -45,12 +45,12 @@ type%shared stop =
+   | `Interval of simple_stop * simple_stop ]
+ 
+ type%shared tongue =
+-  { elt : Html_types.div Eliom_content.Html.D.elt
+-  ; stop_signal_before : simple_stop React.S.t Eliom_client_value.t
+-  ; stop_signal_after : simple_stop React.S.t Eliom_client_value.t
+-  ; swipe_pos : int React.S.t Eliom_client_value.t
+-  ; px_signal_before : int React.S.t Eliom_client_value.t
+-  ; px_signal_after : int React.S.t Eliom_client_value.t }
++  { elt : Html_types.div Eliom.Content.Html.D.elt
++  ; stop_signal_before : simple_stop React.S.t Eliom.Client_value.t
++  ; stop_signal_after : simple_stop React.S.t Eliom.Client_value.t
++  ; swipe_pos : int React.S.t Eliom.Client_value.t
++  ; px_signal_before : int React.S.t Eliom.Client_value.t
++  ; px_signal_after : int React.S.t Eliom.Client_value.t }
+ 
+ let%client now () = Js.to_float (new%js Js.date_now)##getTime /. 1000.
+ 
+@@ -370,7 +370,7 @@ let%client
+   Lwt.async (fun () -> touchstarts handle' ontouchstart);
+   match update with
+   | Some update ->
+-      Eliom_lib.Dom_reference.retain elt'
++      Eliom.Lib.Dom_reference.retain elt'
+         ~keep:(React.E.map (fun stop -> set 0.0 (stop, true)) update)
+   | None -> ()
+ 
+@@ -410,7 +410,7 @@ let%shared
+       (Lwt.async (fun () ->
+          let* () = Ot_nodeready.nodeready (To_dom.of_element ~%elt) in
+          bind ~%side ~%stops ~%init ~%handle
+-           ~%(update : simple_stop React.E.t Eliom_client_value.t option)
++           ~%(update : simple_stop React.E.t Eliom.Client_value.t option)
+            (snd ~%before_signal) (snd ~%after_signal) (snd ~%swipe_pos) ~%elt;
+          Lwt.return_unit)
+        : unit)];
+Index: ocsigen-toolkit-4.3.0/src/widgets/ot_tongue.eliomi
+===================================================================
+--- ocsigen-toolkit-4.3.0.orig/src/widgets/ot_tongue.eliomi
++++ ocsigen-toolkit-4.3.0/src/widgets/ot_tongue.eliomi
+@@ -9,25 +9,25 @@ type stop =
+   | `Interval of simple_stop * simple_stop ]
+ 
+ type tongue =
+-  { elt : Html_types.div Eliom_content.Html.D.elt
+-  ; stop_signal_before : simple_stop React.S.t Eliom_client_value.t
+-  ; stop_signal_after : simple_stop React.S.t Eliom_client_value.t
+-  ; swipe_pos : int React.S.t Eliom_client_value.t
+-  ; px_signal_before : int React.S.t Eliom_client_value.t
+-  ; px_signal_after : int React.S.t Eliom_client_value.t }
++  { elt : Html_types.div Eliom.Content.Html.D.elt
++  ; stop_signal_before : simple_stop React.S.t Eliom.Client_value.t
++  ; stop_signal_after : simple_stop React.S.t Eliom.Client_value.t
++  ; swipe_pos : int React.S.t Eliom.Client_value.t
++  ; px_signal_before : int React.S.t Eliom.Client_value.t
++  ; px_signal_after : int React.S.t Eliom.Client_value.t }
+ (** Signals contain the current
+     position of the tongue, as a [simple_stop] or as [int].
+     Before (resp. after) signals are triggered before (resp. after) transition.
+     [swipe_pos] represents the position during the swipe of the user *)
+ 
+ val tongue :
+-   ?a:[< Html_types.div_attrib] Eliom_content.Html.attrib list
++   ?a:[< Html_types.div_attrib] Eliom.Content.Html.attrib list
+   -> ?side:[`Bottom | `Left | `Right | `Top]
+   -> ?stops:stop list
+   -> ?init:simple_stop
+-  -> ?handle:Html_types.div_content Eliom_content.Html.elt
+-  -> ?update:simple_stop React.event Eliom_client_value.t
+-  -> [< Html_types.div_content_fun] Eliom_content.Html.elt list
++  -> ?handle:Html_types.div_content Eliom.Content.Html.elt
++  -> ?update:simple_stop React.event Eliom.Client_value.t
++  -> [< Html_types.div_content_fun] Eliom.Content.Html.elt list
+   -> tongue
+ (**
+    A tongue is an expandable panel that can appear from a side of the screen

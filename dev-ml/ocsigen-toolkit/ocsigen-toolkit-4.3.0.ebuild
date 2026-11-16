@@ -23,3 +23,4 @@ fi
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
+PATCHES=( "${FILESDIR}/eliom.patch" )
