@@ -16,4 +16,3 @@ IUSE=""
 
 RDEPEND=""
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/cohttp.patch" )
