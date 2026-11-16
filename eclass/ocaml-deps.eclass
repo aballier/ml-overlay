@@ -524,7 +524,7 @@ domain-name fmt mirage-crypto-ec kdf logs ipaddr ohex ptime"
 	[webmachine]="ptime cohttp dispatch re"
 	[websocket]="base64 cohttp ocplib-endian astring mirage-crypto-rng"
 	[websocket-async]="websocket async cohttp-async core logs-async logs-async-reporter core_unix"
-	[websocket-lwt-unix]="websocket lwt_log cohttp-lwt-unix"
+	[websocket-lwt-unix]="websocket conduit-lwt-unix logs lwt mirage-crypto-rng sexplib cohttp-lwt-unix"
 	[wtf8]=""
 	[x509]="asn1-combinators ptime base64 mirage-crypto mirage-crypto-pk mirage-crypto-ec mirage-crypto-rng
 kdf fmt gmap domain-name logs ipaddr ohex"
