@@ -16,4 +16,7 @@ IUSE=""
 
 RDEPEND="dev-libs/openssl:0="
 DEPEND="${RDEPEND}"
-PATCHES=( "${FILESDIR}/gcc14.patch" )
+PATCHES=(
+	"${FILESDIR}/gcc14.patch"
+	"${FILESDIR}/openssl4.patch"
+)

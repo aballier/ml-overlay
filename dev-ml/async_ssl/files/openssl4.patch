@@ -1,0 +1,26 @@
+--- a/bindings/ffi_bindings.ml
++++ b/bindings/ffi_bindings.ml
+@@ -451,8 +451,10 @@
+ 
+     let length = foreign "ASN1_STRING_length" Ctypes.(t @-> returning int)
+ 
+-    (* returns internal pointer, do not free (source: manpage of ASN1_STRING_data(3)) *)
+-    let data = foreign "ASN1_STRING_data" Ctypes.(t @-> returning string)
++    (* returns internal pointer, do not free (source: manpage of
++       ASN1_STRING_get0_data(3)). [ASN1_STRING_data] was deprecated in OpenSSL 1.1.0 and
++       removed in OpenSSL 4.0. *)
++    let data = foreign "ASN1_STRING_get0_data" Ctypes.(t @-> returning string)
+   end
+ 
+   module X509_name_entry = struct
+--- a/stubgen/ffi_stubgen.ml
++++ b/stubgen/ffi_stubgen.ml
+@@ -4,6 +4,8 @@
+ 
+ let prologue =
+   "\n\
++   /* OpenSSL >= 4.0 removed the ENGINE API; ask its headers for no-op stubs instead. */\n\
++   #define OPENSSL_ENGINE_STUBS\n\
+    #include <openssl/ssl.h>\n\
+    #include <openssl/err.h>\n\
+    #include <openssl/conf.h>\n\n\
