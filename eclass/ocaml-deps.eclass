@@ -17,7 +17,7 @@ _OCAML_DEPS_ECLASS=1
 declare -A -g _GLOBAL_OCAML_DEPS=(
 	[0install-solver]=""
 	[afl-persistent]="findlib"
-	[alcotest]="fmt astring cmdliner ocaml-syntax-shims stdlib-shims re uutf"
+	[alcotest]="fmt astring cmdliner re"
 	[alcotest-async]="alcotest async_unix async async_kernel base core core_unix"
 	[alcotest-lwt]="alcotest lwt logs fmt"
 	[angstrom]="bigstringaf"
@@ -64,6 +64,8 @@ declare -A -g _GLOBAL_OCAML_DEPS=(
 	[cairo2-gtk]="cairo2 lablgtk"
 	[cairo2-pango]="cairo2 lablgtk"
 	[calendar]="re"
+	[camlp5]="bos camlp-streams camlp5-buildscripts findlib fmt pcre2 re rresult"
+	[camlp5-buildscripts]="bos fmt not-ocamlfind re"
 	[capitalization]="base ppx_base"
 	[camldbm]=""
 	[camlimages]="graphics lablgtk"
@@ -293,6 +295,7 @@ js_of_ocaml-tyxml logs tyxml ocsigenserver re reactiveData ppxlib ocsipersist xm
 	[msgpck]="ocplib-endian"
 	[mtime]=""
 	[nanomsg]="ctypes ctypes-foreign ipaddr ppx_deriving containers bigstring"
+	[not-ocamlfind]="camlp-streams findlib fmt ocamlgraph rresult"
 	[npy]="camlzip"
 	[num]=""
 	[ocamlbuild]=""
@@ -595,7 +598,7 @@ declare -A -g _GLOBAL_OCAML_BUILD_DEPS=(
 
 declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[0install-solver]="ounit2"
-	[alcotest-async]="cmdliner fmt re"
+	[alcotest-async]="cmdliner fmt re ppx_jane"
 	[alcotest-lwt]="cmdliner re"
 	[arp]="alcotest bos mirage-vnetif"
 	[angstrom]="alcotest ppx_let"
@@ -609,9 +612,11 @@ declare -A -g _GLOBAL_OCAML_TEST_DEPS=(
 	[bigstringaf]="alcotest"
 	[bisect_ppx]="ocamlformat"
 	[calendar]="alcotest"
+	[camlp5-buildscripts]="mdx"
 	[camomile]="stdlib-random"
 	[capnp]="base_quickcheck ounit2"
 	[ca-certs]="alcotest fmt"
+	[camlp5]="mdx ounit2"
 	[charInfo_width]="ppx_expect"
 	[checkseum]="alcotest astring bos findlib fmt fpath rresult"
 	[cinaps]="ppx_jane"
@@ -855,9 +860,11 @@ let rec print_deps is_dep = function
 	| String (_,"base-threads") -> ()
 	| String (_,"base-unix") -> ()
 	| String (_,"conf-adwaita-icon-theme") -> ()
+	| String (_,"conf-bash") -> ()
 	| String (_,"conf-cairo") -> ()
 	| String (_,"conf-capnproto") -> ()
 	| String (_,"conf-c++") -> ()
+	| String (_,"conf-diffutils") -> ()
 	| String (_,"conf-dpkg") -> ()
 	| String (_,"conf-ffmpeg") -> ()
 	| String (_,"conf-findutils") -> ()
@@ -884,11 +891,13 @@ let rec print_deps is_dep = function
 	| String (_,"conf-libX11") -> ()
 	| String (_,"conf-libXft") -> ()
 	| String (_,"conf-linux-libc-dev") -> ()
+	| String (_,"conf-m4") -> ()
 	| String (_,"conf-nanomsg") -> ()
 	| String (_,"conf-ncurses") -> ()
 	| String (_,"conf-npm") -> ()
 	| String (_,"conf-openblas") -> ()
 	| String (_,"conf-openssl") -> ()
+	| String (_,"conf-perl") -> ()
 	| String (_,"conf-pkg-config") -> ()
 	| String (_,"conf-postgresql") -> ()
 	| String (_,"conf-python-3") -> ()
