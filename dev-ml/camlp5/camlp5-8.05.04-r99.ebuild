@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit multilib findlib
+inherit multilib findlib opam
 
 MY_P=${P%_p*}
 DESCRIPTION="A preprocessor-pretty-printer of ocaml"
@@ -15,15 +15,9 @@ SLOT="0/${PV}"
 KEYWORDS="~amd64 ~ppc ~x86"
 IUSE="doc +ocamlopt"
 
-DEPEND=">=dev-lang/ocaml-3.10:=[ocamlopt?]
-	dev-ml/camlp-streams:=
-	dev-ml/re:=
-	dev-ml/pcre2:=
-	dev-ml/rresult:=
-	dev-ml/bos:=
-	dev-ml/fmt:=
-"
+DEPEND=""
 RDEPEND="${DEPEND}"
+OPAM_FILE=opam
 
 PATCHLEVEL=${PV#*_p}
 PATCHLIST=""
