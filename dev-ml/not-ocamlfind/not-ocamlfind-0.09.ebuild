@@ -19,7 +19,7 @@ BDEPEND=""
 OPAM_FILE=opam
 
 src_configure() {
-	./configure -bindir bin -sitelib $(get_libdir)/ocaml -mandir man -config "%{lib}%/findlibfindlib.conf" -no-custom || die
+	./configure -bindir "/usr/bin" -sitelib "/usr/$(get_libdir)/ocaml" -mandir man -config "/usr/$(get_libdir)/ocaml/findlib/findlib.conf" -no-custom || die
 }
 
 src_compile() {
