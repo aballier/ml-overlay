@@ -1,0 +1,28 @@
+From bde1617c190b4dec7ca5829a60a4c6a45f07002a Mon Sep 17 00:00:00 2001
+From: Paul Guyot <pguyot@kallisys.net>
+Date: Sun, 26 Apr 2026 10:55:19 +0200
+Subject: [PATCH] fix build with bos 0.3.0: add rresult to PACKAGES
+
+bos 0.3.0 dropped rresult from its core library META dependencies
+(rresult is now only pulled in by bos.setup, not bos itself).
+fixin.ml uses open Rresult directly, so rresult must be listed
+explicitly in PACKAGES.
+
+Signed-off-by: Paul Guyot <pguyot@kallisys.net>
+---
+ src/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Makefile b/src/Makefile
+index 785c624..c8b2533 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -9,7 +9,7 @@ TOP=..
+ 
+ NOT_OCAMLFIND=not-ocamlfind
+ OCAMLFIND=ocamlfind
+-PACKAGES=re,fmt,unix,bos
++PACKAGES=re,fmt,unix,bos,rresult
+ 
+ BIN=ya-wrap-ocamlfind$(EXE) fixin$(EXE) join_meta$(EXE) LAUNCH$(EXE)
+ ifeq ($(OS),Windows_NT)
